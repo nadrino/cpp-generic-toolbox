@@ -7,27 +7,33 @@
 
 #include <GenericToolbox.h>
 
+using namespace std;
 
 int main(){
 
-  std::vector<std::string> vec{"this", "is", "a", "test"};
-  GenericToolbox::printVector(vec);
+  // String management
+  string str("This is a simple message.");
+  cout << "Does str contains \"simple message\"? " << GenericToolbox::doesStringContainsSubstring(str, "simple message") << endl;
+  cout << "Remove the caps chars: " << GenericToolbox::toLowerCase(str);
+  auto splitVec = GenericToolbox::splitString(str, " ");
+  cout << "Those are the words in str: "; GenericToolbox::printVector(splitVec);
+  cout << "Let's_join_the_vector_element:_" << GenericToolbox::joinVectorString(splitVec, "_") << endl;
+  cout << GenericToolbox::formatString("I would %s to create a printf-style string %i, %p", "like", 4, &splitVec) << endl;
 
 
-  std::string test = "lol_foo_bar";
-  auto split = GenericToolbox::splitString(test, "_");
-  for(const auto &str : split){
-    std::cout << str << std::endl;
-  }
+  // IO examples
+  cout << "Current working directory: " << GenericToolbox::getCurrentWorkingDirectory() << endl;
+  cout << "Is this a directory? " << GenericToolbox::doesPathIsFolder("../include") << endl;
+  cout << "Is this a file? " << GenericToolbox::doesPathIsFile("../include/GenericToolbox.h") << endl;
+  cout << "Its size: " << GenericToolbox::parseSizeUnits(GenericToolbox::getFileSizeInBytes("../include/GenericToolbox.h")) << endl;
+  cout << "Hash of this file: " << GenericToolbox::getHashFile("../include/GenericToolbox.h") << endl;
+  cout << "Are they identical?: " << GenericToolbox::doFilesAreTheSame("../include/GenericToolbox.h","../include/GenericToolbox_impl.h") << endl;
 
-  std::cout << "IsFile?: ../include/GenericToolbox.h: " << GenericToolbox::doesPathIsFile("../include/GenericToolbox.h") << std::endl;
-  std::cout << "Hash: ../include/GenericToolbox.h: " << GenericToolbox::getHashFile("../include/GenericToolbox.h") << std::endl;
-  std::cout << "Hash: ../include/GenericToolbox_impl.h: " << GenericToolbox::getHashFile("../include/GenericToolbox_impl.h") << std::endl;
-  std::cout << "Same?: " << GenericToolbox::doFilesAreTheSame("../include/GenericToolbox.h", "../include/GenericToolbox_impl.h") << std::endl;
-  std::cout << "Process RAM: " << GenericToolbox::parseSizeUnits(GenericToolbox::getProcessMemoryUsage()) << std::endl;
-  std::cout << "Process Max RAM: " << GenericToolbox::parseSizeUnits(GenericToolbox::getProcessMaxMemoryUsage()) << std::endl;
 
-  std::cout << GenericToolbox::formatString("count %i", 4) << std::endl;
+  // Hardware
+  cout << "Process takes this amount of RAM: " << GenericToolbox::parseSizeUnits(GenericToolbox::getProcessMemoryUsage()) << endl;
+  cout << "Process has taken this amount of RAM at max: " << GenericToolbox::parseSizeUnits(GenericToolbox::getProcessMaxMemoryUsage()) << endl;
+
 
   return EXIT_SUCCESS;
 }

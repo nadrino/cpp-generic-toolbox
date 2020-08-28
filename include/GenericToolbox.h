@@ -52,7 +52,7 @@ namespace GenericToolbox{
   bool copyFile(std::string source_file_path_, std::string destination_file_path_, bool force_ = false);
   bool mvFile(std::string sourceFilePath_, std::string destinationFilePath_, bool force_ = false);
   size_t getHashFile(std::string filePath_);
-  long int getFileSize(const std::string &filePath_);
+  long int getFileSizeInBytes(const std::string &filePath_);
   std::string getCurrentWorkingDirectory();
   std::string dumpFileAsString(std::string filePath_);
   std::vector<std::string> dumpFileAsVectorString(std::string filePath_);

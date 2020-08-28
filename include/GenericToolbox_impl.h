@@ -356,7 +356,7 @@ namespace GenericToolbox{
     std::hash<std::string> hashString;
     return hashString(dumpFileAsString(filePath_));
   }
-  long int getFileSize(const std::string &filePath_){
+  long int getFileSizeInBytes(const std::string &filePath_){
     long int output_size = 0;
     if(doesPathIsFile(filePath_)){
       std::ifstream testFile(filePath_.c_str(), std::ios::binary);
