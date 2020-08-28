@@ -16,5 +16,7 @@ int main(){
     std::cout << str << std::endl;
   }
 
+  std::cout << GenericToolbox::formatString("count %i", 4) << std::endl;
+
   return EXIT_SUCCESS;
 }
