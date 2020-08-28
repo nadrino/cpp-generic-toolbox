@@ -27,6 +27,10 @@ namespace GenericToolbox{
   template<typename ... Args> std::string formatString( std::string format, Args ... args );
 
 
+  //! Conversion Tools
+  bool toBool(std::string str);
+
+
   //! FS Tools
   // -- without IO dependencies
   bool doesFilePathHasExtension(const std::string &filePath_, std::string ext_);
