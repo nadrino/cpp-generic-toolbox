@@ -1,5 +1,5 @@
 //
-// Created by Adrien BLANCHET on 28/08/2020.
+// Created by Nadrino on 28/08/2020.
 //
 
 #ifndef CPP_GENERIC_TOOLBOX_GENERICTOOLBOX_IMPL_H
