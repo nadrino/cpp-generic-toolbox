@@ -2,7 +2,7 @@
 
 ## Description
 
-C++ Generic Toolbox is a namespace which aims at being included in any cpp project. This toolbox gathers a collection of function which aims at simplifying the management of common objects.
+C++ Generic Toolbox is a **header-only** namespace which aims at being included in any cpp project. This toolbox gathers a collection of useful functions which I got tired of copy pasting over my different projects...
 
 
 ## Showcase
@@ -11,4 +11,4 @@ C++ Generic Toolbox is a namespace which aims at being included in any cpp proje
 
 ## Requirements
 
-- **This library requires to be compile with at least C++11 or higher.**
+- **C++11 or higher is required to use this toolbox.**
