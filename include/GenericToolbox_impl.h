@@ -11,6 +11,7 @@
 #include <sstream>
 #include <unistd.h>
 #include <fstream>
+#include <dirent.h>
 
 
 // String Management Tools
@@ -85,6 +86,21 @@ namespace GenericToolbox {
     }
     return stripped_str;
   }
+  std::string parseSizeUnits(unsigned int sizeInBytes_){
+    if(sizeInBytes_ / 1024 == 0 ){ // print in bytes
+      return std::to_string(sizeInBytes_) + " B";
+    }
+    sizeInBytes_ = sizeInBytes_ / 1024; // in KB
+    if(sizeInBytes_ / 1024 == 0){ // print in KB
+      return std::to_string(sizeInBytes_) + " KB";
+    }
+    sizeInBytes_ = sizeInBytes_ / 1024; // in MB
+    if(sizeInBytes_ / 1024 == 0){ // print in MB
+      return std::to_string(sizeInBytes_) + " MB";
+    }
+    sizeInBytes_ = sizeInBytes_ / 1024; // in GB
+    return std::to_string(sizeInBytes_) + " GB";
+  }
   std::vector<std::string> splitString(const std::string &inputString_, std::string delimiter_) {
 
     std::vector<std::string> output_splited_string;
@@ -125,9 +141,10 @@ namespace GenericToolbox {
 }
 
 
-// FS Tools (without IO dependencies)
+// FS Tools
 namespace GenericToolbox{
 
+  // -- without IO dependencies
   bool doesFilePathHasExtension(const std::string &filePath_, std::string ext_){
     return doesStringEndsWithSubstring(filePath_, "."+ext_);
   }
@@ -144,11 +161,7 @@ namespace GenericToolbox{
     return folder_path;
   }
 
-}
-
-// FS Tools (with IO dependencies)
-namespace GenericToolbox{
-
+  // -- with direct IO dependencies
   bool doesPathIsFile(std::string filePath_){
     struct stat info{};
     stat(filePath_.c_str(), &info);
@@ -183,10 +196,10 @@ namespace GenericToolbox{
     return result;
 
   }
-  bool deleteFile(std::string file_path_){
-    if(not doesPathIsFile(file_path_)) return true;
-    std::remove(file_path_.c_str());
-    return not doesPathIsFile(file_path_);
+  bool deleteFile(std::string filePath_){
+    if(not doesPathIsFile(filePath_)) return true;
+    std::remove(filePath_.c_str());
+    return not doesPathIsFile(filePath_);
   }
   bool copyFile(std::string source_file_path_, std::string destination_file_path_, bool force_){
 
@@ -210,34 +223,46 @@ namespace GenericToolbox{
 
     return true;
   }
-  bool mvFile(std::string source_file_path_, std::string destination_file_path_, bool force_) {
+  bool mvFile(std::string sourceFilePath_, std::string destinationFilePath_, bool force_) {
 
-    if( not doesPathIsFile(source_file_path_) ){
+    if( not doesPathIsFile(sourceFilePath_) ){
       return false;
     }
 
-    if( doesPathIsFile(destination_file_path_) ){
+    if( doesPathIsFile(destinationFilePath_) ){
       if(force_){
-        deleteFile(destination_file_path_);
+        deleteFile(destinationFilePath_);
       }
       else{
         return false;
       }
     }
     else{
-      std::string destination_folder_path = getFolderPathFromFilePath(destination_file_path_);
+      std::string destination_folder_path = getFolderPathFromFilePath(destinationFilePath_);
       if(not doesPathIsFile(destination_folder_path)){
         mkdirPath(destination_folder_path);
       }
     }
 
-    std::rename(source_file_path_.c_str(), destination_file_path_.c_str());
+    std::rename(sourceFilePath_.c_str(), destinationFilePath_.c_str());
 
     if(
-      doesPathIsFile(destination_file_path_)
-      and not doesPathIsFile(source_file_path_)
+      doesPathIsFile(destinationFilePath_)
+      and not doesPathIsFile(sourceFilePath_)
       ) return true;
     else return false;
+  }
+  long int getFileSize(const std::string &filePath_){
+    long int output_size = 0;
+    if(doesPathIsFile(filePath_)){
+      std::ifstream testFile(filePath_.c_str(), std::ios::binary);
+      const auto begin = testFile.tellg();
+      testFile.seekg (0, std::ios::end);
+      const auto end = testFile.tellg();
+      const auto fsize = (end-begin);
+      output_size = fsize;
+    }
+    return output_size;
   }
   std::string getCurrentWorkingDirectory(){
     char cwd[1024];
@@ -245,7 +270,6 @@ namespace GenericToolbox{
     std::string output_cwd(cwd);
     return output_cwd;
   }
-
   std::string dumpFileAsString(std::string filePath_){
     std::string data;
     if(doesPathIsFile(filePath_)){
@@ -270,6 +294,96 @@ namespace GenericToolbox{
     }
 
     return lines;
+  }
+  std::vector<std::string> getListOfEntriesInFolder(std::string folderPath_) {
+
+    std::vector<std::string> entries_list;
+    if(not doesPathIsFolder(folderPath_)) return entries_list;
+    DIR* directory;
+    directory = opendir(folderPath_.c_str()); //Open current-working-directory.
+    if( directory == nullptr ) {
+      std::cout << "Failed to open directory : " << folderPath_ << std::endl;
+      return entries_list;
+    }
+    else {
+      struct dirent* entry;
+      while ( (entry = readdir(directory)) ) {
+        entries_list.emplace_back(entry->d_name);
+      }
+      closedir(directory);
+      return entries_list;
+    }
+
+  }
+  std::vector<std::string> getListOfSubfoldersInFolder(std::string folderPath_) {
+    std::vector<std::string> subfolders_list;
+    if(not doesPathIsFolder(folderPath_)) return subfolders_list;
+    DIR* directory;
+    directory = opendir(folderPath_.c_str()); //Open current-working-directory.
+    if( directory == nullptr ) {
+      std::cout << "Failed to open directory : " << folderPath_ << std::endl;
+      return subfolders_list;
+    } else {
+      struct dirent* entry;
+      while ( (entry = readdir(directory)) ) {
+        std::string folder_candidate = folderPath_ + "/" + std::string(entry->d_name);
+        if(doesPathIsFolder(folder_candidate)){
+          subfolders_list.emplace_back(entry->d_name);
+        }
+      }
+      closedir(directory);
+      return subfolders_list;
+    }
+
+  }
+  std::vector<std::string> getListOfFilesInFolder(std::string folderPath_){
+    std::vector<std::string> files_list;
+    if(not doesPathIsFolder(folderPath_)) return files_list;
+    DIR* directory;
+    directory = opendir(folderPath_.c_str()); //Open current-working-directory.
+    if( directory == nullptr ) {
+      std::cout << "Failed to open directory : " << folderPath_ << std::endl;
+      return files_list;
+    } else {
+      struct dirent* entry;
+      while ( (entry = readdir(directory)) ) {
+        std::string file_candidate = folderPath_ + "/" + std::string(entry->d_name);
+        if(doesPathIsFile(file_candidate)){
+          files_list.emplace_back(entry->d_name);
+        }
+      }
+      closedir(directory);
+      return files_list;
+    }
+  }
+
+  // -- with direct IO dependencies
+  bool doesFolderIsEmpty(std::string folderPath_){
+    if(not doesPathIsFolder(folderPath_)) return false;
+    return getListOfEntriesInFolder(folderPath_).empty();
+  }
+  std::vector<std::string> getListFilesInSubfolders(const std::string &folderPath_) {
+
+    // WARNING : Recursive function
+    std::vector<std::string> output_file_paths = getListOfFilesInFolder(folderPath_);
+
+    auto subfolder_names_list = getListOfSubfoldersInFolder(folderPath_);
+    for(auto &subfolder_name : subfolder_names_list){
+      std::string subfolder_full_path = folderPath_;
+      subfolder_full_path += "/";
+      subfolder_full_path += subfolder_name;
+      auto subfile_names_list = getListFilesInSubfolders(subfolder_full_path);
+      for(auto &subfile_name : subfile_names_list){
+        std::string relative_subfile_path;
+        relative_subfile_path += subfolder_name;
+        relative_subfile_path += "/";
+        relative_subfile_path += subfile_name;
+        output_file_paths.emplace_back(removeExtraDoubledCharacters(relative_subfile_path, "/"));
+      }
+    }
+
+    return output_file_paths;
+
   }
 
 }

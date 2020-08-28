@@ -16,8 +16,8 @@ int main(){
     std::cout << str << std::endl;
   }
 
-  std::cout << "Process RAM: " << GenericToolbox::getProcessMemoryUsage()/1024 << "kB" << std::endl;
-  std::cout << "Process Max RAM: " << GenericToolbox::getProcessMaxMemoryUsage()/1024 << "kB" << std::endl;
+  std::cout << "Process RAM: " << GenericToolbox::parseSizeUnits(GenericToolbox::getProcessMemoryUsage()) << std::endl;
+  std::cout << "Process Max RAM: " << GenericToolbox::parseSizeUnits(GenericToolbox::getProcessMaxMemoryUsage()) << std::endl;
 
   std::cout << GenericToolbox::formatString("count %i", 4) << std::endl;
 
