@@ -14,6 +14,49 @@
 #include <dirent.h>
 
 
+// Displaying Tools
+namespace GenericToolbox {
+
+  static std::time_t _progressLastDisplayedTimestamp_ = std::time(nullptr);
+
+  void displayProgress(int iCurrent_, int iTotal_, std::string title_, bool forcePrint_){
+    if(
+      std::time(nullptr) - GenericToolbox::_progressLastDisplayedTimestamp_ >= time_t(0.5) // every 0.5 second
+      or iCurrent_ == 0 // first call
+      or forcePrint_ // display every calls
+      or iCurrent_ >= iTotal_-1 // last entry
+      ){
+      GenericToolbox::_progressLastDisplayedTimestamp_ = std::time(nullptr);
+      std::cout << "\r" << title_ << ": ";
+      std::cout << int(round(double(iCurrent_) / iTotal_ * 100.)) << "%";
+      if(iCurrent_ < iTotal_-1)  std::cout << std::flush << "\r";
+      else std::cout << std::endl;
+    }
+  }
+  template <typename T> void printVector(const std::vector<T>& vector_){
+    std::cout << "{ ";
+    bool isFirst = true;
+    for(const auto& element: vector_){
+      if(not isFirst) std::cout << ", ";
+      else isFirst = false;
+      std::cout << element;
+    }
+    std::cout << " }" << std::endl;
+  }
+
+}
+
+
+//! Vector management
+namespace GenericToolbox {
+
+  template <typename T> bool doesElementIsInVector(T element_, const std::vector<T>& vector_){
+    return std::any_of(vector_.begin(), vector_.end(), element_);
+  }
+
+}
+
+
 // String Management Tools
 namespace GenericToolbox {
 

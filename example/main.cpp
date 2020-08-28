@@ -10,6 +10,10 @@
 
 int main(){
 
+  std::vector<std::string> vec{"this", "is", "a", "test"};
+  GenericToolbox::printVector(vec);
+
+
   std::string test = "lol_foo_bar";
   auto split = GenericToolbox::splitString(test, "_");
   for(const auto &str : split){
