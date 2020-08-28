@@ -30,14 +30,16 @@ namespace GenericToolbox{
   //! FS Tools
   // -- without IO dependencies
   bool doesFilePathHasExtension(const std::string &filePath_, std::string ext_);
-  std::string getFolderPathFromFilePath(std::string file_path_);
+  std::string getFolderPathFromFilePath(const std::string &filePath_);
   // -- with direct IO dependencies
   bool doesPathIsFile(std::string filePath_);
   bool doesPathIsFolder(std::string folderPath_);
+  bool doFilesAreTheSame(std::string filePath1_, std::string filePath2_);
   bool mkdirPath(std::string newFolderPath_);
   bool deleteFile(std::string filePath_);
   bool copyFile(std::string source_file_path_, std::string destination_file_path_, bool force_ = false);
   bool mvFile(std::string sourceFilePath_, std::string destinationFilePath_, bool force_ = false);
+  size_t getHashFile(std::string filePath_);
   long int getFileSize(const std::string &filePath_);
   std::string getCurrentWorkingDirectory();
   std::string dumpFileAsString(std::string filePath_);

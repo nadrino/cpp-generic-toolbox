@@ -148,10 +148,10 @@ namespace GenericToolbox{
   bool doesFilePathHasExtension(const std::string &filePath_, std::string ext_){
     return doesStringEndsWithSubstring(filePath_, "."+ext_);
   }
-  std::string getFolderPathFromFilePath(std::string file_path_){
+  std::string getFolderPathFromFilePath(const std::string &filePath_){
     std::string folder_path;
-    if(file_path_[0] == '/') folder_path += "/";
-    auto splitted_path = splitString(file_path_, "/");
+    if(filePath_[0] == '/') folder_path += "/";
+    auto splitted_path = splitString(filePath_, "/");
     folder_path += joinVectorString(
       splitted_path,
       "/",
@@ -171,6 +171,49 @@ namespace GenericToolbox{
     struct stat info{};
     stat( folderPath_.c_str(), &info );
     return bool(S_ISDIR(info.st_mode));
+  }
+  bool doFilesAreTheSame(std::string filePath1_, std::string filePath2_){
+
+    if( not doesPathIsFile(filePath1_) ) return false;
+    if( not doesPathIsFile(filePath2_) ) return false;
+
+    std::ifstream fileStream1(filePath1_);
+    std::ifstream fileStream2(filePath2_);
+
+    // Buffer size 1 Megabyte (or any number you like)
+    size_t buffer_size = 1<<20;
+    char *buffer1 = new char[buffer_size];
+    char *buffer2 = new char[buffer_size];
+
+    std::hash<std::string> hashBuffer1;
+    std::hash<std::string> hashBuffer2;
+
+    while (fileStream1 and fileStream2) {
+      // Try to read next chunk of data
+      fileStream1.read(buffer1, buffer_size);
+      fileStream2.read(buffer2, buffer_size);
+
+      // Get the number of bytes actually read
+      if(fileStream1.gcount() != fileStream2.gcount()){
+        return false;
+      }
+
+      size_t count = fileStream1.gcount();
+      // If nothing has been read, break
+      if( count == 0 ){
+        break;
+      }
+
+      // Compare hash files
+      if(hashBuffer1(buffer1) != hashBuffer2(buffer2))
+        return false;
+
+    }
+
+    delete[] buffer1;
+    delete[] buffer2;
+
+    return true;
   }
   bool mkdirPath(std::string newFolderPath_){
     bool result = false;
@@ -251,6 +294,10 @@ namespace GenericToolbox{
       and not doesPathIsFile(sourceFilePath_)
       ) return true;
     else return false;
+  }
+  size_t getHashFile(std::string filePath_) {
+    std::hash<std::string> hashString;
+    return hashString(dumpFileAsString(filePath_));
   }
   long int getFileSize(const std::string &filePath_){
     long int output_size = 0;

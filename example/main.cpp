@@ -16,6 +16,10 @@ int main(){
     std::cout << str << std::endl;
   }
 
+  std::cout << "IsFile?: ../include/GenericToolbox.h: " << GenericToolbox::doesPathIsFile("../include/GenericToolbox.h") << std::endl;
+  std::cout << "Hash: ../include/GenericToolbox.h: " << GenericToolbox::getHashFile("../include/GenericToolbox.h") << std::endl;
+  std::cout << "Hash: ../include/GenericToolbox_impl.h: " << GenericToolbox::getHashFile("../include/GenericToolbox_impl.h") << std::endl;
+  std::cout << "Same?: " << GenericToolbox::doFilesAreTheSame("../include/GenericToolbox.h", "../include/GenericToolbox_impl.h") << std::endl;
   std::cout << "Process RAM: " << GenericToolbox::parseSizeUnits(GenericToolbox::getProcessMemoryUsage()) << std::endl;
   std::cout << "Process Max RAM: " << GenericToolbox::parseSizeUnits(GenericToolbox::getProcessMaxMemoryUsage()) << std::endl;
 
