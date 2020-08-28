@@ -6,6 +6,7 @@
 #define CPP_GENERIC_TOOLBOX_GENERICTOOLBOX_H
 
 #include <string>
+#include <utility>
 #include <vector>
 #include <cmath>
 #include <sys/stat.h>
@@ -20,17 +21,17 @@ namespace GenericToolbox{
   bool doesStringContainsSubstring(std::string string_, std::string substring_, bool ignoreCase_ = false);
   bool doesStringStartsWithSubstring(std::string string_, std::string substring_, bool ignoreCase_ = false);
   bool doesStringEndsWithSubstring(std::string string_, std::string substring_, bool ignoreCase_ = false);
-  std::string toLowerCase(std::string& inputStr_);
-  std::string removeExtraDoubledCharacters(std::string inputStr_, std::string doubledChar_);
-  std::string joinVectorString(std::vector<std::string> string_list_, std::string delimiter_, int begin_index_ = 0, int end_index_ = 0);
-  std::string replaceSubstringInString(std::string input_str_, std::string substr_to_look_for_, std::string substr_to_replace_);
-  std::vector<std::string> splitString(std::string inputString_, std::string delimiter_);
+  std::string toLowerCase(const std::string &inputStr_);
+  std::string removeExtraDoubledCharacters(const std::string& inputStr_, std::string doubledChar_);
+  std::string joinVectorString(const std::vector<std::string> &string_list_, std::string delimiter_, int begin_index_ = 0, int end_index_ = 0);
+  std::string replaceSubstringInString(const std::string &input_str_, std::string substr_to_look_for_, std::string substr_to_replace_);
+  std::vector<std::string> splitString(const std::string& inputString_, std::string delimiter_);
   template<typename ... Args> std::string formatString( std::string format, Args ... args );
 
   // IO tools
   bool doesPathIsFile(std::string filePath_);
   bool doesPathIsFolder(std::string folderPath_);
-  bool doesFilePathHasExtension(std::string filePath_, std::string ext_);
+  bool doesFilePathHasExtension(const std::string &filePath_, std::string ext_);
   bool mkdirPath(std::string newFolderPath_);
   std::string getCurrentWorkingDirectory();
   std::string dumpFileAsString(std::string filePath_);
@@ -67,13 +68,13 @@ namespace GenericToolbox{
     }
     return (not string_.compare(string_.size() - substring_.size(), substring_.size(), substring_));
   }
-  std::string toLowerCase(std::string& inputStr_){
+  std::string toLowerCase(const std::string &inputStr_){
     std::string output_str(inputStr_);
     std::transform(output_str.begin(), output_str.end(), output_str.begin(),
                    [](unsigned char c) { return std::tolower(c); });
     return output_str;
   }
-  std::string removeExtraDoubledCharacters(std::string inputStr_, std::string doubledChar_){
+  std::string removeExtraDoubledCharacters(const std::string& inputStr_, std::string doubledChar_){
     std::vector<std::string> substr_list = splitString(inputStr_, doubledChar_);
     std::vector<std::string> cleaned_substr_list;
     for(int i_substr = 0 ; i_substr < int(substr_list.size()) ; i_substr++){
@@ -86,7 +87,7 @@ namespace GenericToolbox{
     if(doesStringEndsWithSubstring(inputStr_, doubledChar_)) cleaned_input_str += doubledChar_;
     return cleaned_input_str;
   }
-  std::string joinVectorString(std::vector<std::string> string_list_, std::string delimiter_, int begin_index_, int end_index_) {
+  std::string joinVectorString(const std::vector<std::string> &string_list_, std::string delimiter_, int begin_index_, int end_index_) {
 
     std::string joined_string;
     if(end_index_ == 0) end_index_ = int(string_list_.size());
@@ -102,7 +103,7 @@ namespace GenericToolbox{
 
     return joined_string;
   }
-  std::string replaceSubstringInString(std::string input_str_, std::string substr_to_look_for_, std::string substr_to_replace_){
+  std::string replaceSubstringInString(const std::string &input_str_, std::string substr_to_look_for_, std::string substr_to_replace_){
     std::string stripped_str = input_str_;
     size_t index = 0;
     while ((index = stripped_str.find(substr_to_look_for_, index)) != std::string::npos) {
@@ -111,7 +112,7 @@ namespace GenericToolbox{
     }
     return stripped_str;
   }
-  std::vector<std::string> splitString(std::string inputString_, std::string delimiter_){
+  std::vector<std::string> splitString(const std::string& inputString_, std::string delimiter_){
 
     std::vector<std::string> output_splited_string;
 
@@ -158,11 +159,6 @@ namespace GenericToolbox{
     stat( folderPath_.c_str(), &info );
     return bool(S_ISDIR(info.st_mode));
   }
-  bool doesFilePathHasExtension(std::string filePath_, std::string ext_){
-    auto splited = splitString(filePath_, ".");
-    if(splited[splited.size()-1] == ext_) return true;
-    return false;
-  }
   bool mkdirPath(std::string newFolderPath_){
     bool result = false;
     if(doesPathIsFolder(newFolderPath_)) return true;
@@ -186,6 +182,9 @@ namespace GenericToolbox{
 
     return result;
 
+  }
+  bool doesFilePathHasExtension(const std::string &filePath_, std::string ext_){
+    return doesStringEndsWithSubstring(filePath_, "."+ext_);
   }
   std::string getCurrentWorkingDirectory(){
     char cwd[1024];
