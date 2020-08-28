@@ -11,7 +11,7 @@
 // Index
 namespace GenericToolbox{
 
-  // string management
+  // String Management Tools
   bool doesStringContainsSubstring(std::string string_, std::string substring_, bool ignoreCase_ = false);
   bool doesStringStartsWithSubstring(std::string string_, std::string substring_, bool ignoreCase_ = false);
   bool doesStringEndsWithSubstring(std::string string_, std::string substring_, bool ignoreCase_ = false);
@@ -22,22 +22,25 @@ namespace GenericToolbox{
   std::vector<std::string> splitString(const std::string& inputString_, std::string delimiter_);
   template<typename ... Args> std::string formatString( std::string format, Args ... args );
 
-  // IO tools
+  // FS Tools (without IO dependencies)
+  bool doesFilePathHasExtension(const std::string &filePath_, std::string ext_);
+  std::string getFolderPathFromFilePath(std::string file_path_);
+
+
+  // FS Tools (with IO dependencies)
   bool doesPathIsFile(std::string filePath_);
   bool doesPathIsFolder(std::string folderPath_);
-  bool doesFilePathHasExtension(const std::string &filePath_, std::string ext_);
   bool mkdirPath(std::string newFolderPath_);
   bool deleteFile(std::string file_path_);
   bool copyFile(std::string source_file_path_, std::string destination_file_path_, bool force_ = false);
   bool mvFile(std::string source_file_path_, std::string destination_file_path_, bool force_ = false);
-  std::string getFolderPathFromFilePath(std::string file_path_);
   std::string getCurrentWorkingDirectory();
   std::string dumpFileAsString(std::string filePath_);
   std::vector<std::string> dumpFileAsVectorString(std::string filePath_);
 
   // Hardware Tools
-  void process_mem_usage(double& vm_usage, double& resident_set);
-
+  size_t getProcessMemoryUsage();
+  size_t getProcessMaxMemoryUsage();
 
 }
 

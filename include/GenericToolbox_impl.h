@@ -12,70 +12,71 @@
 #include <unistd.h>
 #include <fstream>
 
-// Implementation
-namespace GenericToolbox{
 
-  bool doesStringContainsSubstring(std::string string_, std::string substring_, bool ignoreCase_){
-    if(substring_.size() > string_.size()) return false;
-    if(ignoreCase_){
+// String Management Tools
+namespace GenericToolbox {
+
+  bool doesStringContainsSubstring(std::string string_, std::string substring_, bool ignoreCase_) {
+    if (substring_.size() > string_.size()) return false;
+    if (ignoreCase_) {
       string_ = toLowerCase(string_);
       substring_ = toLowerCase(substring_);
     }
-    if(string_.find(substring_) != std::string::npos) return true;
+    if (string_.find(substring_) != std::string::npos) return true;
     else return false;
   }
-  bool doesStringStartsWithSubstring(std::string string_, std::string substring_, bool ignoreCase_){
-    if(substring_.size() > string_.size()) return false;
-    if(ignoreCase_){
+  bool doesStringStartsWithSubstring(std::string string_, std::string substring_, bool ignoreCase_) {
+    if (substring_.size() > string_.size()) return false;
+    if (ignoreCase_) {
       string_ = toLowerCase(string_);
       substring_ = toLowerCase(substring_);
     }
     return (not string_.compare(0, substring_.size(), substring_));
   }
-  bool doesStringEndsWithSubstring(std::string string_, std::string substring_, bool ignoreCase_){
-    if(substring_.size() > string_.size()) return false;
-    if(ignoreCase_){
+  bool doesStringEndsWithSubstring(std::string string_, std::string substring_, bool ignoreCase_) {
+    if (substring_.size() > string_.size()) return false;
+    if (ignoreCase_) {
       string_ = toLowerCase(string_);
       substring_ = toLowerCase(substring_);
     }
     return (not string_.compare(string_.size() - substring_.size(), substring_.size(), substring_));
   }
-  std::string toLowerCase(const std::string &inputStr_){
+  std::string toLowerCase(const std::string &inputStr_) {
     std::string output_str(inputStr_);
     std::transform(output_str.begin(), output_str.end(), output_str.begin(),
                    [](unsigned char c) { return std::tolower(c); });
     return output_str;
   }
-  std::string removeExtraDoubledCharacters(const std::string& inputStr_, std::string doubledChar_){
+  std::string removeExtraDoubledCharacters(const std::string &inputStr_, std::string doubledChar_) {
     std::vector<std::string> substr_list = splitString(inputStr_, doubledChar_);
     std::vector<std::string> cleaned_substr_list;
-    for(int i_substr = 0 ; i_substr < int(substr_list.size()) ; i_substr++){
-      if(not substr_list[i_substr].empty())
+    for (int i_substr = 0; i_substr < int(substr_list.size()); i_substr++) {
+      if (not substr_list[i_substr].empty())
         cleaned_substr_list.emplace_back(substr_list[i_substr]);
     }
     std::string cleaned_input_str;
-    if(doesStringStartsWithSubstring(inputStr_, doubledChar_)) cleaned_input_str += doubledChar_;
+    if (doesStringStartsWithSubstring(inputStr_, doubledChar_)) cleaned_input_str += doubledChar_;
     cleaned_input_str += joinVectorString(cleaned_substr_list, doubledChar_);
-    if(doesStringEndsWithSubstring(inputStr_, doubledChar_)) cleaned_input_str += doubledChar_;
+    if (doesStringEndsWithSubstring(inputStr_, doubledChar_)) cleaned_input_str += doubledChar_;
     return cleaned_input_str;
   }
   std::string joinVectorString(const std::vector<std::string> &string_list_, std::string delimiter_, int begin_index_, int end_index_) {
 
     std::string joined_string;
-    if(end_index_ == 0) end_index_ = int(string_list_.size());
+    if (end_index_ == 0) end_index_ = int(string_list_.size());
 
     // circular permutation -> python style : tab[-1] = tab[tab.size - 1]
-    if(end_index_ < 0 and int(string_list_.size()) > std::fabs(end_index_))
+    if (end_index_ < 0 and int(string_list_.size()) > std::fabs(end_index_))
       end_index_ = int(string_list_.size()) + end_index_;
 
-    for(int i_list = begin_index_ ; i_list < end_index_ ; i_list++){
-      if(not joined_string.empty()) joined_string += delimiter_;
+    for (int i_list = begin_index_; i_list < end_index_; i_list++) {
+      if (not joined_string.empty()) joined_string += delimiter_;
       joined_string += string_list_[i_list];
     }
 
     return joined_string;
   }
-  std::string replaceSubstringInString(const std::string &input_str_, std::string substr_to_look_for_, std::string substr_to_replace_){
+  std::string replaceSubstringInString(const std::string &input_str_, std::string substr_to_look_for_, std::string substr_to_replace_) {
     std::string stripped_str = input_str_;
     size_t index = 0;
     while ((index = stripped_str.find(substr_to_look_for_, index)) != std::string::npos) {
@@ -84,7 +85,7 @@ namespace GenericToolbox{
     }
     return stripped_str;
   }
-  std::vector<std::string> splitString(const std::string& inputString_, std::string delimiter_){
+  std::vector<std::string> splitString(const std::string &inputString_, std::string delimiter_) {
 
     std::vector<std::string> output_splited_string;
 
@@ -95,7 +96,7 @@ namespace GenericToolbox{
 
     while ((next = std::strstr(src, delimiter_.c_str())) != nullptr) {
       out_string_piece = "";
-      while (src != next){
+      while (src != next) {
         out_string_piece += *src++;
       }
       output_splited_string.emplace_back(out_string_piece);
@@ -113,13 +114,40 @@ namespace GenericToolbox{
     return output_splited_string;
 
   }
-  template<typename ... Args> std::string formatString( std::string format, Args ... args ){
-    size_t size = snprintf( nullptr, 0, format.c_str(), args ... ) + 1; // Extra space for '\0'
-    if( size <= 0 ){ throw std::runtime_error( "Error during formatting." ); }
-    std::unique_ptr<char[]> buf( new char[ size ] );
-    snprintf( buf.get(), size, format.c_str(), args ... );
-    return std::string( buf.get(), buf.get() + size - 1 ); // We don't want the '\0' inside
+  template<typename ... Args> std::string formatString(std::string format, Args ... args) {
+    size_t size = snprintf(nullptr, 0, format.c_str(), args ...) + 1; // Extra space for '\0'
+    if (size <= 0) { throw std::runtime_error("Error during formatting."); }
+    std::unique_ptr<char[]> buf(new char[size]);
+    snprintf(buf.get(), size, format.c_str(), args ...);
+    return std::string(buf.get(), buf.get() + size - 1); // We don't want the '\0' inside
   }
+
+}
+
+
+// FS Tools (without IO dependencies)
+namespace GenericToolbox{
+
+  bool doesFilePathHasExtension(const std::string &filePath_, std::string ext_){
+    return doesStringEndsWithSubstring(filePath_, "."+ext_);
+  }
+  std::string getFolderPathFromFilePath(std::string file_path_){
+    std::string folder_path;
+    if(file_path_[0] == '/') folder_path += "/";
+    auto splitted_path = splitString(file_path_, "/");
+    folder_path += joinVectorString(
+      splitted_path,
+      "/",
+      0,
+      int(splitted_path.size()) - 1
+    );
+    return folder_path;
+  }
+
+}
+
+// FS Tools (with IO dependencies)
+namespace GenericToolbox{
 
   bool doesPathIsFile(std::string filePath_){
     struct stat info{};
@@ -211,27 +239,13 @@ namespace GenericToolbox{
       ) return true;
     else return false;
   }
-  bool doesFilePathHasExtension(const std::string &filePath_, std::string ext_){
-    return doesStringEndsWithSubstring(filePath_, "."+ext_);
-  }
-  std::string getFolderPathFromFilePath(std::string file_path_){
-    std::string folder_path;
-    if(file_path_[0] == '/') folder_path += "/";
-    auto splitted_path = splitString(file_path_, "/");
-    folder_path += joinVectorString(
-      splitted_path,
-      "/",
-      0,
-      int(splitted_path.size()) - 1
-    );
-    return folder_path;
-  }
   std::string getCurrentWorkingDirectory(){
     char cwd[1024];
     getcwd(cwd, sizeof(cwd));
     std::string output_cwd(cwd);
     return output_cwd;
   }
+
   std::string dumpFileAsString(std::string filePath_){
     std::string data;
     if(doesPathIsFile(filePath_)){
@@ -258,39 +272,126 @@ namespace GenericToolbox{
     return lines;
   }
 
-  void process_mem_usage(double& vm_usage, double& resident_set){
-    using std::ios_base;
-    using std::ifstream;
-    using std::string;
+}
 
-    vm_usage     = 0.0;
-    resident_set = 0.0;
 
-    // 'file' stat seems to give the most reliable results
-    ifstream stat_stream("/proc/self/stat",ios_base::in);
 
-    // dummy vars for leading entries in stat that we don't care about
-    string pid, comm, state, ppid, pgrp, session, tty_nr;
-    string tpgid, flags, minflt, cminflt, majflt, cmajflt;
-    string utime, stime, cutime, cstime, priority, nice;
-    string O, itrealvalue, starttime;
+// Hardware Tools
+#if defined(_WIN32)
+// Windows
+#include <windows.h>
+#include <psapi.h>
+#elif defined(__APPLE__) && defined(__MACH__)
+// MacOS
+#include <unistd.h>
+#include <sys/resource.h>
+#include <mach/mach.h>
+#elif defined(__linux__) || defined(__linux) || defined(linux) || defined(__gnu_linux__)
+// Linux
+#include <unistd.h>
+#include <sys/time.h>
+#include <sys/resource.h>
+#include <stdio.h>
 
-    // the two fields we want
-    unsigned long vsize;
-    long rss;
+#elif (defined(_AIX) || defined(__TOS__AIX__)) || (defined(__sun__) || defined(__sun) || defined(sun) && (defined(__SVR4) || defined(__svr4__)))
+// AIX and Solaris
+#include <unistd.h>
+#include <sys/resource.h>
+#include <fcntl.h>
+#include <procfs.h>
 
-    stat_stream >> pid >> comm >> state >> ppid >> pgrp >> session >> tty_nr
-                >> tpgid >> flags >> minflt >> cminflt >> majflt >> cmajflt
-                >> utime >> stime >> cutime >> cstime >> priority >> nice
-                >> O >> itrealvalue >> starttime >> vsize >> rss; // don't care about the rest
+#else
+// Unsupported
+#endif
+namespace GenericToolbox{
 
-    stat_stream.close();
+  size_t getProcessMemoryUsage(){
+    /**
+     * Returns the current resident set size (physical memory use) measured
+     * in bytes, or zero if the value cannot be determined on this OS.
+     */
+#if defined(_WIN32)
+    // Windows
+    PROCESS_MEMORY_COUNTERS memCounter;
+    if (GetProcessMemoryInfo(GetCurrentProcess(), &memCounter, sizeof memCounter))
+        return (size_t)memCounter.WorkingSetSize;
+    return (size_t)0; /* get process mem info failed */
 
-    long page_size_kb = sysconf(_SC_PAGE_SIZE) / 1024; // in case x86-64 is configured to use 2MB pages
-    vm_usage     = vsize / 1024.0;
-    resident_set = rss * page_size_kb;
+#elif defined(__APPLE__) && defined(__MACH__)
+    // MacOS
+    struct mach_task_basic_info info{};
+    mach_msg_type_number_t count = MACH_TASK_BASIC_INFO_COUNT;
+    if (task_info(mach_task_self(), MACH_TASK_BASIC_INFO, (task_info_t)&info, &count) == KERN_SUCCESS)
+      return (size_t)info.resident_size;
+    return (size_t)0; /* query failed */
+
+#elif defined(__linux__) || defined(__linux) || defined(linux) || defined(__gnu_linux__)
+    // Linux
+    long rss = 0L;
+    FILE* fp = NULL;
+    if ( (fp = fopen( "/proc/self/statm", "r" )) == NULL )
+        return (size_t)0L;      /* Can't open? */
+    if ( fscanf( fp, "%*s%ld", &rss ) != 1 )
+    {
+        fclose( fp );
+        return (size_t)0L;      /* Can't read? */
+    }
+    fclose( fp );
+    return (size_t)rss * (size_t)sysconf( _SC_PAGESIZE);
+
+#else
+    // AIX, BSD, Solaris, and Unknown OS
+    return (size_t)0L;          /* Unsupported. */
+
+#endif
+  }
+  size_t getProcessMaxMemoryUsage(){
+    /**
+     * Returns the peak (maximum so far) resident set size (physical
+     * memory use) measured in bytes, or zero if the value cannot be
+     * determined on this OS.
+     */
+#if defined(_WIN32)
+    // Windows
+    PROCESS_MEMORY_COUNTERS info;
+    GetProcessMemoryInfo( GetCurrentProcess( ), &info, sizeof(info) );
+    return (size_t)info.PeakWorkingSetSize;
+
+#elif defined(__APPLE__) && defined(__MACH__)
+    // MacOS
+    struct mach_task_basic_info info{};
+    mach_msg_type_number_t count = MACH_TASK_BASIC_INFO_COUNT;
+    if (task_info(mach_task_self(), MACH_TASK_BASIC_INFO, (task_info_t)&info, &count) == KERN_SUCCESS)
+      return (size_t)info.resident_size_max;
+    return (size_t)0; /* query failed */
+
+#elif defined(__linux__) || defined(__linux) || defined(linux) || defined(__gnu_linux__)
+    // Linux
+    struct rusage rusage;
+    if (!getrusage(RUSAGE_SELF, &rusage))
+        return (size_t)rusage.ru_maxrss;
+    return (size_t)0; /* query failed */
+
+#elif (defined(_AIX) || defined(__TOS__AIX__)) || (defined(__sun__) || defined(__sun) || defined(sun) && (defined(__SVR4) || defined(__svr4__)))
+    // AIX and Solaris
+    struct psinfo psinfo;
+    int fd = -1;
+    if ( (fd = open( "/proc/self/psinfo", O_RDONLY )) == -1 )
+        return (size_t)0L;      /* Can't open? */
+    if ( read( fd, &psinfo, sizeof(psinfo) ) != sizeof(psinfo) )
+    {
+        close( fd );
+        return (size_t)0L;      /* Can't read? */
+    }
+    close( fd );
+    return (size_t)(psinfo.pr_rssize * 1024L);
+#else
+    // Unknown OS
+    return (size_t)0L;          /* Unsupported. */
+#endif
   }
 
 }
+
 
 #endif //CPP_GENERIC_TOOLBOX_GENERICTOOLBOX_IMPL_H
