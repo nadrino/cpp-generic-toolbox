@@ -33,9 +33,14 @@ namespace GenericToolbox{
   bool doesPathIsFolder(std::string folderPath_);
   bool doesFilePathHasExtension(const std::string &filePath_, std::string ext_);
   bool mkdirPath(std::string newFolderPath_);
+  bool deleteFile(std::string file_path_);
+  bool copyFile(std::string source_file_path_, std::string destination_file_path_, bool force_ = false);
+  bool mvFile(std::string source_file_path_, std::string destination_file_path_, bool force_ = false);
+  std::string getFolderPathFromFilePath(std::string file_path_);
   std::string getCurrentWorkingDirectory();
   std::string dumpFileAsString(std::string filePath_);
   std::vector<std::string> dumpFileAsVectorString(std::string filePath_);
+
 
 }
 
@@ -183,8 +188,76 @@ namespace GenericToolbox{
     return result;
 
   }
+  bool deleteFile(std::string file_path_){
+    if(not doesPathIsFile(file_path_)) return true;
+    std::remove(file_path_.c_str());
+    return not doesPathIsFile(file_path_);
+  }
+  bool copyFile(std::string source_file_path_, std::string destination_file_path_, bool force_){
+
+    if( not doesPathIsFile(source_file_path_) ){
+      return false;
+    }
+
+    if( doesPathIsFile(destination_file_path_) ){
+      if( force_ ){
+        deleteFile(destination_file_path_);
+      }
+      else{
+        return false;
+      }
+    }
+
+    std::ifstream  src(source_file_path_, std::ios::binary);
+    std::ofstream  dst(destination_file_path_,   std::ios::binary);
+
+    dst << src.rdbuf();
+
+    return true;
+  }
+  bool mvFile(std::string source_file_path_, std::string destination_file_path_, bool force_) {
+
+    if( not doesPathIsFile(source_file_path_) ){
+      return false;
+    }
+
+    if( doesPathIsFile(destination_file_path_) ){
+      if(force_){
+        deleteFile(destination_file_path_);
+      }
+      else{
+        return false;
+      }
+    }
+    else{
+      std::string destination_folder_path = getFolderPathFromFilePath(destination_file_path_);
+      if(not doesPathIsFile(destination_folder_path)){
+        mkdirPath(destination_folder_path);
+      }
+    }
+
+    std::rename(source_file_path_.c_str(), destination_file_path_.c_str());
+
+    if(
+      doesPathIsFile(destination_file_path_)
+      and not doesPathIsFile(source_file_path_)
+      ) return true;
+    else return false;
+  }
   bool doesFilePathHasExtension(const std::string &filePath_, std::string ext_){
     return doesStringEndsWithSubstring(filePath_, "."+ext_);
+  }
+  std::string getFolderPathFromFilePath(std::string file_path_){
+    std::string folder_path;
+    if(file_path_[0] == '/') folder_path += "/";
+    auto splitted_path = splitString(file_path_, "/");
+    folder_path += joinVectorString(
+      splitted_path,
+      "/",
+      0,
+      int(splitted_path.size()) - 1
+    );
+    return folder_path;
   }
   std::string getCurrentWorkingDirectory(){
     char cwd[1024];
