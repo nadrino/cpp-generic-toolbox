@@ -12,6 +12,9 @@
 #include <unistd.h>
 #include <fstream>
 #include <dirent.h>
+#include <iostream>
+#include <algorithm>
+#include <cstring>
 
 
 // Displaying Tools
