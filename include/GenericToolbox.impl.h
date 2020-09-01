@@ -31,7 +31,7 @@ namespace GenericToolbox {
       or _lastDisplayedValue_ == -1 // never printed before
       or iCurrent_ == 0 // first call
       or forcePrint_ // display every calls
-      or iCurrent_ >= iTotal_-1 // last entry
+      or ( iCurrent_ >= iTotal_-1 and _lastDisplayedValue_ != 100) // last entry (mandatory to print endl)
       ){
 
       if(_selectedThreadId_ != std::this_thread::get_id()) return; // While multithreading, this function is muted
