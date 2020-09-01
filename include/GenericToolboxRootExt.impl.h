@@ -12,12 +12,14 @@
 // This Project
 #include <GenericToolbox.h>
 #include <TMatrixDSymEigen.h>
+#include <TPaletteAxis.h>
+#include <TPad.h>
 
 
 //! Matrices Tools
 namespace GenericToolbox{
 
-  TMatrixDSym* convert_to_symmetric_matrix(TMatrixD* matrix_) {
+  TMatrixDSym* convertToSymmetricMatrix(TMatrixD* matrix_) {
 
     auto* symmetric_matrix            = (TMatrixD*)matrix_->Clone();
     auto* transposed_symmetric_matrix = new TMatrixD(*matrix_);
@@ -37,11 +39,11 @@ namespace GenericToolbox{
 
     return result;
   }
-  std::map<std::string, TMatrixD*> SVD_matrix_inversion(TMatrixD* matrix_, std::string output_content_)
+  std::map<std::string, TMatrixD*> invertMatrixSVD(TMatrixD* matrix_, std::string outputContent_)
   {
     std::map<std::string, TMatrixD*> results_handler;
 
-    auto content_names = GenericToolbox::splitString(output_content_, ":");
+    auto content_names = GenericToolbox::splitString(outputContent_, ":");
 
     if(GenericToolbox::doesElementIsInVector("inverse_covariance_matrix", content_names)){
       results_handler["inverse_covariance_matrix"]
@@ -71,7 +73,7 @@ namespace GenericToolbox{
 
 
     // Covariance matrices are symetric :
-    auto* symmetric_matrix        = convert_to_symmetric_matrix(matrix_);
+    auto* symmetric_matrix        = convertToSymmetricMatrix(matrix_);
     auto* Eigen_matrix_decomposer = new TMatrixDSymEigen(*symmetric_matrix);
     auto* Eigen_values            = &(Eigen_matrix_decomposer->GetEigenValues());
     auto* Eigen_vectors           = &(Eigen_matrix_decomposer->GetEigenVectors());
@@ -181,6 +183,21 @@ namespace GenericToolbox{
       (*output)[i] = vect_[i];
     }
     return output;
+
+  }
+
+  void fix_TH2D_display(TH2D* histogram_){
+
+    gPad->SetRightMargin(0.15);
+    histogram_->GetZaxis()->SetTitleOffset(0.8);
+    auto* pal = (TPaletteAxis*) histogram_->GetListOfFunctions()->FindObject("palette");
+    // TPaletteAxis* pal = (TPaletteAxis*) histogram_->GetListOfFunctions()->At(0);
+    if(pal != nullptr){
+      pal->SetX1NDC(1 - 0.15 + 0.01);
+      pal->SetX2NDC(1 - 0.15 + 0.05);
+      pal->GetAxis()->SetMaxDigits(2);
+      pal->Draw();
+    }
 
   }
 
