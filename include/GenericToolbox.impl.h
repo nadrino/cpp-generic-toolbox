@@ -23,7 +23,7 @@ namespace GenericToolbox {
   static std::time_t _progressLastDisplayedTimestamp_ = std::time(nullptr);
   static int _lastDisplayedValue_ = -1;
   static std::thread::id _selectedThreadId_ = std::this_thread::get_id(); // get the main thread id
-  static int barLength = 20;
+  static int barLength = 25;
 
   void displayProgress(int iCurrent_, int iTotal_, std::string title_, bool forcePrint_){
     if(
@@ -42,15 +42,19 @@ namespace GenericToolbox {
       if(percentValue == GenericToolbox::_lastDisplayedValue_) return; // skipping!
 
       std::cout << "\r";
+
       if(not title_.empty()) std::cout << title_ << ": ";
-      int nbTags = int(double(percentValue)/100.*GenericToolbox::barLength);
-      std::cout << "[" << repeatString("#", nbTags);
-      std::cout << repeatString(" ", GenericToolbox::barLength - nbTags) << "]";
-      std::cout << percentValue << "%";
-      if(iCurrent_ < iTotal_-1){
-        std::cout << std::flush << "\r";
+
+      if(GenericToolbox::barLength > 0){
+        int nbTags = int(double(percentValue)/100.*GenericToolbox::barLength);
+        std::cout << "[" << repeatString("#", nbTags);
+        std::cout << repeatString(" ", GenericToolbox::barLength - nbTags) << "] ";
       }
-      else{
+
+      std::cout << percentValue << "%";
+      std::cout << std::flush << "\r";
+
+      if(iCurrent_ >= iTotal_-1){
         std::cout << std::endl;
       }
 
