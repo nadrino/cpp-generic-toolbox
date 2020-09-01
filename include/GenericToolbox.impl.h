@@ -22,29 +22,34 @@ namespace GenericToolbox {
 
   static std::time_t _progressLastDisplayedTimestamp_ = std::time(nullptr);
   static int _lastDisplayedValue_ = -1;
+  static std::thread::id _selectedThreadId_ = std::this_thread::get_id(); // get the main thread id
 
   void displayProgress(int iCurrent_, int iTotal_, std::string title_, bool forcePrint_){
     if(
-      std::time(nullptr) - GenericToolbox::_progressLastDisplayedTimestamp_ >= time_t(0.5) // every 0.5 second
+      std::time(nullptr) - GenericToolbox::_progressLastDisplayedTimestamp_ >= time_t(0.5) // every 0.5 second (10fps)
       or _lastDisplayedValue_ == -1 // never printed before
       or iCurrent_ == 0 // first call
       or forcePrint_ // display every calls
       or iCurrent_ >= iTotal_-1 // last entry
       ){
+
+      if(_selectedThreadId_ != std::this_thread::get_id()) return; // While multithreading, this function is muted
+
       int percentValue = int(round(double(iCurrent_) / iTotal_ * 100.));
-      if(percentValue == _lastDisplayedValue_) return; // skip
-      GenericToolbox::_progressLastDisplayedTimestamp_ = std::time(nullptr);
+      if(percentValue == GenericToolbox::_lastDisplayedValue_) return; // skipping!
+
       std::cout << "\r";
       if(not title_.empty()) std::cout << title_ << ": ";
       std::cout << percentValue << "%";
       if(iCurrent_ < iTotal_-1){
         std::cout << std::flush << "\r";
-        _lastDisplayedValue_ = percentValue;
       }
       else{
         std::cout << std::endl;
-        _lastDisplayedValue_ = -1;
       }
+
+      GenericToolbox::_lastDisplayedValue_ = percentValue;
+      GenericToolbox::_progressLastDisplayedTimestamp_ = std::time(nullptr);
     }
   }
   template <typename T> void printVector(const std::vector<T>& vector_){
