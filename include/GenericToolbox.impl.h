@@ -20,23 +20,26 @@
 // Displaying Tools
 namespace GenericToolbox {
 
-  static std::time_t _progressLastDisplayedTimestamp_ = std::time(nullptr);
-  static int _lastDisplayedValue_ = -1;
-  static std::thread::id _selectedThreadId_ = std::this_thread::get_id(); // get the main thread id
-  static int barLength = 25;
+  // Parameters for the progress bar
+  namespace ProgressBar{
+    static std::time_t _progressLastDisplayedTimestamp_ = std::time(nullptr);
+    static int _lastDisplayedValue_ = -1;
+    static std::thread::id _selectedThreadId_ = std::this_thread::get_id(); // get the main thread id
+    static int barLength = 25;
+  }
 
-  void displayProgress(int iCurrent_, int iTotal_, std::string title_, bool forcePrint_){
+  void displayProgressBar(int iCurrent_, int iTotal_, std::string title_, bool forcePrint_){
     if(
-      std::time(nullptr) - GenericToolbox::_progressLastDisplayedTimestamp_ >= time_t(0.5) // every 0.5 second (10fps)
-      or _lastDisplayedValue_ == -1 // never printed before
+      std::time(nullptr) - GenericToolbox::ProgressBar::_progressLastDisplayedTimestamp_ >= time_t(0.5) // every 0.5 second (10fps)
+      or GenericToolbox::ProgressBar::_lastDisplayedValue_ == -1 // never printed before
       or iCurrent_ == 0 // first call
       or forcePrint_ // display every calls
       or iCurrent_ >= iTotal_-1 // last entry (mandatory to print endl)
       ){
 
-      if(_selectedThreadId_ != std::this_thread::get_id()) return; // While multithreading, this function is muted
+      if(GenericToolbox::ProgressBar::_selectedThreadId_ != std::this_thread::get_id()) return; // While multithreading, this function is muted
 
-      if( iCurrent_ >= iTotal_-1 and _lastDisplayedValue_ == 100 ){ // last has already been printed ?
+      if( iCurrent_ >= iTotal_-1 and GenericToolbox::ProgressBar::_lastDisplayedValue_ == 100 ){ // last has already been printed ?
         return;
       }
 
@@ -45,17 +48,17 @@ namespace GenericToolbox {
       if(not (iCurrent_ >= iTotal_-1)){ // if not last entry
         if(percentValue > 100) percentValue = 100; // sanity check
         if(percentValue < 0) percentValue = 0;
-        if(percentValue == GenericToolbox::_lastDisplayedValue_) return; // skipping!
+        if(percentValue == GenericToolbox::ProgressBar::_lastDisplayedValue_) return; // skipping!
       }
 
       std::cout << "\r";
 
       if(not title_.empty()) std::cout << title_ << ": ";
 
-      if(GenericToolbox::barLength > 0){
-        int nbTags = int(double(percentValue)/100.*GenericToolbox::barLength);
+      if(GenericToolbox::ProgressBar::barLength > 0){
+        int nbTags = int(double(percentValue)/100.*GenericToolbox::ProgressBar::barLength);
         std::cout << "[" << repeatString("#", nbTags);
-        std::cout << repeatString(" ", GenericToolbox::barLength - nbTags) << "] ";
+        std::cout << repeatString(" ", GenericToolbox::ProgressBar::barLength - nbTags) << "] ";
       }
 
       std::cout << percentValue << "%";
@@ -67,8 +70,8 @@ namespace GenericToolbox {
         std::cout << std::flush << "\r";
       }
 
-      GenericToolbox::_lastDisplayedValue_ = percentValue;
-      GenericToolbox::_progressLastDisplayedTimestamp_ = std::time(nullptr);
+      GenericToolbox::ProgressBar::_lastDisplayedValue_ = percentValue;
+      GenericToolbox::ProgressBar::_progressLastDisplayedTimestamp_ = std::time(nullptr);
     }
   }
   template <typename T> void printVector(const std::vector<T>& vector_){

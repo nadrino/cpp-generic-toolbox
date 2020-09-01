@@ -12,7 +12,7 @@
 namespace GenericToolbox{
 
   //! Displaying Tools
-  void displayProgress(int iCurrent_, int iTotal_, std::string title_ = "", bool forcePrint_ = false);
+  void displayProgressBar(int iCurrent_, int iTotal_, std::string title_ = "", bool forcePrint_ = false);
   template <typename T> void printVector(const std::vector<T>& vector_);
 
   //! Vector management

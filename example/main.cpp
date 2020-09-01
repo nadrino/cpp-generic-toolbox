@@ -41,7 +41,7 @@ int main(){
 
 
   for(int i = 0 ; i < 1000 ; i++){
-    GenericToolbox::displayProgress(i, 1000, "Loading...");
+    GenericToolbox::displayProgressBar(i, 1000, "Loading...");
     std::this_thread::sleep_for(std::chrono::milliseconds(3));
   }
 
