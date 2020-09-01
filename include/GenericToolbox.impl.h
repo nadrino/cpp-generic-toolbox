@@ -36,7 +36,7 @@ namespace GenericToolbox {
 
       if(_selectedThreadId_ != std::this_thread::get_id()) return; // While multithreading, this function is muted
 
-      if( iCurrent_ >= iTotal_-1 and _lastDisplayedValue_ != 100 ){ // last has already been printed ?
+      if( iCurrent_ >= iTotal_-1 and _lastDisplayedValue_ == 100 ){ // last has already been printed ?
         return;
       }
 
