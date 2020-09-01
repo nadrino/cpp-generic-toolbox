@@ -37,9 +37,12 @@ namespace GenericToolbox {
       if(_selectedThreadId_ != std::this_thread::get_id()) return; // While multithreading, this function is muted
 
       int percentValue = int(round(double(iCurrent_) / iTotal_ * 100.));
-      if(percentValue > 100) percentValue = 100; // sanity check
-      if(percentValue < 0) percentValue = 0;
-      if(percentValue == GenericToolbox::_lastDisplayedValue_) return; // skipping!
+
+      if(not (iCurrent_ >= iTotal_-1)){ // if not last entry
+        if(percentValue > 100) percentValue = 100; // sanity check
+        if(percentValue < 0) percentValue = 0;
+        if(percentValue == GenericToolbox::_lastDisplayedValue_) return; // skipping!
+      }
 
       std::cout << "\r";
 
@@ -52,10 +55,12 @@ namespace GenericToolbox {
       }
 
       std::cout << percentValue << "%";
-      std::cout << std::flush << "\r";
 
       if(iCurrent_ >= iTotal_-1){
         std::cout << std::endl;
+      }
+      else{
+        std::cout << std::flush << "\r";
       }
 
       GenericToolbox::_lastDisplayedValue_ = percentValue;
