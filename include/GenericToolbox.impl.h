@@ -53,7 +53,10 @@ namespace GenericToolbox {
 //! Vector management
 namespace GenericToolbox {
 
-  template <typename T> bool doesElementIsInVector(T element_, const std::vector<T>& vector_){
+  template <typename T>
+  struct identity { typedef T type; };
+
+  template <typename T> bool doesElementIsInVector(typename identity<T>::type element_, const std::vector<T>& vector_){
     return std::any_of(vector_.begin(), vector_.end(), element_);
   }
 

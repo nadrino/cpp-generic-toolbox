@@ -7,6 +7,10 @@
 
 #include <GenericToolbox.h>
 
+#ifdef ENABLE_ROOT_EXTENSION
+#include <GenericToolboxRootExt.h>
+#endif
+
 using namespace std;
 
 int main(){
