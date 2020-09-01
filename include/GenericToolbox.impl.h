@@ -36,10 +36,13 @@ namespace GenericToolbox {
       if(_selectedThreadId_ != std::this_thread::get_id()) return; // While multithreading, this function is muted
 
       int percentValue = int(round(double(iCurrent_) / iTotal_ * 100.));
+      if(percentValue > 100) percentValue = 100; // sanity check
+      if(percentValue < 0) percentValue = 0;
       if(percentValue == GenericToolbox::_lastDisplayedValue_) return; // skipping!
 
       std::cout << "\r";
       if(not title_.empty()) std::cout << title_ << ": ";
+      std::cout << "[" << repeatString("#", percentValue/10) << repeatString(" ", (100-percentValue)/10) << "]" << std::endl;
       std::cout << percentValue << "%";
       if(iCurrent_ < iTotal_-1){
         std::cout << std::flush << "\r";
@@ -116,6 +119,14 @@ namespace GenericToolbox {
     std::transform(output_str.begin(), output_str.end(), output_str.begin(),
                    [](unsigned char c) { return std::tolower(c); });
     return output_str;
+  }
+  std::string repeatString(const std::string inputStr_, int amount_){
+    std::string outputStr;
+    if(amount_ <= 0) return outputStr;
+    for(int i_count = 0 ; i_count < amount_ ; i_count++){
+      outputStr += inputStr_;
+    }
+    return outputStr;
   }
   std::string removeExtraDoubledCharacters(const std::string &inputStr_, std::string doubledChar_) {
     std::vector<std::string> substr_list = splitString(inputStr_, doubledChar_);
