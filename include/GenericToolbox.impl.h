@@ -31,10 +31,14 @@ namespace GenericToolbox {
       or _lastDisplayedValue_ == -1 // never printed before
       or iCurrent_ == 0 // first call
       or forcePrint_ // display every calls
-      or ( iCurrent_ >= iTotal_-1 and _lastDisplayedValue_ != 100) // last entry (mandatory to print endl)
+      or iCurrent_ >= iTotal_-1 // last entry (mandatory to print endl)
       ){
 
       if(_selectedThreadId_ != std::this_thread::get_id()) return; // While multithreading, this function is muted
+
+      if( iCurrent_ >= iTotal_-1 and _lastDisplayedValue_ != 100 ){ // last has already been printed ?
+        return;
+      }
 
       int percentValue = int(round(double(iCurrent_) / iTotal_ * 100.));
 
@@ -56,7 +60,7 @@ namespace GenericToolbox {
 
       std::cout << percentValue << "%";
 
-      if(iCurrent_ >= iTotal_-1){
+      if(percentValue == 100){
         std::cout << std::endl;
       }
       else{
