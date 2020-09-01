@@ -45,7 +45,7 @@ namespace GenericToolbox {
       if(not title_.empty()) std::cout << title_ << ": ";
       int nbTags = int(double(percentValue)/100.*GenericToolbox::barLength);
       std::cout << "[" << repeatString("#", nbTags);
-      std::cout << repeatString(" ", nbTags - GenericToolbox::barLength) << "]";
+      std::cout << repeatString(" ", GenericToolbox::barLength - nbTags) << "]";
       std::cout << percentValue << "%";
       if(iCurrent_ < iTotal_-1){
         std::cout << std::flush << "\r";
