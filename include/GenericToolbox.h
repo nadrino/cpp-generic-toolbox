@@ -70,6 +70,6 @@ namespace GenericToolbox{
 
 }
 
-#include <GenericToolbox.impl.h>
+#include "GenericToolbox.impl.h"
 
 #endif //CPP_GENERIC_TOOLBOX_GENERICTOOLBOX_H
