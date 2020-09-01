@@ -4,6 +4,7 @@
 
 #include <string>
 #include <iostream>
+#include <thread>
 
 #include <GenericToolbox.h>
 
@@ -38,6 +39,11 @@ int main(){
   cout << "Process takes this amount of RAM: " << GenericToolbox::parseSizeUnits(GenericToolbox::getProcessMemoryUsage()) << endl;
   cout << "Process has taken this amount of RAM at max: " << GenericToolbox::parseSizeUnits(GenericToolbox::getProcessMaxMemoryUsage()) << endl;
 
+
+  for(int i = 0 ; i < 1000 ; i++){
+    GenericToolbox::displayProgress(i, 1000, "Loading...");
+    std::this_thread::sleep_for(std::chrono::milliseconds(3));
+  }
 
   return EXIT_SUCCESS;
 }

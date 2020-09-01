@@ -15,7 +15,6 @@ namespace GenericToolbox{
   void displayProgress(int iCurrent_, int iTotal_, std::string title_ = "", bool forcePrint_ = false);
   template <typename T> void printVector(const std::vector<T>& vector_);
 
-
   //! Vector management
   template <typename T> bool doesElementIsInVector(T element_, const std::vector<T>& vector_);
 
