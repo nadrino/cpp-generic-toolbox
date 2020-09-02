@@ -105,6 +105,55 @@ namespace GenericToolbox {
 //! Files Tools
 namespace GenericToolbox {
 
+  bool doesTFileIsValid(std::string input_file_path_)
+  {
+    bool file_is_valid = false;
+    if(GenericToolbox::doesPathIsFile(input_file_path_))
+    {
+      auto old_verbosity = gErrorIgnoreLevel;
+      gErrorIgnoreLevel  = kFatal;
+      auto* input_tfile  = TFile::Open(input_file_path_.c_str(), "READ");
+      if(doesTFileIsValid(input_tfile))
+      {
+        file_is_valid = true;
+        input_tfile->Close();
+      }
+      delete input_tfile;
+      gErrorIgnoreLevel = old_verbosity;
+    }
+    return file_is_valid;
+  }
+  bool doesTFileIsValid(TFile* input_tfile_, bool check_if_writable_)
+  {
+
+    if(input_tfile_ == nullptr){
+      if(GenericToolbox::Parameters::_verboseLevel_ >= 1)
+        std::cout << "input_tfile_ is a nullptr" << std::endl;
+      return false;
+    }
+
+    if(not input_tfile_->IsOpen()){
+      if(GenericToolbox::Parameters::_verboseLevel_ >= 1)
+        std::cout << "input_tfile_ = " << input_tfile_->GetName() << " is not opened."
+                  << std::endl;
+      if(GenericToolbox::Parameters::_verboseLevel_ >= 1)
+        std::cout << "input_tfile_->IsOpen() = " << input_tfile_->IsOpen()
+                  << std::endl;
+      return false;
+    }
+
+    if(check_if_writable_ and not input_tfile_->IsWritable()){
+      if(GenericToolbox::Parameters::_verboseLevel_ >= 1)
+        std::cout << "input_tfile_ = " << input_tfile_->GetName()
+                  << " is not writable." << std::endl;
+      if(GenericToolbox::Parameters::_verboseLevel_ >= 1)
+        std::cout << "input_tfile_->IsWritable() = " << input_tfile_->IsWritable()
+                  << std::endl;
+      return false;
+    }
+
+    return true;
+  }
   std::vector<TObject *> getListOfObjectFromTDirectory(TDirectory *directory_, std::string class_name_) {
     std::vector<TObject *> output;
 

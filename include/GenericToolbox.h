@@ -11,6 +11,10 @@
 // Index
 namespace GenericToolbox{
 
+  namespace Parameters{
+    int _verboseLevel_ = 0;
+  }
+
   //! Displaying Tools
   void displayProgressBar(int iCurrent_, int iTotal_, std::string title_ = "", bool forcePrint_ = false);
   template <typename T> void printVector(const std::vector<T>& vector_);
