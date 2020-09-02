@@ -95,11 +95,7 @@ namespace GenericToolbox {
   struct identity { typedef T type; };
 
   template <typename T> bool doesElementIsInVector(typename identity<T>::type element_, const std::vector<T>& vector_){
-    for(const auto& element: vector_){
-      if(element_ == element) return true;
-    }
-    return false;
-//    return std::any_of(vector_.begin(), vector_.end(), element_);
+    return std::find(vector_.begin(), vector_.end(), element_) != vector_.end();
   }
 
 }
