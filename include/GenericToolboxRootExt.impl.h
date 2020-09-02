@@ -14,124 +14,18 @@
 #include <TMatrixDSymEigen.h>
 #include <TPaletteAxis.h>
 #include <TPad.h>
+#include <TMath.h>
+#include <TStyle.h>
+#include <TFile.h>
+#include <TGlobal.h>
+#include <TROOT.h>
 
 
-//! Matrices Tools
-namespace GenericToolbox{
+//! Conversion Tools
+namespace GenericToolbox {
 
-  TMatrixDSym* convertToSymmetricMatrix(TMatrixD* matrix_) {
-
-    auto* symmetric_matrix            = (TMatrixD*)matrix_->Clone();
-    auto* transposed_symmetric_matrix = new TMatrixD(*matrix_);
-
-    transposed_symmetric_matrix->Transpose(*matrix_);
-    *symmetric_matrix += *transposed_symmetric_matrix;
-    for(int i_col = 0; i_col < matrix_->GetNcols(); i_col++) {
-      for(int i_row = 0; i_row < matrix_->GetNrows(); i_row++) {
-        (*symmetric_matrix)[i_row][i_col] /= 2.;
-      }
-    }
-
-    auto* result = (TMatrixDSym*)symmetric_matrix->Clone(); // Convert to TMatrixDSym
-
-    delete transposed_symmetric_matrix;
-    delete symmetric_matrix;
-
-    return result;
-  }
-  std::map<std::string, TMatrixD*> invertMatrixSVD(TMatrixD* matrix_, std::string outputContent_)
-  {
-    std::map<std::string, TMatrixD*> results_handler;
-
-    auto content_names = GenericToolbox::splitString(outputContent_, ":");
-
-    if(GenericToolbox::doesElementIsInVector("inverse_covariance_matrix", content_names)){
-      results_handler["inverse_covariance_matrix"]
-        = new TMatrixD(matrix_->GetNrows(), matrix_->GetNcols());
-    }
-    if(GenericToolbox::doesElementIsInVector("regularized_covariance_matrix", content_names)){
-      results_handler["regularized_covariance_matrix"]
-        = new TMatrixD(matrix_->GetNrows(), matrix_->GetNcols());
-    }
-    if(GenericToolbox::doesElementIsInVector("projector", content_names)){
-      results_handler["projector"]
-        = new TMatrixD(matrix_->GetNrows(), matrix_->GetNcols());
-    }
-    if(GenericToolbox::doesElementIsInVector("regularized_eigen_values", content_names)){
-      results_handler["regularized_eigen_values"]
-        = new TMatrixD(matrix_->GetNrows(), 1);
-    }
-
-    // make sure all are 0
-    for(const auto& matrix_handler : results_handler){
-      for(int i_dof = 0; i_dof < matrix_handler.second->GetNrows(); i_dof++){
-        for(int j_dof = 0; j_dof < matrix_handler.second->GetNcols(); j_dof++){
-          (*matrix_handler.second)[i_dof][j_dof] = 0.;
-        }
-      }
-    }
-
-
-    // Covariance matrices are symetric :
-    auto* symmetric_matrix        = convertToSymmetricMatrix(matrix_);
-    auto* Eigen_matrix_decomposer = new TMatrixDSymEigen(*symmetric_matrix);
-    auto* Eigen_values            = &(Eigen_matrix_decomposer->GetEigenValues());
-    auto* Eigen_vectors           = &(Eigen_matrix_decomposer->GetEigenVectors());
-
-    double max_eigen_value = (*Eigen_values)[0];
-    for(int i_eigen_value = 0; i_eigen_value < matrix_->GetNcols(); i_eigen_value++){
-      if(max_eigen_value < (*Eigen_values)[i_eigen_value]){
-        max_eigen_value = (*Eigen_values)[i_eigen_value];
-      }
-    }
-
-    for(int i_eigen_value = 0; i_eigen_value < matrix_->GetNcols(); i_eigen_value++)
-    {
-      if((*Eigen_values)[i_eigen_value] > max_eigen_value*1E-5)
-      {
-        if(results_handler.find("regularized_eigen_values") != results_handler.end()){
-          (*results_handler["regularized_eigen_values"])[i_eigen_value][0]
-            = (*Eigen_values)[i_eigen_value];
-        }
-        for(int i_dof = 0; i_dof < matrix_->GetNrows(); i_dof++){
-          for(int j_dof = 0; j_dof < matrix_->GetNrows(); j_dof++){
-            if(results_handler.find("inverse_covariance_matrix") != results_handler.end()){
-              (*results_handler["inverse_covariance_matrix"])[i_dof][j_dof]
-                += (1. / (*Eigen_values)[i_eigen_value])
-                   * (*Eigen_vectors)[i_dof][i_eigen_value]
-                   * (*Eigen_vectors)[j_dof][i_eigen_value];
-            }
-            if(results_handler.find("projector") != results_handler.end()){
-              (*results_handler["projector"])[i_dof][j_dof]
-                += (*Eigen_vectors)[i_dof][i_eigen_value]
-                   * (*Eigen_vectors)[j_dof][i_eigen_value];
-            }
-            if(results_handler.find("regularized_covariance_matrix") != results_handler.end()){
-              (*results_handler["regularized_covariance_matrix"])[i_dof][j_dof]
-                += (*Eigen_values)[i_eigen_value]
-                   * (*Eigen_vectors)[i_dof][i_eigen_value]
-                   * (*Eigen_vectors)[j_dof][i_eigen_value];
-            }
-
-          }
-        }
-      }
-      else{
-//            std::cout << ALERT << "Skipping i_eigen_value = " << (*Eigen_values)[i_eigen_value]
-//                      << std::endl;
-      }
-    }
-
-    // No memory leak ? : CHECKED
-    delete Eigen_matrix_decomposer;
-    delete symmetric_matrix;
-
-    return results_handler;
-  }
-
-  TH1D* get_TH1D_from_TVectorD(std::string graph_title_, TVectorD* Y_values_, std::string Y_title_,
-                               std::string X_title_, TVectorD* Y_errors_)
-  {
+  TH1D* convertTVectorDtoTH1D(std::string graph_title_, TVectorD* Y_values_, std::string Y_title_,
+                              std::string X_title_, TVectorD* Y_errors_){
 
     auto* th1_histogram = new TH1D(graph_title_.c_str(), graph_title_.c_str(),
                                    Y_values_->GetNrows(), -0.5, Y_values_->GetNrows() - 0.5);
@@ -150,9 +44,8 @@ namespace GenericToolbox{
 
     return th1_histogram;
   }
-  TH2D* get_TH2D_from_TMatrixD(TMatrixD* XY_values_, std::string graph_title_, std::string Z_title_,
-                               std::string Y_title_, std::string X_title_)
-  {
+  TH2D* convertTMatrixDtoTH2D(TMatrixD* XY_values_, std::string graph_title_, std::string Z_title_,
+                              std::string Y_title_, std::string X_title_){
 
     if(graph_title_.empty())
       graph_title_ = XY_values_->GetTitle();
@@ -175,8 +68,7 @@ namespace GenericToolbox{
 
     return th2_histogram;
   }
-
-  TVectorD *get_TVectorD_from_vector(std::vector<double>& vect_){
+  TVectorD *convertStdVectorToTVectorD(std::vector<double>& vect_){
 
     auto *output = new TVectorD(vect_.size());
     for(int i = 0 ; i < int(vect_.size()) ; i++){
@@ -185,8 +77,248 @@ namespace GenericToolbox{
     return output;
 
   }
+  TMatrixDSym *convertToSymmetricMatrix(TMatrixD *matrix_) {
 
-  void fix_TH2D_display(TH2D* histogram_){
+    auto *symmetric_matrix = (TMatrixD *) matrix_->Clone();
+    auto *transposed_symmetric_matrix = new TMatrixD(*matrix_);
+
+    transposed_symmetric_matrix->Transpose(*matrix_);
+    *symmetric_matrix += *transposed_symmetric_matrix;
+    for (int i_col = 0; i_col < matrix_->GetNcols(); i_col++) {
+      for (int i_row = 0; i_row < matrix_->GetNrows(); i_row++) {
+        (*symmetric_matrix)[i_row][i_col] /= 2.;
+      }
+    }
+
+    auto *result = (TMatrixDSym *) symmetric_matrix->Clone(); // Convert to TMatrixDSym
+
+    delete transposed_symmetric_matrix;
+    delete symmetric_matrix;
+
+    return result;
+  }
+
+
+}
+
+
+//! Files Tools
+namespace GenericToolbox {
+
+  std::vector<TObject *> getListOfObjectFromTDirectory(TDirectory *directory_, std::string class_name_) {
+    std::vector<TObject *> output;
+
+    for (int i_entry = 0; i_entry < directory_->GetListOfKeys()->GetSize(); i_entry++) {
+      std::string object_name = directory_->GetListOfKeys()->At(i_entry)->GetName();
+      TObject *obj = directory_->Get(object_name.c_str());
+      if (class_name_.empty() or obj->ClassName() == class_name_) {
+        output.emplace_back((TObject *) obj->Clone(object_name.c_str()));
+      }
+    }
+
+    return output;
+  }
+  std::vector<TFile *> getListOfOpenedTFiles() {
+    std::vector<TFile *> output;
+    // TIter next_iter(gROOT->GetListOfGlobals());
+    auto *global_obj_list = (TList *) gROOT->GetListOfGlobals();
+    TGlobal *global;
+    for (int i_obj = 0; i_obj < global_obj_list->GetEntries(); i_obj++) {
+      global = (TGlobal *) global_obj_list->At(i_obj);
+      TString type = global->GetTypeName();
+      if (type == "TFile") {
+        auto *file = (TFile *) gInterpreter->Calc(global->GetName());
+        if (file && file->IsOpen()) {
+          // printf("%s: %s\n", global->GetName(),file->GetName());
+          output.emplace_back(file);
+        }
+      }
+    }
+    // while ((global=(TGlobal*)next_iter())) {
+
+    // }
+    return output;
+  }
+
+
+}
+
+
+//! Matrix Tools
+namespace GenericToolbox {
+
+  std::map<std::string, TMatrixD *> invertMatrixSVD(TMatrixD *matrix_, std::string outputContent_) {
+    std::map<std::string, TMatrixD *> results_handler;
+
+    auto content_names = GenericToolbox::splitString(outputContent_, ":");
+
+    if (GenericToolbox::doesElementIsInVector("inverse_covariance_matrix", content_names)) {
+      results_handler["inverse_covariance_matrix"]
+        = new TMatrixD(matrix_->GetNrows(), matrix_->GetNcols());
+    }
+    if (GenericToolbox::doesElementIsInVector("regularized_covariance_matrix", content_names)) {
+      results_handler["regularized_covariance_matrix"]
+        = new TMatrixD(matrix_->GetNrows(), matrix_->GetNcols());
+    }
+    if (GenericToolbox::doesElementIsInVector("projector", content_names)) {
+      results_handler["projector"]
+        = new TMatrixD(matrix_->GetNrows(), matrix_->GetNcols());
+    }
+    if (GenericToolbox::doesElementIsInVector("regularized_eigen_values", content_names)) {
+      results_handler["regularized_eigen_values"]
+        = new TMatrixD(matrix_->GetNrows(), 1);
+    }
+
+    // make sure all are 0
+    for (const auto &matrix_handler : results_handler) {
+      for (int i_dof = 0; i_dof < matrix_handler.second->GetNrows(); i_dof++) {
+        for (int j_dof = 0; j_dof < matrix_handler.second->GetNcols(); j_dof++) {
+          (*matrix_handler.second)[i_dof][j_dof] = 0.;
+        }
+      }
+    }
+
+
+    // Covariance matrices are symetric :
+    auto *symmetric_matrix = convertToSymmetricMatrix(matrix_);
+    auto *Eigen_matrix_decomposer = new TMatrixDSymEigen(*symmetric_matrix);
+    auto *Eigen_values = &(Eigen_matrix_decomposer->GetEigenValues());
+    auto *Eigen_vectors = &(Eigen_matrix_decomposer->GetEigenVectors());
+
+    double max_eigen_value = (*Eigen_values)[0];
+    for (int i_eigen_value = 0; i_eigen_value < matrix_->GetNcols(); i_eigen_value++) {
+      if (max_eigen_value < (*Eigen_values)[i_eigen_value]) {
+        max_eigen_value = (*Eigen_values)[i_eigen_value];
+      }
+    }
+
+    for (int i_eigen_value = 0; i_eigen_value < matrix_->GetNcols(); i_eigen_value++) {
+      if ((*Eigen_values)[i_eigen_value] > max_eigen_value * 1E-5) {
+        if (results_handler.find("regularized_eigen_values") != results_handler.end()) {
+          (*results_handler["regularized_eigen_values"])[i_eigen_value][0]
+            = (*Eigen_values)[i_eigen_value];
+        }
+        for (int i_dof = 0; i_dof < matrix_->GetNrows(); i_dof++) {
+          for (int j_dof = 0; j_dof < matrix_->GetNrows(); j_dof++) {
+            if (results_handler.find("inverse_covariance_matrix") != results_handler.end()) {
+              (*results_handler["inverse_covariance_matrix"])[i_dof][j_dof]
+                += (1. / (*Eigen_values)[i_eigen_value])
+                   * (*Eigen_vectors)[i_dof][i_eigen_value]
+                   * (*Eigen_vectors)[j_dof][i_eigen_value];
+            }
+            if (results_handler.find("projector") != results_handler.end()) {
+              (*results_handler["projector"])[i_dof][j_dof]
+                += (*Eigen_vectors)[i_dof][i_eigen_value]
+                   * (*Eigen_vectors)[j_dof][i_eigen_value];
+            }
+            if (results_handler.find("regularized_covariance_matrix") != results_handler.end()) {
+              (*results_handler["regularized_covariance_matrix"])[i_dof][j_dof]
+                += (*Eigen_values)[i_eigen_value]
+                   * (*Eigen_vectors)[i_dof][i_eigen_value]
+                   * (*Eigen_vectors)[j_dof][i_eigen_value];
+            }
+
+          }
+        }
+      } else {
+//            std::cout << ALERT << "Skipping i_eigen_value = " << (*Eigen_values)[i_eigen_value]
+//                      << std::endl;
+      }
+    }
+
+    // No memory leak ? : CHECKED
+    delete Eigen_matrix_decomposer;
+    delete symmetric_matrix;
+
+    return results_handler;
+  }
+  std::vector<double> getEigenValues(TMatrixD *matrix_) {
+    auto *symmetric_matrix = GenericToolbox::convertToSymmetricMatrix(matrix_);
+    auto *Eigen_matrix_decomposer = new TMatrixDSymEigen(*symmetric_matrix);
+    auto *Eigen_values = &(Eigen_matrix_decomposer->GetEigenValues());
+
+    std::vector<double> output;
+    for (int i_dim = 0; i_dim < matrix_->GetNcols(); i_dim++) {
+      output.emplace_back((*Eigen_values)[i_dim]);
+    }
+    std::sort(output.begin(), output.end(), std::greater<double>());
+    return output;
+  }
+
+}
+
+
+//! Histogram Tools
+namespace GenericToolbox {
+
+  std::vector<double> getLogBinning(int n_bins_, double X_min_, double X_max_) {
+    std::vector<double> output(n_bins_ + 1); // add one extra bin for the boundary
+    double xlogmin = TMath::Log10(X_min_);
+    double xlogmax = TMath::Log10(X_max_);
+    double dlogx = (xlogmax - xlogmin) / ((double) n_bins_);
+    for (int i_bin = 0; i_bin <= n_bins_; i_bin++) {
+      double xlog = xlogmin + i_bin * dlogx;
+      output[i_bin] = TMath::Exp(TMath::Log(10) * xlog);
+    }
+    return output;
+  }
+  std::vector<double> getLinearBinning(int n_bins_, double X_min_, double X_max_) {
+    std::vector<double> output(n_bins_ + 1); // add one extra bin for the boundary
+    double dx = (X_max_ - X_min_) / ((double) n_bins_);
+    for (int i_bin = 0; i_bin <= n_bins_; i_bin++) {
+      double x = X_min_ + i_bin * dx;
+      output[i_bin] = x;
+    }
+    return output;
+  }
+  TH1D *getTH1DlogBinning(std::string name_, std::string title_, int n_bins_, double X_min_, double X_max_) {
+
+    TH1D *output = nullptr;
+    std::vector<double> xbins = GenericToolbox::getLogBinning(n_bins_, X_min_, X_max_);
+    output = new TH1D(name_.c_str(), title_.c_str(), xbins.size() - 1, &xbins[0]);
+    return output;
+
+  }
+  TH2D *getTH2DlogBinning(std::string name_, std::string title_, int nb_X_bins_, double X_min_, double X_max_,
+                          int nb_Y_bins_, double Y_min_, double Y_max_, std::string log_axis_) {
+
+    TH2D *output = nullptr;
+    std::vector<double> xbins;
+    std::vector<double> ybins;
+    if (GenericToolbox::doesStringContainsSubstring(log_axis_, "X")) {
+      xbins = GenericToolbox::getLogBinning(nb_X_bins_, X_min_, X_max_);
+    } else {
+      xbins = GenericToolbox::getLinearBinning(nb_X_bins_, X_min_, X_max_);
+    }
+    if (GenericToolbox::doesStringContainsSubstring(log_axis_, "Y")) {
+      ybins = GenericToolbox::getLogBinning(nb_Y_bins_, Y_min_, Y_max_);
+    } else {
+      ybins = GenericToolbox::getLinearBinning(nb_Y_bins_, Y_min_, Y_max_);
+    }
+
+    output = new TH2D(name_.c_str(), title_.c_str(), xbins.size() - 1, &xbins[0], ybins.size() - 1, &ybins[0]);
+    return output;
+
+  }
+
+
+}
+
+
+//! Canvas Tools
+namespace GenericToolbox {
+
+  void setDefaultPalette(){
+    gStyle->SetPalette(kBird);
+  }
+  void setBlueRedPalette(){
+    gStyle->SetPalette(kBlackBody);
+    TColor::InvertPalette();
+  }
+  void setOrangePalette(){
+    gStyle->SetPalette(kDarkBodyRadiator);
+  }
+  void fixTH2display(TH2 *histogram_){
 
     gPad->SetRightMargin(0.15);
     histogram_->GetZaxis()->SetTitleOffset(0.8);
@@ -202,5 +334,6 @@ namespace GenericToolbox{
   }
 
 }
+
 
 #endif //CPP_GENERIC_TOOLBOX_GENERICTOOLBOXROOTEXT_IMPL_H
