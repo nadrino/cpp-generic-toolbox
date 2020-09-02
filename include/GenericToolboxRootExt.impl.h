@@ -199,19 +199,19 @@ namespace GenericToolbox {
 
     auto content_names = GenericToolbox::splitString(outputContent_, ":");
 
-    if (GenericToolbox::doesElementIsInVector("inverse_covariance_matrix", content_names)) {
+    if (std::any_of(content_names.begin(), content_names.end(), "inverse_covariance_matrix")) {
       results_handler["inverse_covariance_matrix"]
         = new TMatrixD(matrix_->GetNrows(), matrix_->GetNcols());
     }
-    if (GenericToolbox::doesElementIsInVector("regularized_covariance_matrix", content_names)) {
+    if (std::any_of(content_names.begin(), content_names.end(), "regularized_covariance_matrix")) {
       results_handler["regularized_covariance_matrix"]
         = new TMatrixD(matrix_->GetNrows(), matrix_->GetNcols());
     }
-    if (GenericToolbox::doesElementIsInVector("projector", content_names)) {
+    if (std::any_of(content_names.begin(), content_names.end(), "projector")) {
       results_handler["projector"]
         = new TMatrixD(matrix_->GetNrows(), matrix_->GetNcols());
     }
-    if (GenericToolbox::doesElementIsInVector("regularized_eigen_values", content_names)) {
+    if (std::any_of(content_names.begin(), content_names.end(), "regularized_eigen_values")) {
       results_handler["regularized_eigen_values"]
         = new TMatrixD(matrix_->GetNrows(), 1);
     }

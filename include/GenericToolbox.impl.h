@@ -74,7 +74,6 @@ namespace GenericToolbox {
       GenericToolbox::ProgressBar::_progressLastDisplayedTimestamp_ = std::time(nullptr);
     }
   }
-
   template <typename T> void printVector(const std::vector<T>& vector_){
     std::cout << "{ ";
     bool isFirst = true;
