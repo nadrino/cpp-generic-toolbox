@@ -105,8 +105,7 @@ namespace GenericToolbox {
 //! Files Tools
 namespace GenericToolbox {
 
-  bool doesTFileIsValid(std::string input_file_path_)
-  {
+  bool doesTFileIsValid(std::string input_file_path_){
     bool file_is_valid = false;
     if(GenericToolbox::doesPathIsFile(input_file_path_))
     {
@@ -123,8 +122,7 @@ namespace GenericToolbox {
     }
     return file_is_valid;
   }
-  bool doesTFileIsValid(TFile* input_tfile_, bool check_if_writable_)
-  {
+  bool doesTFileIsValid(TFile* input_tfile_, bool check_if_writable_){
 
     if(input_tfile_ == nullptr){
       if(GenericToolbox::Parameters::_verboseLevel_ >= 1)
