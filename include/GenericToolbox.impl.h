@@ -23,16 +23,20 @@ namespace GenericToolbox {
 
   // Parameters for the progress bar
   namespace ProgressBar{
-    static std::time_t _progressLastDisplayedTimestamp_ = std::time(nullptr);
-    static int _lastDisplayedValue_ = -1;
+    static bool enableRainboxProgressBar = false;
+    static int lastDisplayedValue = -1;
+    static int barLength = 50;
+    static std::string fillTag = "#";
+
+    static std::time_t progressLastDisplayedTimestamp = std::time(nullptr);
     static std::thread::id _selectedThreadId_ = std::this_thread::get_id(); // get the main thread id
-    static int barLength = 25;
+    static std::vector<std::string> rainbowColorList = {"\033[31m", "\033[32m", "\033[33m", "\033[34m", "\033[35m", "\033[36m"};
   }
 
   void displayProgressBar(int iCurrent_, int iTotal_, std::string title_, bool forcePrint_){
     if(
-      std::time(nullptr) - GenericToolbox::ProgressBar::_progressLastDisplayedTimestamp_ >= time_t(0.5) // every 0.5 second (10fps)
-      or GenericToolbox::ProgressBar::_lastDisplayedValue_ == -1 // never printed before
+      std::time(nullptr) - GenericToolbox::ProgressBar::progressLastDisplayedTimestamp >= time_t(0.5) // every 0.5 second (10fps)
+      or GenericToolbox::ProgressBar::lastDisplayedValue == -1 // never printed before
       or iCurrent_ == 0 // first call
       or forcePrint_ // display every calls
       or iCurrent_ >= iTotal_-1 // last entry (mandatory to print endl)
@@ -40,7 +44,7 @@ namespace GenericToolbox {
 
       if(GenericToolbox::ProgressBar::_selectedThreadId_ != std::this_thread::get_id()) return; // While multithreading, this function is muted
 
-      if( iCurrent_ >= iTotal_-1 and GenericToolbox::ProgressBar::_lastDisplayedValue_ == 100 ){ // last has already been printed ?
+      if( iCurrent_ >= iTotal_-1 and GenericToolbox::ProgressBar::lastDisplayedValue == 100 ){ // last has already been printed ?
         return;
       }
 
@@ -49,16 +53,34 @@ namespace GenericToolbox {
       if(not (iCurrent_ >= iTotal_-1)){ // if not last entry
         if(percentValue > 100) percentValue = 100; // sanity check
         if(percentValue < 0) percentValue = 0;
-        if(percentValue == GenericToolbox::ProgressBar::_lastDisplayedValue_) return; // skipping!
+        if(percentValue == GenericToolbox::ProgressBar::lastDisplayedValue) return; // skipping!
       }
 
       std::cout << "\r";
 
-      if(not title_.empty()) std::cout << title_ << ": ";
+      if(not title_.empty()) std::cout << title_ << " ";
 
       if(GenericToolbox::ProgressBar::barLength > 0){
         int nbTags = int(double(percentValue)/100.*GenericToolbox::ProgressBar::barLength);
-        std::cout << "[" << repeatString("#", nbTags);
+        std::cout << "[";
+        if(not GenericToolbox::ProgressBar::enableRainboxProgressBar){
+          std::cout << repeatString(GenericToolbox::ProgressBar::fillTag, nbTags);
+        }
+        else{
+          int nbTagsCredits = nbTags;
+          int nbColors = GenericToolbox::ProgressBar::rainbowColorList.size();
+          int nbTagsPerColor = GenericToolbox::ProgressBar::barLength/nbColors;
+          for(int iColor = 0 ; iColor < nbColors ; iColor++ ){
+            std::cout << GenericToolbox::ProgressBar::rainbowColorList[iColor];
+            if(nbTagsCredits == 0) break;
+            for(int iSlot = 0 ; iSlot < nbTagsPerColor ; iSlot++){
+              std::cout << GenericToolbox::ProgressBar::fillTag;
+              nbTagsCredits--;
+              if(nbTagsCredits == 0) break;
+            }
+          }
+          std::cout << "\033[0m";
+        }
         std::cout << repeatString(" ", GenericToolbox::ProgressBar::barLength - nbTags) << "] ";
       }
 
@@ -71,8 +93,8 @@ namespace GenericToolbox {
         std::cout << std::flush << "\r";
       }
 
-      GenericToolbox::ProgressBar::_lastDisplayedValue_ = percentValue;
-      GenericToolbox::ProgressBar::_progressLastDisplayedTimestamp_ = std::time(nullptr);
+      GenericToolbox::ProgressBar::lastDisplayedValue = percentValue;
+      GenericToolbox::ProgressBar::progressLastDisplayedTimestamp = std::time(nullptr);
     }
   }
   template <typename T> void printVector(const std::vector<T>& vector_){

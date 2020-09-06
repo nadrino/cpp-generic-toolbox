@@ -40,6 +40,8 @@ int main(){
   cout << "Process has taken this amount of RAM at max: " << GenericToolbox::parseSizeUnits(GenericToolbox::getProcessMaxMemoryUsage()) << endl;
 
 
+  GenericToolbox::ProgressBar::enableRainboxProgressBar = true;
+  GenericToolbox::ProgressBar::barLength = 50;
   for(int i = 0 ; i < 1000 ; i++){
     GenericToolbox::displayProgressBar(i, 1000, "Loading...");
     std::this_thread::sleep_for(std::chrono::milliseconds(3));
