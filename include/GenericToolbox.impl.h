@@ -23,14 +23,14 @@ namespace GenericToolbox {
 
   // Parameters for the progress bar
   namespace ProgressBar{
-    static bool enableRainboxProgressBar = false;
-    static int lastDisplayedValue = -1;
-    static int barLength = 50;
+    static bool enableRainboxProgressBar = true;
+    static int barLength = 48;
     static std::string fillTag = "#";
 
+    static int lastDisplayedValue = -1;
     static std::time_t progressLastDisplayedTimestamp = std::time(nullptr);
     static std::thread::id _selectedThreadId_ = std::this_thread::get_id(); // get the main thread id
-    static std::vector<std::string> rainbowColorList = {"\033[31m", "\033[32m", "\033[33m", "\033[34m", "\033[35m", "\033[36m"};
+    static std::vector<std::string> rainbowColorList = {"\033[1;31m", "\033[1;32m", "\033[1;33m", "\033[1;34m", "\033[1;35m", "\033[1;36m"};
   }
 
   void displayProgressBar(int iCurrent_, int iTotal_, std::string title_, bool forcePrint_){
@@ -56,35 +56,75 @@ namespace GenericToolbox {
         if(percentValue == GenericToolbox::ProgressBar::lastDisplayedValue) return; // skipping!
       }
 
-      std::cout << "\r";
+      std::stringstream ss;
+      ss << "\r";
 
-      if(not title_.empty()) std::cout << title_ << " ";
+      int displayedBarLength = GenericToolbox::ProgressBar::barLength;
+      std::string displayedTitle = title_;
 
-      if(GenericToolbox::ProgressBar::barLength > 0){
-        int nbTags = int(double(percentValue)/100.*GenericToolbox::ProgressBar::barLength);
-        std::cout << "[";
+      // test if the bar is too wide wrt the prompt width
+      if(GenericToolbox::getTerminalWidth() != 0){ // terminal width is measurable
+
+        int totalLength = 0;
+        std::string strippedTitle = GenericToolbox::stripStringUnicode(title_); // remove special chars and colors
+        totalLength += strippedTitle.size();
+        if(not title_.empty()) totalLength += 1; // after title space
+        if(displayedBarLength > 0){
+          totalLength += 2; // []
+          totalLength += displayedBarLength;
+        }
+        totalLength += 1 + 3 + 1; // space, 100, %
+        totalLength += 1; // one extra free char is needed to flush
+
+        int extraCharsCount = (totalLength - GenericToolbox::getTerminalWidth());
+        if(extraCharsCount > 0 and displayedBarLength > 0){
+          // first, reduce the bar width
+          // 12 arbitrary chosen as the minimal barWidth
+          displayedBarLength = std::max(GenericToolbox::ProgressBar::barLength - extraCharsCount, 12);
+          extraCharsCount -= GenericToolbox::ProgressBar::barLength - displayedBarLength;
+        }
+        if(extraCharsCount > 0){
+          // if it's still to big, cut the title
+          displayedTitle = title_.substr(0, strippedTitle.size() - extraCharsCount - 3);
+          displayedTitle += "...";
+        }
+      }
+
+      if(not displayedTitle.empty()){
+        ss << displayedTitle << " ";
+      }
+
+      if(displayedBarLength > 0){
+
+        int nbTags   = percentValue * displayedBarLength / 100;
+        int nbSpaces = displayedBarLength - nbTags;
+        ss << "[";
         if(not GenericToolbox::ProgressBar::enableRainboxProgressBar){
-          std::cout << repeatString(GenericToolbox::ProgressBar::fillTag, nbTags);
+          ss << repeatString(GenericToolbox::ProgressBar::fillTag, nbTags);
         }
         else{
           int nbTagsCredits = nbTags;
           int nbColors = GenericToolbox::ProgressBar::rainbowColorList.size();
-          int nbTagsPerColor = GenericToolbox::ProgressBar::barLength/nbColors;
+          int nbTagsPerColor = displayedBarLength/nbColors;
           for(int iColor = 0 ; iColor < nbColors ; iColor++ ){
-            std::cout << GenericToolbox::ProgressBar::rainbowColorList[iColor];
+            ss << GenericToolbox::ProgressBar::rainbowColorList[iColor];
             if(nbTagsCredits == 0) break;
-            for(int iSlot = 0 ; iSlot < nbTagsPerColor ; iSlot++){
-              std::cout << GenericToolbox::ProgressBar::fillTag;
+            int iSlot = 0;
+            if(iColor == nbColors-1) nbTagsPerColor += 100; // if it is the last color, let the tag credits break
+            while( nbTagsCredits != 0 and iSlot < nbTagsPerColor ){
+              ss << GenericToolbox::ProgressBar::fillTag;
               nbTagsCredits--;
-              if(nbTagsCredits == 0) break;
+              iSlot++;
             }
           }
-          std::cout << "\033[0m";
+          ss << "\033[0m";
         }
-        std::cout << repeatString(" ", GenericToolbox::ProgressBar::barLength - nbTags) << "] ";
+        ss << repeatString(" ", nbSpaces) << "]";
       }
 
-      std::cout << percentValue << "%";
+      ss << " " << percentValue << "%";
+
+      std::cout << ss.str();
 
       if(percentValue == 100){
         std::cout << std::endl;
@@ -157,6 +197,44 @@ namespace GenericToolbox {
     std::transform(output_str.begin(), output_str.end(), output_str.begin(),
                    [](unsigned char c) { return std::tolower(c); });
     return output_str;
+  }
+  std::string stripStringUnicode(const std::string &inputStr_){
+    std::string outputStr(inputStr_);
+
+    if(GenericToolbox::doesStringContainsSubstring(outputStr, "\033")){
+      // remove color
+      std::string tempStr;
+      auto splitOuputStr = GenericToolbox::splitString(outputStr, "\033");
+      for(const auto& sliceStr : splitOuputStr){
+        if(sliceStr.empty()) continue;
+        // look for a 'm' char that determines the end of the color code
+        bool mCharHasBeenFound = false;
+        for(const char& c : sliceStr){
+          if(not mCharHasBeenFound){
+            if(c == 'm'){
+              mCharHasBeenFound = true;
+            }
+          }
+          else{
+            tempStr += c;
+          }
+        }
+      }
+      outputStr = tempStr;
+    }
+
+    outputStr.erase(
+      remove_if(
+        outputStr.begin(), outputStr.end(),
+        [](const char& c){return !isprint( static_cast<unsigned char>( c ) );}
+      ),
+      outputStr.end()
+    );
+
+
+
+
+    return outputStr;
   }
   std::string repeatString(const std::string inputStr_, int amount_){
     std::string outputStr;
@@ -574,17 +652,22 @@ namespace GenericToolbox{
 // Windows
 #include <windows.h>
 #include <psapi.h>
+#define WIN32_LEAN_AND_MEAN
+#define VC_EXTRALEAN
+#include <Windows.h>
 #elif defined(__APPLE__) && defined(__MACH__)
 // MacOS
 #include <unistd.h>
 #include <sys/resource.h>
 #include <mach/mach.h>
+#include <sys/ioctl.h>
 #elif defined(__linux__) || defined(__linux) || defined(linux) || defined(__gnu_linux__)
 // Linux
 #include <unistd.h>
 #include <sys/time.h>
 #include <sys/resource.h>
 #include <stdio.h>
+#include <sys/ioctl.h>
 
 #elif (defined(_AIX) || defined(__TOS__AIX__)) || (defined(__sun__) || defined(__sun) || defined(sun) && (defined(__SVR4) || defined(__svr4__)))
 // AIX and Solaris
@@ -592,6 +675,7 @@ namespace GenericToolbox{
 #include <sys/resource.h>
 #include <fcntl.h>
 #include <procfs.h>
+#include <sys/ioctl.h>
 
 #else
 // Unsupported
@@ -682,6 +766,40 @@ namespace GenericToolbox{
     // Unknown OS
     return (size_t)0L;          /* Unsupported. */
 #endif
+  }
+  int getTerminalWidth(){
+    int outWith = 0;
+#if defined(_WIN32)
+    CONSOLE_SCREEN_BUFFER_INFO csbi;
+    GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &csbi);
+    outWith = (int)(csbi.dwSize.X);
+//    outWith = (int)(csbi.dwSize.Y);
+#elif defined(__linux__) || defined(__linux) || defined(linux) || defined(__gnu_linux__) \
+    || (defined(_AIX) || defined(__TOS__AIX__)) || (defined(__sun__) || defined(__sun) || defined(sun) && (defined(__SVR4) || defined(__svr4__))) \
+    || ( defined(__APPLE__) && defined(__MACH__) )
+    struct winsize w;
+    ioctl(fileno(stdout), TIOCGWINSZ, &w);
+    outWith = (int)(w.ws_col);
+//    outWith = (int)(w.ws_row);
+#endif // Windows/Linux
+    return outWith;
+  }
+  int getTerminalHeight(){
+    int outWith = 0;
+#if defined(_WIN32)
+    CONSOLE_SCREEN_BUFFER_INFO csbi;
+    GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &csbi);
+//    outWith = (int)(csbi.dwSize.X);
+    outWith = (int)(csbi.dwSize.Y);
+#elif defined(__linux__) || defined(__linux) || defined(linux) || defined(__gnu_linux__) \
+    || (defined(_AIX) || defined(__TOS__AIX__)) || (defined(__sun__) || defined(__sun) || defined(sun) && (defined(__SVR4) || defined(__svr4__))) \
+    || ( defined(__APPLE__) && defined(__MACH__) )
+    struct winsize w;
+    ioctl(fileno(stdout), TIOCGWINSZ, &w);
+//    outWith = (int)(w.ws_col);
+    outWith = (int)(w.ws_row);
+#endif // Windows/Linux
+    return outWith;
   }
 
 }

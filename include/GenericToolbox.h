@@ -29,6 +29,7 @@ namespace GenericToolbox{
   bool doesStringStartsWithSubstring(std::string string_, std::string substring_, bool ignoreCase_ = false);
   bool doesStringEndsWithSubstring(std::string string_, std::string substring_, bool ignoreCase_ = false);
   std::string toLowerCase(const std::string &inputStr_);
+  std::string stripStringUnicode(const std::string &inputStr_);
   std::string repeatString(const std::string inputStr_, int amount_);
   std::string removeExtraDoubledCharacters(const std::string& inputStr_, std::string doubledChar_);
   std::string joinVectorString(const std::vector<std::string> &string_list_, std::string delimiter_, int begin_index_ = 0, int end_index_ = 0);
@@ -70,7 +71,8 @@ namespace GenericToolbox{
   //! Hardware Tools
   size_t getProcessMemoryUsage();
   size_t getProcessMaxMemoryUsage();
-
+  int getTerminalWidth();
+  int getTerminalHeight();
 
 }
 

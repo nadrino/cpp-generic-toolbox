@@ -39,9 +39,13 @@ int main(){
   cout << "Process takes this amount of RAM: " << GenericToolbox::parseSizeUnits(GenericToolbox::getProcessMemoryUsage()) << endl;
   cout << "Process has taken this amount of RAM at max: " << GenericToolbox::parseSizeUnits(GenericToolbox::getProcessMaxMemoryUsage()) << endl;
 
+  cout << "getTerminalWidth() = " << GenericToolbox::getTerminalWidth() << endl;
 
-  GenericToolbox::ProgressBar::enableRainboxProgressBar = true;
-  GenericToolbox::ProgressBar::barLength = 50;
+//  for(int i = 0 ; i < 1000 ; i++){
+//    GenericToolbox::displayProgressBar(i, 1000, "Loading with an overly long title that is bigger than the console width to test how the bar is behaving and so debugging");
+//    std::this_thread::sleep_for(std::chrono::milliseconds(3));
+//  }
+
   for(int i = 0 ; i < 1000 ; i++){
     GenericToolbox::displayProgressBar(i, 1000, "Loading...");
     std::this_thread::sleep_for(std::chrono::milliseconds(3));
