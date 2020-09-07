@@ -18,8 +18,9 @@ int main(){
 
   // String management
   string str("This is a simple message.");
+  cout << str << endl;
   cout << "Does str contains \"simple message\"? " << GenericToolbox::doesStringContainsSubstring(str, "simple message") << endl;
-  cout << "Remove the caps chars: " << GenericToolbox::toLowerCase(str);
+  cout << "Remove the caps chars: " << GenericToolbox::toLowerCase(str) << endl;
   auto splitVec = GenericToolbox::splitString(str, " ");
   cout << "Those are the words in str: "; GenericToolbox::printVector(splitVec);
   cout << "Let's_join_the_vector_element:_" << GenericToolbox::joinVectorString(splitVec, "_") << endl;
@@ -41,13 +42,15 @@ int main(){
 
   cout << "getTerminalWidth() = " << GenericToolbox::getTerminalWidth() << endl;
 
-//  for(int i = 0 ; i < 1000 ; i++){
-//    GenericToolbox::displayProgressBar(i, 1000, "Loading with an overly long title that is bigger than the console width to test how the bar is behaving and so debugging");
-//    std::this_thread::sleep_for(std::chrono::milliseconds(3));
-//  }
-
   for(int i = 0 ; i < 1000 ; i++){
     GenericToolbox::displayProgressBar(i, 1000, "Loading...");
+    std::this_thread::sleep_for(std::chrono::milliseconds(3));
+  }
+
+  GenericToolbox::ProgressBar::enableRainboxProgressBar = false;
+  GenericToolbox::ProgressBar::barLength = 18;
+  for(int i = 0 ; i < 1000 ; i++){
+    GenericToolbox::displayProgressBar(i, 1000, "If your don't like colors, and the default bar length:");
     std::this_thread::sleep_for(std::chrono::milliseconds(3));
   }
 
