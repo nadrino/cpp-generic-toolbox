@@ -207,6 +207,10 @@ namespace GenericToolbox {
       auto splitOuputStr = GenericToolbox::splitString(outputStr, "\033");
       for(const auto& sliceStr : splitOuputStr){
         if(sliceStr.empty()) continue;
+        if(tempStr.empty()){
+          tempStr = sliceStr;
+          continue;
+        }
         // look for a 'm' char that determines the end of the color code
         bool mCharHasBeenFound = false;
         for(const char& c : sliceStr){
