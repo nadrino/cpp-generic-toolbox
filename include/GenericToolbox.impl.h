@@ -23,7 +23,7 @@ namespace GenericToolbox {
 
   // Parameters for the progress bar
   namespace ProgressBar{
-    static bool enableRainboxProgressBar = true;
+    static bool enableRainbowProgressBar = false;
     static int barLength = 48;
     static std::string fillTag = "#";
 
@@ -99,7 +99,7 @@ namespace GenericToolbox {
         int nbTags   = percentValue * displayedBarLength / 100;
         int nbSpaces = displayedBarLength - nbTags;
         ss << "[";
-        if(not GenericToolbox::ProgressBar::enableRainboxProgressBar){
+        if(not GenericToolbox::ProgressBar::enableRainbowProgressBar){
           ss << repeatString(GenericToolbox::ProgressBar::fillTag, nbTags);
         }
         else{
