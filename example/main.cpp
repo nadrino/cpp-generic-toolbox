@@ -12,6 +12,8 @@
 #include <GenericToolboxRootExt.h>
 #endif
 
+#include "classExample.h"
+
 using namespace std;
 
 int main(){
@@ -44,15 +46,18 @@ int main(){
 
   for(int i = 0 ; i < 1000 ; i++){
     GenericToolbox::displayProgressBar(i, 1000, "Loading...");
-    std::this_thread::sleep_for(std::chrono::milliseconds(3));
+    std::this_thread::sleep_for(std::chrono::milliseconds(1));
   }
 
   GenericToolbox::ProgressBar::enableRainbowProgressBar = true;
   GenericToolbox::ProgressBar::barLength = 18;
   for(int i = 0 ; i < 1000 ; i++){
     GenericToolbox::displayProgressBar(i, 1000, "If you like colors, but not the default bar length:");
-    std::this_thread::sleep_for(std::chrono::milliseconds(3));
+    std::this_thread::sleep_for(std::chrono::milliseconds(1));
   }
+
+  ClassExample example;
+  example.MyGreatMethod();
 
   return EXIT_SUCCESS;
 }

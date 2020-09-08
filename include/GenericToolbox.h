@@ -78,7 +78,9 @@ namespace GenericToolbox{
 
   //! Misc Tools
   std::string getClassName(const std::string& PRETTY_FUNCTION__); // When calling this functions, provide __PRETTY_FUNCTION__ macro
+#define __CLASS_NAME__ GenericToolbox::getClassName(__PRETTY_FUNCTION__)
   std::string getMethodName(const std::string& PRETTY_FUNCTION__);
+#define __METHOD_NAME__ GenericToolbox::getMethodName(__PRETTY_FUNCTION__)
 
 }
 
