@@ -809,4 +809,26 @@ namespace GenericToolbox{
 }
 
 
+// Misc Tools
+namespace GenericToolbox{
+
+  std::string getClassName(const std::string& PRETTY_FUNCTION__){
+    size_t colons = PRETTY_FUNCTION__.find("::");
+    if (colons == std::string::npos)
+      return "::";
+    size_t begin = PRETTY_FUNCTION__.substr(0,colons).rfind(' ') + 1;
+    size_t end = colons - begin;
+
+    return PRETTY_FUNCTION__.substr(begin,end);
+  }
+  std::string getMethodName(const std::string& PRETTY_FUNCTION__){
+    size_t colons = PRETTY_FUNCTION__.find("::");
+    size_t begin = PRETTY_FUNCTION__.substr(0,colons).rfind(' ') + 1;
+    size_t end = PRETTY_FUNCTION__.rfind('(') - begin;
+
+    return PRETTY_FUNCTION__.substr(begin,end) + "()";
+  }
+
+}
+
 #endif //CPP_GENERIC_TOOLBOX_GENERICTOOLBOX_IMPL_H

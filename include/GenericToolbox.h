@@ -19,6 +19,7 @@ namespace GenericToolbox{
   void displayProgressBar(int iCurrent_, int iTotal_, std::string title_ = "", bool forcePrint_ = false);
   template <typename T> void printVector(const std::vector<T>& vector_);
 
+
   //! Vector management
   template <typename T> bool doesElementIsInVector(T element_, const std::vector<T>& vector_);
 
@@ -73,6 +74,11 @@ namespace GenericToolbox{
   size_t getProcessMaxMemoryUsage();
   int getTerminalWidth();
   int getTerminalHeight();
+
+
+  //! Misc Tools
+  std::string getClassName(const std::string& PRETTY_FUNCTION__); // When calling this functions, provide __PRETTY_FUNCTION__ macro
+  std::string getMethodName(const std::string& PRETTY_FUNCTION__);
 
 }
 
