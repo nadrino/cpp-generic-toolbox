@@ -16,6 +16,7 @@
 #include <algorithm>
 #include <cstring>
 #include <thread>
+#include <numeric>
 
 
 // Displaying Tools
@@ -154,8 +155,21 @@ namespace GenericToolbox {
 //! Vector management
 namespace GenericToolbox {
 
-template <typename T> bool doesElementIsInVector(T element_, const std::vector<T>& vector_){
+  template <typename T> bool doesElementIsInVector(T element_, const std::vector<T>& vector_){
     return std::find(vector_.begin(), vector_.end(), element_) != vector_.end();
+  }
+  template <typename T, typename Compare> std::vector<size_t> getSortPermutation(const std::vector<T>& vectorToSort_, Compare& compareLambda_ ){
+    std::vector<size_t> p(vectorToSort_.size());
+    std::iota(p.begin(), p.end(), 0);
+    std::sort(p.begin(), p.end(),
+              [&](size_t i, size_t j){ return compareLambda_(vectorToSort_[i], vectorToSort_[j]); });
+    return p;
+  }
+  template <typename T> std::vector<T> applyPermutation(const std::vector<T>& vectorToPermute_, const std::vector<std::size_t>& sortPermutation_ ){
+    std::vector<T> sorted_vec(vectorToPermute_.size());
+    std::transform(sortPermutation_.begin(), sortPermutation_.end(), sorted_vec.begin(),
+                   [&](std::size_t i){ return vectorToPermute_[i]; });
+    return sorted_vec;
   }
 
 }

@@ -22,6 +22,8 @@ namespace GenericToolbox{
 
   //! Vector management
   template <typename T> bool doesElementIsInVector(T element_, const std::vector<T>& vector_);
+  template <typename T, typename Compare> std::vector<size_t> getSortPermutation(const std::vector<T>& vectorToSort_, Compare& compareLambda_ );
+  template <typename T> std::vector<T> applyPermutation(const std::vector<T>& vectorToPermute_, const std::vector<std::size_t>& sortPermutation_ );
 
 
   //! String Management Tools
