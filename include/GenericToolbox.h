@@ -7,6 +7,7 @@
 
 #include <string>
 #include <vector>
+#include <thread>
 
 // Index
 namespace GenericToolbox{
