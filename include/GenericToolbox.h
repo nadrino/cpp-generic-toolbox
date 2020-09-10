@@ -22,9 +22,17 @@ namespace GenericToolbox{
 #define PROGRESS_BAR_ENABLE_RAINBOW 0
 #endif
 
+#ifndef PROGRESS_BAR_LENGTH
+#define PROGRESS_BAR_LENGTH 48
+#endif
+
+#ifndef PROGRESS_BAR_FILL_TAG
+#define PROGRESS_BAR_FILL_TAG "#"
+#endif
+
     static bool enableRainbowProgressBar = PROGRESS_BAR_ENABLE_RAINBOW;
-    static int barLength = 48;
-    static std::string fillTag = "#";
+    static int barLength = PROGRESS_BAR_LENGTH;
+    static std::string fillTag = PROGRESS_BAR_FILL_TAG; // multi-char is possible
 
     static int lastDisplayedValue = -1;
     static std::time_t progressLastDisplayedTimestamp = std::time(nullptr);
