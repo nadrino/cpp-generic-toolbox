@@ -259,18 +259,16 @@ namespace GenericToolbox {
     }
     return outputStr;
   }
-  std::string removeExtraDoubledCharacters(const std::string &inputStr_, std::string doubledChar_) {
-    std::vector<std::string> substr_list = splitString(inputStr_, doubledChar_);
-    std::vector<std::string> cleaned_substr_list;
-    for (int i_substr = 0; i_substr < int(substr_list.size()); i_substr++) {
-      if (not substr_list[i_substr].empty())
-        cleaned_substr_list.emplace_back(substr_list[i_substr]);
+  std::string removeRepeatedCharacters(const std::string &inputStr_, std::string repeatedChar_) {
+    std::string outStr = inputStr_;
+    std::string oldStr;
+    std::string repeatedCharTwice = repeatedChar_;
+    repeatedCharTwice += repeatedChar_;
+    while(oldStr != outStr){
+      oldStr = outStr;
+      outStr = GenericToolbox::replaceSubstringInString(outStr, repeatedCharTwice, repeatedChar_);
     }
-    std::string cleaned_input_str;
-    if (doesStringStartsWithSubstring(inputStr_, doubledChar_)) cleaned_input_str += doubledChar_;
-    cleaned_input_str += joinVectorString(cleaned_substr_list, doubledChar_);
-    if (doesStringEndsWithSubstring(inputStr_, doubledChar_)) cleaned_input_str += doubledChar_;
-    return cleaned_input_str;
+    return outStr;
   }
   std::string joinVectorString(const std::vector<std::string> &string_list_, std::string delimiter_, int begin_index_, int end_index_) {
 
@@ -452,7 +450,7 @@ namespace GenericToolbox{
     while (std::getline(ss, level, '/')){
       current_level += level; // append folder to the current level
       if(current_level.empty()) current_level = "/";
-      current_level = removeExtraDoubledCharacters(current_level, "/");
+      current_level = removeRepeatedCharacters(current_level, "/");
       // create current level
       if(not doesPathIsFolder(current_level)){
         ::mkdir(current_level.c_str(), 0777);
@@ -650,7 +648,7 @@ namespace GenericToolbox{
         relative_subfile_path += subfolder_name;
         relative_subfile_path += "/";
         relative_subfile_path += subfile_name;
-        output_file_paths.emplace_back(removeExtraDoubledCharacters(relative_subfile_path, "/"));
+        output_file_paths.emplace_back(removeRepeatedCharacters(relative_subfile_path, "/"));
       }
     }
 
