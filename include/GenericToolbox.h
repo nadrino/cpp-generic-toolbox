@@ -15,6 +15,23 @@ namespace GenericToolbox{
     int _verboseLevel_ = 0;
   }
 
+  // Parameters for the progress bar
+  namespace ProgressBar{
+
+#ifndef PROGRESS_BAR_ENABLE_RAINBOW
+#define PROGRESS_BAR_ENABLE_RAINBOW 0
+#endif
+
+    static bool enableRainbowProgressBar = PROGRESS_BAR_ENABLE_RAINBOW;
+    static int barLength = 48;
+    static std::string fillTag = "#";
+
+    static int lastDisplayedValue = -1;
+    static std::time_t progressLastDisplayedTimestamp = std::time(nullptr);
+    static std::thread::id _selectedThreadId_ = std::this_thread::get_id(); // get the main thread id
+    static std::vector<std::string> rainbowColorList = {"\033[1;31m", "\033[1;32m", "\033[1;33m", "\033[1;34m", "\033[1;35m", "\033[1;36m"};
+  }
+
   //! Displaying Tools
   void displayProgressBar(int iCurrent_, int iTotal_, std::string title_ = "", bool forcePrint_ = false);
   template <typename T> void printVector(const std::vector<T>& vector_);

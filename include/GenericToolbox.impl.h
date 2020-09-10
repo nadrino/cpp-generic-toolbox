@@ -22,18 +22,6 @@
 // Displaying Tools
 namespace GenericToolbox {
 
-  // Parameters for the progress bar
-  namespace ProgressBar{
-    static bool enableRainbowProgressBar = false;
-    static int barLength = 48;
-    static std::string fillTag = "#";
-
-    static int lastDisplayedValue = -1;
-    static std::time_t progressLastDisplayedTimestamp = std::time(nullptr);
-    static std::thread::id _selectedThreadId_ = std::this_thread::get_id(); // get the main thread id
-    static std::vector<std::string> rainbowColorList = {"\033[1;31m", "\033[1;32m", "\033[1;33m", "\033[1;34m", "\033[1;35m", "\033[1;36m"};
-  }
-
   void displayProgressBar(int iCurrent_, int iTotal_, std::string title_, bool forcePrint_){
     if(
       std::time(nullptr) - GenericToolbox::ProgressBar::progressLastDisplayedTimestamp >= time_t(0.5) // every 0.5 second (10fps)
@@ -101,19 +89,27 @@ namespace GenericToolbox {
         int nbSpaces = displayedBarLength - nbTags;
         ss << "[";
         if(not GenericToolbox::ProgressBar::enableRainbowProgressBar){
-          ss << repeatString(GenericToolbox::ProgressBar::fillTag, nbTags);
+          int iCharTagIndex = 0;
+          for(int iTag = 0 ; iTag < nbTags ; iTag++){
+            ss << GenericToolbox::ProgressBar::fillTag[iCharTagIndex];
+            iCharTagIndex++;
+            if(iCharTagIndex >= GenericToolbox::ProgressBar::fillTag.size()) iCharTagIndex = 0;
+          }
         }
         else{
           int nbTagsCredits = nbTags;
           int nbColors = GenericToolbox::ProgressBar::rainbowColorList.size();
           int nbTagsPerColor = displayedBarLength/nbColors;
+          if( displayedBarLength % nbColors != 0) nbTagsPerColor++;
+          int iCharTagIndex = 0;
           for(int iColor = 0 ; iColor < nbColors ; iColor++ ){
             ss << GenericToolbox::ProgressBar::rainbowColorList[iColor];
             if(nbTagsCredits == 0) break;
             int iSlot = 0;
-            if(iColor == nbColors-1) nbTagsPerColor += 100; // if it is the last color, let the tag credits break
             while( nbTagsCredits != 0 and iSlot < nbTagsPerColor ){
-              ss << GenericToolbox::ProgressBar::fillTag;
+              ss << GenericToolbox::ProgressBar::fillTag[iCharTagIndex];
+              iCharTagIndex++;
+              if(iCharTagIndex >= GenericToolbox::ProgressBar::fillTag.size()) iCharTagIndex = 0;
               nbTagsCredits--;
               iSlot++;
             }
