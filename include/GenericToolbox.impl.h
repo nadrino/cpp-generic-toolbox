@@ -536,6 +536,11 @@ namespace GenericToolbox{
     std::string output_cwd(cwd);
     return output_cwd;
   }
+  void dumpStringInFile(std::string outFilePath_, std::string stringToWrite_){
+    std::ofstream out(outFilePath_.c_str());
+    out << stringToWrite_;
+    out.close();
+  }
   std::string dumpFileAsString(std::string filePath_){
     std::string data;
     if(doesPathIsFile(filePath_)){

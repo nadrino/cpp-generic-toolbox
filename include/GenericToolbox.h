@@ -88,6 +88,7 @@ namespace GenericToolbox{
   size_t getHashFile(std::string filePath_);
   long int getFileSizeInBytes(const std::string &filePath_);
   std::string getCurrentWorkingDirectory();
+  void dumpStringInFile(std::string outFilePath_, std::string stringToWrite_);
   std::string dumpFileAsString(std::string filePath_);
   std::vector<std::string> dumpFileAsVectorString(std::string filePath_);
   std::vector<std::string> getListOfEntriesInFolder(std::string folderPath_);
