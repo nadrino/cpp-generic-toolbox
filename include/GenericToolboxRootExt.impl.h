@@ -406,4 +406,21 @@ namespace GenericToolbox {
 }
 
 
+//! ROOT Internals
+namespace GenericToolbox{
+
+    static Int_t oldVerbosity = -1;
+
+    void muteRoot(){
+        oldVerbosity      = gErrorIgnoreLevel;
+        gErrorIgnoreLevel = kFatal;
+    }
+    void unmuteRoot(){
+        gErrorIgnoreLevel = oldVerbosity;
+        oldVerbosity      = -1;
+    }
+
+}
+
+
 #endif //CPP_GENERIC_TOOLBOX_GENERICTOOLBOXROOTEXT_IMPL_H

@@ -51,6 +51,9 @@ namespace GenericToolbox{
   void fixTH2display(TH2 *histogram_);
 
 
+  //! ROOT Internals
+  void muteRoot();
+  void unmuteRoot();
 
 
 }
