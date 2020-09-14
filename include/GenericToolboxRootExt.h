@@ -23,6 +23,7 @@ namespace GenericToolbox{
   TH2D* convertTMatrixDtoTH2D(TMatrixD *XY_values_, std::string graph_title_ = "", std::string Z_title_ = "", std::string Y_title_ = "Row #", std::string X_title_ = "Col #");
   TVectorD* convertStdVectorToTVectorD(std::vector<double>& vect_);
   TMatrixDSym* convertToSymmetricMatrix(TMatrixD* matrix_);
+  TMatrixD* convertToCorrelationMatrix(TMatrixD* covarianceMatrix_);
 
 
   //! Files Tools

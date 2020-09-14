@@ -97,6 +97,29 @@ namespace GenericToolbox {
 
     return result;
   }
+    TMatrixD* convertToCorrelationMatrix(TMatrixD* covarianceMatrix_){
+        if(covarianceMatrix_ == nullptr) return nullptr;
+        if(covarianceMatrix_->GetNrows() != covarianceMatrix_->GetNcols()) return nullptr;
+
+        auto* correlationMatrix = (TMatrixD*) covarianceMatrix_->Clone();
+
+        for(int iRow = 0 ; iRow < covarianceMatrix_->GetNrows() ; iRow++){
+            for(int iCol = 0 ; iCol < covarianceMatrix_->GetNcols() ; iCol++){
+
+                if(   (*covarianceMatrix_)[iRow][iRow] == 0
+                   or (*covarianceMatrix_)[iCol][iCol] == 0 ){
+                    (*correlationMatrix)[iRow][iCol] = 0;
+                }
+                else{
+                    (*correlationMatrix)[iRow][iCol] /=
+                        TMath::Sqrt((*covarianceMatrix_)[iRow][iRow]*(*covarianceMatrix_)[iCol][iCol]);
+                }
+
+            }
+        }
+
+        return correlationMatrix;
+    }
 
 
 }
