@@ -574,7 +574,7 @@ namespace GenericToolbox{
 
     return lines;
   }
-  std::vector<std::string> getListOfEntriesInFolder(std::string folderPath_) {
+  std::vector<std::string> getListOfEntriesInFolder(std::string folderPath_, std::string entryNameRegex_) {
 
     std::vector<std::string> entries_list;
     if(not doesPathIsFolder(folderPath_)) return entries_list;
@@ -585,9 +585,43 @@ namespace GenericToolbox{
       return entries_list;
     }
     else {
+
+      std::vector<std::string> nameElements;
+      if(not entryNameRegex_.empty()){
+        nameElements = GenericToolbox::splitString(entryNameRegex_, "*");
+      }
+
       struct dirent* entry;
+      bool isValid = true;
       while ( (entry = readdir(directory)) ) {
-        entries_list.emplace_back(entry->d_name);
+        isValid = true;
+        if(not entryNameRegex_.empty()){
+          std::string entryCandidate = entry->d_name;
+          for( int iElement = 0 ; iElement < int(nameElements.size()) ; iElement++ ){
+
+            if( iElement == 0
+                and not GenericToolbox::doesStringStartsWithSubstring(entryCandidate, nameElements[iElement])
+              ){
+              isValid = false;
+              break;
+            }
+            else if( iElement == int(nameElements.size())-1
+                and not GenericToolbox::doesStringEndsWithSubstring(entryCandidate, nameElements[iElement])
+              ){
+              isValid = false;
+              break;
+            }
+            else if( not GenericToolbox::doesStringContainsSubstring(entryCandidate, nameElements[iElement])
+                ){
+              isValid = false;
+              break;
+            }
+            else{
+              entryCandidate = GenericToolbox::splitString(entryCandidate, nameElements[iElement]).back();
+            }
+          }
+        }
+        if(isValid) entries_list.emplace_back(entry->d_name);
       }
       closedir(directory);
       return entries_list;
@@ -639,7 +673,7 @@ namespace GenericToolbox{
   // -- with direct IO dependencies
   bool doesFolderIsEmpty(std::string folderPath_){
     if(not doesPathIsFolder(folderPath_)) return false;
-    return getListOfEntriesInFolder(folderPath_).empty();
+    return getListOfEntriesInFolder(folderPath_, std::string()).empty();
   }
   std::vector<std::string> getListFilesInSubfolders(const std::string &folderPath_) {
 
