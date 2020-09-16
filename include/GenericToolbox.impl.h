@@ -134,15 +134,20 @@ namespace GenericToolbox {
       GenericToolbox::ProgressBar::progressLastDisplayedTimestamp = std::time(nullptr);
     }
   }
+  template <typename T> std::string getVectorAsString(const std::vector<T>& vector_){
+      std::stringstream ss;
+      ss << "{ ";
+      bool isFirst = true;
+      for(const auto& element: vector_){
+          if(not isFirst) ss << ", ";
+          else isFirst = false;
+          ss << element;
+      }
+      ss << " }";
+      return ss.str();
+  }
   template <typename T> void printVector(const std::vector<T>& vector_){
-    std::cout << "{ ";
-    bool isFirst = true;
-    for(const auto& element: vector_){
-      if(not isFirst) std::cout << ", ";
-      else isFirst = false;
-      std::cout << element;
-    }
-    std::cout << " }" << std::endl;
+    std::cout << getVectorAsString(vector_) << std::endl;
   }
 
 }

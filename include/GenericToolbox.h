@@ -43,6 +43,7 @@ namespace GenericToolbox{
 
   //! Displaying Tools
   void displayProgressBar(int iCurrent_, int iTotal_, std::string title_ = "", bool forcePrint_ = false);
+  template <typename T> std::string getVectorAsString(const std::vector<T>& vector_);
   template <typename T> void printVector(const std::vector<T>& vector_);
 
 
