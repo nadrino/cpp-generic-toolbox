@@ -183,6 +183,7 @@ namespace GenericToolbox {
 namespace GenericToolbox {
 
   bool doesStringContainsSubstring(std::string string_, std::string substring_, bool ignoreCase_) {
+    if (substring_.empty()) return true;
     if (substring_.size() > string_.size()) return false;
     if (ignoreCase_) {
       string_ = toLowerCase(string_);
@@ -192,6 +193,7 @@ namespace GenericToolbox {
     else return false;
   }
   bool doesStringStartsWithSubstring(std::string string_, std::string substring_, bool ignoreCase_) {
+    if (substring_.empty()) return true;
     if (substring_.size() > string_.size()) return false;
     if (ignoreCase_) {
       string_ = toLowerCase(string_);
@@ -200,6 +202,7 @@ namespace GenericToolbox {
     return (not string_.compare(0, substring_.size(), substring_));
   }
   bool doesStringEndsWithSubstring(std::string string_, std::string substring_, bool ignoreCase_) {
+    if (substring_.empty()) return true;
     if (substring_.size() > string_.size()) return false;
     if (ignoreCase_) {
       string_ = toLowerCase(string_);
@@ -604,24 +607,26 @@ namespace GenericToolbox{
 
           for( int iElement = 0 ; iElement < int(nameElements.size()) ; iElement++ ){
 
-            if( iElement == 0
-                and not GenericToolbox::doesStringStartsWithSubstring(entryCandidate, nameElements[iElement])
-              ){
-              isValid = false;
-              break;
+            if( iElement == 0 ){
+              if( not GenericToolbox::doesStringStartsWithSubstring(entryCandidate, nameElements[iElement]) ){
+                isValid = false;
+                break;
+              }
             }
-            else if( iElement == int(nameElements.size())-1
-                and not GenericToolbox::doesStringEndsWithSubstring(entryCandidate, nameElements[iElement])
-              ){
-              isValid = false;
-              break;
-            }
-            else if( not GenericToolbox::doesStringContainsSubstring(entryCandidate, nameElements[iElement])
-                ){
-              isValid = false;
-              break;
+            else if( iElement+1 == int(nameElements.size()) ){
+              if(not GenericToolbox::doesStringEndsWithSubstring(entryCandidate, nameElements[iElement]) ){
+                isValid = false;
+              }
             }
             else{
+              if( not GenericToolbox::doesStringContainsSubstring(entryCandidate, nameElements[iElement])
+                  ){
+                isValid = false;
+                break;
+              }
+            }
+
+            if( iElement+1 != int(nameElements.size()) ){
               entryCandidate = GenericToolbox::splitString(entryCandidate, nameElements[iElement]).back();
             }
           }
@@ -658,30 +663,33 @@ namespace GenericToolbox{
                 isValid = false;
             }
             else if(not entryNameRegex_.empty()){
-                std::string entryCandidate = entry->d_name;
-                for( int iElement = 0 ; iElement < int(nameElements.size()) ; iElement++ ){
+              std::string entryCandidate = entry->d_name;
 
-                    if( iElement == 0
-                        and not GenericToolbox::doesStringStartsWithSubstring(entryCandidate, nameElements[iElement])
-                        ){
-                        isValid = false;
-                        break;
-                    }
-                    else if( iElement == int(nameElements.size())-1
-                             and not GenericToolbox::doesStringEndsWithSubstring(entryCandidate, nameElements[iElement])
-                        ){
-                        isValid = false;
-                        break;
-                    }
-                    else if( not GenericToolbox::doesStringContainsSubstring(entryCandidate, nameElements[iElement])
-                        ){
-                        isValid = false;
-                        break;
-                    }
-                    else{
-                        entryCandidate = GenericToolbox::splitString(entryCandidate, nameElements[iElement]).back();
-                    }
+              for( int iElement = 0 ; iElement < int(nameElements.size()) ; iElement++ ){
+
+                if( iElement == 0 ){
+                  if( not GenericToolbox::doesStringStartsWithSubstring(entryCandidate, nameElements[iElement]) ){
+                    isValid = false;
+                    break;
+                  }
                 }
+                else if( iElement+1 == int(nameElements.size()) ){
+                  if(not GenericToolbox::doesStringEndsWithSubstring(entryCandidate, nameElements[iElement]) ){
+                    isValid = false;
+                  }
+                }
+                else{
+                  if( not GenericToolbox::doesStringContainsSubstring(entryCandidate, nameElements[iElement])
+                      ){
+                    isValid = false;
+                    break;
+                  }
+                }
+
+                if( iElement+1 != int(nameElements.size()) ){
+                  entryCandidate = GenericToolbox::splitString(entryCandidate, nameElements[iElement]).back();
+                }
+              }
             }
             if(isValid) subfolders_list.emplace_back(entry->d_name);
         }
@@ -713,30 +721,33 @@ namespace GenericToolbox{
         std::string file_candidate = folderPath_ + "/" + std::string(entry->d_name);
         if(doesPathIsFile(file_candidate)){
             if(not entryNameRegex_.empty()){
-                std::string entryCandidate = entry->d_name;
-                for( int iElement = 0 ; iElement < int(nameElements.size()) ; iElement++ ){
+              std::string entryCandidate = entry->d_name;
 
-                    if( iElement == 0
-                        and not GenericToolbox::doesStringStartsWithSubstring(entryCandidate, nameElements[iElement])
-                        ){
-                        isValid = false;
-                        break;
-                    }
-                    else if( iElement == int(nameElements.size())-1
-                             and not GenericToolbox::doesStringEndsWithSubstring(entryCandidate, nameElements[iElement])
-                        ){
-                        isValid = false;
-                        break;
-                    }
-                    else if( not GenericToolbox::doesStringContainsSubstring(entryCandidate, nameElements[iElement])
-                        ){
-                        isValid = false;
-                        break;
-                    }
-                    else{
-                        entryCandidate = GenericToolbox::splitString(entryCandidate, nameElements[iElement]).back();
-                    }
+              for( int iElement = 0 ; iElement < int(nameElements.size()) ; iElement++ ){
+
+                if( iElement == 0 ){
+                  if( not GenericToolbox::doesStringStartsWithSubstring(entryCandidate, nameElements[iElement]) ){
+                    isValid = false;
+                    break;
+                  }
                 }
+                else if( iElement+1 == int(nameElements.size()) ){
+                  if(not GenericToolbox::doesStringEndsWithSubstring(entryCandidate, nameElements[iElement]) ){
+                    isValid = false;
+                  }
+                }
+                else{
+                  if( not GenericToolbox::doesStringContainsSubstring(entryCandidate, nameElements[iElement])
+                      ){
+                    isValid = false;
+                    break;
+                  }
+                }
+
+                if( iElement+1 != int(nameElements.size()) ){
+                  entryCandidate = GenericToolbox::splitString(entryCandidate, nameElements[iElement]).back();
+                }
+              }
             }
             if(isValid) files_list.emplace_back(entry->d_name);
         }
