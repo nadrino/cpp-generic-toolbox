@@ -646,6 +646,7 @@ namespace GenericToolbox{
 
       struct dirent* entry;
       while ( (entry = readdir(directory)) ) {
+          isValid = true;
         std::string folder_candidate = folderPath_ + "/" + std::string(entry->d_name);
         if(doesPathIsFolder(folder_candidate)){
             if(not entryNameRegex_.empty()){
@@ -700,6 +701,7 @@ namespace GenericToolbox{
 
       struct dirent* entry;
       while ( (entry = readdir(directory)) ) {
+          isValid = true;
         std::string file_candidate = folderPath_ + "/" + std::string(entry->d_name);
         if(doesPathIsFile(file_candidate)){
             if(not entryNameRegex_.empty()){
