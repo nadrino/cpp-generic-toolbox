@@ -590,9 +590,9 @@ namespace GenericToolbox{
       if(not entryNameRegex_.empty()){
         nameElements = GenericToolbox::splitString(entryNameRegex_, "*");
       }
+      bool isValid;
 
       struct dirent* entry;
-      bool isValid = true;
       while ( (entry = readdir(directory)) ) {
         isValid = true;
         if(not entryNameRegex_.empty()){
@@ -628,7 +628,7 @@ namespace GenericToolbox{
     }
 
   }
-  std::vector<std::string> getListOfSubfoldersInFolder(std::string folderPath_) {
+  std::vector<std::string> getListOfSubfoldersInFolder(std::string folderPath_, std::string entryNameRegex_) {
     std::vector<std::string> subfolders_list;
     if(not doesPathIsFolder(folderPath_)) return subfolders_list;
     DIR* directory;
@@ -637,11 +637,44 @@ namespace GenericToolbox{
       std::cout << "Failed to open directory : " << folderPath_ << std::endl;
       return subfolders_list;
     } else {
+
+        std::vector<std::string> nameElements;
+        if(not entryNameRegex_.empty()){
+            nameElements = GenericToolbox::splitString(entryNameRegex_, "*");
+        }
+        bool isValid;
+
       struct dirent* entry;
       while ( (entry = readdir(directory)) ) {
         std::string folder_candidate = folderPath_ + "/" + std::string(entry->d_name);
         if(doesPathIsFolder(folder_candidate)){
-          subfolders_list.emplace_back(entry->d_name);
+            if(not entryNameRegex_.empty()){
+                std::string entryCandidate = entry->d_name;
+                for( int iElement = 0 ; iElement < int(nameElements.size()) ; iElement++ ){
+
+                    if( iElement == 0
+                        and not GenericToolbox::doesStringStartsWithSubstring(entryCandidate, nameElements[iElement])
+                        ){
+                        isValid = false;
+                        break;
+                    }
+                    else if( iElement == int(nameElements.size())-1
+                             and not GenericToolbox::doesStringEndsWithSubstring(entryCandidate, nameElements[iElement])
+                        ){
+                        isValid = false;
+                        break;
+                    }
+                    else if( not GenericToolbox::doesStringContainsSubstring(entryCandidate, nameElements[iElement])
+                        ){
+                        isValid = false;
+                        break;
+                    }
+                    else{
+                        entryCandidate = GenericToolbox::splitString(entryCandidate, nameElements[iElement]).back();
+                    }
+                }
+            }
+            if(isValid) subfolders_list.emplace_back(entry->d_name);
         }
       }
       closedir(directory);
@@ -649,7 +682,7 @@ namespace GenericToolbox{
     }
 
   }
-  std::vector<std::string> getListOfFilesInFolder(std::string folderPath_){
+  std::vector<std::string> getListOfFilesInFolder(std::string folderPath_, std::string entryNameRegex_){
     std::vector<std::string> files_list;
     if(not doesPathIsFolder(folderPath_)) return files_list;
     DIR* directory;
@@ -658,11 +691,44 @@ namespace GenericToolbox{
       std::cout << "Failed to open directory : " << folderPath_ << std::endl;
       return files_list;
     } else {
+
+        std::vector<std::string> nameElements;
+        if(not entryNameRegex_.empty()){
+            nameElements = GenericToolbox::splitString(entryNameRegex_, "*");
+        }
+        bool isValid;
+
       struct dirent* entry;
       while ( (entry = readdir(directory)) ) {
         std::string file_candidate = folderPath_ + "/" + std::string(entry->d_name);
         if(doesPathIsFile(file_candidate)){
-          files_list.emplace_back(entry->d_name);
+            if(not entryNameRegex_.empty()){
+                std::string entryCandidate = entry->d_name;
+                for( int iElement = 0 ; iElement < int(nameElements.size()) ; iElement++ ){
+
+                    if( iElement == 0
+                        and not GenericToolbox::doesStringStartsWithSubstring(entryCandidate, nameElements[iElement])
+                        ){
+                        isValid = false;
+                        break;
+                    }
+                    else if( iElement == int(nameElements.size())-1
+                             and not GenericToolbox::doesStringEndsWithSubstring(entryCandidate, nameElements[iElement])
+                        ){
+                        isValid = false;
+                        break;
+                    }
+                    else if( not GenericToolbox::doesStringContainsSubstring(entryCandidate, nameElements[iElement])
+                        ){
+                        isValid = false;
+                        break;
+                    }
+                    else{
+                        entryCandidate = GenericToolbox::splitString(entryCandidate, nameElements[iElement]).back();
+                    }
+                }
+            }
+            if(isValid) files_list.emplace_back(entry->d_name);
         }
       }
       closedir(directory);

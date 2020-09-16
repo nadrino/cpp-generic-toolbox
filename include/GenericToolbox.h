@@ -94,8 +94,8 @@ namespace GenericToolbox{
   std::string dumpFileAsString(std::string filePath_);
   std::vector<std::string> dumpFileAsVectorString(std::string filePath_);
   std::vector<std::string> getListOfEntriesInFolder(std::string folderPath_, std::string entryNameRegex_ = "");
-  std::vector<std::string> getListOfSubfoldersInFolder(std::string folderPath_);
-  std::vector<std::string> getListOfFilesInFolder(std::string folderPath_);
+  std::vector<std::string> getListOfSubfoldersInFolder(std::string folderPath_, std::string entryNameRegex_ = "");
+  std::vector<std::string> getListOfFilesInFolder(std::string folderPath_, std::string entryNameRegex_ = "");
   // -- with indirect IO dependencies
   std::vector<std::string> getListFilesInSubfolders(const std::string &folderPath_);
 
