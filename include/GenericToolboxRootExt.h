@@ -16,6 +16,8 @@
 #include <TH2D.h>
 #include <TFile.h>
 
+#include "Logger.h"
+
 namespace GenericToolbox{
 
   //! Conversion Tools
