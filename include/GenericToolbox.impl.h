@@ -22,7 +22,7 @@
 // Displaying Tools
 namespace GenericToolbox {
 
-  inline void displayProgressBar(int iCurrent_, int iTotal_, std::string title_, bool forcePrint_){
+  void displayProgressBar(int iCurrent_, int iTotal_, std::string title_, bool forcePrint_){
     if(
       std::time(nullptr) - GenericToolbox::ProgressBar::progressLastDisplayedTimestamp >= time_t(0.5) // every 0.5 second (10fps)
       or GenericToolbox::ProgressBar::lastDisplayedValue == -1 // never printed before
