@@ -113,6 +113,9 @@ namespace GenericToolbox{
   std::string getMethodName(const std::string& PRETTY_FUNCTION__);
 #define __METHOD_NAME__ GenericToolbox::getMethodName(__PRETTY_FUNCTION__)
 
+#define GET_VAR_NAME_VALUE(var) std::string(#var" = " + std::to_string(var))
+#define GET_VAR_NAME(var) std::string(#var)
+
 }
 
 #include "GenericToolbox.impl.h"
