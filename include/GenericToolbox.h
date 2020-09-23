@@ -8,7 +8,7 @@
 #include <string>
 #include <vector>
 #include <thread>
-#include <stringstream>
+#include <sstream>
 
 // Index
 namespace GenericToolbox{
