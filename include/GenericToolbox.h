@@ -114,7 +114,7 @@ namespace GenericToolbox{
 #define __METHOD_NAME__ GenericToolbox::getMethodName(__PRETTY_FUNCTION__)
 
   std::stringstream ssBuffer;
-#define GET_VAR_NAME_VALUE(var) (( ssBuffer(#var" = ") << (var) ).str())
+#define GET_VAR_NAME_VALUE(var) ( ( GenericToolbox::ssBuffer(#var" = ") << (var) ).str() )
 #define GET_VAR_NAME(var) std::string(#var)
 
 }
