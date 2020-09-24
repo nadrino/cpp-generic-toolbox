@@ -9,6 +9,7 @@
 #include <vector>
 #include <thread>
 #include <sstream>
+#include <functional>
 
 // Index
 namespace GenericToolbox{
