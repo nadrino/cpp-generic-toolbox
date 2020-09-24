@@ -165,7 +165,7 @@ namespace GenericToolbox {
   bool doesElementIsInVector(const char* element_, const std::vector<std::string>& vector_){
     return std::find(vector_.begin(), vector_.end(), element_) != vector_.end();
   }
-  template <typename T, typename Compare> std::vector<size_t> getSortPermutation(const std::vector<T>& vectorToSort_, Compare& compareLambda_ ){
+  template <typename T> std::vector<size_t> getSortPermutation(const std::vector<T>& vectorToSort_, std::function<bool(T&, T&)>& compareLambda_ ){
     std::vector<size_t> p(vectorToSort_.size());
     std::iota(p.begin(), p.end(), 0);
     std::sort(p.begin(), p.end(),
