@@ -44,6 +44,9 @@ namespace GenericToolbox {
         if(percentValue < 0) percentValue = 0;
         if(percentValue == GenericToolbox::ProgressBar::lastDisplayedValue) return; // skipping!
       }
+      else{
+          percentValue = 100; // force to be 100
+      }
 
       std::stringstream ss;
       ss << "\r";
