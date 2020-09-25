@@ -57,6 +57,9 @@ namespace GenericToolbox {
       // test if the bar is too wide wrt the prompt width
       if(GenericToolbox::getTerminalWidth() != 0){ // terminal width is measurable
 
+        // clean the full line with blank spaces
+        std::cout << "\r" << GenericToolbox::repeatString(" ", GenericToolbox::getTerminalWidth()-1);
+
         int totalLength = 0;
         std::string strippedTitle = GenericToolbox::stripStringUnicode(title_); // remove special chars and colors
         totalLength += strippedTitle.size();
