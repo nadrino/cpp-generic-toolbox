@@ -273,7 +273,7 @@ namespace GenericToolbox {
     }
     return outputStr;
   }
-  std::string removeRepeatedCharacters(const std::string &inputStr_, std::string repeatedChar_) {
+  inline std::string removeRepeatedCharacters(const std::string &inputStr_, std::string repeatedChar_) {
     std::string outStr = inputStr_;
     std::string oldStr;
     std::string repeatedCharTwice = repeatedChar_;

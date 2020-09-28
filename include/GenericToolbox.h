@@ -59,19 +59,19 @@ namespace GenericToolbox{
 
   //! String Management Tools
   // -- Transformations
-  bool doesStringContainsSubstring(std::string string_, std::string substring_, bool ignoreCase_ = false);
-  bool doesStringStartsWithSubstring(std::string string_, std::string substring_, bool ignoreCase_ = false);
-  bool doesStringEndsWithSubstring(std::string string_, std::string substring_, bool ignoreCase_ = false);
+  inline bool doesStringContainsSubstring(std::string string_, std::string substring_, bool ignoreCase_ = false);
+  inline bool doesStringStartsWithSubstring(std::string string_, std::string substring_, bool ignoreCase_ = false);
+  inline bool doesStringEndsWithSubstring(std::string string_, std::string substring_, bool ignoreCase_ = false);
   inline std::string toLowerCase(const std::string &inputStr_);
-  std::string stripStringUnicode(const std::string &inputStr_);
+  inline std::string stripStringUnicode(const std::string &inputStr_);
   inline std::string repeatString(const std::string inputStr_, int amount_);
-  std::string removeRepeatedCharacters(const std::string& inputStr_, std::string repeatedChar_);
-  std::string joinVectorString(const std::vector<std::string> &string_list_, std::string delimiter_, int begin_index_ = 0, int end_index_ = 0);
-  std::string replaceSubstringInString(const std::string &input_str_, std::string substr_to_look_for_, std::string substr_to_replace_);
-  std::vector<std::string> splitString(const std::string& inputString_, std::string delimiter_);
+  inline std::string removeRepeatedCharacters(const std::string& inputStr_, std::string repeatedChar_);
+  inline std::string joinVectorString(const std::vector<std::string> &string_list_, std::string delimiter_, int begin_index_ = 0, int end_index_ = 0);
+  inline std::string replaceSubstringInString(const std::string &input_str_, std::string substr_to_look_for_, std::string substr_to_replace_);
+  inline std::vector<std::string> splitString(const std::string& inputString_, std::string delimiter_);
   // -- Parsing
-  std::string parseSizeUnits(unsigned int sizeInBytes_);
-  template<typename ... Args> std::string formatString( std::string format, Args ... args );
+  inline std::string parseSizeUnits(unsigned int sizeInBytes_);
+  template<typename ... Args> inline std::string formatString( std::string format, Args ... args );
 
 
   //! Conversion Tools
