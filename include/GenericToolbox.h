@@ -62,7 +62,7 @@ namespace GenericToolbox{
   bool doesStringContainsSubstring(std::string string_, std::string substring_, bool ignoreCase_ = false);
   bool doesStringStartsWithSubstring(std::string string_, std::string substring_, bool ignoreCase_ = false);
   bool doesStringEndsWithSubstring(std::string string_, std::string substring_, bool ignoreCase_ = false);
-  std::string toLowerCase(const std::string &inputStr_);
+  inline std::string toLowerCase(const std::string &inputStr_);
   std::string stripStringUnicode(const std::string &inputStr_);
   std::string repeatString(const std::string inputStr_, int amount_);
   std::string removeRepeatedCharacters(const std::string& inputStr_, std::string repeatedChar_);

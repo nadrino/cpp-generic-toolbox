@@ -217,7 +217,7 @@ namespace GenericToolbox {
     }
     return (not string_.compare(string_.size() - substring_.size(), substring_.size(), substring_));
   }
-  std::string toLowerCase(const std::string &inputStr_) {
+  inline std::string toLowerCase(const std::string &inputStr_) {
     std::string output_str(inputStr_);
     std::transform(output_str.begin(), output_str.end(), output_str.begin(),
                    [](unsigned char c) { return std::tolower(c); });
