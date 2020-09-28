@@ -45,16 +45,16 @@ namespace GenericToolbox{
   }
 
   //! Displaying Tools
-  void displayProgressBar(int iCurrent_, int iTotal_, std::string title_ = "", bool forcePrint_ = false);
-  template <typename T> std::string getVectorAsString(const std::vector<T>& vector_);
-  template <typename T> void printVector(const std::vector<T>& vector_);
+  inline void displayProgressBar(int iCurrent_, int iTotal_, std::string title_ = "", bool forcePrint_ = false);
+  template <typename T> inline std::string getVectorAsString(const std::vector<T>& vector_);
+  template <typename T> inline void printVector(const std::vector<T>& vector_);
 
 
   //! Vector management
-  template <typename T> bool doesElementIsInVector( T element_, const std::vector<T>& vector_ );
-  bool doesElementIsInVector(const char* element_, const std::vector<std::string>& vector_);
-  template <typename T> std::vector<size_t> getSortPermutation(const std::vector<T>& vectorToSort_, std::function<bool(const T, const T)> compareLambda_ );
-  template <typename T> std::vector<T> applyPermutation(const std::vector<T>& vectorToPermute_, const std::vector<std::size_t>& sortPermutation_ );
+  template <typename T> inline bool doesElementIsInVector( T element_, const std::vector<T>& vector_ );
+inline bool doesElementIsInVector(const char* element_, const std::vector<std::string>& vector_);
+  template <typename T> inline std::vector<size_t> getSortPermutation(const std::vector<T>& vectorToSort_, std::function<bool(const T, const T)> compareLambda_ );
+  template <typename T> inline std::vector<T> applyPermutation(const std::vector<T>& vectorToPermute_, const std::vector<std::size_t>& sortPermutation_ );
 
 
   //! String Management Tools
@@ -75,45 +75,45 @@ namespace GenericToolbox{
 
 
   //! Conversion Tools
-  bool toBool(std::string str);
+  inline bool toBool(std::string str);
 
 
   //! FS Tools
   // -- without IO dependencies
-  bool doesFilePathHasExtension(const std::string &filePath_, std::string ext_);
-  std::string getFolderPathFromFilePath(const std::string &filePath_);
+  inline bool doesFilePathHasExtension(const std::string &filePath_, std::string ext_);
+inline std::string getFolderPathFromFilePath(const std::string &filePath_);
   // -- with direct IO dependencies
-  bool doesPathIsFile(std::string filePath_);
-  bool doesPathIsFolder(std::string folderPath_);
-  bool doFilesAreTheSame(std::string filePath1_, std::string filePath2_);
-  bool mkdirPath(std::string newFolderPath_);
-  bool deleteFile(std::string filePath_);
-  bool copyFile(std::string source_file_path_, std::string destination_file_path_, bool force_ = false);
-  bool mvFile(std::string sourceFilePath_, std::string destinationFilePath_, bool force_ = false);
-  size_t getHashFile(std::string filePath_);
-  long int getFileSizeInBytes(const std::string &filePath_);
-  std::string getCurrentWorkingDirectory();
-  void dumpStringInFile(std::string outFilePath_, std::string stringToWrite_);
-  std::string dumpFileAsString(std::string filePath_);
-  std::vector<std::string> dumpFileAsVectorString(std::string filePath_);
-  std::vector<std::string> getListOfEntriesInFolder(std::string folderPath_, std::string entryNameRegex_ = "");
-  std::vector<std::string> getListOfSubfoldersInFolder(std::string folderPath_, std::string entryNameRegex_ = "");
-  std::vector<std::string> getListOfFilesInFolder(std::string folderPath_, std::string entryNameRegex_ = "");
+  inline bool doesPathIsFile(std::string filePath_);
+inline bool doesPathIsFolder(std::string folderPath_);
+inline bool doFilesAreTheSame(std::string filePath1_, std::string filePath2_);
+inline bool mkdirPath(std::string newFolderPath_);
+inline bool deleteFile(std::string filePath_);
+inline bool copyFile(std::string source_file_path_, std::string destination_file_path_, bool force_ = false);
+inline bool mvFile(std::string sourceFilePath_, std::string destinationFilePath_, bool force_ = false);
+inline size_t getHashFile(std::string filePath_);
+inline long int getFileSizeInBytes(const std::string &filePath_);
+inline std::string getCurrentWorkingDirectory();
+inline void dumpStringInFile(std::string outFilePath_, std::string stringToWrite_);
+inline std::string dumpFileAsString(std::string filePath_);
+inline std::vector<std::string> dumpFileAsVectorString(std::string filePath_);
+inline std::vector<std::string> getListOfEntriesInFolder(std::string folderPath_, std::string entryNameRegex_ = "");
+inline std::vector<std::string> getListOfSubfoldersInFolder(std::string folderPath_, std::string entryNameRegex_ = "");
+inline std::vector<std::string> getListOfFilesInFolder(std::string folderPath_, std::string entryNameRegex_ = "");
   // -- with indirect IO dependencies
-  std::vector<std::string> getListFilesInSubfolders(const std::string &folderPath_);
+  inline std::vector<std::string> getListFilesInSubfolders(const std::string &folderPath_);
 
 
   //! Hardware Tools
-  size_t getProcessMemoryUsage();
-  size_t getProcessMaxMemoryUsage();
-  int getTerminalWidth();
-  int getTerminalHeight();
+  inline size_t getProcessMemoryUsage();
+inline size_t getProcessMaxMemoryUsage();
+inline int getTerminalWidth();
+inline int getTerminalHeight();
 
 
   //! Misc Tools
-  std::string getClassName(const std::string& PRETTY_FUNCTION__); // When calling this functions, provide __PRETTY_FUNCTION__ macro
+  inline std::string getClassName(const std::string& PRETTY_FUNCTION__); // When calling this functions, provide __PRETTY_FUNCTION__ macro
 #define __CLASS_NAME__ GenericToolbox::getClassName(__PRETTY_FUNCTION__)
-  std::string getMethodName(const std::string& PRETTY_FUNCTION__);
+inline std::string getMethodName(const std::string& PRETTY_FUNCTION__);
 #define __METHOD_NAME__ GenericToolbox::getMethodName(__PRETTY_FUNCTION__)
 
 #define GET_VAR_NAME_VALUE(var) ( ((std::stringstream&) (std::stringstream() << #var << " = " << (var)) ).str() )
