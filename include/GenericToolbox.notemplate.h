@@ -12,7 +12,7 @@
 namespace GenericToolBox{
 
   // template <typename T> void printVector(const std::vector<T>& vector_);
-  template <typename T> void printVector(const std::vector<std::string>& vector_){
+  template <typename T> inline void printVector(const std::vector<std::string>& vector_){
     std::cout << "{ ";
     bool isFirst = true;
     for(const auto& element: vector_){
@@ -22,7 +22,7 @@ namespace GenericToolBox{
     }
     std::cout << " }" << std::endl;
   }
-  template <typename T> void printVector(const std::vector<int>& vector_){
+  template <typename T> inline void printVector(const std::vector<int>& vector_){
     std::cout << "{ ";
     bool isFirst = true;
     for(const auto& element: vector_){
@@ -32,7 +32,7 @@ namespace GenericToolBox{
     }
     std::cout << " }" << std::endl;
   }
-  template <typename T> void printVector(const std::vector<double>& vector_){
+  template <typename T> inline void printVector(const std::vector<double>& vector_){
     std::cout << "{ ";
     bool isFirst = true;
     for(const auto& element: vector_){
@@ -42,7 +42,7 @@ namespace GenericToolBox{
     }
     std::cout << " }" << std::endl;
   }
-  template <typename T> void printVector(const std::vector<float>& vector_){
+  template <typename T> inline void printVector(const std::vector<float>& vector_){
     std::cout << "{ ";
     bool isFirst = true;
     for(const auto& element: vector_){
@@ -52,7 +52,7 @@ namespace GenericToolBox{
     }
     std::cout << " }" << std::endl;
   }
-  template <typename T> void printVector(const std::vector<char>& vector_){
+  template <typename T> inline void printVector(const std::vector<char>& vector_){
     std::cout << "{ ";
     bool isFirst = true;
     for(const auto& element: vector_){
