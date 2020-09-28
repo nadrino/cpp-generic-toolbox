@@ -16,7 +16,7 @@
 namespace GenericToolbox{
 
   namespace Parameters{
-    inline int _verboseLevel_ = 0;
+    static int _verboseLevel_ = 0;
   }
 
   // Parameters for the progress bar
