@@ -100,6 +100,7 @@ inline std::vector<std::string> getListOfEntriesInFolder(std::string folderPath_
 inline std::vector<std::string> getListOfSubfoldersInFolder(std::string folderPath_, std::string entryNameRegex_ = "");
 inline std::vector<std::string> getListOfFilesInFolder(std::string folderPath_, std::string entryNameRegex_ = "");
   // -- with indirect IO dependencies
+  inline bool doesFolderIsEmpty(std::string folderPath_);
   inline std::vector<std::string> getListFilesInSubfolders(const std::string &folderPath_);
 
 
