@@ -15,7 +15,7 @@
 // Index
 namespace GenericToolbox{
 
-  namespace Parameters{
+  inline namespace Parameters{
     int _verboseLevel_ = 0;
   }
 
