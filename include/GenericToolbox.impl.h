@@ -265,7 +265,7 @@ namespace GenericToolbox {
 
     return outputStr;
   }
-  std::string repeatString(const std::string inputStr_, int amount_){
+  inline std::string repeatString(const std::string inputStr_, int amount_){
     std::string outputStr;
     if(amount_ <= 0) return outputStr;
     for(int i_count = 0 ; i_count < amount_ ; i_count++){
