@@ -58,6 +58,10 @@ namespace GenericToolbox {
       // test if the bar is too wide wrt the prompt width
       if(GenericToolbox::getTerminalWidth() != 0){ // terminal width is measurable
 
+        if(GenericToolbox::ProgressBar::barFillTerminalWidth){
+          displayedBarLength = GenericToolbox::getTerminalWidth(); // absurdly large
+        }
+
         // clean the full line with blank spaces
 //        std::cout << "\r" << GenericToolbox::repeatString(" ", GenericToolbox::getTerminalWidth()-1) << "\r";
 
