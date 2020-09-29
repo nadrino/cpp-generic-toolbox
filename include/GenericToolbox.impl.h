@@ -967,14 +967,18 @@ namespace GenericToolbox{
     }
     nbMicroSec /= 60; // in min
     if(nbMicroSec / 60 == 0){ // print in s
-      return std::to_string(nbMicroSec) + " s";
+      return std::to_string(nbMicroSec) + " min";
     }
     nbMicroSec /= 60; // in hours
     if(nbMicroSec / 60 == 0){ // print in hours
       return std::to_string(nbMicroSec) + " h";
     }
     nbMicroSec /= 24; // in days
-    return std::to_string(nbMicroSec) + " d";
+    if(nbMicroSec / 24 == 0){ // print in hours
+      return std::to_string(nbMicroSec) + " d";
+    }
+    nbMicroSec /= 365; // in days
+    return std::to_string(nbMicroSec) + " y";
   }
   long long getElapsedTimeSinceLastCallInMicroSeconds(int instance_){
     auto newTimePoint = std::chrono::high_resolution_clock::now();
