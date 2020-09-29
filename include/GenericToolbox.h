@@ -29,7 +29,7 @@ namespace GenericToolbox{
 #endif
 
 #ifndef PROGRESS_BAR_LENGTH
-#define PROGRESS_BAR_LENGTH 24
+#define PROGRESS_BAR_LENGTH 36
 #endif
 
 #ifndef PROGRESS_BAR_FILL_TAG
