@@ -32,12 +32,11 @@ namespace GenericToolbox {
       or iCurrent_ >= iTotal_-1 // last entry (mandatory to print endl)
       ){
 
-      if(not forcePrint_){
-        if(GenericToolbox::ProgressBar::_selectedThreadId_ != std::this_thread::get_id()) return; // While multithreading, this function is muted
+      // While multithreading, this function is muted
+      if(GenericToolbox::ProgressBar::_selectedThreadId_ != std::this_thread::get_id()) return;
 
-        if( iCurrent_ >= iTotal_-1 and GenericToolbox::ProgressBar::lastDisplayedValue == 100 ){ // last has already been printed ?
-          return;
-        }
+      if( not forcePrint_ and iCurrent_ >= iTotal_-1 and GenericToolbox::ProgressBar::lastDisplayedValue == 100 ){ // last has already been printed ?
+        return;
       }
 
       int percentValue = int(round(double(iCurrent_) / iTotal_ * 100.));
