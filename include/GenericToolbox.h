@@ -12,6 +12,7 @@
 #include <sstream>
 #include <functional>
 #include <chrono>
+#include <map>
 
 // Index
 namespace GenericToolbox{
