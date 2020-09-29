@@ -111,8 +111,8 @@ namespace GenericToolbox{
   inline size_t getProcessMaxMemoryUsage();
   inline int getTerminalWidth();
   inline int getTerminalHeight();
-  inline std::string getElapsedTimeSinceLastCall();
-  inline long long getElapsedTimeSinceLastCallInMicroSeconds();
+  inline std::string getElapsedTimeSinceLastCallStr(int instance_ = -1);
+  inline long long getElapsedTimeSinceLastCallInMicroSeconds(int instance = -1);
 
 
 
@@ -125,9 +125,10 @@ namespace GenericToolbox{
 #define GET_VAR_NAME_VALUE(var) ( ((std::stringstream&) (std::stringstream() << #var << " = " << (var)) ).str() )
 #define GET_VAR_NAME(var) std::string(#var)
 
+  // Not intended to be managed by the user
   namespace Internals{
 
-    static std::chrono::high_resolution_clock::time_point _lastTimePoint_;
+    static std::map<int, std::chrono::high_resolution_clock::time_point> _lastTimePointMap_;
 
   }
 

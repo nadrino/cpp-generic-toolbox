@@ -951,8 +951,9 @@ namespace GenericToolbox{
 #endif // Windows/Linux
     return outWith;
   }
-  std::string getElapsedTimeSinceLastCall(){
-    long long nbMicroSec = getElapsedTimeSinceLastCallInMicroSeconds();
+  std::string getElapsedTimeSinceLastCallStr(int instance_)
+  {
+    long long nbMicroSec = getElapsedTimeSinceLastCallInMicroSeconds(instance_);
     if(nbMicroSec / 1000 == 0 ){ // print in µs
       return std::to_string(nbMicroSec) + " µs";
     }
@@ -975,12 +976,12 @@ namespace GenericToolbox{
     nbMicroSec /= 24; // in days
     return std::to_string(nbMicroSec) + " d";
   }
-  long long getElapsedTimeSinceLastCallInMicroSeconds(){
+  long long getElapsedTimeSinceLastCallInMicroSeconds(int instance_){
     auto newTimePoint = std::chrono::high_resolution_clock::now();
     auto microseconds = std::chrono::duration_cast<std::chrono::microseconds>(
-      newTimePoint - Internals::_lastTimePoint_
+      newTimePoint - Internals::_lastTimePointMap_[instance_]
       );
-    Internals::_lastTimePoint_ = newTimePoint;
+    Internals::_lastTimePointMap_[instance_] = newTimePoint;
     return microseconds.count();
   }
 
