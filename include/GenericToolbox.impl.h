@@ -33,7 +33,7 @@ namespace GenericToolbox {
       ){
 
       // While multithreading, this function is muted
-      if(GenericToolbox::ProgressBar::_selectedThreadId_ != std::this_thread::get_id()) return;
+      if( not forcePrint_ and GenericToolbox::ProgressBar::_selectedThreadId_ != std::this_thread::get_id()) return;
 
       if( not forcePrint_ and iCurrent_ >= iTotal_-1 and GenericToolbox::ProgressBar::lastDisplayedValue == 100 ){ // last has already been printed ?
         return;
@@ -956,30 +956,30 @@ namespace GenericToolbox{
   {
     long long nbMicroSec = getElapsedTimeSinceLastCallInMicroSeconds(instance_);
     if(nbMicroSec / 1000 == 0 ){ // print in µs
-      return std::to_string(nbMicroSec) + " µs";
+      return std::to_string(nbMicroSec) + "µs";
     }
     nbMicroSec /= 1000; // in ms
     if(nbMicroSec / nbMicroSec == 0){ // print in ms
-      return std::to_string(nbMicroSec) + " ms";
+      return std::to_string(nbMicroSec) + "ms";
     }
     nbMicroSec /= 1000; // in s
-    if(nbMicroSec / 1000 == 0){ // print in s
-      return std::to_string(nbMicroSec) + " s";
+    if(nbMicroSec / 60 < 5){
+      return std::to_string(nbMicroSec) + "s";
     }
     nbMicroSec /= 60; // in min
-    if(nbMicroSec / 60 == 0){ // print in s
-      return std::to_string(nbMicroSec) + " min";
+    if(nbMicroSec / 60 < 3){ // print in min
+      return std::to_string(nbMicroSec) + "min";
     }
     nbMicroSec /= 60; // in hours
-    if(nbMicroSec / 60 == 0){ // print in hours
-      return std::to_string(nbMicroSec) + " h";
+    if(nbMicroSec / 24 < 2){ // print in hours
+      return std::to_string(nbMicroSec) + "h";
     }
     nbMicroSec /= 24; // in days
-    if(nbMicroSec / 24 == 0){ // print in hours
-      return std::to_string(nbMicroSec) + " d";
+    if(nbMicroSec / 365 < 2){ // print in hours
+      return std::to_string(nbMicroSec) + "d";
     }
     nbMicroSec /= 365; // in days
-    return std::to_string(nbMicroSec) + " y";
+    return std::to_string(nbMicroSec) + "y";
   }
   long long getElapsedTimeSinceLastCallInMicroSeconds(int instance_){
     auto newTimePoint = std::chrono::high_resolution_clock::now();
