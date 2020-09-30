@@ -67,7 +67,8 @@ namespace GenericToolbox {
       if(GenericToolbox::ProgressBar::displaySpeed){
         speedString += "(";
         double itPerSec = iCurrent_ - GenericToolbox::ProgressBar::lastDisplayedValue; // nb iterations since last print
-        itPerSec /= (newTime - GenericToolbox::ProgressBar::progressLastDisplayedTimestamp).count();
+        itPerSec /= (newTime - GenericToolbox::ProgressBar::progressLastDisplayedTimestamp).count(); // Count per ms
+        itPerSec *= 1000.; // it/ms to it/s
         speedString += GenericToolbox::parseIntAsString(int(itPerSec));
         speedString += " it/s)";
       }
