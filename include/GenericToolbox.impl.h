@@ -170,7 +170,7 @@ namespace GenericToolbox {
   bool doesElementIsInVector(const char* element_, const std::vector<std::string>& vector_){
     return std::find(vector_.begin(), vector_.end(), element_) != vector_.end();
   }
-  template <typename T> inline size_t findElementIndex( T element_, const std::vector<T>& vector_ ){
+  template <typename T> inline size_t findElementIndex( T element_, const std::vector<T>& vector_ ){ // test
     int outIndex = -1;
     auto it = std::find(vector_.begin(), vector_.end(), element_);
     if (it != vector_.end()){
