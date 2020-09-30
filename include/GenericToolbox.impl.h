@@ -26,9 +26,9 @@ namespace GenericToolbox {
   void displayProgressBar(int iCurrent_, int iTotal_, std::string title_, bool forcePrint_){
     if(
       (
-        std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch())
-        - GenericToolbox::ProgressBar::progressLastDisplayedTimestamp
-        >= std::chrono::milliseconds(500) // every 0.5 second (10fps)
+          std::chrono::duration_cast<std::chrono::milliseconds>(
+              std::chrono::high_resolution_clock::now() - GenericToolbox::ProgressBar::lastDisplayedTimePoint
+          ).count() >= 500 // every 0.5 second (10fps)
       )
       or GenericToolbox::ProgressBar::lastDisplayedValue == -1 // never printed before
       or iCurrent_ == 0 // first call
@@ -64,11 +64,9 @@ namespace GenericToolbox {
       if(GenericToolbox::ProgressBar::displaySpeed){
         speedString += "(";
         double itPerSec = iCurrent_ - GenericToolbox::ProgressBar::lastDisplayedValue; // nb iterations since last print
-        itPerSec /= (std::chrono::duration_cast<std::chrono::milliseconds>
-                         ( std::chrono::system_clock::now().time_since_epoch() ).count()
-                     - GenericToolbox::ProgressBar::progressLastDisplayedTimestamp.count()
-                    ); // Count per ms
-        itPerSec *= 1000.; // it/ms to it/s
+        itPerSec /= std::chrono::duration_cast<std::chrono::seconds>(
+            std::chrono::high_resolution_clock::now() - GenericToolbox::ProgressBar::lastDisplayedTimePoint
+            ).count(); // Count per s
         speedString += GenericToolbox::parseIntAsString(int(itPerSec));
         speedString += " it/s)";
       }
@@ -160,9 +158,7 @@ namespace GenericToolbox {
       }
 
       GenericToolbox::ProgressBar::lastDisplayedValue = percentValue;
-      GenericToolbox::ProgressBar::progressLastDisplayedTimestamp =
-          std::chrono::duration_cast<std::chrono::milliseconds>
-            ( std::chrono::system_clock::now().time_since_epoch() );
+      GenericToolbox::ProgressBar::lastDisplayedTimePoint = std::chrono::high_resolution_clock::now();
     }
   }
   std::string parseIntAsString(int intToFormat_){

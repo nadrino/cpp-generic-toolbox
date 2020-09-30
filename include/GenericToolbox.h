@@ -43,8 +43,7 @@ namespace GenericToolbox{
     static bool barFillTerminalWidth = true; // if measurable
 
     static int lastDisplayedValue = -1;
-    static std::chrono::milliseconds progressLastDisplayedTimestamp = std::chrono::duration_cast
-        <std::chrono::milliseconds>( std::chrono::system_clock::now().time_since_epoch() );
+    static auto lastDisplayedTimePoint        = std::chrono::high_resolution_clock::now();
     static std::thread::id _selectedThreadId_ = std::this_thread::get_id(); // get the main thread id
     static std::vector<std::string> rainbowColorList = {"\033[1;31m", "\033[1;32m", "\033[1;33m", "\033[1;34m", "\033[1;35m", "\033[1;36m"};
 
