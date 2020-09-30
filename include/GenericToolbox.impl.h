@@ -166,23 +166,23 @@ namespace GenericToolbox {
     }
   }
   std::string parseIntAsString(int intToFormat_){
-    if(intToFormat_ / 1000 == 0){
+    if(intToFormat_ / 1000 < 10){
         return std::to_string(intToFormat_);
     }
     intToFormat_/=1000.; // in K
-    if(intToFormat_ / 1000 == 0){
+    if(intToFormat_ / 1000 < 10){
       return std::to_string(intToFormat_) + "K";
     }
     intToFormat_/=1000.; // in M
-    if(intToFormat_ / 1000 == 0){
+    if(intToFormat_ / 1000 < 10){
       return std::to_string(intToFormat_) + "M";
     }
     intToFormat_/=1000.; // in G
-    if(intToFormat_ / 1000 == 0){
+    if(intToFormat_ / 1000 < 10){
       return std::to_string(intToFormat_) + "G";
     }
     intToFormat_/=1000.; // in T
-    if(intToFormat_ / 1000 == 0){
+    if(intToFormat_ / 1000 < 10){
       return std::to_string(intToFormat_) + "T";
     }
     intToFormat_/=1000.; // in P
