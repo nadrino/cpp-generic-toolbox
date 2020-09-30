@@ -60,12 +60,13 @@ namespace GenericToolbox {
       int displayedBarLength = GenericToolbox::ProgressBar::barLength;
       std::string displayedTitle = title_;
 
+      auto newTimePoint = std::chrono::high_resolution_clock::now();
       std::string speedString;
       if(GenericToolbox::ProgressBar::displaySpeed){
         speedString += "(";
         double itPerSec = iCurrent_ - GenericToolbox::ProgressBar::lastDisplayedValue; // nb iterations since last print
         itPerSec /= std::chrono::duration_cast<std::chrono::seconds>(
-            std::chrono::high_resolution_clock::now() - GenericToolbox::ProgressBar::lastDisplayedTimePoint
+            newTimePoint - GenericToolbox::ProgressBar::lastDisplayedTimePoint
             ).count(); // Count per s
         speedString += GenericToolbox::parseIntAsString(int(itPerSec));
         speedString += " it/s)";
@@ -158,7 +159,7 @@ namespace GenericToolbox {
       }
 
       GenericToolbox::ProgressBar::lastDisplayedValue = percentValue;
-      GenericToolbox::ProgressBar::lastDisplayedTimePoint = std::chrono::high_resolution_clock::now();
+      GenericToolbox::ProgressBar::lastDisplayedTimePoint = newTimePoint;
     }
   }
   std::string parseIntAsString(int intToFormat_){
