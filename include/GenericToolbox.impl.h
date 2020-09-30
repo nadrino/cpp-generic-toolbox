@@ -56,6 +56,15 @@ namespace GenericToolbox {
       int displayedBarLength = GenericToolbox::ProgressBar::barLength;
       std::string displayedTitle = title_;
 
+      std::string speedString;
+      if(GenericToolbox::ProgressBar::displaySpeed){
+        speedString += "(";
+        double itPerSec = iCurrent_ - GenericToolbox::ProgressBar::lastDisplayedValue; // nb iterations since last print
+        itPerSec /= (std::time(nullptr) - GenericToolbox::ProgressBar::progressLastDisplayedTimestamp);
+        speedString += std::to_string(itPerSec);
+        speedString += " it/s)";
+      }
+
       // test if the bar is too wide wrt the prompt width
       if(GenericToolbox::getTerminalWidth() != 0){ // terminal width is measurable
 
@@ -71,6 +80,7 @@ namespace GenericToolbox {
           totalLength += displayedBarLength;
         }
         totalLength += 1 + 3 + 1; // space, 100, %
+        totalLength += speedString.size() + 1; // space + speedString
         totalLength += 1; // one extra free char is needed to flush
 
         int extraCharsCount = (totalLength - GenericToolbox::getTerminalWidth());
@@ -128,6 +138,9 @@ namespace GenericToolbox {
       }
 
       ss << " " << percentValue << "%";
+      if(not speedString.empty()){
+          ss << " " << speedString;
+      }
 
       std::cout << ss.str();
 

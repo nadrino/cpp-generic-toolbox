@@ -37,6 +37,7 @@ namespace GenericToolbox{
 #endif
 
     static bool enableRainbowProgressBar = PROGRESS_BAR_ENABLE_RAINBOW;
+    static bool displaySpeed = true;
     static int barLength = PROGRESS_BAR_LENGTH;
     static std::string fillTag = PROGRESS_BAR_FILL_TAG; // multi-char is possible
     static bool barFillTerminalWidth = true; // if measurable
