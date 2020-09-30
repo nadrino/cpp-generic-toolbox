@@ -2,7 +2,6 @@
 // Created by Nadrino on 28/08/2020.
 //
 
-#pragma once
 #ifndef CPP_GENERIC_TOOLBOX_GENERICTOOLBOX_IMPL_H
 #define CPP_GENERIC_TOOLBOX_GENERICTOOLBOX_IMPL_H
 
@@ -19,6 +18,8 @@
 #include <thread>
 #include <numeric>
 
+#include "GenericToolbox.h"
+
 
 // Displaying Tools
 namespace GenericToolbox {
@@ -28,9 +29,9 @@ namespace GenericToolbox {
       (
           std::chrono::duration_cast<std::chrono::milliseconds>(
               std::chrono::high_resolution_clock::now() - GenericToolbox::ProgressBar::lastDisplayedTimePoint
-          ).count() >= 500 // every 0.5 second (10fps)
+          ).count() >= GenericToolbox::ProgressBar::refreshRateInMilliSec
       )
-      or GenericToolbox::ProgressBar::lastDisplayedValue == -1 // never printed before
+      or GenericToolbox::ProgressBar::lastDisplayedPercentValue == -1 // never printed before
       or iCurrent_ == 0 // first call
       or forcePrint_ // display every calls
       or iCurrent_ >= iTotal_-1 // last entry (mandatory to print endl)
@@ -39,7 +40,7 @@ namespace GenericToolbox {
       // While multithreading, this function is muted
       if( not forcePrint_ and GenericToolbox::ProgressBar::_selectedThreadId_ != std::this_thread::get_id()) return;
 
-      if( not forcePrint_ and iCurrent_ >= iTotal_-1 and GenericToolbox::ProgressBar::lastDisplayedValue == 100 ){ // last has already been printed ?
+      if( not forcePrint_ and iCurrent_ >= iTotal_-1 and GenericToolbox::ProgressBar::lastDisplayedPercentValue == 100 ){ // last has already been printed ?
         return;
       }
 
@@ -48,7 +49,7 @@ namespace GenericToolbox {
       if(not (iCurrent_ >= iTotal_-1)){ // if not last entry
         if(percentValue > 100) percentValue = 100; // sanity check
         if(percentValue < 0) percentValue = 0;
-        if(percentValue == GenericToolbox::ProgressBar::lastDisplayedValue) return; // skipping!
+        if(percentValue == GenericToolbox::ProgressBar::lastDisplayedPercentValue) return; // skipping!
       }
       else{
           percentValue = 100; // force to be 100
@@ -65,9 +66,10 @@ namespace GenericToolbox {
       if(GenericToolbox::ProgressBar::displaySpeed){
         speedString += "(";
         double itPerSec = iCurrent_ - GenericToolbox::ProgressBar::lastDisplayedValue; // nb iterations since last print
-        itPerSec /= std::chrono::duration_cast<std::chrono::seconds>(
-            newTimePoint - GenericToolbox::ProgressBar::lastDisplayedTimePoint
-            ).count(); // Count per s
+        double timeInterval = std::chrono::duration_cast<std::chrono::milliseconds>(
+          newTimePoint - GenericToolbox::ProgressBar::lastDisplayedTimePoint
+        ).count() / 1000.;
+        itPerSec /= timeInterval; // Count per s
         speedString += GenericToolbox::parseIntAsString(int(itPerSec));
         speedString += " it/s)";
       }
@@ -158,7 +160,8 @@ namespace GenericToolbox {
         std::cout << std::flush << "\r";
       }
 
-      GenericToolbox::ProgressBar::lastDisplayedValue = percentValue;
+      GenericToolbox::ProgressBar::lastDisplayedPercentValue = percentValue;
+      GenericToolbox::ProgressBar::lastDisplayedValue = iCurrent_;
       GenericToolbox::ProgressBar::lastDisplayedTimePoint = newTimePoint;
     }
   }

@@ -2,7 +2,6 @@
 // Created by Nadrino on 28/08/2020.
 //
 
-#pragma once
 #ifndef CPP_GENERIC_TOOLBOX_GENERICTOOLBOX_H
 #define CPP_GENERIC_TOOLBOX_GENERICTOOLBOX_H
 
@@ -37,11 +36,13 @@ namespace GenericToolbox{
 #endif
 
     static bool enableRainbowProgressBar = PROGRESS_BAR_ENABLE_RAINBOW;
+    static bool barFillTerminalWidth = true; // if measurable
     static bool displaySpeed = true;
     static int barLength = PROGRESS_BAR_LENGTH;
+    static int refreshRateInMilliSec = 30; // 30 fps = 1/30 sec per frame = 0.033 seconds per frame = 33 ms per frame
     static std::string fillTag = PROGRESS_BAR_FILL_TAG; // multi-char is possible
-    static bool barFillTerminalWidth = true; // if measurable
 
+    static int lastDisplayedPercentValue = -1;
     static int lastDisplayedValue = -1;
     static auto lastDisplayedTimePoint        = std::chrono::high_resolution_clock::now();
     static std::thread::id _selectedThreadId_ = std::this_thread::get_id(); // get the main thread id
