@@ -43,7 +43,8 @@ namespace GenericToolbox{
     static bool barFillTerminalWidth = true; // if measurable
 
     static int lastDisplayedValue = -1;
-    static std::time_t progressLastDisplayedTimestamp = std::time(nullptr);
+    static std::chrono::milliseconds progressLastDisplayedTimestamp = std::chrono::duration_cast
+        <std::chrono::milliseconds>( std::chrono::system_clock::now().time_since_epoch() );
     static std::thread::id _selectedThreadId_ = std::this_thread::get_id(); // get the main thread id
     static std::vector<std::string> rainbowColorList = {"\033[1;31m", "\033[1;32m", "\033[1;33m", "\033[1;34m", "\033[1;35m", "\033[1;36m"};
 
@@ -51,7 +52,8 @@ namespace GenericToolbox{
 
   //! Displaying Tools
   inline void displayProgressBar(int iCurrent_, int iTotal_, std::string title_ = "", bool forcePrint_ = false);
-  template <typename T> inline std::string getVectorAsString(const std::vector<T>& vector_);
+  inline std::string parseIntAsString(int intToFormat_);
+  template <typename T> inline std::string parseVectorAsString(const std::vector<T>& vector_);
   template <typename T> inline void printVector(const std::vector<T>& vector_);
 
 

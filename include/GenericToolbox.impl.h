@@ -25,7 +25,11 @@ namespace GenericToolbox {
 
   void displayProgressBar(int iCurrent_, int iTotal_, std::string title_, bool forcePrint_){
     if(
-      std::time(nullptr) - GenericToolbox::ProgressBar::progressLastDisplayedTimestamp >= time_t(0.5) // every 0.5 second (10fps)
+      (
+        std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch())
+        - GenericToolbox::ProgressBar::progressLastDisplayedTimestamp
+        >= std::chrono::milliseconds(500) // every 0.5 second (10fps)
+      )
       or GenericToolbox::ProgressBar::lastDisplayedValue == -1 // never printed before
       or iCurrent_ == 0 // first call
       or forcePrint_ // display every calls
@@ -38,6 +42,9 @@ namespace GenericToolbox {
       if( not forcePrint_ and iCurrent_ >= iTotal_-1 and GenericToolbox::ProgressBar::lastDisplayedValue == 100 ){ // last has already been printed ?
         return;
       }
+
+      auto newTime = std::chrono::duration_cast<std::chrono::milliseconds>
+          ( std::chrono::system_clock::now().time_since_epoch() );
 
       int percentValue = int(round(double(iCurrent_) / iTotal_ * 100.));
 
@@ -60,8 +67,8 @@ namespace GenericToolbox {
       if(GenericToolbox::ProgressBar::displaySpeed){
         speedString += "(";
         double itPerSec = iCurrent_ - GenericToolbox::ProgressBar::lastDisplayedValue; // nb iterations since last print
-        itPerSec /= (std::time(nullptr) - GenericToolbox::ProgressBar::progressLastDisplayedTimestamp);
-        speedString += std::to_string(itPerSec);
+        itPerSec /= (newTime - GenericToolbox::ProgressBar::progressLastDisplayedTimestamp).count();
+        speedString += GenericToolbox::parseIntAsString(int(itPerSec));
         speedString += " it/s)";
       }
 
@@ -152,10 +159,33 @@ namespace GenericToolbox {
       }
 
       GenericToolbox::ProgressBar::lastDisplayedValue = percentValue;
-      GenericToolbox::ProgressBar::progressLastDisplayedTimestamp = std::time(nullptr);
+      GenericToolbox::ProgressBar::progressLastDisplayedTimestamp = newTime;
     }
   }
-  template <typename T> std::string getVectorAsString(const std::vector<T>& vector_){
+  std::string parseIntAsString(int intToFormat_){
+    if(intToFormat_ / 1000 == 0){
+        return std::to_string(intToFormat_);
+    }
+    intToFormat_/=1000.; // in K
+    if(intToFormat_ / 1000 == 0){
+      return std::to_string(intToFormat_) + "K";
+    }
+    intToFormat_/=1000.; // in M
+    if(intToFormat_ / 1000 == 0){
+      return std::to_string(intToFormat_) + "M";
+    }
+    intToFormat_/=1000.; // in G
+    if(intToFormat_ / 1000 == 0){
+      return std::to_string(intToFormat_) + "G";
+    }
+    intToFormat_/=1000.; // in T
+    if(intToFormat_ / 1000 == 0){
+      return std::to_string(intToFormat_) + "T";
+    }
+    intToFormat_/=1000.; // in P
+    return std::to_string(intToFormat_) + "P";
+  }
+  template <typename T> std::string parseVectorAsString(const std::vector<T>& vector_){
       std::stringstream ss;
       ss << "{ ";
       bool isFirst = true;
@@ -168,7 +198,7 @@ namespace GenericToolbox {
       return ss.str();
   }
   template <typename T> void printVector(const std::vector<T>& vector_){
-    std::cout << getVectorAsString(vector_) << std::endl;
+    std::cout << parseVectorAsString(vector_) << std::endl;
   }
 
 }
