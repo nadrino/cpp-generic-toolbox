@@ -43,9 +43,6 @@ namespace GenericToolbox {
         return;
       }
 
-      auto newTime = std::chrono::duration_cast<std::chrono::milliseconds>
-          ( std::chrono::system_clock::now().time_since_epoch() );
-
       int percentValue = int(round(double(iCurrent_) / iTotal_ * 100.));
 
       if(not (iCurrent_ >= iTotal_-1)){ // if not last entry
@@ -67,7 +64,10 @@ namespace GenericToolbox {
       if(GenericToolbox::ProgressBar::displaySpeed){
         speedString += "(";
         double itPerSec = iCurrent_ - GenericToolbox::ProgressBar::lastDisplayedValue; // nb iterations since last print
-        itPerSec /= (newTime - GenericToolbox::ProgressBar::progressLastDisplayedTimestamp).count(); // Count per ms
+        itPerSec /= (std::chrono::duration_cast<std::chrono::milliseconds>
+                         ( std::chrono::system_clock::now().time_since_epoch() ).count()
+                     - GenericToolbox::ProgressBar::progressLastDisplayedTimestamp.count()
+                    ); // Count per ms
         itPerSec *= 1000.; // it/ms to it/s
         speedString += GenericToolbox::parseIntAsString(int(itPerSec));
         speedString += " it/s)";
@@ -160,7 +160,9 @@ namespace GenericToolbox {
       }
 
       GenericToolbox::ProgressBar::lastDisplayedValue = percentValue;
-      GenericToolbox::ProgressBar::progressLastDisplayedTimestamp = newTime;
+      GenericToolbox::ProgressBar::progressLastDisplayedTimestamp =
+          std::chrono::duration_cast<std::chrono::milliseconds>
+            ( std::chrono::system_clock::now().time_since_epoch() );
     }
   }
   std::string parseIntAsString(int intToFormat_){
