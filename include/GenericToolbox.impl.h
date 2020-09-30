@@ -170,6 +170,22 @@ namespace GenericToolbox {
   bool doesElementIsInVector(const char* element_, const std::vector<std::string>& vector_){
     return std::find(vector_.begin(), vector_.end(), element_) != vector_.end();
   }
+  template <typename T> inline size_t findElementIndex( T element_, const std::vector<T>& vector_ ){
+    int outIndex = -1;
+    auto it = std::find(vector_.begin(), vector_.end(), element_);
+    if (it != vector_.end()){
+      outIndex = std::distance(vector_.begin(), it);
+    }
+    return outIndex;
+  }
+  inline size_t findElementIndex( const char* element_, const std::vector<std::string>& vector_ ){
+    int outIndex = -1;
+    auto it = std::find(vector_.begin(), vector_.end(), element_);
+    if (it != vector_.end()){
+      outIndex = std::distance(vector_.begin(), it);
+    }
+    return outIndex;
+  }
   template <typename T> std::vector<size_t> getSortPermutation(const std::vector<T>& vectorToSort_, std::function<bool(const T, const T)> compareLambda_ ){
     std::vector<size_t> p(vectorToSort_.size());
     std::iota(p.begin(), p.end(), 0);
