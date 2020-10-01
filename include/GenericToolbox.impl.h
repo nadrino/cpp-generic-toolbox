@@ -96,12 +96,17 @@ namespace GenericToolbox {
         int extraCharsCount = (totalLength - GenericToolbox::getTerminalWidth());
         if(extraCharsCount > 0 and displayedBarLength > 0){
           // first, reduce the bar width
+          displayedBarLength = GenericToolbox::ProgressBar::barLength - extraCharsCount;
           // 12 arbitrary chosen as the minimal barWidth
-          displayedBarLength = std::max(GenericToolbox::ProgressBar::barLength - extraCharsCount, 12);
+          if(displayedBarLength < 12){
+              // if the requested bar length is lower that 12, remove it completly
+              displayedBarLength = 0;
+          }
           extraCharsCount -= GenericToolbox::ProgressBar::barLength - displayedBarLength;
         }
+
+        // if it's still to big, cut the title
         if(extraCharsCount > 0){
-          // if it's still to big, cut the title
           displayedTitle = title_.substr(0, strippedTitle.size() - extraCharsCount - 3);
           displayedTitle += "...";
         }
