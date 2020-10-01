@@ -2,6 +2,7 @@
 // Created by Nadrino on 28/08/2020.
 //
 
+#pragma once
 #ifndef CPP_GENERIC_TOOLBOX_GENERICTOOLBOX_H
 #define CPP_GENERIC_TOOLBOX_GENERICTOOLBOX_H
 
@@ -31,16 +32,25 @@ namespace GenericToolbox{
 #define PROGRESS_BAR_LENGTH 36
 #endif
 
+#ifndef PROGRESS_BAR_SHOW_SPEED
+#define PROGRESS_BAR_SHOW_SPEED 1
+#endif
+
+#ifndef PROGRESS_BAR_REFRESH_DURATION_IN_MS
+// 33 ms per frame = 0.033 seconds per frame = 1/30 sec per frame = 30 fps
+#define PROGRESS_BAR_REFRESH_DURATION_IN_MS 33
+#endif
+
 #ifndef PROGRESS_BAR_FILL_TAG
+// multi-char is possible
 #define PROGRESS_BAR_FILL_TAG "#"
 #endif
 
     static bool enableRainbowProgressBar = PROGRESS_BAR_ENABLE_RAINBOW;
-    static bool barFillTerminalWidth = true; // if measurable
-    static bool displaySpeed = true;
+    static bool displaySpeed = PROGRESS_BAR_SHOW_SPEED;
     static int barLength = PROGRESS_BAR_LENGTH;
-    static int refreshRateInMilliSec = 30; // 30 fps = 1/30 sec per frame = 0.033 seconds per frame = 33 ms per frame
-    static std::string fillTag = PROGRESS_BAR_FILL_TAG; // multi-char is possible
+    static int refreshRateInMilliSec = PROGRESS_BAR_REFRESH_DURATION_IN_MS;
+    static std::string fillTag = PROGRESS_BAR_FILL_TAG;
 
     static int lastDisplayedPercentValue = -1;
     static int lastDisplayedValue = -1;

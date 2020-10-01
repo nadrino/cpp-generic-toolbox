@@ -2,6 +2,7 @@
 // Created by Nadrino on 28/08/2020.
 //
 
+#pragma once
 #ifndef CPP_GENERIC_TOOLBOX_GENERICTOOLBOX_IMPL_H
 #define CPP_GENERIC_TOOLBOX_GENERICTOOLBOX_IMPL_H
 
