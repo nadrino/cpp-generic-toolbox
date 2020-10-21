@@ -271,7 +271,7 @@ namespace GenericToolbox {
     }
     return isFound;
   }
-  template <typename T1, typename T2> inline bool appendToMap(std::map<T1, T2> &mapContainer_, const std::map<T1, T2> &mapToPushBack_, bool overwrite_) {
+  template <typename T1, typename T2> inline void appendToMap(std::map<T1, T2> &mapContainer_, const std::map<T1, T2> &mapToPushBack_, bool overwrite_) {
     for(const auto& newEntry : mapToPushBack_){
       if(not overwrite_ and doesKeyIsInMap(newEntry.first, mapContainer_)){
         continue;
