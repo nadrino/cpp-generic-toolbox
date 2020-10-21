@@ -271,6 +271,15 @@ namespace GenericToolbox {
     }
     return isFound;
   }
+  template <typename T> inline std::map<std::string, T> getSubMap(const std::map<std::string, T>& map_, std::string keyStrStartWith_ ){
+    std::map<std::string, T> outSubMap;
+    for(const auto& mapPair : map_){
+      if(GenericToolbox::doesStringStartsWithSubstring(mapPair.first, keyStrStartWith_)){
+        outSubMap[mapPair.first] = mapPair.second;
+      }
+    }
+    return outSubMap;
+  }
 
 }
 

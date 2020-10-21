@@ -78,7 +78,8 @@ namespace GenericToolbox{
 
 
   //! Map management
-  template <typename K, typename  T> inline bool doesKeyIsInMap( K key_, const std::map<K,T>& map_ );
+  template <typename K, typename T> inline bool doesKeyIsInMap( K key_, const std::map<K,T>& map_ );
+  template <typename T> inline std::map<std::string, T> getSubMap(const std::map<std::string, T>& map_, std::string keyStrStartWith_ );
 
 
   //! String Management Tools
