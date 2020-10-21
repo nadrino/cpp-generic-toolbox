@@ -219,7 +219,7 @@ namespace GenericToolbox {
   template <typename T> bool doesElementIsInVector(T element_, const std::vector<T>& vector_){
     return std::find(vector_.begin(), vector_.end(), element_) != vector_.end();
   }
-  template <typename T, typename TT> inline std::vector<TT> convertVectorType( const std::vector<T>& vector_, std::function<TT(T)> convertTypeFunction_ ){
+  template <typename T, typename TT> inline std::vector<TT> convertVectorType( const std::vector<T>& vector_, std::function<TT(T)>& convertTypeFunction_ ){
     std::vector<TT> outVec;
     for(const auto& element : vector_){
       outVec.emplace_back(convertTypeFunction_(element));
