@@ -67,10 +67,13 @@ namespace GenericToolbox {
       if(GenericToolbox::ProgressBar::displaySpeed){
         speedString += "(";
         double itPerSec = iCurrent_ - GenericToolbox::ProgressBar::lastDisplayedValue; // nb iterations since last print
-        double timeInterval = std::chrono::duration_cast<std::chrono::milliseconds>(
-          newTimePoint - GenericToolbox::ProgressBar::lastDisplayedTimePoint
-        ).count() / 1000.;
-        itPerSec /= timeInterval; // Count per s
+        if(itPerSec < 0) itPerSec = 0;
+        else{
+          double timeInterval = std::chrono::duration_cast<std::chrono::milliseconds>(
+            newTimePoint - GenericToolbox::ProgressBar::lastDisplayedTimePoint
+          ).count() / 1000.;
+          itPerSec /= timeInterval; // Count per s
+        }
         speedString += GenericToolbox::parseIntAsString(int(itPerSec));
         speedString += " it/s)";
       }
