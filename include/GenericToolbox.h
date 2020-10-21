@@ -76,6 +76,10 @@ namespace GenericToolbox{
   template <typename T> inline std::vector<T> applyPermutation(const std::vector<T>& vectorToPermute_, const std::vector<std::size_t>& sortPermutation_ );
 
 
+  //! Map management
+  template <typename K, typename  T> inline bool doesKeyIsInMap( K key_, const std::map<K,T>& map_ );
+
+
   //! String Management Tools
   // -- Transformations
   inline bool doesStringContainsSubstring(std::string string_, std::string substring_, bool ignoreCase_ = false);

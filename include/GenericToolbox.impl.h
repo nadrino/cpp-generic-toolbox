@@ -254,6 +254,19 @@ namespace GenericToolbox {
 
 }
 
+//! Map management
+namespace GenericToolbox {
+
+  template <typename K, typename  T> inline bool doesKeyIsInMap( K key_, const std::map<K,T>& map_ ){
+    bool isFound = false;
+    if( map_.find(key_) != map_.end() ){
+      isFound = true;
+    }
+    return isFound;
+  }
+
+}
+
 
 // String Management Tools
 namespace GenericToolbox {
