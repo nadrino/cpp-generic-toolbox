@@ -419,15 +419,15 @@ namespace GenericToolbox {
     return stripped_str;
   }
   std::string parseSizeUnits(unsigned int sizeInBytes_){
-    if(sizeInBytes_ / 1024 == 0 ){ // print in bytes
+    if(sizeInBytes_ / 1024 < 10 ){ // print in bytes
       return std::to_string(sizeInBytes_) + " B";
     }
     sizeInBytes_ = sizeInBytes_ / 1024; // in KB
-    if(sizeInBytes_ / 1024 == 0){ // print in KB
+    if(sizeInBytes_ / 1024 < 10){ // print in KB
       return std::to_string(sizeInBytes_) + " KB";
     }
     sizeInBytes_ = sizeInBytes_ / 1024; // in MB
-    if(sizeInBytes_ / 1024 == 0){ // print in MB
+    if(sizeInBytes_ / 1024 < 10){ // print in MB
       return std::to_string(sizeInBytes_) + " MB";
     }
     sizeInBytes_ = sizeInBytes_ / 1024; // in GB
