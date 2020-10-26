@@ -1027,9 +1027,9 @@ namespace GenericToolbox{
     return (size_t)0L;          /* Unsupported. */
 #endif
   }
-  int getProcessMemoryUsageDiffSinceLastCall(){
+  long getProcessMemoryUsageDiffSinceLastCall(){
       size_t currentProcessMemoryUsage = getProcessMemoryUsage();
-      int outVal = currentProcessMemoryUsage - Hardware::lastProcessMemoryUsage;
+      long outVal = currentProcessMemoryUsage - Hardware::lastProcessMemoryUsage;
       Hardware::lastProcessMemoryUsage = currentProcessMemoryUsage;
       return outVal;
   }
