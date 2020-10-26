@@ -197,13 +197,14 @@ namespace GenericToolbox {
     intToFormat_/=1000.; // in P
     return std::to_string(intToFormat_) + "P";
   }
-  template <typename T> std::string parseVectorAsString(const std::vector<T>& vector_){
+  template <typename T> std::string parseVectorAsString(const std::vector<T>& vector_, bool enableLineJump_){
       std::stringstream ss;
       ss << "{ ";
       bool isFirst = true;
       for(const auto& element: vector_){
           if(not isFirst) ss << ", ";
           else isFirst = false;
+          if(enableLineJump_) ss << std::endl;
           ss << element;
       }
       ss << " }";
