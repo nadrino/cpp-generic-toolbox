@@ -1027,6 +1027,12 @@ namespace GenericToolbox{
     return (size_t)0L;          /* Unsupported. */
 #endif
   }
+  int getProcessMemoryUsageDiffSinceLastCall(){
+      size_t currentProcessMemoryUsage = getProcessMemoryUsage();
+      int outVal = currentProcessMemoryUsage - Hardware::lastProcessMemoryUsage;
+      Hardware::lastProcessMemoryUsage = currentProcessMemoryUsage;
+      return outVal;
+  }
   int getTerminalWidth(){
     int outWith = 0;
 #if defined(_WIN32)

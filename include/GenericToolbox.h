@@ -133,10 +133,15 @@ namespace GenericToolbox{
   //! Hardware Tools
   inline size_t getProcessMemoryUsage();
   inline size_t getProcessMaxMemoryUsage();
+  inline int getProcessMemoryUsageDiffSinceLastCall();
   inline int getTerminalWidth();
   inline int getTerminalHeight();
   inline std::string getElapsedTimeSinceLastCallStr(int instance_ = -1);
   inline long long getElapsedTimeSinceLastCallInMicroSeconds(int instance = -1);
+
+  namespace Hardware{
+      size_t lastProcessMemoryUsage = 0;
+  }
 
 
 
