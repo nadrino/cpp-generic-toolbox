@@ -136,6 +136,7 @@ namespace GenericToolbox{
   inline long getProcessMemoryUsageDiffSinceLastCall();
   inline int getTerminalWidth();
   inline int getTerminalHeight();
+  inline std::string parseTimeUnit(long long timeInMuS_);
   inline std::string getElapsedTimeSinceLastCallStr(int instance_ = -1);
   inline long long getElapsedTimeSinceLastCallInMicroSeconds(int instance = -1);
 

@@ -1067,14 +1067,13 @@ namespace GenericToolbox{
 #endif // Windows/Linux
     return outWith;
   }
-  std::string getElapsedTimeSinceLastCallStr(int instance_)
-  {
-    long long nbMicroSec = getElapsedTimeSinceLastCallInMicroSeconds(instance_);
-    if(nbMicroSec / 1000 == 0 ){ // print in µs
+
+  std::string parseTimeUnit(long long nbMicroSec){
+    if(nbMicroSec / 1000 < 9 ){ // print in µs if less than 9ms
       return std::to_string(nbMicroSec) + "µs";
     }
     nbMicroSec /= 1000; // in ms
-    if(nbMicroSec / nbMicroSec == 0){ // print in ms
+    if(nbMicroSec / nbMicroSec < 3){ // print in ms if less than 3s
       return std::to_string(nbMicroSec) + "ms";
     }
     nbMicroSec /= 1000; // in s
@@ -1095,6 +1094,10 @@ namespace GenericToolbox{
     }
     nbMicroSec /= 365; // in days
     return std::to_string(nbMicroSec) + "y";
+  }
+  std::string getElapsedTimeSinceLastCallStr(int instance_)
+  {
+    return GenericToolbox::parseTimeUnit(getElapsedTimeSinceLastCallInMicroSeconds(instance_));
   }
   long long getElapsedTimeSinceLastCallInMicroSeconds(int instance_){
     auto newTimePoint = std::chrono::high_resolution_clock::now();
