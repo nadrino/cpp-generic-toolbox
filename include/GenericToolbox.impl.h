@@ -249,6 +249,9 @@ namespace GenericToolbox {
     }
     return outIndex;
   }
+  template <typename T> inline T getAverage(const std::vector<T> vector_){
+      return accumulate( vector_.begin(), vector_.end(), 0.0) / vector_.size();
+  }
   template <typename T> std::vector<size_t> getSortPermutation(const std::vector<T>& vectorToSort_, std::function<bool(const T, const T)> compareLambda_ ){
     std::vector<size_t> p(vectorToSort_.size());
     std::iota(p.begin(), p.end(), 0);
