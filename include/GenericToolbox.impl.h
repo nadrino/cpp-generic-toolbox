@@ -166,7 +166,8 @@ namespace GenericToolbox {
         std::cout << std::endl;
       }
       else{
-        std::cout << std::flush << "\r";
+        std::cout << "\r";
+        std::cout.flush();
       }
 
       GenericToolbox::ProgressBar::lastDisplayedPercentValue = percentValue;
