@@ -110,6 +110,7 @@ namespace GenericToolbox{
   // -- without IO dependencies
   inline bool doesFilePathHasExtension(const std::string &filePath_, std::string ext_);
   inline std::string getFolderPathFromFilePath(const std::string &filePath_);
+  inline std::string getFileNameFromFilePath(const std::string &filePath_);
   // -- with direct IO dependencies
   inline bool doesPathIsFile(std::string filePath_);
   inline bool doesPathIsFolder(std::string folderPath_);
