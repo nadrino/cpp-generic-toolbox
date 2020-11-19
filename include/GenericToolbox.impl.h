@@ -387,6 +387,16 @@ namespace GenericToolbox {
     }
     return outputStr;
   }
+  inline std::string trimString(std::string inputStr_, std::string strToTrim_){
+      std::string outputStr = inputStr_;
+      while(GenericToolbox::doesStringStartsWithSubstring(outputStr, strToTrim_)){
+          outputStr = outputStr.substr(strToTrim_.size(), outputStr.size());
+      }
+      while(GenericToolbox::doesStringEndsWithSubstring(outputStr, strToTrim_)){
+          outputStr = outputStr.substr(0, outputStr.size() - strToTrim_.size());
+      }
+      return outputStr;
+  }
   inline std::string removeRepeatedCharacters(const std::string &inputStr_, std::string repeatedChar_) {
     std::string outStr = inputStr_;
     std::string oldStr;
