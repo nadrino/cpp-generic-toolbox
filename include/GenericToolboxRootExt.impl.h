@@ -24,10 +24,10 @@
 //! Conversion Tools
 namespace GenericToolbox {
 
-  TH1D* convertTVectorDtoTH1D(std::string graph_title_, TVectorD* Y_values_, std::string Y_title_,
+  TH1D* convertTVectorDtoTH1D(TVectorD* Y_values_, std::string histTitle_, std::string Y_title_,
                               std::string X_title_, TVectorD* Y_errors_){
 
-    auto* th1_histogram = new TH1D(graph_title_.c_str(), graph_title_.c_str(),
+    auto* th1_histogram = new TH1D(histTitle_.c_str(), histTitle_.c_str(),
                                    Y_values_->GetNrows(), -0.5, Y_values_->GetNrows() - 0.5);
 
     for(int i_row = 0; i_row < Y_values_->GetNrows(); i_row++)
@@ -43,6 +43,13 @@ namespace GenericToolbox {
     th1_histogram->GetYaxis()->SetTitle(Y_title_.c_str());
 
     return th1_histogram;
+  }
+  TH1D* convertTVectorDtoTH1D(std::vector<double> Y_values_, std::string histTitle_, std::string Y_title_, std::string X_title_, TVectorD *Y_errors_){
+    TH1D* out = nullptr;
+    auto* tVectorHandler = new TVectorD(Y_values_.size(), &Y_values_[0]);
+    out = convertTVectorDtoTH1D(tVectorHandler, histTitle_, Y_title_, X_title_, Y_errors_);
+    delete tVectorHandler;
+    return out;
   }
   TH2D* convertTMatrixDtoTH2D(TMatrixD* XY_values_, std::string graph_title_, std::string Z_title_,
                               std::string Y_title_, std::string X_title_){
