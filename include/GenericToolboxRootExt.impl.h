@@ -333,6 +333,33 @@ namespace GenericToolbox {
     std::sort(output.begin(), output.end(), std::greater<double>());
     return output;
   }
+//  TMatrixD* computeSqrt(TMatrixD* inputMatrix_){
+//    TMatrixD* sqrtMatrix = (TMatrixD*) inputMatrix_->Clone();
+//    // calculate sqrt(V) as lower diagonal matrix
+//    for( int iRow = 0; iRow < sqrtMatrix->GetNrows(); ++iRow ) {
+//      for( int iCol = 0; iCol < sqrtMatrix->GetNcols(); ++iCol ) {
+//        (*sqrtMatrix)[iRow][iCol] = 0;
+//      }
+//    }
+//
+//    for( int j = 0; j < sqrtMatrix->GetNrows(); ++j ) {
+//      // diagonal terms first
+//      double Ck = 0;
+//      for( int k = 0; k < j; ++k ) {
+//        Ck += C[j][k] * C[j][k];
+//      } // k
+//      C[j][j] = sqrt( fabs( V[j][j] - Ck ) );
+//
+//      // off-diagonal terms
+//      for( int i = j+1; i < sqrtMatrix->GetNrows(); ++i ) {
+//        Ck = 0;
+//        for( int k = 0; k < j; ++k ) {
+//          Ck += C[i][k] * C[j][k];
+//        } //k
+//        C[i][j] = ( V[i][j] - Ck ) / C[j][j];
+//      }// i
+//    } // j
+//  }
 
 }
 

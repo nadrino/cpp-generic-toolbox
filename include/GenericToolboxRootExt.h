@@ -40,6 +40,7 @@ namespace GenericToolbox{
   //! Matrix Tools
   inline std::map<std::string, TMatrixD*> invertMatrixSVD(TMatrixD *matrix_, std::string outputContent_="inverse_covariance_matrix:regularized_eigen_values");
   inline std::vector<double> getEigenValues(TMatrixD *matrix_);
+//  inline TMatrixD* computeSqrt(TMatrixD* inputMatrix_);
 
   //! Histogram Tools
   inline std::vector<double> getLogBinning(int n_bins_, double X_min_, double X_max_);
