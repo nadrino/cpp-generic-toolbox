@@ -205,7 +205,7 @@ namespace GenericToolbox {
       return baseDir_->mkdir(dirName_.c_str());
   }
   inline TDirectory* mkdirTFile(TFile* outputFile_, std::string dirName_){
-    return mkdirTFile(outputFile_->GetDirectory("./"), dirName_);
+    return mkdirTFile(outputFile_->GetDirectory(""), dirName_);
   }
   std::vector<TFile *> getListOfOpenedTFiles() {
     std::vector<TFile *> output;
