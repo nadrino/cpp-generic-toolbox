@@ -196,13 +196,10 @@ namespace GenericToolbox {
     return output;
   }
   inline TDirectory* mkdirTFile(TDirectory* baseDir_, std::string dirName_){
-
-      if(baseDir_->GetDirectory(dirName_.c_str()) != nullptr)
-      {
-          return baseDir_->GetDirectory(dirName_.c_str());
+      if(baseDir_->GetDirectory(dirName_.c_str()) == nullptr){
+          baseDir_->mkdir(dirName_.c_str());
       }
-
-      return baseDir_->mkdir(dirName_.c_str());
+      return baseDir_->GetDirectory(dirName_.c_str());
   }
   inline TDirectory* mkdirTFile(TFile* outputFile_, std::string dirName_){
     return mkdirTFile(outputFile_->GetDirectory(""), dirName_);
