@@ -34,6 +34,8 @@ namespace GenericToolbox{
   inline bool doesTFileIsValid(TFile* input_tfile_, bool check_if_writable_ = false);
   inline std::vector<TFile*> getListOfOpenedTFiles();
   inline std::vector<TObject*> getListOfObjectFromTDirectory(TDirectory* directory_, std::string class_name_ = "");
+  inline TDirectory* mkdirTFile(TDirectory* baseDir_, std::string dirName_);
+  inline TDirectory* mkdirTFile(TFile* outputFile_, std::string dirName_);
 
   //! Matrix Tools
   inline std::map<std::string, TMatrixD*> invertMatrixSVD(TMatrixD *matrix_, std::string outputContent_="inverse_covariance_matrix:regularized_eigen_values");
