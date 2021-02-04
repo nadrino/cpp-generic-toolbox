@@ -114,6 +114,9 @@ namespace GenericToolbox {
           displayedTitle += "...";
         }
       }
+      else{
+          displayedBarLength = 0;
+      }
 
       if(not displayedTitle.empty()){
         ss << displayedTitle << " ";
