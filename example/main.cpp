@@ -30,6 +30,10 @@ int main(){
 
 
   // IO examples
+  cout << "Expanded path: ${HOME}/test.txt -> " << GenericToolbox::expandEnvironmentVariables("${HOME}/test.txt") << endl;
+  cout << "Expanded path: $HOME/test.txt -> " << GenericToolbox::expandEnvironmentVariables("$HOME/test.txt") << endl;
+  cout << "Expanded path: ~/test.txt -> " << GenericToolbox::expandEnvironmentVariables("~/test.txt") << endl;
+  cout << "Expanded path: $$/test.txt -> " << GenericToolbox::expandEnvironmentVariables("$$/test.txt") << endl;
   cout << "Current working directory: " << GenericToolbox::getCurrentWorkingDirectory() << endl;
   cout << "Is this a directory? " << GenericToolbox::doesPathIsFolder("../include") << endl;
   cout << "Is this a file? " << GenericToolbox::doesPathIsFile("../include/GenericToolbox.h") << endl;

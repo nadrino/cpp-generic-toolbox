@@ -108,6 +108,10 @@ namespace GenericToolbox{
 
   //! FS Tools
   // -- without IO dependencies
+  inline std::string expandEnvironmentVariables(std::string filePath_);
+  inline bool expandEnvironmentVariables(const char *inputFilePath_, char *extendedFilePath_);
+  inline std::string getHomeDirectory();
+  inline char * getEnvironmentVariable(char const envVarName_[]);
   inline bool doesFilePathHasExtension(const std::string &filePath_, std::string ext_);
   inline std::string getFolderPathFromFilePath(const std::string &filePath_);
   inline std::string getFileNameFromFilePath(const std::string &filePath_);

@@ -18,6 +18,10 @@
 #include <cstring>
 #include <thread>
 #include <numeric>
+#include <regex>
+#include <sys/types.h>
+#include <unistd.h>
+#include <pwd.h>
 
 #include "GenericToolbox.h"
 
@@ -509,6 +513,182 @@ namespace GenericToolbox {
 namespace GenericToolbox{
 
   // -- without IO dependencies
+  std::string expandEnvironmentVariables(std::string filePath_){
+
+//    char outputName[PATH_MAX];
+    char outputName[8192];
+    expandEnvironmentVariables(filePath_.c_str(), outputName);
+
+    return std::string(outputName);
+
+
+//    // filePath_ is copied and modified here
+//    static std::regex env( "\\$\\{([^}]+)\\}" );
+//    std::smatch match;
+//    while ( std::regex_search(filePath_, match, env ) ) {
+//      const char * s = getenv( match[1].str().c_str() );
+//      const std::string var( s == NULL ? "" : s );
+//      filePath_.replace(match[0].first, match[0].second, var );
+//    }
+//    return filePath_;
+  }
+  bool expandEnvironmentVariables(const char *inputFilePath_, char *extendedFilePath_) {
+    int n, ier, iter, lx, ncopy;
+    char *inp, *out, *x, *t, *buff;
+    const char *b, *c, *e;
+    const char *p;
+    int bufferSize_ = 8192; // max path length
+    buff = new char[bufferSize_ * 4];
+
+    iter = 0;
+    extendedFilePath_[0] = 0;
+    inp = buff + bufferSize_;
+    out = inp + bufferSize_;
+    inp[-1] = ' ';
+    inp[0] = 0;
+    out[-1] = ' ';
+    c = inputFilePath_ + strspn(inputFilePath_, " \t\f\r");
+    //VP  if (isalnum(c[0])) { strcpy(inp, WorkingDirectory()); strcat(inp, "/"); } // add $cwd
+
+    strlcat(inp, c, bufferSize_);
+
+    again:
+    iter++; c = inp; ier = 0;
+    x = out; x[0] = 0;
+
+    p = 0; e = 0;
+    if (c[0] == '~' && c[1] == '/') { // ~/ case
+      std::string hd = getHomeDirectory();
+      p = hd.c_str();
+      e = c + 1;
+      if (p) {                         // we have smth to copy
+        strlcpy(x, p, bufferSize_);
+        x += strlen(p);
+        c = e;
+      } else {
+        ++ier;
+        ++c;
+      }
+    }
+    else if (c[0] == '~' && c[1] != '/') { // ~user case
+      n = strcspn(c+1, "/ ");
+      assert((n+1) < bufferSize_ && "This should have been prevented by the truncation 'strlcat(inp, c, bufferSize_)'");
+      // There is no overlap here as the buffer is segment in 4 strings of at most bufferSize_
+      (void)strlcpy(buff, c+1, n+1); // strlcpy copy 'size-1' characters.
+      std::string hd = getHomeDirectory();
+      e = c+1+n;
+      if (!hd.empty()) {                   // we have smth to copy
+        p = hd.c_str();
+        strlcpy(x, p, bufferSize_);
+        x += strlen(p);
+        c = e;
+      } else {
+        x++[0] = c[0];
+        //++ier;
+        ++c;
+      }
+    }
+
+    for ( ; c[0]; c++) {
+
+      p = 0; e = 0;
+
+      if (c[0] == '.' && c[1] == '/' && c[-1] == ' ') { // $cwd
+        std::string wd = getCurrentWorkingDirectory();
+        strlcpy(buff, wd.c_str(), bufferSize_);
+        p = buff;
+        e = c + 1;
+      }
+      if (p) {                          // we have smth to copy */
+        strlcpy(x, p, bufferSize_); x += strlen(p); c = e - 1; continue;
+      }
+
+      if (c[0] != '$') {                // not $, simple copy
+        x++[0] = c[0];
+      } else {                          // we have a $
+        b = c+1;
+        if (c[1] == '(') b++;
+        if (c[1] == '{') b++;
+        if (b[0] == '$')
+          e = b+1;
+        else
+          for (e = b; isalnum(e[0]) || e[0] == '_'; e++) ;
+        buff[0] = 0; strncat(buff, b, e-b);
+        p = getEnvironmentVariable(buff);
+        if (!p) {                      // too bad, try UPPER case
+          for (t = buff; (t[0] = toupper(t[0])); t++) ;
+          p = getEnvironmentVariable(buff);
+        }
+        if (!p) {                      // too bad, try Lower case
+          for (t = buff; (t[0] = tolower(t[0])); t++) ;
+          p = getEnvironmentVariable(buff);
+        }
+        if (!p && !strcmp(buff, "cwd")) { // it is $cwd
+          std::string wd = getCurrentWorkingDirectory();
+          strlcpy(buff, wd.c_str(), bufferSize_);
+          p = buff;
+        }
+        if (!p && !strcmp(buff, "$")) { // it is $$ (replace by GetPid())
+          snprintf(buff, bufferSize_ * 4, "%d", getpid());
+          p = buff;
+        }
+        if (!p) {                      // too bad, nothing can help
+#ifdef WIN32
+          // if we're on windows, we can have \\SomeMachine\C$ - don't
+             // complain about that, if '$' is followed by nothing or a
+             // path delimiter.
+             if (c[1] && c[1]!='\\' && c[1]!=';' && c[1]!='/')
+                ier++;
+#else
+          ier++;
+#endif
+          x++[0] = c[0];
+        } else {                       // It is OK, copy result
+          int lp = strlen(p);
+          if (lp >= bufferSize_) {
+            // make sure lx will be >= bufferSize_ (see below)
+            strlcpy(x, p, bufferSize_);
+            x += bufferSize_;
+            break;
+          }
+          strcpy(x,p);
+          x += lp;
+          c = (b==c+1) ? e-1 : e;
+        }
+      }
+    }
+
+    x[0] = 0; lx = x - out;
+    if (ier && iter < 3) { strlcpy(inp, out, bufferSize_); goto again; }
+    ncopy = (lx >= bufferSize_) ? bufferSize_ - 1 : lx;
+    extendedFilePath_[0] = 0; strncat(extendedFilePath_, out, ncopy);
+
+    delete[] buff;
+
+//    if (ier || ncopy != lx) {
+//      ::Error("TSystem::expandEnvironmentVariables", "input: %s, output: %s", inputFilePath_, extendedFilePath_);
+//      return true;
+//    }
+
+    return false;
+  }
+  std::string getHomeDirectory(){
+    struct passwd *pw = getpwuid(getuid());
+    return std::string(pw->pw_dir);
+  }
+  char * getEnvironmentVariable(char const envVarName_[]){
+#if defined _WIN32 // getenv() is deprecated on Windows
+    char *buf{nullptr};
+    size_t sz;
+    std::string val;
+    if (_dupenv_s(&buf, &sz, envVarName_) || buf == nullptr) return val;
+    val = buf;
+    free(buf);
+    return val;
+#else
+    return getenv(envVarName_);
+#endif
+  }
   bool doesFilePathHasExtension(const std::string &filePath_, std::string ext_){
     return doesStringEndsWithSubstring(filePath_, "."+ext_);
   }
