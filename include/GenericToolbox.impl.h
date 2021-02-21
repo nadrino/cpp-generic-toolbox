@@ -704,10 +704,15 @@ namespace GenericToolbox{
     );
     return folder_path;
   }
-  std::string getFileNameFromFilePath(const std::string &filePath_){
+  std::string getFileNameFromFilePath(const std::string &filePath_, bool keepExtension_){
     auto splitStr = GenericToolbox::splitString(filePath_, "/");
     if(not splitStr.empty()){
-      return splitStr[splitStr.size()-1];
+      if(keepExtension_){
+        return splitStr[splitStr.size()-1];
+      }
+      else{
+        return GenericToolbox::splitString(splitStr[splitStr.size()-1], ".")[0];
+      }
     }
     else{
       return "";

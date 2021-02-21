@@ -114,7 +114,7 @@ namespace GenericToolbox{
   inline char * getEnvironmentVariable(char const envVarName_[]);
   inline bool doesFilePathHasExtension(const std::string &filePath_, std::string ext_);
   inline std::string getFolderPathFromFilePath(const std::string &filePath_);
-  inline std::string getFileNameFromFilePath(const std::string &filePath_);
+  inline std::string getFileNameFromFilePath(const std::string &filePath_, bool keepExtension_ = true);
   // -- with direct IO dependencies
   inline bool doesPathIsFile(std::string filePath_);
   inline bool doesPathIsFolder(std::string folderPath_);
