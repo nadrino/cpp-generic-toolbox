@@ -106,12 +106,18 @@ namespace GenericToolbox{
   inline bool toBool(std::string str);
 
 
-  //! FS Tools
-  // -- without IO dependencies
-  inline std::string expandEnvironmentVariables(std::string filePath_);
-  inline bool expandEnvironmentVariables(const char *inputFilePath_, char *extendedFilePath_);
+  //! OS Tools
   inline std::string getHomeDirectory();
-  inline char * getEnvironmentVariable(char const envVarName_[]);
+  inline std::string getCurrentWorkingDirectory();
+  inline std::string expandEnvironmentVariables(std::string filePath_);
+  namespace Internal{
+    inline bool expandEnvironmentVariables(const char *inputFilePath_, char *extendedFilePath_);
+    inline char * getEnvironmentVariable(char const envVarName_[]);
+  }
+
+
+  //! FS Tools
+  // -- without IO dependencies (string parsing)
   inline bool doesFilePathHasExtension(const std::string &filePath_, std::string ext_);
   inline std::string getFolderPathFromFilePath(const std::string &filePath_);
   inline std::string getFileNameFromFilePath(const std::string &filePath_, bool keepExtension_ = true);
@@ -125,7 +131,6 @@ namespace GenericToolbox{
   inline bool mvFile(std::string sourceFilePath_, std::string destinationFilePath_, bool force_ = false);
   inline size_t getHashFile(std::string filePath_);
   inline long int getFileSizeInBytes(const std::string &filePath_);
-  inline std::string getCurrentWorkingDirectory();
   inline void dumpStringInFile(std::string outFilePath_, std::string stringToWrite_);
   inline std::string dumpFileAsString(std::string filePath_);
   inline std::vector<std::string> dumpFileAsVectorString(std::string filePath_);
