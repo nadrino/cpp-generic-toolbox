@@ -16,7 +16,6 @@
 #include <iostream>
 #include <algorithm>
 #include <cstring>
-#include <string.h>
 #include <thread>
 #include <numeric>
 #include <regex>
@@ -564,7 +563,8 @@ namespace GenericToolbox{
       c = inputFilePath_ + strspn(inputFilePath_, " \t\f\r");
       //VP  if (isalnum(c[0])) { strcpy(inp, WorkingDirectory()); strcat(inp, "/"); } // add $cwd
 
-      strlcat(inp, c, bufferSize_);
+//      strlcat(inp, c, bufferSize_);
+      strncat(inp, c, bufferSize_);
 
       again:
       iter++; c = inp; ier = 0;
@@ -587,14 +587,17 @@ namespace GenericToolbox{
       }
       else if (c[0] == '~' && c[1] != '/') { // ~user case
         int n = strcspn(c+1, "/ ");
-        assert((n+1) < bufferSize_ && "This should have been prevented by the truncation 'strlcat(inp, c, bufferSize_)'");
+//        assert((n+1) < bufferSize_ && "This should have been prevented by the truncation 'strlcat(inp, c, bufferSize_)'");
+//        assert((n+1) < bufferSize_ && "This should have been prevented by the truncation 'strncat(inp, c, bufferSize_)'");
         // There is no overlap here as the buffer is segment in 4 strings of at most bufferSize_
-        (void)strlcpy(charBuffer, c + 1, n + 1); // strlcpy copy 'size-1' characters.
+//        (void)strlcpy(charBuffer, c + 1, n + 1); // strlcpy copy 'size-1' characters.
+        (void)strncpy(charBuffer, c + 1, n + 1); // strncpy copy 'size-1' characters.
         std::string homeDirStr = getHomeDirectory();
         e = c+1+n;
         if (!homeDirStr.empty()) {                   // we have smth to copy
           expandedPathCharArray = homeDirStr.c_str();
-          strlcpy(x, expandedPathCharArray, bufferSize_);
+//          strlcpy(x, expandedPathCharArray, bufferSize_);
+          strncpy(x, expandedPathCharArray, bufferSize_);
           x += strlen(expandedPathCharArray);
           c = e;
         } else {
@@ -610,12 +613,14 @@ namespace GenericToolbox{
 
         if (c[0] == '.' && c[1] == '/' && c[-1] == ' ') { // $cwd
           std::string workDirStr = getCurrentWorkingDirectory();
-          strlcpy(charBuffer, workDirStr.c_str(), bufferSize_);
+//          strlcpy(charBuffer, workDirStr.c_str(), bufferSize_);
+          strncpy(charBuffer, workDirStr.c_str(), bufferSize_);
           expandedPathCharArray = charBuffer;
           e = c + 1;
         }
         if (expandedPathCharArray) {                          // we have smth to copy */
-          strlcpy(x, expandedPathCharArray, bufferSize_); x += strlen(expandedPathCharArray); c = e - 1; continue;
+//          strlcpy(x, expandedPathCharArray, bufferSize_); x += strlen(expandedPathCharArray); c = e - 1; continue;
+          strncpy(x, expandedPathCharArray, bufferSize_); x += strlen(expandedPathCharArray); c = e - 1; continue;
         }
 
         if (c[0] != '$') {                // not $, simple copy
@@ -640,7 +645,8 @@ namespace GenericToolbox{
           }
           if (!expandedPathCharArray && !strcmp(charBuffer, "cwd")) { // it is $cwd
             std::string wd = getCurrentWorkingDirectory();
-            strlcpy(charBuffer, wd.c_str(), bufferSize_);
+//            strlcpy(charBuffer, wd.c_str(), bufferSize_);
+            strncpy(charBuffer, wd.c_str(), bufferSize_);
             expandedPathCharArray = charBuffer;
           }
           if (!expandedPathCharArray && !strcmp(charBuffer, "$")) { // it is $$ (replace by GetPid())
@@ -662,7 +668,8 @@ namespace GenericToolbox{
             int lp = strlen(expandedPathCharArray);
             if (lp >= bufferSize_) {
               // make sure lx will be >= bufferSize_ (see below)
-              strlcpy(x, expandedPathCharArray, bufferSize_);
+//              strlcpy(x, expandedPathCharArray, bufferSize_);
+              strncpy(x, expandedPathCharArray, bufferSize_);
               x += bufferSize_;
               break;
             }
@@ -674,7 +681,8 @@ namespace GenericToolbox{
       }
 
       x[0] = 0; lx = x - out;
-      if (ier && iter < 3) { strlcpy(inp, out, bufferSize_); goto again; }
+//      if (ier && iter < 3) { strlcpy(inp, out, bufferSize_); goto again; }
+      if (ier && iter < 3) { strncpy(inp, out, bufferSize_); goto again; }
       ncopy = (lx >= bufferSize_) ? bufferSize_ - 1 : lx;
       extendedFilePath_[0] = 0; strncat(extendedFilePath_, out, ncopy);
 
