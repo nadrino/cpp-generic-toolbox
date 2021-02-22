@@ -22,6 +22,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include <pwd.h>
+#include <cstring>
 
 #include "GenericToolbox.h"
 
