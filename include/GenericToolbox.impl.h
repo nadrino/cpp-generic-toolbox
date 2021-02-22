@@ -577,7 +577,8 @@ namespace GenericToolbox{
         expandedPathCharArray = homeDirStr.c_str();
         e = c + 1;
         if (expandedPathCharArray) {                         // we have smth to copy
-          strlcpy(x, expandedPathCharArray, bufferSize_);
+//          strlcpy(x, expandedPathCharArray, bufferSize_);
+          strncpy(x, expandedPathCharArray, bufferSize_);
           x += strlen(expandedPathCharArray);
           c = e;
         } else {
