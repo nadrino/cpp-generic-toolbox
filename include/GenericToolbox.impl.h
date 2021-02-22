@@ -16,13 +16,13 @@
 #include <iostream>
 #include <algorithm>
 #include <cstring>
+#include <string.h>
 #include <thread>
 #include <numeric>
 #include <regex>
 #include <sys/types.h>
 #include <unistd.h>
 #include <pwd.h>
-#include <cstring>
 
 #include "GenericToolbox.h"
 
