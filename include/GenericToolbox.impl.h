@@ -526,12 +526,13 @@ namespace GenericToolbox{
 
 //    char outputName[PATH_MAX];
     char outputName[8192];
-    Internal::expandEnvironmentVariables(filePath_.c_str(), outputName);
+    Internals::expandEnvironmentVariables(filePath_.c_str(), outputName);
 
     return std::string(outputName);
   }
 
-  namespace Internal{
+  namespace Internals
+  {
     char * getEnvironmentVariable(char const envVarName_[]){
 #if defined _WIN32 // getenv() is deprecated on Windows
       char *buf{nullptr};

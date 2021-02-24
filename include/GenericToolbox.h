@@ -110,7 +110,8 @@ namespace GenericToolbox{
   inline std::string getHomeDirectory();
   inline std::string getCurrentWorkingDirectory();
   inline std::string expandEnvironmentVariables(std::string filePath_);
-  namespace Internal{
+  namespace Internals
+  {
     inline bool expandEnvironmentVariables(const char *inputFilePath_, char *extendedFilePath_);
     inline char * getEnvironmentVariable(char const envVarName_[]);
   }
