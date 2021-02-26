@@ -364,6 +364,12 @@ namespace GenericToolbox {
 //! Histogram Tools
 namespace GenericToolbox {
 
+  inline void resetHistogram(TH1D* hist_){
+    hist_->Reset("ICESM");
+    for(int iBin = 0 ; iBin < hist_->GetNbinsX() ; iBin++ ){
+        hist_->SetBinContent(iBin,0);
+    }
+  }
   std::vector<double> getLogBinning(int n_bins_, double X_min_, double X_max_) {
     std::vector<double> output(n_bins_ + 1); // add one extra bin for the boundary
     double xlogmin = TMath::Log10(X_min_);

@@ -43,6 +43,7 @@ namespace GenericToolbox{
 //  inline TMatrixD* computeSqrt(TMatrixD* inputMatrix_);
 
   //! Histogram Tools
+  inline void resetHistogram(TH1D* hist_);
   inline std::vector<double> getLogBinning(int n_bins_, double X_min_, double X_max_);
   inline std::vector<double> getLinearBinning(int n_bins_, double X_min_, double X_max_);
   inline TH1D* getTH1DlogBinning(std::string name_, std::string title_, int n_bins_, double X_min_, double X_max_);
