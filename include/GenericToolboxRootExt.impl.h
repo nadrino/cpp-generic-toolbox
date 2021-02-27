@@ -366,8 +366,9 @@ namespace GenericToolbox {
 
   inline void resetHistogram(TH1D* hist_){
     hist_->Reset("ICESM");
-    for(int iBin = 0 ; iBin < hist_->GetNbinsX() ; iBin++ ){
+    for(int iBin = 0 ; iBin <= hist_->GetNbinsX()+1 ; iBin++ ){
         hist_->SetBinContent(iBin,0);
+        hist_->SetBinError(iBin,0);
     }
   }
   std::vector<double> getLogBinning(int n_bins_, double X_min_, double X_max_) {
