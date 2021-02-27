@@ -166,6 +166,7 @@ namespace GenericToolbox{
 #define __METHOD_NAME__ GenericToolbox::getMethodName(__PRETTY_FUNCTION__)
 
 #define GET_VAR_NAME_VALUE(var) ( ((std::stringstream&) (std::stringstream() << #var << " = " << (var)) ).str() )
+#define GET_VAR_NAME_VALUE_STREAM(var) #var << " = " << var
 #define GET_VAR_NAME(var) std::string(#var)
 
   // Not intended to be managed by the user
