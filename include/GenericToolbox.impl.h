@@ -455,7 +455,7 @@ namespace GenericToolbox {
     sizeInBytes_ = sizeInBytes_ / 1024; // in GB
     return std::to_string(sizeInBytes_) + " GB";
   }
-  std::vector<std::string> splitString(const std::string &inputString_, std::string delimiter_) {
+  std::vector<std::string> splitString(const std::string &inputString_, std::string delimiter_, bool removeEmpty_) {
 
     std::vector<std::string> output_splited_string;
 
@@ -481,7 +481,19 @@ namespace GenericToolbox {
 
     output_splited_string.emplace_back(out_string_piece);
 
-    return output_splited_string;
+    if(not removeEmpty_){
+      return output_splited_string;
+    }
+    else{
+      std::vector<std::string> strippedOutput;
+      for(const auto& slice : output_splited_string){
+        if(not slice.empty()){
+          strippedOutput.emplace_back(slice);
+        }
+      }
+      return strippedOutput;
+    }
+
 
   }
   template<typename ... Args> std::string formatString(std::string format, Args ... args) {

@@ -96,7 +96,7 @@ namespace GenericToolbox{
   inline std::string removeRepeatedCharacters(const std::string& inputStr_, std::string repeatedChar_);
   inline std::string joinVectorString(const std::vector<std::string> &string_list_, std::string delimiter_, int begin_index_ = 0, int end_index_ = 0);
   inline std::string replaceSubstringInString(const std::string &input_str_, std::string substr_to_look_for_, std::string substr_to_replace_);
-  inline std::vector<std::string> splitString(const std::string& inputString_, std::string delimiter_);
+  inline std::vector<std::string> splitString(const std::string& inputString_, std::string delimiter_, bool removeEmpty_ = false);
   // -- Parsing
   inline std::string parseSizeUnits(unsigned int sizeInBytes_);
   template<typename ... Args> inline std::string formatString( std::string format, Args ... args );
