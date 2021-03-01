@@ -457,7 +457,7 @@ namespace GenericToolbox {
   }
   std::vector<std::string> splitString(const std::string &inputString_, std::string delimiter_, bool removeEmpty_) {
 
-    std::vector<std::string> output_splited_string;
+    std::vector<std::string> outputSliceList;
 
     const char *src = inputString_.c_str();
     const char *next = src;
@@ -469,7 +469,7 @@ namespace GenericToolbox {
       while (src != next) {
         out_string_piece += *src++;
       }
-      output_splited_string.emplace_back(out_string_piece);
+      outputSliceList.emplace_back(out_string_piece);
       /* Skip the delimiter_ */
       src += delimiter_.size();
     }
@@ -479,14 +479,14 @@ namespace GenericToolbox {
     while (*src != '\0')
       out_string_piece += *src++;
 
-    output_splited_string.emplace_back(out_string_piece);
+    outputSliceList.emplace_back(out_string_piece);
 
     if(not removeEmpty_){
-      return output_splited_string;
+      return outputSliceList;
     }
     else{
       std::vector<std::string> strippedOutput;
-      for(const auto& slice : output_splited_string){
+      for(const auto& slice : outputSliceList){
         if(not slice.empty()){
           strippedOutput.emplace_back(slice);
         }
