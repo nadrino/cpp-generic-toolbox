@@ -479,6 +479,7 @@ namespace GenericToolbox {
 
     }
     canvas_->Update();
+    // canvas_->Draw() is needed to propagate changes
   }
 
 }
