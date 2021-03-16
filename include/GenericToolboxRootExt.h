@@ -15,6 +15,7 @@
 #include <TH1D.h>
 #include <TH2D.h>
 #include <TFile.h>
+#include <TCanvas.h>
 
 //#include "GenericToolbox.h"
 
@@ -56,6 +57,7 @@ namespace GenericToolbox{
   inline void setBlueRedPalette();
   inline void setOrangePalette();
   inline void fixTH2display(TH2 *histogram_);
+  inline void setXaxisOfAllPads(TCanvas* canvas_, double Xmin_, double Xmax_);
 
 
   //! ROOT Internals

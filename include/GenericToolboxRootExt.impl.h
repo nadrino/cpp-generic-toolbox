@@ -19,6 +19,7 @@
 #include <TFile.h>
 #include <TGlobal.h>
 #include <TROOT.h>
+#include <TFrame.h>
 
 
 //! Conversion Tools
@@ -451,6 +452,33 @@ namespace GenericToolbox {
       pal->Draw();
     }
 
+  }
+  void setXaxisOfAllPads(TCanvas* canvas_, double Xmin_, double Xmax_){
+
+    for( int iPad = 0 ; iPad < canvas_->GetListOfPrimitives()->GetSize() ; iPad++ ){
+
+      auto* pad = (TPad*) canvas_->GetListOfPrimitives()->At(iPad);
+      auto* list = (TList*) pad->GetListOfPrimitives();
+
+      TIter next(list);
+      TObject *obj;
+
+      while( (obj = next()) ){
+        if( obj->InheritsFrom( TH1::Class() ) ) {
+          auto* histTemp = (TH1*) obj;
+          histTemp->GetXaxis()->SetRangeUser(Xmin_, Xmax_);
+        }
+        else if( obj->InheritsFrom( TFrame::Class() ) ){
+          auto* frameTemp = (TFrame*) obj;
+          frameTemp->SetX1(Xmin_);
+          frameTemp->SetX2(Xmax_);
+        }
+      }
+
+      pad->Update();
+
+    }
+    canvas_->Update();
   }
 
 }
