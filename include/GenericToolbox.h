@@ -70,8 +70,8 @@ namespace GenericToolbox{
   //! Vector management
   template <typename T> inline bool doesElementIsInVector( T element_, const std::vector<T>& vector_ );
   inline bool doesElementIsInVector(const char* element_, const std::vector<std::string>& vector_);
-  template <typename T> inline size_t findElementIndex( T element_, const std::vector<T>& vector_ );
-  inline size_t findElementIndex( const char* element_, const std::vector<std::string>& vector_ );
+  template <typename T> inline int findElementIndex(T element_, const std::vector<T>& vector_ );
+  inline int findElementIndex(const char* element_, const std::vector<std::string>& vector_ );
   template <typename T> inline T getAverage(const std::vector<T> vector_);
   template <typename T, typename TT> inline std::vector<TT> convertVectorType( const std::vector<T>& vector_, std::function<TT(T)>& convertTypeFunction_ );
   template <typename T> inline std::vector<size_t> getSortPermutation(const std::vector<T>& vectorToSort_, std::function<bool(const T, const T)> compareLambda_ );
