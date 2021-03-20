@@ -15,6 +15,7 @@
 #include <TH1D.h>
 #include <TH2D.h>
 #include <TFile.h>
+#include <TTree.h>
 #include <TCanvas.h>
 
 //#include "GenericToolbox.h"
@@ -28,6 +29,7 @@ namespace GenericToolbox{
   inline TVectorD* convertStdVectorToTVectorD(std::vector<double>& vect_);
   inline TMatrixDSym* convertToSymmetricMatrix(TMatrixD* matrix_);
   inline TMatrixD* convertToCorrelationMatrix(TMatrixD* covarianceMatrix_);
+  inline TMatrixD* getCovarianceMatrixOfTree(TTree* tree_);
 
 
   //! Files Tools

@@ -128,6 +128,52 @@ namespace GenericToolbox {
 
         return correlationMatrix;
     }
+  TMatrixD* getCovarianceMatrixOfTree(TTree* tree_){
+
+    // Hook to tree
+    std::vector<double> leafValueList(tree_->GetListOfLeaves()->GetEntries(), 0);
+    for(int iLeaf = 0 ; iLeaf < tree_->GetListOfLeaves()->GetEntries() ; iLeaf++){
+      tree_->SetBranchAddress(tree_->GetListOfLeaves()->At(iLeaf)->GetName(), &leafValueList[iLeaf]);
+    }
+
+    // Compute mean of every variable
+    std::vector<double> meanValueLeafList(tree_->GetListOfLeaves()->GetEntries(),0);
+    for(int iEntry = 0 ; iEntry < tree_->GetEntries() ; iEntry++){
+//    GenericToolbox::displayProgressBar(iEntry, tree_->GetEntries(), " > Compute mean of every variable...");
+      tree_->GetEntry(iEntry);
+      for(int iLeaf = 0 ; iLeaf < tree_->GetListOfLeaves()->GetEntries() ; iLeaf++){
+        meanValueLeafList[iLeaf] += leafValueList[iLeaf];
+      }
+    }
+    for(int iLeaf = 0 ; iLeaf < tree_->GetListOfLeaves()->GetEntries() ; iLeaf++){
+      meanValueLeafList[iLeaf] /= tree_->GetEntries();
+    }
+
+    // Compute covariance
+    auto* outCovMatrix = new TMatrixD(tree_->GetListOfLeaves()->GetEntries(), tree_->GetListOfLeaves()->GetEntries());
+    for(int iCol = 0 ; iCol < tree_->GetListOfLeaves()->GetEntries() ; iCol++){
+      for(int iRow = 0 ; iRow < tree_->GetListOfLeaves()->GetEntries() ; iRow++){
+        (*outCovMatrix)[iCol][iRow] = 0;
+      }
+    }
+    for(int iEntry = 0 ; iEntry < tree_->GetEntries() ; iEntry++){
+//    GenericToolbox::displayProgressBar(iEntry, tree_->GetEntries(), " > Compute covariance...");
+      tree_->GetEntry(iEntry);
+      for(int iCol = 0 ; iCol < tree_->GetListOfLeaves()->GetEntries() ; iCol++){
+        for(int iRow = 0 ; iRow < tree_->GetListOfLeaves()->GetEntries() ; iRow++){
+          (*outCovMatrix)[iCol][iRow] += (leafValueList[iCol] - meanValueLeafList[iCol])*(leafValueList[iRow] - meanValueLeafList[iRow]);
+        } // iRow
+      } // iCol
+    }
+    for(int iCol = 0 ; iCol < tree_->GetListOfLeaves()->GetEntries() ; iCol++){
+      for(int iRow = 0 ; iRow < tree_->GetListOfLeaves()->GetEntries() ; iRow++){
+        (*outCovMatrix)[iCol][iRow] /= tree_->GetEntries();
+      }
+    }
+
+    return outCovMatrix;
+
+  }
 
 
 }
