@@ -71,7 +71,7 @@ namespace GenericToolbox {
       if(GenericToolbox::ProgressBar::displaySpeed){
         speedString += "(";
         double itPerSec = iCurrent_ - GenericToolbox::ProgressBar::lastDisplayedValue; // nb iterations since last print
-        if(itPerSec < 0) itPerSec = 0;
+        if(int(itPerSec) < 0) itPerSec = 0;
         else{
           double timeInterval = std::chrono::duration_cast<std::chrono::milliseconds>(
             newTimePoint - GenericToolbox::ProgressBar::lastDisplayedTimePoint
