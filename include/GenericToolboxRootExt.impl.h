@@ -242,13 +242,13 @@ namespace GenericToolbox {
 
     return output;
   }
-  inline TDirectory* mkdirTFile(TDirectory* baseDir_, std::string dirName_){
+  TDirectory* mkdirTFile(TDirectory* baseDir_, std::string dirName_){
       if(baseDir_->GetDirectory(dirName_.c_str()) == nullptr){
           baseDir_->mkdir(dirName_.c_str());
       }
       return baseDir_->GetDirectory(dirName_.c_str());
   }
-  inline TDirectory* mkdirTFile(TFile* outputFile_, std::string dirName_){
+  TDirectory* mkdirTFile(TFile* outputFile_, std::string dirName_){
     return mkdirTFile(outputFile_->GetDirectory(""), dirName_);
   }
   std::vector<TFile *> getListOfOpenedTFiles() {
@@ -276,6 +276,24 @@ namespace GenericToolbox {
 
 }
 
+//! Trees Tools
+namespace GenericToolbox {
+
+  void disableUnhookedBranches(TTree* tree_){
+    if(tree_ == nullptr){
+      std::cout << "ERROR in " << __METHOD_NAME__ << ": " << GET_VAR_NAME_VALUE(tree_) << std::endl;
+      return;
+    }
+    tree_->SetBranchStatus("*", false);
+    auto* branchList = tree_->GetListOfBranches();
+    for( int iBranch = 0 ; iBranch < branchList->GetEntries() ; iBranch++ ){
+      if( tree_->GetBranch( branchList->At(iBranch)->GetName() )->GetAddress() != nullptr ){
+        tree_->SetBranchStatus( branchList->At(iBranch)->GetName(), true );
+      }
+    } // iBranch
+  }
+
+}
 
 //! Matrix Tools
 namespace GenericToolbox {

@@ -40,6 +40,9 @@ namespace GenericToolbox{
   inline TDirectory* mkdirTFile(TDirectory* baseDir_, std::string dirName_);
   inline TDirectory* mkdirTFile(TFile* outputFile_, std::string dirName_);
 
+  //! Trees Tools
+  inline void disableUnhookedBranches(TTree* tree_);
+
   //! Matrix Tools
   inline std::map<std::string, TMatrixD*> invertMatrixSVD(TMatrixD *matrix_, std::string outputContent_="inverse_covariance_matrix:regularized_eigen_values");
   inline std::vector<double> getEigenValues(TMatrixD *matrix_);
@@ -64,7 +67,7 @@ namespace GenericToolbox{
 
   //! ROOT Internals
   inline void muteRoot();
-inline void unmuteRoot();
+  inline void unmuteRoot();
 
 
 }
