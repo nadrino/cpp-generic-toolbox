@@ -20,6 +20,7 @@
 #include <TGlobal.h>
 #include <TROOT.h>
 #include <TFrame.h>
+#include <TLeaf.h>
 
 
 //! Conversion Tools
@@ -105,7 +106,7 @@ namespace GenericToolbox {
 
     return result;
   }
-    TMatrixD* convertToCorrelationMatrix(TMatrixD* covarianceMatrix_){
+  TMatrixD* convertToCorrelationMatrix(TMatrixD* covarianceMatrix_){
         if(covarianceMatrix_ == nullptr) return nullptr;
         if(covarianceMatrix_->GetNrows() != covarianceMatrix_->GetNcols()) return nullptr;
 
@@ -127,52 +128,6 @@ namespace GenericToolbox {
         }
 
         return correlationMatrix;
-    }
-  TMatrixD* getCovarianceMatrixOfTree(TTree* tree_){
-
-    // Hook to tree
-    std::vector<double> leafValueList(tree_->GetListOfLeaves()->GetEntries(), 0);
-    for(int iLeaf = 0 ; iLeaf < tree_->GetListOfLeaves()->GetEntries() ; iLeaf++){
-      tree_->SetBranchAddress(tree_->GetListOfLeaves()->At(iLeaf)->GetName(), &leafValueList[iLeaf]);
-    }
-
-    // Compute mean of every variable
-    std::vector<double> meanValueLeafList(tree_->GetListOfLeaves()->GetEntries(),0);
-    for(int iEntry = 0 ; iEntry < tree_->GetEntries() ; iEntry++){
-//    GenericToolbox::displayProgressBar(iEntry, tree_->GetEntries(), " > Compute mean of every variable...");
-      tree_->GetEntry(iEntry);
-      for(int iLeaf = 0 ; iLeaf < tree_->GetListOfLeaves()->GetEntries() ; iLeaf++){
-        meanValueLeafList[iLeaf] += leafValueList[iLeaf];
-      }
-    }
-    for(int iLeaf = 0 ; iLeaf < tree_->GetListOfLeaves()->GetEntries() ; iLeaf++){
-      meanValueLeafList[iLeaf] /= tree_->GetEntries();
-    }
-
-    // Compute covariance
-    auto* outCovMatrix = new TMatrixD(tree_->GetListOfLeaves()->GetEntries(), tree_->GetListOfLeaves()->GetEntries());
-    for(int iCol = 0 ; iCol < tree_->GetListOfLeaves()->GetEntries() ; iCol++){
-      for(int iRow = 0 ; iRow < tree_->GetListOfLeaves()->GetEntries() ; iRow++){
-        (*outCovMatrix)[iCol][iRow] = 0;
-      }
-    }
-    for(int iEntry = 0 ; iEntry < tree_->GetEntries() ; iEntry++){
-//    GenericToolbox::displayProgressBar(iEntry, tree_->GetEntries(), " > Compute covariance...");
-      tree_->GetEntry(iEntry);
-      for(int iCol = 0 ; iCol < tree_->GetListOfLeaves()->GetEntries() ; iCol++){
-        for(int iRow = 0 ; iRow < tree_->GetListOfLeaves()->GetEntries() ; iRow++){
-          (*outCovMatrix)[iCol][iRow] += (leafValueList[iCol] - meanValueLeafList[iCol])*(leafValueList[iRow] - meanValueLeafList[iRow]);
-        } // iRow
-      } // iCol
-    }
-    for(int iCol = 0 ; iCol < tree_->GetListOfLeaves()->GetEntries() ; iCol++){
-      for(int iRow = 0 ; iRow < tree_->GetListOfLeaves()->GetEntries() ; iRow++){
-        (*outCovMatrix)[iCol][iRow] /= tree_->GetEntries();
-      }
-    }
-
-    return outCovMatrix;
-
   }
 
 
@@ -291,6 +246,69 @@ namespace GenericToolbox {
         tree_->SetBranchStatus( branchList->At(iBranch)->GetName(), true );
       }
     } // iBranch
+  }
+  TMatrixD* getCovarianceMatrixOfTree(TTree* tree_){
+
+    TMatrixD* outCovMatrix;
+
+    std::vector<TLeaf*> leafList;
+    for(int iLeaf = 0 ; iLeaf < tree_->GetListOfLeaves()->GetEntries() ; iLeaf++){
+      // DONT SUPPORT ARRAYS AT THE MOMENT
+      TLeaf* leafBufferPtr = tree_->GetLeaf(tree_->GetListOfLeaves()->At(iLeaf)->GetName());
+      if(tree_->GetBranchStatus(leafBufferPtr->GetName()) == 1){ // check if this branch is active
+        if(leafBufferPtr->GetNdata() == 1){
+//          std::cout << "Adding: " << leafBufferPtr->GetName() << std::endl;
+          leafList.emplace_back(leafBufferPtr);
+        }
+        else{
+          std::cout << __METHOD_NAME__
+                    << ": " << tree_->GetListOfLeaves()->At(iLeaf)->GetName()
+                    << " -> array leaves are not supported yet." << std::endl;
+        }
+      }
+
+    }
+
+    // Initializing the matrix
+    outCovMatrix = new TMatrixD(leafList.size(), leafList.size());
+    for(int iCol = 0 ; iCol < leafList.size() ; iCol++){
+      for(int iRow = 0 ; iRow < leafList.size() ; iRow++){
+        (*outCovMatrix)[iCol][iRow] = 0;
+      }
+    }
+
+    // Compute mean of every variable
+    std::vector<double> meanValueLeafList(leafList.size(),0);
+    Long64_t nEntries = tree_->GetEntries();
+    for(Long64_t iEntry = 0 ; iEntry < nEntries ; iEntry++){
+      tree_->GetEntry(iEntry);
+      for(size_t iLeaf = 0 ; iLeaf < leafList.size() ; iLeaf++){
+        meanValueLeafList[iLeaf] += leafList[iLeaf]->GetValue(0);
+      }
+    }
+    for(int iLeaf = 0 ; iLeaf < leafList.size() ; iLeaf++){
+      meanValueLeafList[iLeaf] /= nEntries;
+    }
+
+    // Compute covariance
+    for(Long64_t iEntry = 0 ; iEntry < nEntries ; iEntry++){
+      tree_->GetEntry(iEntry);
+      for(int iCol = 0 ; iCol < leafList.size() ; iCol++){
+        for(int iRow = 0 ; iRow < leafList.size() ; iRow++){
+          (*outCovMatrix)[iCol][iRow] +=
+             (leafList[iCol]->GetValue(0) - meanValueLeafList[iCol])
+            *(leafList[iRow]->GetValue(0) - meanValueLeafList[iRow]);
+        } // iRow
+      } // iCol
+    } // iEntry
+    for(int iCol = 0 ; iCol < leafList.size() ; iCol++){
+      for(int iRow = 0 ; iRow < leafList.size() ; iRow++){
+        (*outCovMatrix)[iCol][iRow] /= nEntries;
+      }
+    }
+
+    return outCovMatrix;
+
   }
 
 }

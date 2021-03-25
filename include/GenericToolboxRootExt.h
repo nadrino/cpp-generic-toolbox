@@ -29,7 +29,6 @@ namespace GenericToolbox{
   inline TVectorD* convertStdVectorToTVectorD(std::vector<double>& vect_);
   inline TMatrixDSym* convertToSymmetricMatrix(TMatrixD* matrix_);
   inline TMatrixD* convertToCorrelationMatrix(TMatrixD* covarianceMatrix_);
-  inline TMatrixD* getCovarianceMatrixOfTree(TTree* tree_);
 
 
   //! Files Tools
@@ -42,6 +41,7 @@ namespace GenericToolbox{
 
   //! Trees Tools
   inline void disableUnhookedBranches(TTree* tree_);
+  inline TMatrixD* getCovarianceMatrixOfTree(TTree* tree_);
 
   //! Matrix Tools
   inline std::map<std::string, TMatrixD*> invertMatrixSVD(TMatrixD *matrix_, std::string outputContent_="inverse_covariance_matrix:regularized_eigen_values");
