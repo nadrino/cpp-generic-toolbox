@@ -158,22 +158,49 @@ namespace GenericToolbox{
   }
 
 
-
-  //! Misc Tools
+  //! Macro Tools
   inline std::string getClassName(const std::string& PRETTY_FUNCTION__); // When calling this functions, provide __PRETTY_FUNCTION__ macro
-#define __CLASS_NAME__ GenericToolbox::getClassName(__PRETTY_FUNCTION__)
   inline std::string getMethodName(const std::string& PRETTY_FUNCTION__);
+
+#define __CLASS_NAME__ GenericToolbox::getClassName(__PRETTY_FUNCTION__)
 #define __METHOD_NAME__ GenericToolbox::getMethodName(__PRETTY_FUNCTION__)
 
 #define GET_VAR_NAME_VALUE(var) ( ((std::stringstream&) (std::stringstream() << #var << " = " << (var)) ).str() )
 #define GET_VAR_NAME_VALUE_STREAM(var) #var << " = " << var
 #define GET_VAR_NAME(var) std::string(#var)
 
+#define ENUM_EXPANDER(enumName, intOffset, v1, ...)\
+  enum enumName { v1 = intOffset, __VA_ARGS__};      \
+  namespace enumName##EnumNamespace{                                 \
+    const char *enumNamesArray[] = { #v1 ,#__VA_ARGS__};                \
+    std::string toString(enumName value_) {         \
+      if( value_ == v1 ) return enumNamesArray[0];       \
+      std::string outStr;   \
+      int commaCounter = 1;                                                                             \
+      for(int iChar = 0 ; iChar < strlen(enumNamesArray[1]) ; iChar++ ){                     \
+        if( enumNamesArray[1][iChar] == ',' ){ commaCounter++; iChar++; continue; }        \
+        if( value_ - intOffset == commaCounter ){ outStr += enumNamesArray[1][iChar]; };    \
+      }                                                                                                 \
+      return outStr;                                               \
+    }                                                 \
+    std::string toString(int value_){ return enumName##EnumNamespace::toString(static_cast<enumName>(value_)); } \
+    int toEnumInt(std::string value_){              \
+      int outValue_ = intOffset-1;                    \
+      std::string nameBuffer;                         \
+      do{                                             \
+        outValue_++;                                              \
+        nameBuffer = enumName##EnumNamespace::toString(outValue_);\
+        if(nameBuffer == value_) return outValue_;\
+      } while( not nameBuffer.empty() );              \
+      return intOffset-1;                                               \
+    }                                                 \
+    enumName toEnum(std::string value_){ return static_cast<enumName>(enumName##EnumNamespace::toEnumInt(value_)); } \
+  }
+
+
   // Not intended to be managed by the user
   namespace Internals{
-
     static std::map<int, std::chrono::high_resolution_clock::time_point> _lastTimePointMap_;
-
   }
 
 }

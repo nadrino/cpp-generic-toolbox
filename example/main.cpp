@@ -16,6 +16,9 @@
 
 using namespace std;
 
+
+ENUM_EXPANDER(Test, 1, test1, test2, test3)
+
 int main(){
 
   // String management
