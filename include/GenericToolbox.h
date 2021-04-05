@@ -157,7 +157,7 @@ namespace GenericToolbox{
       static size_t lastProcessMemoryUsage = 0;
   }
 
-  //! Macro Tools
+  //! Misc Tools
   inline std::string getClassName(const std::string& PRETTY_FUNCTION__); // When calling this functions, provide __PRETTY_FUNCTION__ macro
   inline std::string getMethodName(const std::string& PRETTY_FUNCTION__);
 
@@ -177,6 +177,11 @@ namespace GenericToolbox{
 #define GET_VAR_NAME_VALUE_STREAM(var) #var << " = " << var
 #define GET_VAR_NAME(var) std::string(#var)
 
+/*
+ * ENUM_EXPANDER will create the desired enum and will automatically attach a namespace which provides additional methods
+ * For example: "ENUM_EXPAND(MyEnumType, 1, state1, state2, state3)" is equivalent to "enum MyEnumType{state1 = 1, state2, state3};"
+ * In addition, you can search of any enum name as a string: "MyEnumTypeEnumNamespace::toString(1)" which will return "state1".
+ * */
 #define ENUM_EXPANDER(enumName_, intOffset_, v1_, ...) GT_INTERNALS_ENUM_EXPANDER(enumName_, intOffset_, v1_, __VA_ARGS__)
 
 
