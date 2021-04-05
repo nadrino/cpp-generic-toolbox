@@ -21,6 +21,7 @@ ENUM_EXPANDER(Test, 1, test1, test2, test3)
 
 int main(){
 
+  TestEnumNamespace::toString(Test::test1);
   TestEnumNamespace::toEnum("test1");
 
   // String management

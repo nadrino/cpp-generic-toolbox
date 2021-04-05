@@ -1373,17 +1373,18 @@ namespace GenericToolbox{
   enum enumName_ { v1_ =  intOffset_, __VA_ARGS__, enumName_##_OVERFLOW };\
   namespace enumName_##EnumNamespace{\
     const char *enumNamesAgregate = GT_INTERNALS_VA_TO_STR(v1_, __VA_ARGS__); \
-    int enumOffSet = intOffset_; \
-    std::string toString(int enumValue_) {\
-      int commaCounter = 0; std::string outStr;\
-      for( unsigned long iChar = 0 ; iChar < strlen(enumNamesAgregate) ; iChar++ ){ \
-        if( enumNamesAgregate[iChar] == ',' ){\
-          if( not outStr.empty() ){ return outStr; } /* found! return */\
-          else{ commaCounter++; iChar += 2; } /* not yet found, next */ \
-        }\
-        if( commaCounter == enumValue_ ){ outStr += enumNamesAgregate[iChar]; }\
+    const int enumOffSet = intOffset_;\
+    std::vector<std::string> enumNamesDict;\
+    void buildDictionary(){\
+      enumName_##EnumNamespace::enumNamesDict.clear(); enumName_##EnumNamespace::enumNamesDict.emplace_back("");\
+      for( unsigned long iChar = 0 ; iChar < strlen(enumNamesAgregate) ; iChar++ ){                             \
+        if( enumNamesAgregate[iChar] == ',' ){ enumName_##EnumNamespace::enumNamesDict.emplace_back(""); iChar++; } \
+        else{ enumName_##EnumNamespace::enumNamesDict.back() += enumNamesAgregate[iChar]; } \
       }\
-      return outStr;\
+    }\
+    std::string toString(int enumValue_){\
+      if( enumName_##EnumNamespace::enumNamesDict.empty() ) enumName_##EnumNamespace::buildDictionary();\
+      return enumName_##EnumNamespace::enumNamesDict[ enumValue_ - intOffset_ ];\
     }\
     std::string toString(enumName_ enumValue_){ return enumName_##EnumNamespace::toString(static_cast<int>(enumValue_)); }\
     int toEnumInt(const std::string& enumStr_){\
