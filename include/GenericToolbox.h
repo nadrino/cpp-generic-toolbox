@@ -168,6 +168,8 @@ namespace GenericToolbox{
 
 }
 
+#include "GenericToolbox.impl.h"
+
 #define __CLASS_NAME__ GenericToolbox::getClassName(__PRETTY_FUNCTION__)
 #define __METHOD_NAME__ GenericToolbox::getMethodName(__PRETTY_FUNCTION__)
 
@@ -175,39 +177,7 @@ namespace GenericToolbox{
 #define GET_VAR_NAME_VALUE_STREAM(var) #var << " = " << var
 #define GET_VAR_NAME(var) std::string(#var)
 
-#define VA_TO_STR(...) #__VA_ARGS__
+#define ENUM_EXPANDER(enumName_, intOffset_, v1_, ...) GT_INTERNALS_ENUM_EXPANDER(enumName_, intOffset_, v1_, __VA_ARGS__)
 
-#define ENUM_EXPANDER(enumName_, intOffset_, v1_, ...)\
-  enum enumName_ { v1_ =  intOffset_, __VA_ARGS__ };\
-  namespace enumName_##EnumNamespace{\
-    const char *enumNamesAgregate = VA_TO_STR(v1_, __VA_ARGS__);\
-    std::string toString(int value_) {\
-      int commaCounter = 0; std::string outStr;\
-      for( unsigned long iChar = 0 ; iChar < strlen(enumNamesAgregate) ; iChar++ ){ \
-        if( commaCounter == value_ ){ outStr += enumNamesAgregate[iChar]; }\
-        if( enumNamesAgregate[iChar] == ',' ){\
-          if( not outStr.empty() ){ break; }\
-          else{ commaCounter++; iChar++; }\
-        }\
-      }\
-      return outStr;\
-    }\
-    std::string toString(enumName_ value_){ return enumName_##EnumNamespace::toString(static_cast<int>(value_)); }\
-    int toEnumInt(std::string enumStr_){\
-      std::string strBuffer;\
-      int enumIndex = intOffset_;                     \
-      for( unsigned long iChar = 0 ; iChar < strlen(enumNamesAgregate) ; iChar++ ){ \
-        if( enumNamesAgregate[iChar] == ',' ){\
-          if( strBuffer == enumStr_ ){ return enumIndex; } /* found it! */ \
-          enumIndex++; iChar += 2; strBuffer = ""; /* not yet found, next */ \
-        }\
-        strBuffer += enumNamesAgregate[iChar]; /* add the next char to the current name */ \
-      }\
-      return intOffset_ - 1; /* returns invalid value */ \
-    }\
-    enumName_ toEnum(std::string value_){ return static_cast<enumName_>(enumName_##EnumNamespace::toEnumInt(value_)); }\
-  }
-
-#include "GenericToolbox.impl.h"
 
 #endif //CPP_GENERIC_TOOLBOX_GENERICTOOLBOX_H

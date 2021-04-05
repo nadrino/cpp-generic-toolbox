@@ -21,6 +21,8 @@ ENUM_EXPANDER(Test, 1, test1, test2, test3)
 
 int main(){
 
+  TestEnumNamespace::toEnum("test1");
+
   // String management
   string str("This is a simple message.");
   cout << str << endl;
