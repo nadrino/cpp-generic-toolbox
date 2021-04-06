@@ -554,7 +554,7 @@ namespace GenericToolbox {
 namespace GenericToolbox{
 
   namespace Internals {
-    char * getEnvironmentVariable(char const envVarName_[]){
+    inline char * getEnvironmentVariable(char const envVarName_[]){
 #if defined _WIN32 // getenv() is deprecated on Windows
       char *buf{nullptr};
     size_t sz;
@@ -567,7 +567,7 @@ namespace GenericToolbox{
       return getenv(envVarName_);
 #endif
     }
-    bool expandEnvironmentVariables(const char *inputFilePath_, char *extendedFilePath_) {
+    inline bool expandEnvironmentVariables(const char *inputFilePath_, char *extendedFilePath_) {
       int ier, iter, lx, ncopy;
       char *inp, *out, *x, *t, *charBuffer;
       const char *b, *c, *e;
@@ -720,17 +720,17 @@ namespace GenericToolbox{
     }
   }
 
-  std::string getHomeDirectory(){
+  inline std::string getHomeDirectory(){
     struct passwd *pw = getpwuid(getuid());
     return std::string(pw->pw_dir);
   }
-  std::string getCurrentWorkingDirectory(){
+  inline std::string getCurrentWorkingDirectory(){
     char cwd[1024];
     getcwd(cwd, sizeof(cwd));
     std::string output_cwd(cwd);
     return output_cwd;
   }
-  std::string expandEnvironmentVariables(const std::string &filePath_){
+  inline std::string expandEnvironmentVariables(const std::string &filePath_){
 
 //    char outputName[PATH_MAX];
     char outputName[8192];
