@@ -14,15 +14,18 @@
 #include <chrono>
 #include <map>
 
-// Index
-namespace GenericToolbox{
 
+//! User Parameters
+//! (CAVEAT: only set for a given source file)
+namespace GenericToolbox{
   namespace Parameters{
     static int _verboseLevel_ = 0;
   }
+}
 
-  // Parameters for the progress bar
-  namespace ProgressBar{
+
+//! Progress bar
+namespace GenericToolbox{
 
 #ifndef PROGRESS_BAR_ENABLE_RAINBOW
 #define PROGRESS_BAR_ENABLE_RAINBOW 0
@@ -46,28 +49,24 @@ namespace GenericToolbox{
 #define PROGRESS_BAR_FILL_TAG "#"
 #endif
 
-    static bool enableRainbowProgressBar = PROGRESS_BAR_ENABLE_RAINBOW;
-    static bool displaySpeed = PROGRESS_BAR_SHOW_SPEED;
-    static int barLength = PROGRESS_BAR_LENGTH;
-    static int refreshRateInMilliSec = PROGRESS_BAR_REFRESH_DURATION_IN_MS;
-    static std::string fillTag = PROGRESS_BAR_FILL_TAG;
+  inline void displayProgressBar(int iCurrent_, int iTotal_, const std::string &title_ = "", bool forcePrint_ = false);
 
-    static int lastDisplayedPercentValue = -1;
-    static int lastDisplayedValue = -1;
-    static auto lastDisplayedTimePoint        = std::chrono::high_resolution_clock::now();
-    static std::thread::id _selectedThreadId_ = std::this_thread::get_id(); // get the main thread id
-    static std::vector<std::string> rainbowColorList = {"\033[1;31m", "\033[1;32m", "\033[1;33m", "\033[1;34m", "\033[1;35m", "\033[1;36m"};
+}
 
-  }
 
-  //! Displaying Tools
-  inline void displayProgressBar(int iCurrent_, int iTotal_, std::string title_ = "", bool forcePrint_ = false);
+//! Printout Tools
+namespace GenericToolbox {
+
   inline std::string parseIntAsString(int intToFormat_);
-  template <typename T> inline std::string parseVectorAsString(const std::vector<T>& vector_, bool enableLineJump_ = false);
-  template <typename T> inline void printVector(const std::vector<T>& vector_);
+  template<typename T> inline std::string parseVectorAsString(const std::vector<T> &vector_, bool enableLineJump_ = false);
+  template<typename T> inline void printVector(const std::vector<T> &vector_);
+
+}
 
 
-  //! Vector management
+//! Vector management
+namespace GenericToolbox{
+
   template <typename T> inline bool doesElementIsInVector( T element_, const std::vector<T>& vector_ );
   inline bool doesElementIsInVector(const char* element_, const std::vector<std::string>& vector_);
   template <typename T> inline int findElementIndex(T element_, const std::vector<T>& vector_ );
@@ -77,73 +76,90 @@ namespace GenericToolbox{
   template <typename T> inline std::vector<size_t> getSortPermutation(const std::vector<T>& vectorToSort_, std::function<bool(const T, const T)> compareLambda_ );
   template <typename T> inline std::vector<T> applyPermutation(const std::vector<T>& vectorToPermute_, const std::vector<std::size_t>& sortPermutation_ );
 
+}
 
-  //! Map management
+
+//! Map management
+namespace GenericToolbox{
+
   template <typename K, typename T> inline bool doesKeyIsInMap( K key_, const std::map<K,T>& map_ );
   template <typename T1, typename T2> inline void appendToMap(std::map<T1, T2> &mapContainer_, const std::map<T1, T2> &mapToPushBack_, bool overwrite_ = true);
-  template <typename T> inline std::map<std::string, T> getSubMap(const std::map<std::string, T>& map_, std::string keyStrStartWith_ );
+  template <typename T> inline std::map<std::string, T> getSubMap(const std::map<std::string, T>& map_, const std::string &keyStrStartWith_ );
+
+}
 
 
-  //! String Management Tools
+//! String Management Tools
+namespace GenericToolbox{
+
   // -- Transformations
   inline bool doesStringContainsSubstring(std::string string_, std::string substring_, bool ignoreCase_ = false);
   inline bool doesStringStartsWithSubstring(std::string string_, std::string substring_, bool ignoreCase_ = false);
   inline bool doesStringEndsWithSubstring(std::string string_, std::string substring_, bool ignoreCase_ = false);
   inline std::string toLowerCase(const std::string &inputStr_);
   inline std::string stripStringUnicode(const std::string &inputStr_);
-  inline std::string repeatString(std::string inputStr_, int amount_);
-  inline std::string trimString(std::string inputStr_, std::string strToTrim_);
-  inline std::string removeRepeatedCharacters(const std::string& inputStr_, std::string repeatedChar_);
-  inline std::string joinVectorString(const std::vector<std::string> &string_list_, std::string delimiter_, int begin_index_ = 0, int end_index_ = 0);
-  inline std::string replaceSubstringInString(const std::string &input_str_, std::string substr_to_look_for_, std::string substr_to_replace_);
-  inline std::vector<std::string> splitString(const std::string& inputString_, std::string delimiter_, bool removeEmpty_ = false);
+  inline std::string repeatString(const std::string &inputStr_, int amount_);
+  inline std::string trimString(const std::string &inputStr_, const std::string &strToTrim_);
+  inline std::string removeRepeatedCharacters(const std::string& inputStr_, const std::string &repeatedChar_);
+  inline std::string joinVectorString(const std::vector<std::string> &string_list_, const std::string &delimiter_, int begin_index_ = 0, int end_index_ = 0);
+  inline std::string replaceSubstringInString(const std::string &input_str_, const std::string &substr_to_look_for_, const std::string &substr_to_replace_);
+  inline std::vector<std::string> splitString(const std::string& inputString_, const std::string &delimiter_, bool removeEmpty_ = false);
+
   // -- Parsing
   inline std::string parseSizeUnits(unsigned int sizeInBytes_);
-  template<typename ... Args> inline std::string formatString( std::string format, Args ... args );
-
+  template<typename ... Args> inline std::string formatString(const std::string& strToFormat_, Args ... args );
 
   //! Conversion Tools
   inline bool toBool(std::string str);
 
+}
 
-  //! OS Tools
+
+//! Operating System Tools
+namespace GenericToolbox{
+
   inline std::string getHomeDirectory();
   inline std::string getCurrentWorkingDirectory();
-  inline std::string expandEnvironmentVariables(std::string filePath_);
-  namespace Internals
-  {
-    inline bool expandEnvironmentVariables(const char *inputFilePath_, char *extendedFilePath_);
-    inline char * getEnvironmentVariable(char const envVarName_[]);
-  }
+  inline std::string expandEnvironmentVariables(const std::string &filePath_);
+
+}
 
 
-  //! FS Tools
+//! File System Tools
+namespace GenericToolbox{
+
   // -- without IO dependencies (string parsing)
-  inline bool doesFilePathHasExtension(const std::string &filePath_, std::string ext_);
+  inline bool doesFilePathHasExtension(const std::string &filePath_, const std::string &extension_);
   inline std::string getFolderPathFromFilePath(const std::string &filePath_);
   inline std::string getFileNameFromFilePath(const std::string &filePath_, bool keepExtension_ = true);
+
   // -- with direct IO dependencies
-  inline bool doesPathIsFile(std::string filePath_);
-  inline bool doesPathIsFolder(std::string folderPath_);
-  inline bool doFilesAreTheSame(std::string filePath1_, std::string filePath2_);
-  inline bool mkdirPath(std::string newFolderPath_);
-  inline bool deleteFile(std::string filePath_);
-  inline bool copyFile(std::string source_file_path_, std::string destination_file_path_, bool force_ = false);
-  inline bool mvFile(std::string sourceFilePath_, std::string destinationFilePath_, bool force_ = false);
-  inline size_t getHashFile(std::string filePath_);
+  inline bool doesPathIsFile(const std::string &filePath_);
+  inline bool doesPathIsFolder(const std::string &folderPath_);
+  inline bool doFilesAreTheSame(const std::string &filePath1_, const std::string &filePath2_);
+  inline bool mkdirPath(const std::string &newFolderPath_);
+  inline bool deleteFile(const std::string &filePath_);
+  inline bool copyFile(const std::string &source_file_path_, const std::string &destination_file_path_, bool force_ = false);
+  inline bool mvFile(const std::string &sourceFilePath_, const std::string &destinationFilePath_, bool force_ = false);
+  inline size_t getHashFile(const std::string &filePath_);
   inline long int getFileSizeInBytes(const std::string &filePath_);
-  inline void dumpStringInFile(std::string outFilePath_, std::string stringToWrite_);
-  inline std::string dumpFileAsString(std::string filePath_);
-  inline std::vector<std::string> dumpFileAsVectorString(std::string filePath_);
-  inline std::vector<std::string> getListOfEntriesInFolder(std::string folderPath_, std::string entryNameRegex_ = "");
-  inline std::vector<std::string> getListOfSubfoldersInFolder(std::string folderPath_, std::string entryNameRegex_ = "");
-  inline std::vector<std::string> getListOfFilesInFolder(std::string folderPath_, std::string entryNameRegex_ = "");
+  inline void dumpStringInFile(const std::string &outFilePath_, const std::string &stringToWrite_);
+  inline std::string dumpFileAsString(const std::string &filePath_);
+  inline std::vector<std::string> dumpFileAsVectorString(const std::string &filePath_);
+  inline std::vector<std::string> getListOfEntriesInFolder(const std::string &folderPath_, const std::string &entryNameRegex_ = "");
+  inline std::vector<std::string> getListOfSubfoldersInFolder(const std::string &folderPath_, const std::string &entryNameRegex_ = "");
+  inline std::vector<std::string> getListOfFilesInFolder(const std::string &folderPath_, const std::string &entryNameRegex_ = "");
+
   // -- with indirect IO dependencies
-  inline bool doesFolderIsEmpty(std::string folderPath_);
+  inline bool doesFolderIsEmpty(const std::string &folderPath_);
   inline std::vector<std::string> getListFilesInSubfolders(const std::string &folderPath_);
 
+}
 
-  //! Hardware Tools
+
+//! Hardware Tools
+namespace GenericToolbox{
+
   inline size_t getProcessMemoryUsage();
   inline size_t getProcessMaxMemoryUsage();
   inline long getProcessMemoryUsageDiffSinceLastCall();
@@ -156,6 +172,11 @@ namespace GenericToolbox{
   namespace Hardware{
       static size_t lastProcessMemoryUsage = 0;
   }
+}
+
+
+//! Misc Tools
+namespace GenericToolbox{
 
   //! Misc Tools
   inline std::string getClassName(const std::string& PRETTY_FUNCTION__); // When calling this functions, provide __PRETTY_FUNCTION__ macro
@@ -168,8 +189,14 @@ namespace GenericToolbox{
 
 }
 
-#include "GenericToolbox.impl.h"
 
+/* The actual implementation is done under .impl files.
+ * For more details, checkout this file
+ * */
+#include "implementation/GenericToolbox.impl.h"
+
+
+//! MACROS Tools
 #define __CLASS_NAME__ GenericToolbox::getClassName(__PRETTY_FUNCTION__)
 #define __METHOD_NAME__ GenericToolbox::getMethodName(__PRETTY_FUNCTION__)
 

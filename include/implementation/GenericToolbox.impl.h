@@ -23,58 +23,82 @@
 #include <unistd.h>
 #include <pwd.h>
 
+// For the IDEs to not worry about forward declaration
 #include "GenericToolbox.h"
 
 
 // Displaying Tools
 namespace GenericToolbox {
 
-  void displayProgressBar(int iCurrent_, int iTotal_, std::string title_, bool forcePrint_){
-    if(
+  namespace Internals {
+    namespace ProgressBar {
+
+      // Parameters for the progress bar
+      static bool enableRainbowProgressBar = PROGRESS_BAR_ENABLE_RAINBOW;
+      static bool displaySpeed = PROGRESS_BAR_SHOW_SPEED;
+      static int barLength = PROGRESS_BAR_LENGTH;
+      static int refreshRateInMilliSec = PROGRESS_BAR_REFRESH_DURATION_IN_MS;
+      static std::string fillTag(PROGRESS_BAR_FILL_TAG);
+
+      static int lastDisplayedPercentValue = -1;
+      static int lastDisplayedValue = -1;
+      static auto lastDisplayedTimePoint = std::chrono::high_resolution_clock::now();
+      static std::thread::id _selectedThreadId_ = std::this_thread::get_id(); // get the main thread id
+      static std::vector<std::string> rainbowColorList{"\033[1;31m", "\033[1;32m", "\033[1;33m", "\033[1;34m",
+                                                       "\033[1;35m", "\033[1;36m"};
+
+    }
+  }
+
+  void displayProgressBar(int iCurrent_, int iTotal_, const std::string &title_, bool forcePrint_) {
+    if (
       (
-          std::chrono::duration_cast<std::chrono::milliseconds>(
-              std::chrono::high_resolution_clock::now() - GenericToolbox::ProgressBar::lastDisplayedTimePoint
-          ).count() >= GenericToolbox::ProgressBar::refreshRateInMilliSec
+        std::chrono::duration_cast<std::chrono::milliseconds>(
+          std::chrono::high_resolution_clock::now() - GenericToolbox::Internals::ProgressBar::lastDisplayedTimePoint
+        ).count() >= GenericToolbox::Internals::ProgressBar::refreshRateInMilliSec
       )
-      or GenericToolbox::ProgressBar::lastDisplayedPercentValue == -1 // never printed before
+      or GenericToolbox::Internals::ProgressBar::lastDisplayedPercentValue == -1 // never printed before
       or iCurrent_ == 0 // first call
       or forcePrint_ // display every calls
-      or iCurrent_ >= iTotal_-1 // last entry (mandatory to print endl)
-      ){
+      or iCurrent_ >= iTotal_ - 1 // last entry (mandatory to print endl)
+      ) {
 
       // While multithreading, this function is muted
-      if( not forcePrint_ and GenericToolbox::ProgressBar::_selectedThreadId_ != std::this_thread::get_id()) return;
+      if (not forcePrint_ and
+          GenericToolbox::Internals::ProgressBar::_selectedThreadId_ != std::this_thread::get_id())
+        return;
 
-      if( not forcePrint_ and iCurrent_ >= iTotal_-1 and GenericToolbox::ProgressBar::lastDisplayedPercentValue == 100 ){ // last has already been printed ?
+      if (not forcePrint_ and iCurrent_ >= iTotal_ - 1 and
+          GenericToolbox::Internals::ProgressBar::lastDisplayedPercentValue == 100) { // last has already been printed ?
         return;
       }
 
       int percentValue = int(round(double(iCurrent_) / iTotal_ * 100.));
 
-      if(not (iCurrent_ >= iTotal_-1)){ // if not last entry
-        if(percentValue > 100) percentValue = 100; // sanity check
-        if(percentValue < 0) percentValue = 0;
-        if(percentValue == GenericToolbox::ProgressBar::lastDisplayedPercentValue) return; // skipping!
-      }
-      else{
-          percentValue = 100; // force to be 100
+      if (not(iCurrent_ >= iTotal_ - 1)) { // if not last entry
+        if (percentValue > 100) percentValue = 100; // sanity check
+        if (percentValue < 0) percentValue = 0;
+        if (percentValue == GenericToolbox::Internals::ProgressBar::lastDisplayedPercentValue) return; // skipping!
+      } else {
+        percentValue = 100; // force to be 100
       }
 
       std::stringstream ss;
       ss << "\r";
 
-      int displayedBarLength = GenericToolbox::ProgressBar::barLength;
+      int displayedBarLength = GenericToolbox::Internals::ProgressBar::barLength;
       std::string displayedTitle = title_;
 
       auto newTimePoint = std::chrono::high_resolution_clock::now();
       std::string speedString;
-      if(GenericToolbox::ProgressBar::displaySpeed){
+      if (GenericToolbox::Internals::ProgressBar::displaySpeed) {
         speedString += "(";
-        double itPerSec = iCurrent_ - GenericToolbox::ProgressBar::lastDisplayedValue; // nb iterations since last print
-        if(int(itPerSec) < 0) itPerSec = 0;
-        else{
+        double itPerSec =
+          iCurrent_ - GenericToolbox::Internals::ProgressBar::lastDisplayedValue; // nb iterations since last print
+        if (int(itPerSec) < 0) itPerSec = 0;
+        else {
           double timeInterval = std::chrono::duration_cast<std::chrono::milliseconds>(
-            newTimePoint - GenericToolbox::ProgressBar::lastDisplayedTimePoint
+            newTimePoint - GenericToolbox::Internals::ProgressBar::lastDisplayedTimePoint
           ).count() / 1000.;
           itPerSec /= timeInterval; // Count per s
         }
@@ -83,16 +107,16 @@ namespace GenericToolbox {
       }
 
       // test if the bar is too wide wrt the prompt width
-      if(GenericToolbox::getTerminalWidth() != 0){ // terminal width is measurable
+      if (GenericToolbox::getTerminalWidth() != 0) { // terminal width is measurable
 
         // clean the full line with blank spaces
 //        std::cout << "\r" << GenericToolbox::repeatString(" ", GenericToolbox::getTerminalWidth()-1) << "\r";
 
-        int totalLength = 0;
+        unsigned long totalLength = 0;
         std::string strippedTitle = GenericToolbox::stripStringUnicode(title_); // remove special chars and colors
         totalLength += strippedTitle.size();
-        if(not title_.empty()) totalLength += 1; // after title space
-        if(displayedBarLength > 0){
+        if (not title_.empty()) totalLength += 1; // after title space
+        if (displayedBarLength > 0) {
           totalLength += 2; // []
           totalLength += displayedBarLength;
         }
@@ -100,59 +124,57 @@ namespace GenericToolbox {
         totalLength += speedString.size() + 1; // space + speedString
         totalLength += 1; // one extra free char is needed to flush
 
-        int extraCharsCount = (totalLength - GenericToolbox::getTerminalWidth());
-        if(extraCharsCount > 0 and displayedBarLength > 0){
+        int extraCharsCount = int(totalLength) - GenericToolbox::getTerminalWidth();
+        if (extraCharsCount > 0 and displayedBarLength > 0) {
           // first, reduce the bar width
-          displayedBarLength = GenericToolbox::ProgressBar::barLength - extraCharsCount;
+          displayedBarLength = GenericToolbox::Internals::ProgressBar::barLength - extraCharsCount;
           // 12 arbitrary chosen as the minimal barWidth
-          if(displayedBarLength < 12){
-              // if the requested bar length is lower that 12, remove it completly
-              displayedBarLength = 0;
+          if (displayedBarLength < 12) {
+            // if the requested bar length is lower that 12, remove it completly
+            displayedBarLength = 0;
           }
-          extraCharsCount -= GenericToolbox::ProgressBar::barLength - displayedBarLength;
+          extraCharsCount -= GenericToolbox::Internals::ProgressBar::barLength - displayedBarLength;
         }
 
         // if it's still to big, cut the title
-        if(extraCharsCount > 0){
+        if (extraCharsCount > 0) {
           displayedTitle = title_.substr(0, strippedTitle.size() - extraCharsCount - 3);
           displayedTitle += "...";
         }
-      }
-      else{
-          displayedBarLength = 0;
+      } else {
+        displayedBarLength = 0;
       }
 
-      if(not displayedTitle.empty()){
+      if (not displayedTitle.empty()) {
         ss << displayedTitle << " ";
       }
 
-      if(displayedBarLength > 0){
+      if (displayedBarLength > 0) {
 
-        int nbTags   = percentValue * displayedBarLength / 100;
+        int nbTags = percentValue * displayedBarLength / 100;
         int nbSpaces = displayedBarLength - nbTags;
         ss << "[";
-        if(not GenericToolbox::ProgressBar::enableRainbowProgressBar){
+        if (not GenericToolbox::Internals::ProgressBar::enableRainbowProgressBar) {
           int iCharTagIndex = 0;
-          for(int iTag = 0 ; iTag < nbTags ; iTag++){
-            ss << GenericToolbox::ProgressBar::fillTag[iCharTagIndex];
+          for (int iTag = 0; iTag < nbTags; iTag++) {
+            ss << GenericToolbox::Internals::ProgressBar::fillTag[iCharTagIndex];
             iCharTagIndex++;
-            if(iCharTagIndex >= GenericToolbox::ProgressBar::fillTag.size()) iCharTagIndex = 0;
+            if (iCharTagIndex >= GenericToolbox::Internals::ProgressBar::fillTag.size()) iCharTagIndex = 0;
           }
-        }
-        else{
+        } else {
           int nbTagsCredits = nbTags;
-          int nbColors = GenericToolbox::ProgressBar::rainbowColorList.size();
-          int nbTagsPerColor = displayedBarLength/nbColors;
-          if( displayedBarLength % nbColors != 0) nbTagsPerColor++;
+          int nbColors = GenericToolbox::Internals::ProgressBar::rainbowColorList.size();
+          int nbTagsPerColor = displayedBarLength / nbColors;
+          if (displayedBarLength % nbColors != 0) nbTagsPerColor++;
           int iCharTagIndex = 0;
-          for(int iColor = 0 ; iColor < nbColors ; iColor++ ){
-            ss << GenericToolbox::ProgressBar::rainbowColorList[iColor];
-            if(nbTagsCredits == 0) break;
+          for (int iColor = 0; iColor < nbColors; iColor++) {
+            ss << GenericToolbox::Internals::ProgressBar::rainbowColorList[iColor];
+            if (nbTagsCredits == 0) break;
             int iSlot = 0;
-            while( nbTagsCredits != 0 and iSlot < nbTagsPerColor ){
-              ss << GenericToolbox::ProgressBar::fillTag[iCharTagIndex];
+            while (nbTagsCredits != 0 and iSlot < nbTagsPerColor) {
+              ss << GenericToolbox::Internals::ProgressBar::fillTag[iCharTagIndex];
               iCharTagIndex++;
-              if(iCharTagIndex >= GenericToolbox::ProgressBar::fillTag.size()) iCharTagIndex = 0;
+              if (iCharTagIndex >= GenericToolbox::Internals::ProgressBar::fillTag.size()) iCharTagIndex = 0;
               nbTagsCredits--;
               iSlot++;
             }
@@ -163,25 +185,31 @@ namespace GenericToolbox {
       }
 
       ss << " " << percentValue << "%";
-      if(not speedString.empty()){
-          ss << " " << speedString;
+      if (not speedString.empty()) {
+        ss << " " << speedString;
       }
 
       std::cout << ss.str();
 
-      if(percentValue == 100){
+      if (percentValue == 100) {
         std::cout << std::endl;
-      }
-      else{
+      } else {
         std::cout << "\r";
         std::cout.flush();
       }
 
-      GenericToolbox::ProgressBar::lastDisplayedPercentValue = percentValue;
-      GenericToolbox::ProgressBar::lastDisplayedValue = iCurrent_;
-      GenericToolbox::ProgressBar::lastDisplayedTimePoint = newTimePoint;
+      GenericToolbox::Internals::ProgressBar::lastDisplayedPercentValue = percentValue;
+      GenericToolbox::Internals::ProgressBar::lastDisplayedValue = iCurrent_;
+      GenericToolbox::Internals::ProgressBar::lastDisplayedTimePoint = newTimePoint;
     }
   }
+
+}
+
+
+//! Printout Tools
+namespace GenericToolbox{
+
   std::string parseIntAsString(int intToFormat_){
     if(intToFormat_ / 1000 < 10){
         return std::to_string(intToFormat_);
@@ -298,7 +326,7 @@ namespace GenericToolbox {
       mapContainer_[newEntry.first] = newEntry.second;
     }
   }
-  template <typename T> inline std::map<std::string, T> getSubMap(const std::map<std::string, T>& map_, std::string keyStrStartWith_ ){
+  template <typename T> inline std::map<std::string, T> getSubMap(const std::map<std::string, T>& map_, const std::string &keyStrStartWith_ ){
     std::map<std::string, T> outSubMap;
     for(const auto& mapPair : map_){
       if(GenericToolbox::doesStringStartsWithSubstring(mapPair.first, keyStrStartWith_)){
@@ -390,7 +418,7 @@ namespace GenericToolbox {
 
     return outputStr;
   }
-  inline std::string repeatString(std::string inputStr_, int amount_){
+  inline std::string repeatString(const std::string &inputStr_, int amount_){
     std::string outputStr;
     if(amount_ <= 0) return outputStr;
     for(int i_count = 0 ; i_count < amount_ ; i_count++){
@@ -398,8 +426,8 @@ namespace GenericToolbox {
     }
     return outputStr;
   }
-  inline std::string trimString(std::string inputStr_, std::string strToTrim_){
-      std::string outputStr = inputStr_;
+  inline std::string trimString(const std::string &inputStr_, const std::string &strToTrim_){
+      std::string outputStr(inputStr_);
       while(GenericToolbox::doesStringStartsWithSubstring(outputStr, strToTrim_)){
           outputStr = outputStr.substr(strToTrim_.size(), outputStr.size());
       }
@@ -408,7 +436,7 @@ namespace GenericToolbox {
       }
       return outputStr;
   }
-  inline std::string removeRepeatedCharacters(const std::string &inputStr_, std::string repeatedChar_) {
+  inline std::string removeRepeatedCharacters(const std::string &inputStr_, const std::string &repeatedChar_) {
     std::string outStr = inputStr_;
     std::string oldStr;
     std::string repeatedCharTwice = repeatedChar_;
@@ -419,7 +447,7 @@ namespace GenericToolbox {
     }
     return outStr;
   }
-  std::string joinVectorString(const std::vector<std::string> &string_list_, std::string delimiter_, int begin_index_, int end_index_) {
+  std::string joinVectorString(const std::vector<std::string> &string_list_, const std::string &delimiter_, int begin_index_, int end_index_) {
 
     std::string joined_string;
     if (end_index_ == 0) end_index_ = int(string_list_.size());
@@ -435,7 +463,7 @@ namespace GenericToolbox {
 
     return joined_string;
   }
-  std::string replaceSubstringInString(const std::string &input_str_, std::string substr_to_look_for_, std::string substr_to_replace_) {
+  std::string replaceSubstringInString(const std::string &input_str_, const std::string &substr_to_look_for_, const std::string &substr_to_replace_) {
     std::string stripped_str = input_str_;
     size_t index = 0;
     while ((index = stripped_str.find(substr_to_look_for_, index)) != std::string::npos) {
@@ -459,7 +487,7 @@ namespace GenericToolbox {
     sizeInBytes_ = sizeInBytes_ / 1024; // in GB
     return std::to_string(sizeInBytes_) + " GB";
   }
-  std::vector<std::string> splitString(const std::string &inputString_, std::string delimiter_, bool removeEmpty_) {
+  std::vector<std::string> splitString(const std::string &inputString_, const std::string &delimiter_, bool removeEmpty_) {
 
     std::vector<std::string> outputSliceList;
 
@@ -500,11 +528,11 @@ namespace GenericToolbox {
 
 
   }
-  template<typename ... Args> std::string formatString(std::string format, Args ... args) {
-    size_t size = snprintf(nullptr, 0, format.c_str(), args ...) + 1; // Extra space for '\0'
+  template<typename ... Args> std::string formatString(const std::string& strToFormat_, Args ... args) {
+    size_t size = snprintf(nullptr, 0, strToFormat_.c_str(), args ...) + 1; // Extra space for '\0'
     if (size <= 0) { throw std::runtime_error("Error during formatting."); }
     std::unique_ptr<char[]> buf(new char[size]);
-    snprintf(buf.get(), size, format.c_str(), args ...);
+    snprintf(buf.get(), size, strToFormat_.c_str(), args ...);
     return std::string(buf.get(), buf.get() + size - 1); // We don't want the '\0' inside
   }
 
@@ -528,27 +556,7 @@ namespace GenericToolbox {
 // OS Tools
 namespace GenericToolbox{
 
-  std::string getHomeDirectory(){
-    struct passwd *pw = getpwuid(getuid());
-    return std::string(pw->pw_dir);
-  }
-  std::string getCurrentWorkingDirectory(){
-    char cwd[1024];
-    getcwd(cwd, sizeof(cwd));
-    std::string output_cwd(cwd);
-    return output_cwd;
-  }
-  std::string expandEnvironmentVariables(std::string filePath_){
-
-//    char outputName[PATH_MAX];
-    char outputName[8192];
-    Internals::expandEnvironmentVariables(filePath_.c_str(), outputName);
-
-    return std::string(outputName);
-  }
-
-  namespace Internals
-  {
+  namespace Internals {
     char * getEnvironmentVariable(char const envVarName_[]){
 #if defined _WIN32 // getenv() is deprecated on Windows
       char *buf{nullptr};
@@ -627,7 +635,7 @@ namespace GenericToolbox{
 
       for ( ; c[0]; c++) {
 
-        expandedPathCharArray = 0; e = 0;
+        expandedPathCharArray = nullptr; e = nullptr;
 
         if (c[0] == '.' && c[1] == '/' && c[-1] == ' ') { // $cwd
           std::string workDirStr = getCurrentWorkingDirectory();
@@ -654,11 +662,11 @@ namespace GenericToolbox{
           charBuffer[0] = 0; strncat(charBuffer, b, e - b);
           expandedPathCharArray = getEnvironmentVariable(charBuffer);
           if (!expandedPathCharArray) {                      // too bad, try UPPER case
-            for (t = charBuffer; (t[0] = toupper(t[0])); t++) ;
+            for (t = charBuffer; (t[0] = static_cast<char>(toupper(t[0]))); t++) ;
             expandedPathCharArray = getEnvironmentVariable(charBuffer);
           }
           if (!expandedPathCharArray) {                      // too bad, try Lower case
-            for (t = charBuffer; (t[0] = tolower(t[0])); t++) ;
+            for (t = charBuffer; (t[0] = static_cast<char>(tolower(t[0]))); t++) ;
             expandedPathCharArray = getEnvironmentVariable(charBuffer);
           }
           if (!expandedPathCharArray && !strcmp(charBuffer, "cwd")) { // it is $cwd
@@ -715,14 +723,33 @@ namespace GenericToolbox{
     }
   }
 
+  std::string getHomeDirectory(){
+    struct passwd *pw = getpwuid(getuid());
+    return std::string(pw->pw_dir);
+  }
+  std::string getCurrentWorkingDirectory(){
+    char cwd[1024];
+    getcwd(cwd, sizeof(cwd));
+    std::string output_cwd(cwd);
+    return output_cwd;
+  }
+  std::string expandEnvironmentVariables(const std::string &filePath_){
+
+//    char outputName[PATH_MAX];
+    char outputName[8192];
+    Internals::expandEnvironmentVariables(filePath_.c_str(), outputName);
+
+    return std::string(outputName);
+  }
+
 }
 
 // FS Tools
 namespace GenericToolbox{
 
   // -- without IO dependencies (string parsing)
-  bool doesFilePathHasExtension(const std::string &filePath_, std::string ext_){
-    return doesStringEndsWithSubstring(filePath_, "."+ext_);
+  bool doesFilePathHasExtension(const std::string &filePath_, const std::string &extension_){
+    return doesStringEndsWithSubstring(filePath_, "." + extension_);
   }
   std::string getFolderPathFromFilePath(const std::string &filePath_){
     std::string folder_path;
@@ -752,17 +779,17 @@ namespace GenericToolbox{
   }
 
   // -- with direct IO dependencies
-  bool doesPathIsFile(std::string filePath_){
+  bool doesPathIsFile(const std::string &filePath_){
     struct stat info{};
     stat(filePath_.c_str(), &info);
     return S_ISREG(info.st_mode);
   }
-  bool doesPathIsFolder(std::string folderPath_){
+  bool doesPathIsFolder(const std::string &folderPath_){
     struct stat info{};
     stat( folderPath_.c_str(), &info );
     return bool(S_ISDIR(info.st_mode));
   }
-  bool doFilesAreTheSame(std::string filePath1_, std::string filePath2_){
+  bool doFilesAreTheSame(const std::string &filePath1_, const std::string &filePath2_){
 
     if( not doesPathIsFile(filePath1_) ) return false;
     if( not doesPathIsFile(filePath2_) ) return false;
@@ -805,7 +832,7 @@ namespace GenericToolbox{
 
     return true;
   }
-  bool mkdirPath(std::string newFolderPath_){
+  bool mkdirPath(const std::string &newFolderPath_){
     bool result = false;
     if(doesPathIsFolder(newFolderPath_)) return true;
 
@@ -829,12 +856,12 @@ namespace GenericToolbox{
     return result;
 
   }
-  bool deleteFile(std::string filePath_){
+  bool deleteFile(const std::string &filePath_){
     if(not doesPathIsFile(filePath_)) return true;
     std::remove(filePath_.c_str());
     return not doesPathIsFile(filePath_);
   }
-  bool copyFile(std::string source_file_path_, std::string destination_file_path_, bool force_){
+  bool copyFile(const std::string &source_file_path_, const std::string &destination_file_path_, bool force_){
 
     if( not doesPathIsFile(source_file_path_) ){
       return false;
@@ -856,7 +883,7 @@ namespace GenericToolbox{
 
     return true;
   }
-  bool mvFile(std::string sourceFilePath_, std::string destinationFilePath_, bool force_) {
+  bool mvFile(const std::string &sourceFilePath_, const std::string &destinationFilePath_, bool force_) {
 
     if( not doesPathIsFile(sourceFilePath_) ){
       return false;
@@ -885,7 +912,7 @@ namespace GenericToolbox{
       ) return true;
     else return false;
   }
-  size_t getHashFile(std::string filePath_) {
+  size_t getHashFile(const std::string &filePath_) {
     std::hash<std::string> hashString;
     return hashString(dumpFileAsString(filePath_));
   }
@@ -901,12 +928,12 @@ namespace GenericToolbox{
     }
     return output_size;
   }
-  void dumpStringInFile(std::string outFilePath_, std::string stringToWrite_){
+  void dumpStringInFile(const std::string &outFilePath_, const std::string &stringToWrite_){
     std::ofstream out(outFilePath_.c_str());
     out << stringToWrite_;
     out.close();
   }
-  std::string dumpFileAsString(std::string filePath_){
+  std::string dumpFileAsString(const std::string &filePath_){
     std::string data;
     if(doesPathIsFile(filePath_)){
       std::ifstream input_file(filePath_.c_str(), std::ios::binary | std::ios::in );
@@ -917,7 +944,7 @@ namespace GenericToolbox{
     }
     return data;
   }
-  std::vector<std::string> dumpFileAsVectorString(std::string filePath_){
+  std::vector<std::string> dumpFileAsVectorString(const std::string &filePath_){
     std::vector<std::string> lines;
     if(doesPathIsFile(filePath_)){
       std::string data = GenericToolbox::dumpFileAsString(filePath_);
@@ -931,7 +958,7 @@ namespace GenericToolbox{
 
     return lines;
   }
-  std::vector<std::string> getListOfEntriesInFolder(std::string folderPath_, std::string entryNameRegex_) {
+  std::vector<std::string> getListOfEntriesInFolder(const std::string &folderPath_, const std::string &entryNameRegex_) {
 
     std::vector<std::string> entries_list;
     if(not doesPathIsFolder(folderPath_)) return entries_list;
@@ -992,7 +1019,7 @@ namespace GenericToolbox{
     }
 
   }
-  std::vector<std::string> getListOfSubfoldersInFolder(std::string folderPath_, std::string entryNameRegex_) {
+  std::vector<std::string> getListOfSubfoldersInFolder(const std::string &folderPath_, const std::string &entryNameRegex_) {
     std::vector<std::string> subfolders_list;
     if(not doesPathIsFolder(folderPath_)) return subfolders_list;
     DIR* directory;
@@ -1053,7 +1080,7 @@ namespace GenericToolbox{
     }
 
   }
-  std::vector<std::string> getListOfFilesInFolder(std::string folderPath_, std::string entryNameRegex_){
+  std::vector<std::string> getListOfFilesInFolder(const std::string &folderPath_, const std::string &entryNameRegex_){
     std::vector<std::string> files_list;
     if(not doesPathIsFolder(folderPath_)) return files_list;
     DIR* directory;
@@ -1112,7 +1139,7 @@ namespace GenericToolbox{
   }
 
   // -- with direct IO dependencies
-  bool doesFolderIsEmpty(std::string folderPath_){
+  bool doesFolderIsEmpty(const std::string &folderPath_){
     if(not doesPathIsFolder(folderPath_)) return false;
     return getListOfEntriesInFolder(folderPath_, std::string()).empty();
   }
@@ -1266,7 +1293,7 @@ namespace GenericToolbox{
   }
   long getProcessMemoryUsageDiffSinceLastCall(){
       size_t currentProcessMemoryUsage = getProcessMemoryUsage();
-      long outVal = currentProcessMemoryUsage - Hardware::lastProcessMemoryUsage;
+      long outVal = static_cast<long>(currentProcessMemoryUsage) - static_cast<long>(Hardware::lastProcessMemoryUsage);
       Hardware::lastProcessMemoryUsage = currentProcessMemoryUsage;
       return outVal;
   }
@@ -1280,10 +1307,10 @@ namespace GenericToolbox{
 #elif defined(__linux__) || defined(__linux) || defined(linux) || defined(__gnu_linux__) \
     || (defined(_AIX) || defined(__TOS__AIX__)) || (defined(__sun__) || defined(__sun) || defined(sun) && (defined(__SVR4) || defined(__svr4__))) \
     || ( defined(__APPLE__) && defined(__MACH__) )
-    struct winsize w;
-    ioctl(fileno(stdout), TIOCGWINSZ, &w);
-    outWith = (int)(w.ws_col);
-//    outWith = (int)(w.ws_row);
+    struct winsize winSize{};
+    ioctl(fileno(stdout), TIOCGWINSZ, &winSize);
+    outWith = (int)(winSize.ws_col);
+//    outWith = (int)(winSize.ws_row);
 #endif // Windows/Linux
     return outWith;
   }
@@ -1297,7 +1324,7 @@ namespace GenericToolbox{
 #elif defined(__linux__) || defined(__linux) || defined(linux) || defined(__gnu_linux__) \
     || (defined(_AIX) || defined(__TOS__AIX__)) || (defined(__sun__) || defined(__sun) || defined(sun) && (defined(__SVR4) || defined(__svr4__))) \
     || ( defined(__APPLE__) && defined(__MACH__) )
-    struct winsize w;
+    struct winsize w{};
     ioctl(fileno(stdout), TIOCGWINSZ, &w);
 //    outWith = (int)(w.ws_col);
     outWith = (int)(w.ws_row);

@@ -23,28 +23,28 @@
 namespace GenericToolbox{
 
   //! Conversion Tools
-  inline TH1D* convertTVectorDtoTH1D(TVectorD *Y_values_, std::string histTitle_ = "", std::string Y_title_ = "", std::string X_title_ = "Entry #", TVectorD *Y_errors_ = nullptr);
-  inline TH1D* convertTVectorDtoTH1D(std::vector<double> Y_values_, std::string histTitle_ = "", std::string Y_title_ = "", std::string X_title_ = "Entry #", TVectorD *Y_errors_ = nullptr);
-  inline TH2D* convertTMatrixDtoTH2D(TMatrixD *XY_values_, std::string graph_title_ = "", std::string Z_title_ = "", std::string Y_title_ = "Row #", std::string X_title_ = "Col #");
-  inline TVectorD* convertStdVectorToTVectorD(std::vector<double>& vect_);
+  inline TH1D* convertTVectorDtoTH1D(TVectorD *yValuesPtr_, const std::string &histTitle_ = "", const std::string &yTitle_ = "", const std::string &xTitle_ = "Entry #", TVectorD *yErrorsPtr_ = nullptr);
+  inline TH1D* convertTVectorDtoTH1D(const std::vector<double> &Y_values_, const std::string &histTitle_ = "", const std::string &Y_title_ = "", const std::string &X_title_ = "Entry #", TVectorD *Y_errors_ = nullptr);
+  inline TH2D* convertTMatrixDtoTH2D(TMatrixD *XY_values_, std::string graph_title_ = "", const std::string &Z_title_ = "", const std::string &Y_title_ = "Row #", const std::string &X_title_ = "Col #");
+  inline TVectorD* convertStdVectorToTVectorD(const std::vector<double> &vect_);
   inline TMatrixDSym* convertToSymmetricMatrix(TMatrixD* matrix_);
   inline TMatrixD* convertToCorrelationMatrix(TMatrixD* covarianceMatrix_);
 
 
   //! Files Tools
-  inline bool doesTFileIsValid(std::string input_file_path_);
+  inline bool doesTFileIsValid(const std::string &input_file_path_);
   inline bool doesTFileIsValid(TFile* input_tfile_, bool check_if_writable_ = false);
   inline std::vector<TFile*> getListOfOpenedTFiles();
-  inline std::vector<TObject*> getListOfObjectFromTDirectory(TDirectory* directory_, std::string class_name_ = "");
-  inline TDirectory* mkdirTFile(TDirectory* baseDir_, std::string dirName_);
-  inline TDirectory* mkdirTFile(TFile* outputFile_, std::string dirName_);
+  inline std::vector<TObject*> getListOfObjectFromTDirectory(TDirectory* directory_, const std::string &class_name_ = "");
+  inline TDirectory* mkdirTFile(TDirectory* baseDir_, const std::string &dirName_);
+  inline TDirectory* mkdirTFile(TFile* outputFile_, const std::string &dirName_);
 
   //! Trees Tools
   inline void disableUnhookedBranches(TTree* tree_);
   inline TMatrixD* getCovarianceMatrixOfTree(TTree* tree_);
 
   //! Matrix Tools
-  inline std::map<std::string, TMatrixD*> invertMatrixSVD(TMatrixD *matrix_, std::string outputContent_="inverse_covariance_matrix:regularized_eigen_values");
+  inline std::map<std::string, TMatrixD*> invertMatrixSVD(TMatrixD *matrix_, const std::string &outputContent_= "inverse_covariance_matrix:regularized_eigen_values");
   inline std::vector<double> getEigenValues(TMatrixD *matrix_);
 //  inline TMatrixD* computeSqrt(TMatrixD* inputMatrix_);
 
@@ -52,9 +52,9 @@ namespace GenericToolbox{
   inline void resetHistogram(TH1D* hist_);
   inline std::vector<double> getLogBinning(int n_bins_, double X_min_, double X_max_);
   inline std::vector<double> getLinearBinning(int n_bins_, double X_min_, double X_max_);
-  inline TH1D* getTH1DlogBinning(std::string name_, std::string title_, int n_bins_, double X_min_, double X_max_);
-  inline TH2D* getTH2DlogBinning(std::string name_, std::string title_, int nb_X_bins_, double X_min_, double X_max_,
-                          int nb_Y_bins_, double Y_min_, double Y_max_, std::string log_axis_= "XY");
+  inline TH1D* getTH1DlogBinning(const std::string &name_, const std::string &title_, int n_bins_, double X_min_, double X_max_);
+  inline TH2D* getTH2DlogBinning(const std::string &name_, const std::string &title_, int nb_X_bins_, double X_min_, double X_max_,
+                                 int nb_Y_bins_, double Y_min_, double Y_max_, std::string log_axis_= "XY");
 
 
   //! Canvas Tools
@@ -72,6 +72,6 @@ namespace GenericToolbox{
 
 }
 
-#include "GenericToolboxRootExt.impl.h"
+#include "implementation/GenericToolboxRootExt.impl.h"
 
 #endif //CPP_GENERIC_TOOLBOX_GENERICTOOLBOXROOTEXT_H

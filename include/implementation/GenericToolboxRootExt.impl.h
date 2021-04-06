@@ -26,38 +26,39 @@
 //! Conversion Tools
 namespace GenericToolbox {
 
-  TH1D* convertTVectorDtoTH1D(TVectorD* Y_values_, std::string histTitle_, std::string Y_title_,
-                              std::string X_title_, TVectorD* Y_errors_){
+  TH1D* convertTVectorDtoTH1D(TVectorD* yValuesPtr_, const std::string &histTitle_, const std::string &yTitle_,
+                              const std::string &xTitle_, TVectorD* yErrorsPtr_){
 
     auto* th1_histogram = new TH1D(histTitle_.c_str(), histTitle_.c_str(),
-                                   Y_values_->GetNrows(), -0.5, Y_values_->GetNrows() - 0.5);
+                                   yValuesPtr_->GetNrows(), -0.5, yValuesPtr_->GetNrows() - 0.5);
 
-    for(int i_row = 0; i_row < Y_values_->GetNrows(); i_row++)
+    for(int i_row = 0; i_row < yValuesPtr_->GetNrows(); i_row++)
     {
-      th1_histogram->SetBinContent(i_row + 1, (*Y_values_)[i_row]);
-      if(Y_errors_ != nullptr)
-        th1_histogram->SetBinError(i_row + 1, (*Y_errors_)[i_row]);
+      th1_histogram->SetBinContent(i_row + 1, (*yValuesPtr_)[i_row]);
+      if(yErrorsPtr_ != nullptr)
+        th1_histogram->SetBinError(i_row + 1, (*yErrorsPtr_)[i_row]);
     }
 
     th1_histogram->SetLineWidth(2);
     th1_histogram->SetLineColor(kBlue);
-    th1_histogram->GetXaxis()->SetTitle(X_title_.c_str());
-    th1_histogram->GetYaxis()->SetTitle(Y_title_.c_str());
+    th1_histogram->GetXaxis()->SetTitle(xTitle_.c_str());
+    th1_histogram->GetYaxis()->SetTitle(yTitle_.c_str());
 
     return th1_histogram;
   }
-  TH1D* convertTVectorDtoTH1D(std::vector<double> Y_values_, std::string histTitle_, std::string Y_title_, std::string X_title_, TVectorD *Y_errors_){
+  TH1D* convertTVectorDtoTH1D(const std::vector<double> &Y_values_, const std::string &histTitle_, const std::string &Y_title_, const std::string &X_title_, TVectorD *Y_errors_){
     TH1D* out = nullptr;
     auto* tVectorHandler = new TVectorD(Y_values_.size(), &Y_values_[0]);
     out = convertTVectorDtoTH1D(tVectorHandler, histTitle_, Y_title_, X_title_, Y_errors_);
     delete tVectorHandler;
     return out;
   }
-  TH2D* convertTMatrixDtoTH2D(TMatrixD* XY_values_, std::string graph_title_, std::string Z_title_,
-                              std::string Y_title_, std::string X_title_){
+  TH2D* convertTMatrixDtoTH2D(TMatrixD* XY_values_, std::string graph_title_, const std::string &Z_title_,
+                              const std::string &Y_title_, const std::string &X_title_){
 
-    if(graph_title_.empty())
+    if(graph_title_.empty()){
       graph_title_ = XY_values_->GetTitle();
+    }
 
     auto* th2_histogram = new TH2D(graph_title_.c_str(), graph_title_.c_str(),
                                    XY_values_->GetNrows(), -0.5, XY_values_->GetNrows() - 0.5,
@@ -77,7 +78,7 @@ namespace GenericToolbox {
 
     return th2_histogram;
   }
-  TVectorD *convertStdVectorToTVectorD(std::vector<double>& vect_){
+  TVectorD *convertStdVectorToTVectorD(const std::vector<double> &vect_){
 
     auto *output = new TVectorD(vect_.size());
     for(int i = 0 ; i < int(vect_.size()) ; i++){
@@ -137,7 +138,7 @@ namespace GenericToolbox {
 //! Files Tools
 namespace GenericToolbox {
 
-  bool doesTFileIsValid(std::string input_file_path_){
+  bool doesTFileIsValid(const std::string &input_file_path_){
     bool file_is_valid = false;
     if(GenericToolbox::doesPathIsFile(input_file_path_))
     {
@@ -184,7 +185,7 @@ namespace GenericToolbox {
 
     return true;
   }
-  std::vector<TObject *> getListOfObjectFromTDirectory(TDirectory *directory_, std::string class_name_) {
+  std::vector<TObject *> getListOfObjectFromTDirectory(TDirectory *directory_, const std::string &class_name_) {
     std::vector<TObject *> output;
 
     for (int i_entry = 0; i_entry < directory_->GetListOfKeys()->GetSize(); i_entry++) {
@@ -197,13 +198,13 @@ namespace GenericToolbox {
 
     return output;
   }
-  TDirectory* mkdirTFile(TDirectory* baseDir_, std::string dirName_){
+  TDirectory* mkdirTFile(TDirectory* baseDir_, const std::string &dirName_){
       if(baseDir_->GetDirectory(dirName_.c_str()) == nullptr){
           baseDir_->mkdir(dirName_.c_str());
       }
       return baseDir_->GetDirectory(dirName_.c_str());
   }
-  TDirectory* mkdirTFile(TFile* outputFile_, std::string dirName_){
+  TDirectory* mkdirTFile(TFile* outputFile_, const std::string &dirName_){
     return mkdirTFile(outputFile_->GetDirectory(""), dirName_);
   }
   std::vector<TFile *> getListOfOpenedTFiles() {
@@ -316,7 +317,7 @@ namespace GenericToolbox {
 //! Matrix Tools
 namespace GenericToolbox {
 
-  std::map<std::string, TMatrixD *> invertMatrixSVD(TMatrixD *matrix_, std::string outputContent_) {
+  std::map<std::string, TMatrixD *> invertMatrixSVD(TMatrixD *matrix_, const std::string &outputContent_) {
     std::map<std::string, TMatrixD *> results_handler;
 
     auto content_names = GenericToolbox::splitString(outputContent_, ":");
@@ -474,7 +475,7 @@ namespace GenericToolbox {
     }
     return output;
   }
-  TH1D *getTH1DlogBinning(std::string name_, std::string title_, int n_bins_, double X_min_, double X_max_) {
+  TH1D *getTH1DlogBinning(const std::string &name_, const std::string &title_, int n_bins_, double X_min_, double X_max_) {
 
     TH1D *output = nullptr;
     std::vector<double> xbins = GenericToolbox::getLogBinning(n_bins_, X_min_, X_max_);
@@ -482,7 +483,7 @@ namespace GenericToolbox {
     return output;
 
   }
-  TH2D *getTH2DlogBinning(std::string name_, std::string title_, int nb_X_bins_, double X_min_, double X_max_,
+  TH2D *getTH2DlogBinning(const std::string &name_, const std::string &title_, int nb_X_bins_, double X_min_, double X_max_,
                           int nb_Y_bins_, double Y_min_, double Y_max_, std::string log_axis_) {
 
     TH2D *output = nullptr;
