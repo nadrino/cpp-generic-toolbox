@@ -23,9 +23,6 @@
 #include <unistd.h>
 #include <pwd.h>
 
-// For the IDEs to not worry about forward declaration
-#include "GenericToolbox.h"
-
 
 // Displaying Tools
 namespace GenericToolbox {
