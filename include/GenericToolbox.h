@@ -72,7 +72,7 @@ namespace GenericToolbox{
   inline bool doesElementIsInVector(const char* element_, const std::vector<std::string>& vector_);
   template <typename T> inline int findElementIndex(T element_, const std::vector<T>& vector_ );
   inline int findElementIndex(const char* element_, const std::vector<std::string>& vector_ );
-  template <typename T> inline T getAverage(const std::vector<T> vector_);
+  template <typename T> inline double getAverage(const std::vector<T>& vector_);
   template <typename T, typename TT> inline std::vector<TT> convertVectorType( const std::vector<T>& vector_, std::function<TT(T)>& convertTypeFunction_ );
   template <typename T> inline std::vector<size_t> getSortPermutation(const std::vector<T>& vectorToSort_, std::function<bool(const T, const T)> compareLambda_ );
   template <typename T> inline std::vector<T> applyPermutation(const std::vector<T>& vectorToPermute_, const std::vector<std::size_t>& sortPermutation_ );
@@ -149,7 +149,7 @@ namespace GenericToolbox{
   inline long getProcessMemoryUsageDiffSinceLastCall();
   inline int getTerminalWidth();
   inline int getTerminalHeight();
-  inline std::string parseTimeUnit(long long timeInMuS_);
+  inline std::string parseTimeUnit(long long nbMicroSec_);
   inline std::string getElapsedTimeSinceLastCallStr(int instance_ = -1);
   inline long long getElapsedTimeSinceLastCallInMicroSeconds(int instance = -1);
 

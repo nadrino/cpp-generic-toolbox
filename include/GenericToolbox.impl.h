@@ -257,8 +257,12 @@ namespace GenericToolbox {
     }
     return outIndex;
   }
-  template <typename T> inline T getAverage(const std::vector<T> vector_){
-      return accumulate( vector_.begin(), vector_.end(), 0.0) / vector_.size();
+  template <typename T> inline double getAverage(const std::vector<T>& vector_){
+    double outVal = 0;
+    for( auto& element : vector_ ){
+      outVal += element;
+    }
+    return outVal / vector_.size();
   }
   template <typename T> std::vector<size_t> getSortPermutation(const std::vector<T>& vectorToSort_, std::function<bool(const T, const T)> compareLambda_ ){
     std::vector<size_t> p(vectorToSort_.size());
@@ -1301,32 +1305,32 @@ namespace GenericToolbox{
     return outWith;
   }
 
-  std::string parseTimeUnit(long long nbMicroSec){
-    if(nbMicroSec / 1000 < 9 ){ // print in µs if less than 9ms
-      return std::to_string(nbMicroSec) + "µs";
+  std::string parseTimeUnit(long long nbMicroSec_){
+    if(nbMicroSec_ / 1000 < 9 ){ // print in µs if less than 9ms
+      return std::to_string(nbMicroSec_) + "µs";
     }
-    nbMicroSec /= 1000; // in ms
-    if(nbMicroSec / nbMicroSec < 3){ // print in ms if less than 3s
-      return std::to_string(nbMicroSec) + "ms";
+    nbMicroSec_ /= 1000; // in ms
+    if(nbMicroSec_ / nbMicroSec_ < 3){ // print in ms if less than 3s
+      return std::to_string(nbMicroSec_) + "ms";
     }
-    nbMicroSec /= 1000; // in s
-    if(nbMicroSec / 60 < 5){
-      return std::to_string(nbMicroSec) + "s";
+    nbMicroSec_ /= 1000; // in s
+    if(nbMicroSec_ / 60 < 5){
+      return std::to_string(nbMicroSec_) + "s";
     }
-    nbMicroSec /= 60; // in min
-    if(nbMicroSec / 60 < 3){ // print in min
-      return std::to_string(nbMicroSec) + "min";
+    nbMicroSec_ /= 60; // in min
+    if(nbMicroSec_ / 60 < 3){ // print in min
+      return std::to_string(nbMicroSec_) + "min";
     }
-    nbMicroSec /= 60; // in hours
-    if(nbMicroSec / 24 < 2){ // print in hours
-      return std::to_string(nbMicroSec) + "h";
+    nbMicroSec_ /= 60; // in hours
+    if(nbMicroSec_ / 24 < 2){ // print in hours
+      return std::to_string(nbMicroSec_) + "h";
     }
-    nbMicroSec /= 24; // in days
-    if(nbMicroSec / 365 < 2){ // print in hours
-      return std::to_string(nbMicroSec) + "d";
+    nbMicroSec_ /= 24; // in days
+    if(nbMicroSec_ / 365 < 2){ // print in hours
+      return std::to_string(nbMicroSec_) + "d";
     }
-    nbMicroSec /= 365; // in days
-    return std::to_string(nbMicroSec) + "y";
+    nbMicroSec_ /= 365; // in days
+    return std::to_string(nbMicroSec_) + "y";
   }
   std::string getElapsedTimeSinceLastCallStr(int instance_)
   {
