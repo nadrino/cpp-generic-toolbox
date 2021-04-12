@@ -200,6 +200,10 @@ namespace GenericToolbox {
       GenericToolbox::Internals::ProgressBar::lastDisplayedTimePoint = newTimePoint;
     }
   }
+  void resetLastDisplayedValue(){
+      GenericToolbox::Internals::ProgressBar::lastDisplayedValue = -1;
+      GenericToolbox::Internals::ProgressBar::lastDisplayedPercentValue = -1;
+  }
 
 }
 
