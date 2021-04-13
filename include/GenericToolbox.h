@@ -57,6 +57,7 @@ namespace GenericToolbox{
 //! Printout Tools
 namespace GenericToolbox {
 
+  inline void waitProgressBar(unsigned int nbMilliSecToWait_, const std::string &progressTitle_);
   inline std::string parseIntAsString(int intToFormat_);
   template<typename T> inline std::string parseVectorAsString(const std::vector<T> &vector_, bool enableLineJump_ = false);
   template<typename T> inline void printVector(const std::vector<T> &vector_);

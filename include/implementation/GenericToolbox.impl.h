@@ -36,6 +36,7 @@ namespace GenericToolbox {
       static int barLength = PROGRESS_BAR_LENGTH;
       static int refreshRateInMilliSec = PROGRESS_BAR_REFRESH_DURATION_IN_MS;
       static std::string fillTag(PROGRESS_BAR_FILL_TAG);
+      static std::ostream* outputStreamPtr = &std::cout;
 
       static int lastDisplayedPercentValue = -1;
       static int lastDisplayedValue = -1;
@@ -186,13 +187,13 @@ namespace GenericToolbox {
         ss << " " << speedString;
       }
 
-      std::cout << ss.str();
+      *GenericToolbox::Internals::ProgressBar::outputStreamPtr << ss.str();
 
       if (percentValue == 100) {
-        std::cout << std::endl;
+        *GenericToolbox::Internals::ProgressBar::outputStreamPtr << std::endl;
       } else {
-        std::cout << "\r";
-        std::cout.flush();
+        *GenericToolbox::Internals::ProgressBar::outputStreamPtr << "\r";
+        GenericToolbox::Internals::ProgressBar::outputStreamPtr->flush();
       }
 
       GenericToolbox::Internals::ProgressBar::lastDisplayedPercentValue = percentValue;
@@ -207,6 +208,27 @@ namespace GenericToolbox {
 //! Printout Tools
 namespace GenericToolbox{
 
+  void waitProgressBar(unsigned int nbMilliSecToWait_, const std::string &progressTitle_) {
+
+    auto anchorTimePoint = std::chrono::high_resolution_clock::now();
+    std::chrono::microseconds totalDurationToWait(nbMilliSecToWait_*1000);
+    std::chrono::microseconds cumulatedDuration(0);
+    std::chrono::microseconds loopUpdateMaxFrequency(nbMilliSecToWait_ * 10);
+
+    GenericToolbox::displayProgressBar( 0, totalDurationToWait.count(), LogDebug.getPrefixString() + progressTitle_);
+    while( true ){
+      std::this_thread::sleep_for( loopUpdateMaxFrequency );
+      cumulatedDuration = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now() - anchorTimePoint);
+      if( cumulatedDuration >= totalDurationToWait ){
+        break;
+      }
+      else{
+        GenericToolbox::displayProgressBar( cumulatedDuration.count(), totalDurationToWait.count(), LogDebug.getPrefixString() + progressTitle_);
+      }
+    }
+    GenericToolbox::displayProgressBar( totalDurationToWait.count(), totalDurationToWait.count(), LogDebug.getPrefixString() + progressTitle_);
+
+  }
   std::string parseIntAsString(int intToFormat_){
     if(intToFormat_ / 1000 < 10){
         return std::to_string(intToFormat_);
