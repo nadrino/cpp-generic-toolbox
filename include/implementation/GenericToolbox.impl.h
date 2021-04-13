@@ -219,7 +219,7 @@ namespace GenericToolbox{
     std::chrono::microseconds cumulatedDuration(0);
     std::chrono::microseconds loopUpdateMaxFrequency(nbMilliSecToWait_ * 10);
 
-    GenericToolbox::displayProgressBar( 0, totalDurationToWait.count(), LogDebug.getPrefixString() + progressTitle_);
+    GenericToolbox::displayProgressBar( 0, totalDurationToWait.count(), progressTitle_);
     while( true ){
       std::this_thread::sleep_for( loopUpdateMaxFrequency );
       cumulatedDuration = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now() - anchorTimePoint);
@@ -227,10 +227,10 @@ namespace GenericToolbox{
         break;
       }
       else{
-        GenericToolbox::displayProgressBar( cumulatedDuration.count(), totalDurationToWait.count(), LogDebug.getPrefixString() + progressTitle_);
+        GenericToolbox::displayProgressBar( cumulatedDuration.count(), totalDurationToWait.count(), progressTitle_);
       }
     }
-    GenericToolbox::displayProgressBar( totalDurationToWait.count(), totalDurationToWait.count(), LogDebug.getPrefixString() + progressTitle_);
+    GenericToolbox::displayProgressBar( totalDurationToWait.count(), totalDurationToWait.count(), progressTitle_);
 
   }
   std::string parseIntAsString(int intToFormat_){
