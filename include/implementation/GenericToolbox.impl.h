@@ -217,14 +217,14 @@ namespace GenericToolbox{
     auto anchorTimePoint = std::chrono::high_resolution_clock::now();
     std::chrono::microseconds totalDurationToWait(nbMilliSecToWait_*1000);
     std::chrono::microseconds cumulatedDuration(0);
-    std::chrono::microseconds loopUpdateMaxFrequency(nbMilliSecToWait_); // 1000x the whole time
+    std::chrono::microseconds loopUpdateMaxFrequency(nbMilliSecToWait_); // 1000x faster than the whole time
 
     GenericToolbox::displayProgressBar( 0, totalDurationToWait.count(), progressTitle_);
     while( true ){
       std::this_thread::sleep_for( loopUpdateMaxFrequency );
       cumulatedDuration = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now() - anchorTimePoint);
       if( cumulatedDuration >= totalDurationToWait ){
-        break;
+        return;
       }
       else{
         GenericToolbox::displayProgressBar( cumulatedDuration.count(), totalDurationToWait.count(), progressTitle_);
