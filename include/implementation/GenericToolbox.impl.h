@@ -217,7 +217,7 @@ namespace GenericToolbox{
     auto anchorTimePoint = std::chrono::high_resolution_clock::now();
     std::chrono::microseconds totalDurationToWait(nbMilliSecToWait_*1000);
     std::chrono::microseconds cumulatedDuration(0);
-    std::chrono::microseconds loopUpdateMaxFrequency(nbMilliSecToWait_ * 10);
+    std::chrono::microseconds loopUpdateMaxFrequency(nbMilliSecToWait_); // 1000x the whole time
 
     GenericToolbox::displayProgressBar( 0, totalDurationToWait.count(), progressTitle_);
     while( true ){
