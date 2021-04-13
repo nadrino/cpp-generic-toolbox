@@ -50,6 +50,7 @@ namespace GenericToolbox{
 #endif
 
   inline void displayProgressBar(int iCurrent_, int iTotal_, const std::string &title_ = "", bool forcePrint_ = false);
+  inline void resetLastDisplayedValue();
 
 }
 
