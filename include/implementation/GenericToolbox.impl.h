@@ -1426,28 +1426,28 @@ namespace GenericToolbox{
 #define GT_INTERNALS_ENUM_EXPANDER(enumName_, intOffset_, v1_, ...)\
   enum enumName_ { v1_ =  intOffset_, __VA_ARGS__, enumName_##_OVERFLOW };\
   namespace enumName_##EnumNamespace{\
-    const char *enumNamesAgregate = GT_INTERNALS_VA_TO_STR(v1_, __VA_ARGS__); \
-    const int enumOffSet = intOffset_;\
-    std::vector<std::string> enumNamesDict;\
-    void buildDictionary(){\
+    static const char *enumNamesAgregate = GT_INTERNALS_VA_TO_STR(v1_, __VA_ARGS__); \
+    static const int enumOffSet = intOffset_;\
+    static std::vector<std::string> enumNamesDict;\
+    inline void buildDictionary(){\
       enumName_##EnumNamespace::enumNamesDict.clear(); enumName_##EnumNamespace::enumNamesDict.emplace_back("");\
       for( unsigned long iChar = 0 ; iChar < strlen(enumNamesAgregate) ; iChar++ ){                             \
         if( enumNamesAgregate[iChar] == ',' ){ enumName_##EnumNamespace::enumNamesDict.emplace_back(""); iChar++; } \
         else{ enumName_##EnumNamespace::enumNamesDict.back() += enumNamesAgregate[iChar]; } \
       }\
     }\
-    std::string toString(int enumValue_){\
+    inline std::string toString(int enumValue_){\
       if( enumName_##EnumNamespace::enumNamesDict.empty() ) enumName_##EnumNamespace::buildDictionary();\
       return enumName_##EnumNamespace::enumNamesDict[ enumValue_ - intOffset_ ];\
     }\
-    std::string toString(enumName_ enumValue_){ return enumName_##EnumNamespace::toString(static_cast<int>(enumValue_)); }\
-    int toEnumInt(const std::string& enumStr_){\
+    inline std::string toString(enumName_ enumValue_){ return enumName_##EnumNamespace::toString(static_cast<int>(enumValue_)); }\
+    inline int toEnumInt(const std::string& enumStr_){\
       for( int enumIndex = intOffset_ ; enumIndex < enumName_::enumName_##_OVERFLOW ; enumIndex++ ){ \
         if( enumName_##EnumNamespace::toString(enumIndex) == enumStr_ ){ return enumIndex; } \
       }\
       return intOffset_ - 1; /* returns invalid value */\
     }\
-    enumName_ toEnum(const std::string& enumStr_){ return static_cast<enumName_>(enumName_##EnumNamespace::toEnumInt(enumStr_)); }\
+    inline enumName_ toEnum(const std::string& enumStr_){ return static_cast<enumName_>(enumName_##EnumNamespace::toEnumInt(enumStr_)); }\
   }
 
 #endif //CPP_GENERIC_TOOLBOX_GENERICTOOLBOX_IMPL_H
