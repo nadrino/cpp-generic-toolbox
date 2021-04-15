@@ -317,8 +317,10 @@ namespace GenericToolbox {
   }
   template <typename T> std::vector<T> getSubVector( const std::vector<T>& vector_, size_t beginIndex_, int endIndex_ ){
     if( endIndex_ <= 0 ){ endIndex_ += vector_.size(); }
-    if( beginIndex_ < endIndex_ ) return std::vector<T> ();
-    return std::vector<T> ( &vector_[beginIndex_] , &vector_[endIndex_] );
+    if( beginIndex_ >= endIndex_ ){
+      return std::vector<T> ();
+    }
+    return std::vector<T> ( &vector_[beginIndex_] , &vector_[endIndex_-1] );
   }
   template <typename T> std::vector<size_t> getSortPermutation(const std::vector<T>& vectorToSort_, std::function<bool(const T, const T)> compareLambda_ ){
     std::vector<size_t> p(vectorToSort_.size());
