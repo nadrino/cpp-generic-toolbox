@@ -256,22 +256,6 @@ namespace GenericToolbox{
     intToFormat_/=1000.; // in P
     return std::to_string(intToFormat_) + "P";
   }
-  template <typename T> std::string parseVectorAsString(const std::vector<T>& vector_, bool enableLineJump_){
-      std::stringstream ss;
-      ss << "{ ";
-      bool isFirst = true;
-      for(const auto& element: vector_){
-          if(not isFirst) ss << ", ";
-          else isFirst = false;
-          if(enableLineJump_) ss << std::endl;
-          ss << element;
-      }
-      ss << " }";
-      return ss.str();
-  }
-  template <typename T> void printVector(const std::vector<T>& vector_){
-    std::cout << parseVectorAsString(vector_) << std::endl;
-  }
 
 }
 
@@ -335,6 +319,22 @@ namespace GenericToolbox {
                    [&](std::size_t i){ return vectorToPermute_[i]; });
     return sorted_vec;
   }
+  template <typename T> std::string parseVectorAsString(const std::vector<T>& vector_, bool enableLineJump_){
+    std::stringstream ss;
+    ss << "{ ";
+    bool isFirst = true;
+    for(const auto& element: vector_){
+      if(not isFirst) ss << ", ";
+      else isFirst = false;
+      if(enableLineJump_) ss << std::endl;
+      ss << element;
+    }
+    ss << " }";
+    return ss.str();
+  }
+  template <typename T> void printVector(const std::vector<T>& vector_, bool enableLineJump_){
+    std::cout << parseVectorAsString(vector_, enableLineJump_) << std::endl;
+  }
 
 }
 
@@ -364,6 +364,22 @@ namespace GenericToolbox {
       }
     }
     return outSubMap;
+  }
+  template <typename T1, typename T2> inline std::string parseMapAsString(const std::map<T1, T2>& map_, bool enableLineJump_){
+    std::stringstream ss;
+    ss << "{ ";
+    bool isFirst = true;
+    for(const auto& pair: map_){
+      if(not isFirst) ss << ", ";
+      else isFirst = false;
+      if(enableLineJump_) ss << std::endl;
+      ss << pair.first << " = " << pair.second;
+    }
+    ss << " }";
+    return ss.str();
+  }
+  template <typename T1, typename T2> inline void printMap(const std::map<T1, T2>& map_, bool enableLineJump_){
+    std::cout << parseMapAsString(map_, enableLineJump_) << std::endl;
   }
 
 }

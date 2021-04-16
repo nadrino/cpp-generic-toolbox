@@ -60,8 +60,6 @@ namespace GenericToolbox {
 
   inline void waitProgressBar(unsigned int nbMilliSecToWait_, const std::string &progressTitle_ = "Waiting...");
   inline std::string parseIntAsString(int intToFormat_);
-  template<typename T> inline std::string parseVectorAsString(const std::vector<T> &vector_, bool enableLineJump_ = false);
-  template<typename T> inline void printVector(const std::vector<T> &vector_);
 
 }
 
@@ -78,6 +76,8 @@ namespace GenericToolbox{
   template <typename T, typename TT> inline std::vector<TT> convertVectorType( const std::vector<T>& vector_, std::function<TT(T)>& convertTypeFunction_ );
   template <typename T> inline std::vector<size_t> getSortPermutation(const std::vector<T>& vectorToSort_, std::function<bool(const T, const T)> compareLambda_ );
   template <typename T> inline std::vector<T> applyPermutation(const std::vector<T>& vectorToPermute_, const std::vector<std::size_t>& sortPermutation_ );
+  template<typename T> inline std::string parseVectorAsString(const std::vector<T> &vector_, bool enableLineJump_ = false);
+  template<typename T> inline void printVector(const std::vector<T> &vector_, bool enableLineJump_ = false);
 
 }
 
@@ -88,6 +88,8 @@ namespace GenericToolbox{
   template <typename K, typename T> inline bool doesKeyIsInMap( K key_, const std::map<K,T>& map_ );
   template <typename T1, typename T2> inline void appendToMap(std::map<T1, T2> &mapContainer_, const std::map<T1, T2> &mapToPushBack_, bool overwrite_ = true);
   template <typename T> inline std::map<std::string, T> getSubMap(const std::map<std::string, T>& map_, const std::string &keyStrStartWith_ );
+  template <typename T1, typename T2> inline std::string parseMapAsString(const std::map<T1, T2>& map_, bool enableLineJump_ = true);
+  template <typename T1, typename T2> inline void printMap(const std::map<T1, T2>& map_, bool enableLineJump_ = true);
 
 }
 
