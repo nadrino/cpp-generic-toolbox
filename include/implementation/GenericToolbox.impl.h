@@ -1437,10 +1437,14 @@ namespace GenericToolbox{
     static const int enumOffSet = intOffset_;\
     static std::vector<std::string> enumNamesDict;\
     inline void buildDictionary(){\
-      enumName_##EnumNamespace::enumNamesDict.clear(); enumName_##EnumNamespace::enumNamesDict.emplace_back("");\
+      enumName_##EnumNamespace::enumNamesDict.clear(); enumName_##EnumNamespace::enumNamesDict.emplace_back(""); \
+      bool isNameEnded = false;\
       for( unsigned long iChar = 0 ; iChar < strlen(enumNamesAgregate) ; iChar++ ){                             \
-        if( enumNamesAgregate[iChar] == ',' ){ enumName_##EnumNamespace::enumNamesDict.emplace_back(""); iChar++; } \
-        else{ enumName_##EnumNamespace::enumNamesDict.back() += enumNamesAgregate[iChar]; } \
+        if( enumNamesAgregate[iChar] == ',' ){ enumName_##EnumNamespace::enumNamesDict.emplace_back(""); } \
+        else if( enumNamesAgregate[iChar] == ' ' || enumNamesAgregate[iChar] == '=' ){                           \
+          if( ! enumName_##EnumNamespace::enumNamesDict.back().empty() ) isNameEnded = true;                     \
+        }\
+        else if( ! isNameEnded ){ enumName_##EnumNamespace::enumNamesDict.back() += enumNamesAgregate[iChar]; } \
       }\
     }\
     inline std::string toString(int enumValue_){\
