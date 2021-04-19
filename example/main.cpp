@@ -17,12 +17,7 @@
 using namespace std;
 
 
-ENUM_EXPANDER(Test, 1, test1, test2, test3)
-
 int main(){
-
-  TestEnumNamespace::toString(Test::test1);
-  TestEnumNamespace::toEnum("test1");
 
   // String management
   string str("This is a simple message.");
@@ -68,6 +63,14 @@ int main(){
 
   ClassExample example;
   example.MyGreatMethod();
+
+  std::cout << "MyEnum = " << MyEnum::Case1 << ": " << MyEnumEnumNamespace::toString(MyEnum::Case1) << std::endl;
+  std::cout << "MyEnum = " << MyEnum::Case2 << ": " << MyEnumEnumNamespace::toString(MyEnum::Case2) << std::endl;
+  MyEnum enumTest = Case3;
+  std::cout << "MyEnum = " << enumTest << ": " << MyEnumEnumNamespace::toString(enumTest) << std::endl;
+  std::cout << "MyEnum = " << MyEnum::Case4 << ": " << MyEnumEnumNamespace::toString(MyEnum::Case4) << std::endl;
+  std::cout << "MyEnum = " << MyEnum::Case5 << ": " << MyEnumEnumNamespace::toString(MyEnum::Case5) << std::endl;
+  std::cout << GenericToolbox::parseVectorAsString(MyEnumEnumNamespace::enumNamesDict) << std::endl;
 
   return EXIT_SUCCESS;
 }

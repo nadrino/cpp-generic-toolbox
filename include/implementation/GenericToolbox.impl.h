@@ -1456,18 +1456,21 @@ namespace GenericToolbox{
       enumName_##EnumNamespace::enumNamesDict.clear(); enumName_##EnumNamespace::enumNamesDict.emplace_back(""); \
       bool isNameEnded = false;\
       for( unsigned long iChar = 0 ; iChar < strlen(enumNamesAgregate) ; iChar++ ){                             \
-        if( enumNamesAgregate[iChar] == ',' ){ enumName_##EnumNamespace::enumNamesDict.emplace_back(""); } \
+        if( enumNamesAgregate[iChar] == ',' ){ enumName_##EnumNamespace::enumNamesDict.emplace_back(""); isNameEnded = false; } \
         else if( enumNamesAgregate[iChar] == ' ' || enumNamesAgregate[iChar] == '=' ){                           \
           if( ! enumName_##EnumNamespace::enumNamesDict.back().empty() ) isNameEnded = true;                     \
         }\
         else if( ! isNameEnded ){ enumName_##EnumNamespace::enumNamesDict.back() += enumNamesAgregate[iChar]; } \
       }\
     }\
-    inline std::string toString(int enumValue_){\
-      if( enumName_##EnumNamespace::enumNamesDict.empty() ) enumName_##EnumNamespace::buildDictionary();\
-      return enumName_##EnumNamespace::enumNamesDict[ enumValue_ - intOffset_ ];\
+    inline std::string toString(int enumValue_, bool excludeEnumName_ = false){      \
+      if( enumName_##EnumNamespace::enumNamesDict.empty() ) enumName_##EnumNamespace::buildDictionary();         \
+      if( excludeEnumName_ ) return enumName_##EnumNamespace::enumNamesDict[ enumValue_ - intOffset_ ];          \
+      return #enumName_ + std::string("::") + enumName_##EnumNamespace::enumNamesDict[ enumValue_ - intOffset_ ];\
     }\
-    inline std::string toString(enumName_ enumValue_){ return enumName_##EnumNamespace::toString(static_cast<int>(enumValue_)); }\
+    inline std::string toString(enumName_ enumValue_, bool excludeEnumName_ = false){\
+      return enumName_##EnumNamespace::toString(static_cast<int>(enumValue_), excludeEnumName_);       \
+    }\
     inline int toEnumInt(const std::string& enumStr_){\
       for( int enumIndex = intOffset_ ; enumIndex < enumName_::enumName_##_OVERFLOW ; enumIndex++ ){ \
         if( enumName_##EnumNamespace::toString(enumIndex) == enumStr_ ){ return enumIndex; } \
