@@ -574,6 +574,9 @@ namespace GenericToolbox {
 
 
   }
+  inline std::string formatString( const std::string& strToFormat_ ){
+    return strToFormat_;
+  }
   template<typename ... Args> std::string formatString(const std::string& strToFormat_, Args ... args) {
     size_t size = snprintf(nullptr, 0, strToFormat_.c_str(), args ...) + 1; // Extra space for '\0'
     if (size <= 0) { throw std::runtime_error("Error during formatting."); }
