@@ -591,6 +591,15 @@ namespace GenericToolbox {
 // Conversion Tools
 namespace GenericToolbox {
 
+  template<typename T> std::string toHexString(T integerVal_, size_t nbDigit_){
+    // filling the trailing digit with 0
+    // but how many 0? -> 1 hex digit represent 4 bit -> sizeof returns the size in bytes = N x 8 bit
+    // so # of digit of hex is: # = N x 8 / 4 = N x 2
+    std::stringstream stream;
+    stream << "0x" << std::setfill ('0') << std::setw(sizeof(T)*2) << std::hex << integerVal_;
+    if( nbDigit_ == 0 ) return stream.str();
+    else return "0x" + stream.str().substr(2 + sizeof(T)*2 - nbDigit_, nbDigit_);
+  }
   bool toBool(std::string str) {
     std::transform(str.begin(), str.end(), str.begin(), ::tolower);
     std::istringstream is(str);
