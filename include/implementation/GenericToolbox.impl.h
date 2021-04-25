@@ -483,15 +483,20 @@ namespace GenericToolbox {
       }
       return outputStr;
   }
+  inline std::string padString(const std::string& inputStr_, unsigned int padSize_, const char& padChar){
+    std::string outputString;
+    int padDelta = int(inputStr_.size()) - int(padSize_);
+    while( padDelta < 0 ){
+      // add extra chars if needed
+      outputString += padChar;
+      padDelta++;
+    }
+    outputString += inputStr_;
+    return outputString.substr(0, outputString.size() - padDelta);
+  }
   inline std::string removeRepeatedCharacters(const std::string &inputStr_, const std::string &repeatedChar_) {
     std::string outStr = inputStr_;
-    std::string oldStr;
-    std::string repeatedCharTwice = repeatedChar_;
-    repeatedCharTwice += repeatedChar_;
-    while(oldStr != outStr){
-      oldStr = outStr;
-      outStr = GenericToolbox::replaceSubstringInString(outStr, repeatedCharTwice, repeatedChar_);
-    }
+    GenericToolbox::removeRepeatedCharInsideInputStr(outStr, repeatedChar_);
     return outStr;
   }
   std::string joinVectorString(const std::vector<std::string> &string_list_, const std::string &delimiter_, int begin_index_, int end_index_) {
@@ -512,11 +517,7 @@ namespace GenericToolbox {
   }
   std::string replaceSubstringInString(const std::string &input_str_, const std::string &substr_to_look_for_, const std::string &substr_to_replace_) {
     std::string stripped_str = input_str_;
-    size_t index = 0;
-    while ((index = stripped_str.find(substr_to_look_for_, index)) != std::string::npos) {
-      stripped_str.replace(index, substr_to_look_for_.length(), substr_to_replace_);
-      index += substr_to_replace_.length();
-    }
+    GenericToolbox::replaceSubstringInsideInputString(stripped_str, substr_to_look_for_, substr_to_replace_);
     return stripped_str;
   }
   std::string parseSizeUnits(unsigned int sizeInBytes_){
@@ -584,6 +585,22 @@ namespace GenericToolbox {
     std::unique_ptr<char[]> buf(new char[size]);
     snprintf(buf.get(), size, strToFormat_.c_str(), args ...);
     return std::string(buf.get(), buf.get() + size - 1); // We don't want the '\0' inside
+  }
+
+  inline void replaceSubstringInsideInputString(std::string &input_str_, const std::string &substr_to_look_for_, const std::string &substr_to_replace_){
+    size_t index = 0;
+    while ((index = input_str_.find(substr_to_look_for_, index)) != std::string::npos) {
+      input_str_.replace(index, substr_to_look_for_.length(), substr_to_replace_);
+      index += substr_to_replace_.length();
+    }
+  }
+  inline void removeRepeatedCharInsideInputStr(std::string &inputStr_, const std::string &doubledChar_){
+    std::string doubledCharStr = doubledChar_+doubledChar_;
+    std::string lastStr;
+    do{
+      lastStr = inputStr_;
+      GenericToolbox::replaceSubstringInsideInputString(inputStr_, doubledCharStr, doubledChar_);
+    } while( lastStr != inputStr_ );
   }
 
 }

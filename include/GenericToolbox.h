@@ -105,10 +105,15 @@ namespace GenericToolbox{
   inline std::string stripStringUnicode(const std::string &inputStr_);
   inline std::string repeatString(const std::string &inputStr_, int amount_);
   inline std::string trimString(const std::string &inputStr_, const std::string &strToTrim_);
+  inline std::string padString(const std::string& inputStr_, unsigned int padSize_, const char& padChar = ' ');
   inline std::string removeRepeatedCharacters(const std::string& inputStr_, const std::string &repeatedChar_);
   inline std::string joinVectorString(const std::vector<std::string> &string_list_, const std::string &delimiter_, int begin_index_ = 0, int end_index_ = 0);
   inline std::string replaceSubstringInString(const std::string &input_str_, const std::string &substr_to_look_for_, const std::string &substr_to_replace_);
   inline std::vector<std::string> splitString(const std::string& inputString_, const std::string &delimiter_, bool removeEmpty_ = false);
+
+  // -- Transformations (Fast)
+  inline void replaceSubstringInsideInputString(std::string &input_str_, const std::string &substr_to_look_for_, const std::string &substr_to_replace_);
+  inline void removeRepeatedCharInsideInputStr(std::string &inputStr_, const std::string &doubledChar_);
 
   // -- Parsing
   inline std::string parseSizeUnits(unsigned int sizeInBytes_);
