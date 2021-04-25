@@ -330,7 +330,8 @@ namespace GenericToolbox {
       if(enableLineJump_) ss << std::endl;
       ss << element;
     }
-    ss << " }";
+    if(enableLineJump_) ss << std::endl << "}";
+    else ss << " }";
     return ss.str();
   }
   template <typename T> void printVector(const std::vector<T>& vector_, bool enableLineJump_){
@@ -376,7 +377,8 @@ namespace GenericToolbox {
       if(enableLineJump_) ss << std::endl;
       ss << pair.first << " = " << pair.second;
     }
-    ss << " }";
+    if(enableLineJump_) ss << std::endl << "}";
+    else ss << " }";
     return ss.str();
   }
   template <typename T1, typename T2> inline void printMap(const std::map<T1, T2>& map_, bool enableLineJump_){
