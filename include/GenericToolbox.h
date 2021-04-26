@@ -133,6 +133,7 @@ namespace GenericToolbox{
   inline std::string getHomeDirectory();
   inline std::string getCurrentWorkingDirectory();
   inline std::string expandEnvironmentVariables(const std::string &filePath_);
+  inline std::string getExecutableName(); // untested on windows platform
 
 }
 

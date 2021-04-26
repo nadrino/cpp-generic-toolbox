@@ -23,6 +23,9 @@
 #include <unistd.h>
 #include <pwd.h>
 #include <iomanip>
+#include <cstdio>
+#include <cstdlib>
+extern char* __progname;
 
 
 // Displaying Tools
@@ -818,6 +821,19 @@ namespace GenericToolbox{
     Internals::expandEnvironmentVariables(filePath_.c_str(), outputName);
 
     return std::string(outputName);
+  }
+  inline std::string getExecutableName(){
+    std::string outStr;
+#if defined(__linux__) || defined(__linux) || defined(linux) || defined(__gnu_linux__) //check defines for your setup
+    std::ifstream("/proc/self/comm") >> outStr;
+#elif defined(_WIN32)
+    char buf[MAX_PATH];
+    GetModuleFileNameA(nullptr, buf, MAX_PATH);
+    outStr = buf;
+#else
+    outStr = __progname;
+#endif
+    return outStr;
   }
 
 }
