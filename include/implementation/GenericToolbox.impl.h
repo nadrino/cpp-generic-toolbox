@@ -525,20 +525,33 @@ namespace GenericToolbox {
     GenericToolbox::replaceSubstringInsideInputString(stripped_str, substr_to_look_for_, substr_to_replace_);
     return stripped_str;
   }
+  std::string parseUnitPrefix(size_t val_){
+    std::stringstream ss;
+
+    size_t reducedVal = val_;
+    if     ( (reducedVal = (reducedVal / 1000)) == 0 ){
+      ss << val_;
+    }
+    else if( (reducedVal = (reducedVal / 1000)) == 0 ){
+      ss << double(val_)/1E3 << "K";
+    }
+    else if( (reducedVal = (reducedVal / 1000)) == 0 ){
+      ss << double(val_)/1E6 << "M";
+    }
+    else if( (reducedVal = (reducedVal / 1000)) == 0 ){
+      ss << double(val_)/1E9 << "G";
+    }
+    else if( (reducedVal = (reducedVal / 1000)) == 0 ){
+      ss << double(val_)/1E12 << "T";
+    }
+    else {
+      ss << double(val_)/1E15 << "P";
+    }
+
+    return ss.str();
+  }
   std::string parseSizeUnits(unsigned int sizeInBytes_){
-    if(sizeInBytes_ / 1024 < 10 ){ // print in bytes
-      return std::to_string(sizeInBytes_) + " B";
-    }
-    sizeInBytes_ = sizeInBytes_ / 1024; // in KB
-    if(sizeInBytes_ / 1024 < 10){ // print in KB
-      return std::to_string(sizeInBytes_) + " KB";
-    }
-    sizeInBytes_ = sizeInBytes_ / 1024; // in MB
-    if(sizeInBytes_ / 1024 < 10){ // print in MB
-      return std::to_string(sizeInBytes_) + " MB";
-    }
-    sizeInBytes_ = sizeInBytes_ / 1024; // in GB
-    return std::to_string(sizeInBytes_) + " GB";
+    return parseUnitPrefix(sizeInBytes_) + "B";
   }
   std::vector<std::string> splitString(const std::string &inputString_, const std::string &delimiter_, bool removeEmpty_) {
 
