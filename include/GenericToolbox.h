@@ -182,6 +182,7 @@ namespace GenericToolbox{
   inline std::string parseTimeUnit(long long nbMicroSec_);
   inline std::string getElapsedTimeSinceLastCallStr(int instance_ = -1);
   inline long long getElapsedTimeSinceLastCallInMicroSeconds(int instance = -1);
+  inline std::vector<std::string> getOutputOfShellCommand(const std::string& cmd_);
 
   namespace Hardware{
       static size_t lastProcessMemoryUsage = 0;

@@ -25,6 +25,13 @@
 #include <iomanip>
 #include <cstdio>
 #include <cstdlib>
+#include <cstdio>
+#include <iostream>
+#include <memory>
+#include <stdexcept>
+#include <string>
+#include <array>
+
 extern char* __progname;
 
 
@@ -1292,6 +1299,8 @@ namespace GenericToolbox{
 #include <sys/resource.h>
 #include <mach/mach.h>
 #include <sys/ioctl.h>
+#include <array>
+
 #elif defined(__linux__) || defined(__linux) || defined(linux) || defined(__gnu_linux__)
 // Linux
 #include <unistd.h>
@@ -1477,6 +1486,27 @@ namespace GenericToolbox{
       );
     Internals::_lastTimePointMap_[instance_] = newTimePoint;
     return microseconds.count();
+  }
+  std::vector<std::string> getOutputOfShellCommand(const std::string& cmd_) {
+    // Inspired from: https://stackoverflow.com/questions/478898/how-do-i-execute-a-command-and-get-the-output-of-the-command-within-c-using-po
+    std::array<char, 128> buffer{};
+    std::string resultStr;
+    std::vector<std::string> output;
+#if defined(_WIN32)
+    std::unique_ptr<FILE, decltype(&_pclose)> pipe(_popen(cmd_.c_str(), "r"), _pclose);
+#else
+    std::unique_ptr<FILE, decltype(&pclose)> pipe(popen(cmd_.c_str(), "r"), pclose);
+#endif
+    if (!pipe) {
+//      throw std::runtime_error("popen() failed!");
+    }
+    else{
+      while (fgets(buffer.data(), buffer.size(), pipe.get()) != nullptr) {
+        resultStr += buffer.data();
+      }
+      output = GenericToolbox::splitString(resultStr, "\n", true);
+    }
+    return output;
   }
 
 }
