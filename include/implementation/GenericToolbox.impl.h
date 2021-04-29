@@ -506,6 +506,11 @@ namespace GenericToolbox {
     outputString += inputStr_;
     return outputString.substr(0, outputString.size() - padDelta);
   }
+  inline std::string indentString(const std::string& inputStr_, unsigned int indentCount_, const std::string& indentChar){
+    std::string outStr = inputStr_;
+    GenericToolbox::indentInputString(outStr, indentCount_, indentChar);
+    return outStr;
+  }
   inline std::string removeRepeatedCharacters(const std::string &inputStr_, const std::string &repeatedChar_) {
     std::string outStr = inputStr_;
     GenericToolbox::removeRepeatedCharInsideInputStr(outStr, repeatedChar_);
@@ -626,6 +631,11 @@ namespace GenericToolbox {
       lastStr = inputStr_;
       GenericToolbox::replaceSubstringInsideInputString(inputStr_, doubledCharStr, doubledChar_);
     } while( lastStr != inputStr_ );
+  }
+  inline void indentInputString(std::string& inputStr_, unsigned int indentCount_, const std::string& indentChar){
+    for( unsigned int iIndent = 0 ; iIndent < indentCount_ ; iIndent++ ){
+      inputStr_.insert(0, indentChar);
+    }
   }
 
 }
