@@ -537,8 +537,13 @@ namespace GenericToolbox {
     GenericToolbox::replaceSubstringInsideInputString(stripped_str, substr_to_look_for_, substr_to_replace_);
     return stripped_str;
   }
-  std::string parseUnitPrefix(size_t val_){
+  std::string parseUnitPrefix(long val_){
     std::stringstream ss;
+
+    if( val_ < 0 ){
+      ss << "-";
+      val_ = -val_;
+    }
 
     size_t reducedVal = val_;
     if     ( (reducedVal = (reducedVal / 1000)) == 0 ){
