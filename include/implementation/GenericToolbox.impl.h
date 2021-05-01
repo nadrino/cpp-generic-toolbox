@@ -537,7 +537,7 @@ namespace GenericToolbox {
     GenericToolbox::replaceSubstringInsideInputString(stripped_str, substr_to_look_for_, substr_to_replace_);
     return stripped_str;
   }
-  std::string parseUnitPrefix(long val_){
+  std::string parseUnitPrefix(double val_){
     std::stringstream ss;
 
     if( val_ < 0 ){
@@ -545,24 +545,24 @@ namespace GenericToolbox {
       val_ = -val_;
     }
 
-    size_t reducedVal = val_;
+    size_t reducedVal = fabs(val_);
     if     ( (reducedVal = (reducedVal / 1000)) == 0 ){
       ss << val_;
     }
     else if( (reducedVal = (reducedVal / 1000)) == 0 ){
-      ss << double(val_)/1E3 << "K";
+      ss << val_/1E3 << "K";
     }
     else if( (reducedVal = (reducedVal / 1000)) == 0 ){
-      ss << double(val_)/1E6 << "M";
+      ss << val_/1E6 << "M";
     }
     else if( (reducedVal = (reducedVal / 1000)) == 0 ){
-      ss << double(val_)/1E9 << "G";
+      ss << val_/1E9 << "G";
     }
     else if( (reducedVal = (reducedVal / 1000)) == 0 ){
-      ss << double(val_)/1E12 << "T";
+      ss << val_/1E12 << "T";
     }
     else {
-      ss << double(val_)/1E15 << "P";
+      ss << val_/1E15 << "P";
     }
 
     return ss.str();
