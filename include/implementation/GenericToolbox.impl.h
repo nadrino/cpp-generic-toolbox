@@ -638,8 +638,12 @@ namespace GenericToolbox {
     } while( lastStr != inputStr_ );
   }
   inline void indentInputString(std::string& inputStr_, unsigned int indentCount_, const std::string& indentChar){
-    for( unsigned int iIndent = 0 ; iIndent < indentCount_ ; iIndent++ ){
-      inputStr_.insert(0, indentChar);
+    for( size_t iChar = inputStr_.size()-1 ; iChar >= 0 ; iChar-- ){
+      if( iChar == 0 or inputStr_[iChar] == '\n'){
+        for( unsigned int iIndent = 0 ; iIndent < indentCount_ ; iIndent++ ){
+          inputStr_.insert(iChar+1, indentChar);
+        }
+      }
     }
   }
 
