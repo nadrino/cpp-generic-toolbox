@@ -641,8 +641,10 @@ namespace GenericToolbox {
     int originalSize = int(inputStr_.size());
     for( int iChar = originalSize-1 ; iChar >= 0 ; iChar-- ){
       if( iChar == 0 or inputStr_[iChar] == '\n'){
+        int offSet = 1;
+        if( iChar == 0 ) offSet = 0;
         for( unsigned int iIndent = 0 ; iIndent < indentCount_ ; iIndent++ ){
-          inputStr_.insert(iChar+1, indentChar);
+          inputStr_.insert(iChar+offSet, indentChar);
         }
       }
     }
