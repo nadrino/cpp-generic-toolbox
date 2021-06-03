@@ -331,7 +331,7 @@ namespace GenericToolbox {
     return sorted_vec;
   }
   template<typename T> inline void insertInVector(std::vector<T> &vector_, const std::vector<T> &vectorToInsert_, size_t insertBeforeThisIndex_){
-    if( insertBeforeThisIndex_ >= vector_.size() ){
+    if( insertBeforeThisIndex_ > vector_.size() ){
       throw std::runtime_error("GenericToolBox::insertInVector error: insertBeforeThisIndex_ >= vector_.size()");
     }
     if( vectorToInsert_.empty() ){
