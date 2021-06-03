@@ -151,14 +151,12 @@ namespace GenericToolbox {
 
     std::vector<std::string> expressionBrokenDown;
     std::vector<bool> isReplacedElement;
-    std::cout << GET_VAR_NAME_VALUE(treeFormula_->GetExpFormula().Data()) << std::endl;
     expressionBrokenDown.emplace_back(treeFormula_->GetExpFormula().Data());
     isReplacedElement.push_back(false);
 
     // Replace in the expression
     for( const auto& leafName : leafNameList ){
 
-      std::cout << leafName << std::endl;
       // Defining sub pieces
       std::vector<std::vector<std::string>> expressionBreakDownUpdate(expressionBrokenDown.size(), std::vector<std::string>());
       std::vector<std::vector<bool>> isReplacedElementUpdate(isReplacedElement.size(), std::vector<bool>());
@@ -185,9 +183,6 @@ namespace GenericToolbox {
         int nSubExpr = int(expressionBreakDownUpdate.at(iExpr).size());
         for( int iSubExpr = nSubExpr-1 ; iSubExpr >= 1 ; iSubExpr-- ){
 
-          GenericToolbox::printVector(expressionBreakDownUpdate.at(iExpr));
-          std::cout << expressionBreakDownUpdate.at(iExpr).at(iSubExpr) << std::endl;
-
           std::string leafExprToReplace = leafName;
 
           // Look for an opening "["
@@ -209,7 +204,6 @@ namespace GenericToolbox {
             for( ; iChar < expressionBreakDownUpdate.at(iExpr)[iSubExpr].size() ; iChar++ ){
               untouchedSubExpr += expressionBreakDownUpdate.at(iExpr)[iSubExpr][iChar];
             }
-            std::cout << GET_VAR_NAME_VALUE(untouchedSubExpr) << std::endl;
             expressionBreakDownUpdate.at(iExpr)[iSubExpr] = untouchedSubExpr;
 
             GenericToolbox::replaceSubstringInsideInputString(leafExprToReplace, "[", "(");
@@ -239,9 +233,6 @@ namespace GenericToolbox {
 
         GenericToolbox::insertInVector(expressionBrokenDown, expressionBreakDownUpdate.at(iExpr), iExpr);
         GenericToolbox::insertInVector(isReplacedElement, isReplacedElementUpdate.at(iExpr), iExpr);
-
-        GenericToolbox::printVector(expressionBrokenDown);
-        GenericToolbox::printVector(isReplacedElement);
 
       } // iExpr
 
