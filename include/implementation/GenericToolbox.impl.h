@@ -330,6 +330,28 @@ namespace GenericToolbox {
                    [&](std::size_t i){ return vectorToPermute_[i]; });
     return sorted_vec;
   }
+  template<typename T> inline void insertInVector(std::vector<T> &vector_, const std::vector<T> &vectorToInsert_, size_t insertBeforeThisIndex_){
+    if( insertBeforeThisIndex_ >= vector_.size() ){
+      throw std::runtime_error("GenericToolBox::insertInVector error: insertBeforeThisIndex_ >= vector_.size()");
+    }
+    if( vectorToInsert_.empty() ){
+      return;
+    }
+    if( vector_.empty() ){
+      vector_ = vectorToInsert_;
+      return;
+    }
+
+    int nElementToInsert = int(vectorToInsert_.size());
+    for( int iElementToInsert = nElementToInsert-1 ; iElementToInsert >= 0 ; iElementToInsert-- ){
+      vector_.insert(vector_.begin() + insertBeforeThisIndex_, vectorToInsert_[iElementToInsert]);
+    }
+  }
+  template<typename T> inline void insertInVector(std::vector<T> &vector_, const T &elementToInsert_, size_t insertBeforeThisIndex_){
+    std::vector<T> vectorToInsert;
+    vectorToInsert.template emplace_back(elementToInsert_);
+    insertInVector(vector_, vectorToInsert, insertBeforeThisIndex_);
+  }
   template <typename T> std::string parseVectorAsString(const std::vector<T>& vector_, bool enableLineJump_){
     std::stringstream ss;
     ss << "{ ";

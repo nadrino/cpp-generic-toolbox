@@ -17,6 +17,8 @@
 #include <TFile.h>
 #include <TTree.h>
 #include <TCanvas.h>
+#include <TFormula.h>
+#include "TTreeFormula.h"
 
 
 namespace GenericToolbox{
@@ -28,6 +30,7 @@ namespace GenericToolbox{
   inline TVectorD* convertStdVectorToTVectorD(const std::vector<double> &vect_);
   inline TMatrixDSym* convertToSymmetricMatrix(TMatrixD* matrix_);
   inline TMatrixD* convertToCorrelationMatrix(TMatrixD* covarianceMatrix_);
+  inline TFormula* convertToFormula(TTreeFormula* treeFormula_);
 
 
   //! Files Tools

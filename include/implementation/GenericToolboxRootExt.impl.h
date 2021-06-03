@@ -6,11 +6,10 @@
 #define CPP_GENERIC_TOOLBOX_GENERICTOOLBOXROOTEXT_IMPL_H
 
 // STD Headers
+#include "string"
+#include "vector"
 
 // ROOT Headers
-
-// This Project
-#include <GenericToolbox.h>
 #include <TMatrixDSymEigen.h>
 #include <TPaletteAxis.h>
 #include <TPad.h>
@@ -21,6 +20,9 @@
 #include <TROOT.h>
 #include <TFrame.h>
 #include <TLeaf.h>
+
+// This Project
+#include <GenericToolbox.h>
 
 
 //! Conversion Tools
@@ -108,27 +110,133 @@ namespace GenericToolbox {
     return result;
   }
   TMatrixD* convertToCorrelationMatrix(TMatrixD* covarianceMatrix_){
-        if(covarianceMatrix_ == nullptr) return nullptr;
-        if(covarianceMatrix_->GetNrows() != covarianceMatrix_->GetNcols()) return nullptr;
+    if(covarianceMatrix_ == nullptr) return nullptr;
+    if(covarianceMatrix_->GetNrows() != covarianceMatrix_->GetNcols()) return nullptr;
 
-        auto* correlationMatrix = (TMatrixD*) covarianceMatrix_->Clone();
+    auto* correlationMatrix = (TMatrixD*) covarianceMatrix_->Clone();
 
-        for(int iRow = 0 ; iRow < covarianceMatrix_->GetNrows() ; iRow++){
-            for(int iCol = 0 ; iCol < covarianceMatrix_->GetNcols() ; iCol++){
+    for(int iRow = 0 ; iRow < covarianceMatrix_->GetNrows() ; iRow++){
+      for(int iCol = 0 ; iCol < covarianceMatrix_->GetNcols() ; iCol++){
 
-                if(   (*covarianceMatrix_)[iRow][iRow] == 0
-                   or (*covarianceMatrix_)[iCol][iCol] == 0 ){
-                    (*correlationMatrix)[iRow][iCol] = 0;
-                }
-                else{
-                    (*correlationMatrix)[iRow][iCol] /=
-                        TMath::Sqrt((*covarianceMatrix_)[iRow][iRow]*(*covarianceMatrix_)[iCol][iCol]);
-                }
-
-            }
+        if(   (*covarianceMatrix_)[iRow][iRow] == 0
+              or (*covarianceMatrix_)[iCol][iCol] == 0 ){
+          (*correlationMatrix)[iRow][iCol] = 0;
+        }
+        else{
+          (*correlationMatrix)[iRow][iCol] /=
+            TMath::Sqrt((*covarianceMatrix_)[iRow][iRow]*(*covarianceMatrix_)[iCol][iCol]);
         }
 
-        return correlationMatrix;
+      }
+    }
+
+    return correlationMatrix;
+  }
+  inline TFormula* convertToFormula(TTreeFormula* treeFormula_){
+    if( treeFormula_ == nullptr ) return nullptr;
+
+    // Grab the appearing leaf names
+    std::vector<std::string> leafNameList;
+    for( int iLeaf = 0 ; iLeaf < treeFormula_->GetNcodes() ; iLeaf++ ){
+      if( not GenericToolbox::doesElementIsInVector(treeFormula_->GetLeaf(iLeaf)->GetName(), leafNameList)){
+        leafNameList.emplace_back(treeFormula_->GetLeaf(iLeaf)->GetName());
+      }
+    }
+
+    // Make sure the longest leaves appear in the list first
+    std::sort(leafNameList.begin(), leafNameList.end(), []
+      (const std::string& first, const std::string& second){
+      return first.size() > second.size();
+    });
+
+    std::vector<std::string> expressionBrokenDown;
+    std::vector<bool> isReplacedElement;
+    expressionBrokenDown.emplace_back(treeFormula_->GetExpFormula().Data());
+    isReplacedElement.push_back(false);
+
+    // Replace in the expression
+    for( const auto& leafName : leafNameList ){
+
+      // Defining sub pieces
+      std::vector<std::vector<std::string>> expressionBreakDownUpdate(expressionBrokenDown.size(), std::vector<std::string>());
+      std::vector<std::vector<bool>> isReplacedElementUpdate(isReplacedElement.size(), std::vector<bool>());
+
+      int nExpr = int(expressionBrokenDown.size());
+      for( int iExpr = nExpr-1 ; iExpr >= 0 ; iExpr-- ){
+
+        if( isReplacedElement[iExpr] ){
+          // Already processed
+          continue;
+        }
+
+        if( not GenericToolbox::doesStringContainsSubstring(expressionBrokenDown[iExpr], leafName) ){
+          // Leaf is not present in this chunk
+          continue;
+        }
+        // Here, we know the leaf appear at least once
+
+        // Adding update pieces
+        expressionBreakDownUpdate.at(iExpr) = GenericToolbox::splitString(expressionBrokenDown[iExpr], leafName);
+        isReplacedElementUpdate.at(iExpr) = std::vector<bool>(expressionBreakDownUpdate.at(iExpr).size(), false);
+
+        // Look for leaves called as arrays
+        int nSubExpr = int(expressionBreakDownUpdate.at(iExpr).size());
+        for( int iSubExpr = nSubExpr-1 ; iSubExpr >= 0 ; iSubExpr-- ){
+
+          std::string leafExprToReplace = leafName;
+
+          // Look for an opening "["
+          if( expressionBreakDownUpdate.at(iExpr)[iSubExpr][0] == '[' ){
+            // It is an array call!
+            size_t iChar;
+            for( iChar = 0 ; iChar < expressionBreakDownUpdate.at(iExpr)[iSubExpr].size() ; iChar++ ){
+              leafExprToReplace += expressionBreakDownUpdate.at(iExpr)[iSubExpr][iChar];
+              if( expressionBreakDownUpdate.at(iExpr)[iSubExpr][iChar] == ']' ){
+                if( iChar+1 == expressionBreakDownUpdate.at(iExpr)[iSubExpr].size() or expressionBreakDownUpdate.at(iExpr)[iSubExpr][iChar+1] != '[' ){
+                  // Ok, it's the end of the array
+                  break;
+                }
+              }
+            }
+
+            std::string untouchedSubExpr;
+            for( ; iChar < expressionBreakDownUpdate.at(iExpr)[iSubExpr].size() ; iChar++ ){
+              untouchedSubExpr += expressionBreakDownUpdate.at(iExpr)[iSubExpr][iChar];
+            }
+            expressionBreakDownUpdate.at(iExpr)[iSubExpr] = untouchedSubExpr;
+          }
+          else{
+            // Not an array! We are good
+          }
+
+          GenericToolbox::insertInVector(expressionBreakDownUpdate.at(iExpr), "[" + leafExprToReplace + "]", iSubExpr);
+          GenericToolbox::insertInVector(isReplacedElementUpdate.at(iExpr), true, iSubExpr);
+
+        } // iSubExpr
+
+        // Stripping empty elements
+        for( int iSubExpr = nSubExpr-1 ; iSubExpr >= 0 ; iSubExpr-- ){
+          if( expressionBreakDownUpdate.at(iExpr).at(iSubExpr).empty() ){
+            expressionBreakDownUpdate.erase(expressionBreakDownUpdate.begin() + iSubExpr);
+            isReplacedElementUpdate.erase(isReplacedElementUpdate.begin() + iSubExpr);
+          }
+        } // iSubExpr
+
+        expressionBrokenDown.erase(expressionBrokenDown.begin() + iExpr);
+        isReplacedElement.erase(isReplacedElement.begin() + iExpr);
+
+        GenericToolbox::insertInVector(expressionBrokenDown, expressionBreakDownUpdate.at(iExpr), iExpr);
+        GenericToolbox::insertInVector(isReplacedElement, isReplacedElementUpdate.at(iExpr), iExpr);
+
+      } // iExpr
+
+    } // Leaf
+
+    std::string formulaStr = GenericToolbox::joinVectorString(expressionBrokenDown, "");
+
+
+    return new TFormula(formulaStr.c_str(), formulaStr.c_str());
+
   }
 
 
@@ -199,10 +307,10 @@ namespace GenericToolbox {
     return output;
   }
   TDirectory* mkdirTFile(TDirectory* baseDir_, const std::string &dirName_){
-      if(baseDir_->GetDirectory(dirName_.c_str()) == nullptr){
-          baseDir_->mkdir(dirName_.c_str());
-      }
-      return baseDir_->GetDirectory(dirName_.c_str());
+    if(baseDir_->GetDirectory(dirName_.c_str()) == nullptr){
+      baseDir_->mkdir(dirName_.c_str());
+    }
+    return baseDir_->GetDirectory(dirName_.c_str());
   }
   TDirectory* mkdirTFile(TFile* outputFile_, const std::string &dirName_){
     return mkdirTFile(outputFile_->GetDirectory(""), dirName_);
@@ -297,7 +405,7 @@ namespace GenericToolbox {
       for(int iCol = 0 ; iCol < leafList.size() ; iCol++){
         for(int iRow = 0 ; iRow < leafList.size() ; iRow++){
           (*outCovMatrix)[iCol][iRow] +=
-             (leafList[iCol]->GetValue(0) - meanValueLeafList[iCol])
+            (leafList[iCol]->GetValue(0) - meanValueLeafList[iCol])
             *(leafList[iRow]->GetValue(0) - meanValueLeafList[iRow]);
         } // iRow
       } // iCol
@@ -451,8 +559,8 @@ namespace GenericToolbox {
   inline void resetHistogram(TH1D* hist_){
     hist_->Reset("ICESM");
     for(int iBin = 0 ; iBin <= hist_->GetNbinsX()+1 ; iBin++ ){
-        hist_->SetBinContent(iBin,0);
-        hist_->SetBinError(iBin,0);
+      hist_->SetBinContent(iBin,0);
+      hist_->SetBinError(iBin,0);
     }
   }
   std::vector<double> getLogBinning(int n_bins_, double X_min_, double X_max_) {
@@ -571,16 +679,16 @@ namespace GenericToolbox {
 //! ROOT Internals
 namespace GenericToolbox{
 
-    static Int_t oldVerbosity = -1;
+  static Int_t oldVerbosity = -1;
 
-    void muteRoot(){
-        oldVerbosity      = gErrorIgnoreLevel;
-        gErrorIgnoreLevel = kFatal;
-    }
-    void unmuteRoot(){
-        gErrorIgnoreLevel = oldVerbosity;
-        oldVerbosity      = -1;
-    }
+  void muteRoot(){
+    oldVerbosity      = gErrorIgnoreLevel;
+    gErrorIgnoreLevel = kFatal;
+  }
+  void unmuteRoot(){
+    gErrorIgnoreLevel = oldVerbosity;
+    oldVerbosity      = -1;
+  }
 
 }
 
