@@ -208,15 +208,13 @@ namespace GenericToolbox {
 
             GenericToolbox::replaceSubstringInsideInputString(leafExprToReplace, "[", "(");
             GenericToolbox::replaceSubstringInsideInputString(leafExprToReplace, "]", ")");
-
-            GenericToolbox::insertInVector(expressionBreakDownUpdate.at(iExpr), "[" + leafExprToReplace + "]", iSubExpr);
-            GenericToolbox::insertInVector(isReplacedElementUpdate.at(iExpr), true, iSubExpr);
           }
           else{
             // Not an array! We are good
-            GenericToolbox::insertInVector(expressionBreakDownUpdate.at(iExpr), "[" + leafExprToReplace + "]", iSubExpr);
-            GenericToolbox::insertInVector(isReplacedElementUpdate.at(iExpr), true, iSubExpr);
           }
+
+          GenericToolbox::insertInVector(expressionBreakDownUpdate.at(iExpr), "[" + leafExprToReplace + "]", iSubExpr);
+          GenericToolbox::insertInVector(isReplacedElementUpdate.at(iExpr), true, iSubExpr);
 
         } // iSubExpr
 
