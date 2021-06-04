@@ -284,6 +284,21 @@ namespace GenericToolbox {
 
     return output;
   }
+  inline TTreeFormula* createTreeFormulaWithoutTree(const std::string& formulaStr_, std::vector<std::string> expectedLeafNames_){
+    auto* cwd = gDirectory;
+    ROOT::GetROOT()->cd();
+    std::vector<Int_t> varObjList(expectedLeafNames_.size(),0);
+    auto* fakeTree = new TTree("fakeTree", "fakeTree");
+    for( size_t iVar = 0 ; iVar < expectedLeafNames_.size() ; iVar++ ){
+      fakeTree->Branch(expectedLeafNames_.at(iVar).c_str(), &varObjList[iVar]);
+    }
+    fakeTree->Fill();
+    auto* output = new TTreeFormula(formulaStr_.c_str(), formulaStr_.c_str(), fakeTree);
+    output->SetTree(nullptr);
+    delete fakeTree;
+    cwd->cd();
+    return output;
+  }
 
 }
 

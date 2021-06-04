@@ -35,6 +35,7 @@ namespace GenericToolbox{
   inline TFormula* convertToFormula(TTreeFormula* treeFormula_);
   inline std::vector<std::string> getFormulaEffectiveParameterNameList(TFormula* formula_);
   inline std::vector<std::vector<int>> fetchParameterIndexes(TFormula* formula_);
+  inline TTreeFormula* createTreeFormulaWithoutTree(const std::string& formulaStr_, std::vector<std::string> expectedLeafNames_);
 
 
   //! Files Tools
