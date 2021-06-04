@@ -50,7 +50,7 @@ namespace GenericToolbox {
   }
   TH1D* convertTVectorDtoTH1D(const std::vector<double> &Y_values_, const std::string &histTitle_, const std::string &Y_title_, const std::string &X_title_, TVectorD *Y_errors_){
     TH1D* out = nullptr;
-    auto* tVectorHandler = new TVectorD(Y_values_.size(), &Y_values_[0]);
+    auto* tVectorHandler = new TVectorD(int(Y_values_.size()), &Y_values_[0]);
     out = convertTVectorDtoTH1D(tVectorHandler, histTitle_, Y_title_, X_title_, Y_errors_);
     delete tVectorHandler;
     return out;
@@ -82,7 +82,7 @@ namespace GenericToolbox {
   }
   TVectorD *convertStdVectorToTVectorD(const std::vector<double> &vect_){
 
-    auto *output = new TVectorD(vect_.size());
+    auto *output = new TVectorD(int(vect_.size()));
     for(int i = 0 ; i < int(vect_.size()) ; i++){
       (*output)[i] = vect_[i];
     }
@@ -424,7 +424,7 @@ namespace GenericToolbox {
     }
 
     // Initializing the matrix
-    outCovMatrix = new TMatrixD(leafList.size(), leafList.size());
+    outCovMatrix = new TMatrixD(int(leafList.size()), int(leafList.size()));
     for(int iCol = 0 ; iCol < leafList.size() ; iCol++){
       for(int iRow = 0 ; iRow < leafList.size() ; iRow++){
         (*outCovMatrix)[iCol][iRow] = 0;
@@ -441,7 +441,7 @@ namespace GenericToolbox {
       }
     }
     for(int iLeaf = 0 ; iLeaf < leafList.size() ; iLeaf++){
-      meanValueLeafList[iLeaf] /= nEntries;
+      meanValueLeafList[iLeaf] /= double(nEntries);
     }
 
     // Compute covariance
@@ -457,7 +457,7 @@ namespace GenericToolbox {
     } // iEntry
     for(int iCol = 0 ; iCol < leafList.size() ; iCol++){
       for(int iRow = 0 ; iRow < leafList.size() ; iRow++){
-        (*outCovMatrix)[iCol][iRow] /= nEntries;
+        (*outCovMatrix)[iCol][iRow] /= double(nEntries);
       }
     }
 
@@ -564,7 +564,7 @@ namespace GenericToolbox {
     for (int i_dim = 0; i_dim < matrix_->GetNcols(); i_dim++) {
       output.emplace_back((*Eigen_values)[i_dim]);
     }
-    std::sort(output.begin(), output.end(), std::greater<double>());
+    std::sort(output.begin(), output.end(), std::greater<>());
     return output;
   }
 //  TMatrixD* computeSqrt(TMatrixD* inputMatrix_){
