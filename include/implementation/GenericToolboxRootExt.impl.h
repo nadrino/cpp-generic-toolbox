@@ -132,6 +132,13 @@ namespace GenericToolbox {
 
     return correlationMatrix;
   }
+
+}
+
+
+//! Formula Tools
+namespace GenericToolbox {
+
   inline TFormula* convertToFormula(TTreeFormula* treeFormula_){
     if( treeFormula_ == nullptr ) return nullptr;
 
@@ -145,7 +152,7 @@ namespace GenericToolbox {
 
     // Make sure the longest leaves appear in the list first
     std::sort(leafNameList.begin(), leafNameList.end(), []
-      (const std::string& first, const std::string& second){
+        (const std::string& first, const std::string& second){
       return first.size() > second.size();
     });
 
@@ -241,7 +248,42 @@ namespace GenericToolbox {
     return new TFormula(formulaStr.c_str(), formulaStr.c_str());
 
   }
+  inline std::vector<std::string> getFormulaEffectiveParameterNameList(TFormula* formula_){
+    std::vector<std::string> output;
+    if( formula_ == nullptr ) return output;
 
+    for( int iPar = 0 ; iPar < formula_->GetNpar() ; iPar++ ){
+      output.emplace_back(GenericToolbox::splitString(formula_->GetParName(iPar), "(")[0]);
+    }
+    return output;
+  }
+  inline std::vector<std::vector<int>> fetchParameterIndexes(TFormula* formula_){
+    std::vector<std::vector<int>> output;
+    if(formula_ == nullptr) return output;
+
+    for( int iPar = 0 ; iPar < formula_->GetNpar() ; iPar++ ){
+      output.emplace_back();
+      auto parCandidateSplit = GenericToolbox::splitString(formula_->GetParName(iPar), "(");
+
+      if( parCandidateSplit.size() == 1 ){
+        continue; // no index
+      }
+      else{
+        // need to fetch the indices
+        for( size_t iIndex = 1 ; iIndex < parCandidateSplit.size() ; iIndex++ ){
+          std::string indexStr;
+          for( char c : parCandidateSplit.at(iIndex) ){
+            if( c == ')' ) break;
+            indexStr += c;
+          }
+          output.back().emplace_back(std::stoi(indexStr));
+        }
+      }
+
+    } // iPar
+
+    return output;
+  }
 
 }
 

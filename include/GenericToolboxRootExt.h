@@ -30,7 +30,11 @@ namespace GenericToolbox{
   inline TVectorD* convertStdVectorToTVectorD(const std::vector<double> &vect_);
   inline TMatrixDSym* convertToSymmetricMatrix(TMatrixD* matrix_);
   inline TMatrixD* convertToCorrelationMatrix(TMatrixD* covarianceMatrix_);
+
+  //! Formula Tools
   inline TFormula* convertToFormula(TTreeFormula* treeFormula_);
+  inline std::vector<std::string> getFormulaEffectiveParameterNameList(TFormula* formula_);
+  inline std::vector<std::vector<int>> fetchParameterIndexes(TFormula* formula_);
 
 
   //! Files Tools
