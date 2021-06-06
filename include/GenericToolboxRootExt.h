@@ -36,7 +36,7 @@ namespace GenericToolbox{
   inline std::vector<std::string> getFormulaEffectiveParameterNameList(TFormula* formula_);
   inline std::vector<std::vector<int>> fetchParameterIndexes(TFormula* formula_);
   inline TTreeFormula* createTreeFormulaWithoutTree(const std::string& formulaStr_, std::vector<std::string> expectedLeafNames_);
-
+  inline bool doesLoadedEntryPassCut(TTreeFormula* treeFormula_);
 
   //! Files Tools
   inline bool doesTFileIsValid(const std::string &input_file_path_);

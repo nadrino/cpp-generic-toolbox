@@ -299,6 +299,17 @@ namespace GenericToolbox {
     cwd->cd();
     return output;
   }
+  inline bool doesLoadedEntryPassCut(TTreeFormula* treeFormula_){
+    // instances are distinct expressions which are separated with ";", for example: "var1 == 4; var2 == var3"
+    bool entryPassCut = true;
+    for(int jInstance = 0; jInstance < treeFormula_->GetNdata(); jInstance++) {
+      if ( treeFormula_->EvalInstance(jInstance) == 0 ) {
+        entryPassCut = false;
+        break;
+      }
+    }
+    return entryPassCut;
+  }
 
 }
 
