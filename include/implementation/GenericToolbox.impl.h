@@ -31,6 +31,7 @@
 #include <stdexcept>
 #include <string>
 #include <array>
+#include "vector"
 
 extern char* __progname;
 
@@ -348,8 +349,7 @@ namespace GenericToolbox {
     }
   }
   template<typename T> inline void insertInVector(std::vector<T> &vector_, const T &elementToInsert_, size_t insertBeforeThisIndex_){
-    std::vector<T> vectorToInsert;
-    vectorToInsert.template emplace_back(elementToInsert_);
+    std::vector<T> vectorToInsert(1, elementToInsert_);
     insertInVector(vector_, vectorToInsert, insertBeforeThisIndex_);
   }
   template <typename T> std::string parseVectorAsString(const std::vector<T>& vector_, bool enableLineJump_){

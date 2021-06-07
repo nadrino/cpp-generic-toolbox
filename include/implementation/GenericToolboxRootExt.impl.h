@@ -591,7 +591,7 @@ namespace GenericToolbox {
     for (int i_dim = 0; i_dim < matrix_->GetNcols(); i_dim++) {
       output.emplace_back((*Eigen_values)[i_dim]);
     }
-    std::sort(output.begin(), output.end(), std::greater<>());
+    std::sort(output.begin(), output.end(), std::greater<double>());
     return output;
   }
 //  TMatrixD* computeSqrt(TMatrixD* inputMatrix_){
