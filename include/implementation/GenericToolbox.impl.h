@@ -59,7 +59,7 @@ namespace GenericToolbox {
     }
   }
 
-  void displayProgressBar(int iCurrent_, int iTotal_, const std::string &title_, bool forcePrint_) {
+  template<typename T, typename TT> void displayProgressBar(const T& iCurrent_, const TT& iTotal_, const std::string &title_, bool forcePrint_) {
     if (
       (
         std::chrono::duration_cast<std::chrono::milliseconds>(
@@ -69,7 +69,7 @@ namespace GenericToolbox {
       or GenericToolbox::Internals::ProgressBar::lastDisplayedPercentValue == -1 // never printed before
       or iCurrent_ == 0 // first call
       or forcePrint_ // display every calls
-      or iCurrent_ >= iTotal_ - 1 // last entry (mandatory to print endl)
+      or iCurrent_ + 1 >= iTotal_ // last entry (mandatory to print endl)
       ) {
 
       // While multithreading, this function is muted
@@ -77,12 +77,12 @@ namespace GenericToolbox {
           GenericToolbox::Internals::ProgressBar::_selectedThreadId_ != std::this_thread::get_id())
         return;
 
-      if (not forcePrint_ and iCurrent_ >= iTotal_ - 1 and
+      if (not forcePrint_ and iCurrent_ + 1 >= iTotal_ and
           GenericToolbox::Internals::ProgressBar::lastDisplayedPercentValue == 100) { // last has already been printed ?
         return;
       }
 
-      int percentValue = int(round(double(iCurrent_) / iTotal_ * 100.));
+      int percentValue = int(round(double(iCurrent_) / double(iTotal_) * 100.));
 
       if (not(iCurrent_ >= iTotal_ - 1)) { // if not last entry
         if (percentValue > 100) percentValue = 100; // sanity check
@@ -103,12 +103,12 @@ namespace GenericToolbox {
       if (GenericToolbox::Internals::ProgressBar::displaySpeed) {
         speedString += "(";
         double itPerSec =
-          iCurrent_ - GenericToolbox::Internals::ProgressBar::lastDisplayedValue; // nb iterations since last print
+          double(iCurrent_) - GenericToolbox::Internals::ProgressBar::lastDisplayedValue; // nb iterations since last print
         if (int(itPerSec) < 0) itPerSec = 0;
         else {
-          double timeInterval = std::chrono::duration_cast<std::chrono::milliseconds>(
+          double timeInterval = double(std::chrono::duration_cast<std::chrono::milliseconds>(
             newTimePoint - GenericToolbox::Internals::ProgressBar::lastDisplayedTimePoint
-          ).count() / 1000.;
+          ).count()) / 1000.;
           itPerSec /= timeInterval; // Count per s
         }
         speedString += GenericToolbox::parseIntAsString(int(itPerSec));
@@ -172,7 +172,7 @@ namespace GenericToolbox {
           }
         } else {
           int nbTagsCredits = nbTags;
-          int nbColors = GenericToolbox::Internals::ProgressBar::rainbowColorList.size();
+          int nbColors = int(GenericToolbox::Internals::ProgressBar::rainbowColorList.size());
           int nbTagsPerColor = displayedBarLength / nbColors;
           if (displayedBarLength % nbColors != 0) nbTagsPerColor++;
           int iCharTagIndex = 0;
@@ -368,6 +368,13 @@ namespace GenericToolbox {
   }
   template <typename T> void printVector(const std::vector<T>& vector_, bool enableLineJump_){
     std::cout << parseVectorAsString(vector_, enableLineJump_) << std::endl;
+  }
+  template<typename T> inline std::vector<size_t> indices(const std::vector<T> &vector_){
+    std::vector<size_t> output(vector_.size(), 0);
+    for( size_t iIndex = 0 ; iIndex < output.size() ; iIndex++ ){
+      output.at(iIndex) = iIndex;
+    }
+    return output;
   }
 
 }
@@ -1597,6 +1604,17 @@ namespace GenericToolbox{
         }\
         else if( ! isNameEnded ){ enumName_##EnumNamespace::enumNamesDict.back() += enumNamesAgregate[iChar]; } \
       }\
+    }                                                              \
+    inline std::vector<std::string>& getEnumNamesList(){           \
+      if( enumName_##EnumNamespace::enumNamesDict.empty() ) enumName_##EnumNamespace::buildDictionary();         \
+      return enumName_##EnumNamespace::enumNamesDict;              \
+    }                                                              \
+    inline std::vector<enumName_> getEnumList(){                   \
+      std::vector<enumName_> output;                               \
+      for( int iIndex = intOffset_ ; iIndex < enumName_##_OVERFLOW ; iIndex++ ){     \
+        output.emplace_back(static_cast<enumName_>(iIndex));       \
+      }                                                            \
+      return output;\
     }\
     inline std::string toString(int enumValue_, bool excludeEnumName_ = false){      \
       if( enumName_##EnumNamespace::enumNamesDict.empty() ) enumName_##EnumNamespace::buildDictionary();         \

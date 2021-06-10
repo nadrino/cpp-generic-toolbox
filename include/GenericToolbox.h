@@ -49,7 +49,7 @@ namespace GenericToolbox{
 #define PROGRESS_BAR_FILL_TAG "#"
 #endif
 
-  inline void displayProgressBar(int iCurrent_, int iTotal_, const std::string &title_ = "", bool forcePrint_ = false);
+  template<typename T, typename TT> inline void displayProgressBar( const T& iCurrent_, const TT& iTotal_, const std::string &title_ = "", bool forcePrint_ = false);
   inline void resetLastDisplayedValue();
 
 }
@@ -80,6 +80,7 @@ namespace GenericToolbox{
   template<typename T> inline void insertInVector(std::vector<T> &vector_, const T &elementToInsert_, size_t insertBeforeThisIndex_);
   template<typename T> inline std::string parseVectorAsString(const std::vector<T> &vector_, bool enableLineJump_ = false);
   template<typename T> inline void printVector(const std::vector<T> &vector_, bool enableLineJump_ = false);
+  template<typename T> inline std::vector<size_t> indices(const std::vector<T> &vector_);
 
 }
 
