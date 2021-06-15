@@ -382,12 +382,15 @@ namespace GenericToolbox {
 //! Map management
 namespace GenericToolbox {
 
-  template <typename K, typename  T> inline bool doesKeyIsInMap( K key_, const std::map<K,T>& map_ ){
-    bool isFound = false;
-    if( map_.find(key_) != map_.end() ){
-      isFound = true;
+  template <typename K, typename  T> inline bool doesKeyIsInMap( const K& key_, const std::map<K,T>& map_ ){
+    return ( map_.find(key_) != map_.end() );
+  }
+  template <typename K, typename T> inline T* getElementPtrIsInMap( const K& key_, std::map<K,T>& map_ ){
+    auto it = map_.find(key_);
+    if( it == map_.end() ){
+      return nullptr;
     }
-    return isFound;
+    return &( it->second );
   }
   template <typename T1, typename T2> inline void appendToMap(std::map<T1, T2> &mapContainer_, const std::map<T1, T2> &mapToPushBack_, bool overwrite_) {
     for(const auto& newEntry : mapToPushBack_){

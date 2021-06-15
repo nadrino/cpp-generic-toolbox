@@ -88,8 +88,9 @@ namespace GenericToolbox{
 //! Map management
 namespace GenericToolbox{
 
-  template <typename K, typename T> inline bool doesKeyIsInMap( K key_, const std::map<K,T>& map_ );
-  template <typename T1, typename T2> inline void appendToMap(std::map<T1, T2> &mapContainer_, const std::map<T1, T2> &mapToPushBack_, bool overwrite_ = true);
+  template <typename K, typename T> inline bool doesKeyIsInMap( const K& key_, const std::map<K,T>& map_ );
+  template <typename K, typename T> inline T* getElementPtrIsInMap( const K& key_, std::map<K,T>& map_ );
+  template <typename T1, typename T2> inline void appendToMap( std::map<T1, T2> &mapContainer_, const std::map<T1, T2> &mapToPushBack_, bool overwrite_ = true );
   template <typename T> inline std::map<std::string, T> getSubMap(const std::map<std::string, T>& map_, const std::string &keyStrStartWith_ );
   template <typename T1, typename T2> inline std::string parseMapAsString(const std::map<T1, T2>& map_, bool enableLineJump_ = true);
   template <typename T1, typename T2> inline void printMap(const std::map<T1, T2>& map_, bool enableLineJump_ = true);
