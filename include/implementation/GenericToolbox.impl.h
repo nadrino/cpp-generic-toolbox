@@ -1609,13 +1609,13 @@ namespace GenericToolbox{
       }\
     }                                                              \
     inline std::vector<std::string>& getEnumNamesList(){           \
-      if( enumName_##EnumNamespace::enumNamesDict.empty() ) enumName_##EnumNamespace::buildDictionary();         \
+      if( enumName_##EnumNamespace::enumNamesDict.empty() ) enumName_##EnumNamespace::buildDictionary(); \
       return enumName_##EnumNamespace::enumNamesDict;              \
     }                                                              \
     inline std::vector<enumName_> getEnumList(){                   \
-      std::vector<enumName_> output;                               \
+      std::vector<enumName_> output(enumName_##_OVERFLOW);         \
       for( int iIndex = intOffset_ ; iIndex < enumName_##_OVERFLOW ; iIndex++ ){     \
-        output.emplace_back(static_cast<enumName_>(iIndex));       \
+        output.at(iIndex) = (static_cast<enumName_>(iIndex));      \
       }                                                            \
       return output;\
     }\
