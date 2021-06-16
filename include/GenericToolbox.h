@@ -50,6 +50,9 @@ namespace GenericToolbox{
 #endif
 
   template<typename T, typename TT> inline void displayProgressBar( const T& iCurrent_, const TT& iTotal_, const std::string &title_ = "", bool forcePrint_ = false);
+  template<typename T, typename TT> inline std::string getProgressBarStr(const T& iCurrent_, const TT& iTotal_, const std::string &title_ = "", bool forcePrint_ = false );
+  template<typename T, typename TT> inline std::string generateProgressBarStr(const T& iCurrent_, const TT& iTotal_, const std::string &title_ = "" );
+  template<typename T, typename TT> inline bool doesPrintProgressBarOk(const T& iCurrent_, const TT& iTotal_);
   inline void resetLastDisplayedValue();
 
 }

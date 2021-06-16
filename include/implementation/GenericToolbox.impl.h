@@ -60,160 +60,194 @@ namespace GenericToolbox {
     }
   }
 
-  template<typename T, typename TT> void displayProgressBar(const T& iCurrent_, const TT& iTotal_, const std::string &title_, bool forcePrint_) {
-    if (
-      (
-        std::chrono::duration_cast<std::chrono::milliseconds>(
-          std::chrono::high_resolution_clock::now() - GenericToolbox::Internals::ProgressBar::lastDisplayedTimePoint
-        ).count() >= GenericToolbox::Internals::ProgressBar::refreshRateInMilliSec
-      )
-      or GenericToolbox::Internals::ProgressBar::lastDisplayedPercentValue == -1 // never printed before
-      or iCurrent_ == 0 // first call
-      or forcePrint_ // display every calls
-      or iCurrent_ + 1 >= iTotal_ // last entry (mandatory to print endl)
-      ) {
 
-      // While multithreading, this function is muted
-      if (not forcePrint_ and
-          GenericToolbox::Internals::ProgressBar::_selectedThreadId_ != std::this_thread::get_id())
-        return;
+  template<typename T, typename TT> inline std::string generateProgressBarStr( const T& iCurrent_, const TT& iTotal_, const std::string &title_ ){
 
-      if (not forcePrint_ and iCurrent_ + 1 >= iTotal_ and
-          GenericToolbox::Internals::ProgressBar::lastDisplayedPercentValue == 100) { // last has already been printed ?
-        return;
+    int percentValue = int(round(double(iCurrent_) / double(iTotal_) * 100.));
+    if( percentValue > 100 ){
+      percentValue = 100;
+    }
+    else if( percentValue < 0 ){
+      percentValue = 0;
+    }
+
+    std::stringstream ss;
+
+    int displayedBarLength = GenericToolbox::Internals::ProgressBar::barLength;
+    std::string displayedTitle = title_;
+
+    auto newTimePoint = std::chrono::high_resolution_clock::now();
+    std::string speedString;
+    if (GenericToolbox::Internals::ProgressBar::displaySpeed) {
+      speedString += "(";
+      double itPerSec =
+        double(iCurrent_) - GenericToolbox::Internals::ProgressBar::lastDisplayedValue; // nb iterations since last print
+      if (int(itPerSec) < 0) itPerSec = 0;
+      else {
+        double timeInterval = double(std::chrono::duration_cast<std::chrono::milliseconds>(
+          newTimePoint - GenericToolbox::Internals::ProgressBar::lastDisplayedTimePoint
+        ).count()) / 1000.;
+        itPerSec /= timeInterval; // Count per s
       }
+      speedString += GenericToolbox::parseIntAsString(int(itPerSec));
+      speedString += " it/s)";
+    }
 
-      int percentValue = int(round(double(iCurrent_) / double(iTotal_) * 100.));
+    // test if the bar is too wide wrt the prompt width
+    if (GenericToolbox::getTerminalWidth() != 0) { // terminal width is measurable
 
-      if (not(iCurrent_ >= iTotal_ - 1)) { // if not last entry
-        if (percentValue > 100) percentValue = 100; // sanity check
-        if (percentValue < 0) percentValue = 0;
-        if (percentValue == GenericToolbox::Internals::ProgressBar::lastDisplayedPercentValue) return; // skipping!
-      } else {
-        percentValue = 100; // force to be 100
-      }
-
-      std::stringstream ss;
-      ss << "\r";
-
-      int displayedBarLength = GenericToolbox::Internals::ProgressBar::barLength;
-      std::string displayedTitle = title_;
-
-      auto newTimePoint = std::chrono::high_resolution_clock::now();
-      std::string speedString;
-      if (GenericToolbox::Internals::ProgressBar::displaySpeed) {
-        speedString += "(";
-        double itPerSec =
-          double(iCurrent_) - GenericToolbox::Internals::ProgressBar::lastDisplayedValue; // nb iterations since last print
-        if (int(itPerSec) < 0) itPerSec = 0;
-        else {
-          double timeInterval = double(std::chrono::duration_cast<std::chrono::milliseconds>(
-            newTimePoint - GenericToolbox::Internals::ProgressBar::lastDisplayedTimePoint
-          ).count()) / 1000.;
-          itPerSec /= timeInterval; // Count per s
-        }
-        speedString += GenericToolbox::parseIntAsString(int(itPerSec));
-        speedString += " it/s)";
-      }
-
-      // test if the bar is too wide wrt the prompt width
-      if (GenericToolbox::getTerminalWidth() != 0) { // terminal width is measurable
-
-        // clean the full line with blank spaces
+      // clean the full line with blank spaces
 //        std::cout << "\r" << GenericToolbox::repeatString(" ", GenericToolbox::getTerminalWidth()-1) << "\r";
 
-        unsigned long totalLength = 0;
-        std::string strippedTitle = GenericToolbox::stripStringUnicode(title_); // remove special chars and colors
-        totalLength += strippedTitle.size();
-        if (not title_.empty()) totalLength += 1; // after title space
-        if (displayedBarLength > 0) {
-          totalLength += 2; // []
-          totalLength += displayedBarLength;
-        }
-        totalLength += 1 + 3 + 1; // space, 100, %
-        totalLength += speedString.size() + 1; // space + speedString
-        totalLength += 1; // one extra free char is needed to flush
+      unsigned long totalLength = 0;
+      std::string strippedTitle = GenericToolbox::stripStringUnicode(title_); // remove special chars and colors
+      totalLength += strippedTitle.size();
+      if (not title_.empty()) totalLength += 1; // after title space
+      if (displayedBarLength > 0) {
+        totalLength += 2; // []
+        totalLength += displayedBarLength;
+      }
+      totalLength += 1 + 3 + 1; // space, 100, %
+      totalLength += speedString.size() + 1; // space + speedString
+      totalLength += 1; // one extra free char is needed to flush
 
-        int extraCharsCount = int(totalLength) - GenericToolbox::getTerminalWidth();
-        if (extraCharsCount > 0 and displayedBarLength > 0) {
-          // first, reduce the bar width
-          displayedBarLength = GenericToolbox::Internals::ProgressBar::barLength - extraCharsCount;
-          // 12 arbitrary chosen as the minimal barWidth
-          if (displayedBarLength < 12) {
-            // if the requested bar length is lower that 12, remove it completly
-            displayedBarLength = 0;
-          }
-          extraCharsCount -= GenericToolbox::Internals::ProgressBar::barLength - displayedBarLength;
+      int extraCharsCount = int(totalLength) - GenericToolbox::getTerminalWidth();
+      if (extraCharsCount > 0 and displayedBarLength > 0) {
+        // first, reduce the bar width
+        displayedBarLength = GenericToolbox::Internals::ProgressBar::barLength - extraCharsCount;
+        // 12 arbitrary chosen as the minimal barWidth
+        if (displayedBarLength < 12) {
+          // if the requested bar length is lower that 12, remove it completly
+          displayedBarLength = 0;
         }
+        extraCharsCount -= GenericToolbox::Internals::ProgressBar::barLength - displayedBarLength;
+      }
 
-        // if it's still to big, cut the title
-        if (extraCharsCount > 0) {
-          displayedTitle = title_.substr(0, strippedTitle.size() - extraCharsCount - 3);
-          displayedTitle += "...";
+      // if it's still to big, cut the title
+      if (extraCharsCount > 0) {
+        displayedTitle = title_.substr(0, strippedTitle.size() - extraCharsCount - 3);
+        displayedTitle += "...";
+      }
+    } else {
+      displayedBarLength = 0;
+    }
+
+    if (not displayedTitle.empty()) {
+      ss << displayedTitle << " ";
+    }
+
+    if (displayedBarLength > 0) {
+
+      int nbTags = percentValue * displayedBarLength / 100;
+      int nbSpaces = displayedBarLength - nbTags;
+      ss << "[";
+      if (not GenericToolbox::Internals::ProgressBar::enableRainbowProgressBar) {
+        int iCharTagIndex = 0;
+        for (int iTag = 0; iTag < nbTags; iTag++) {
+          ss << GenericToolbox::Internals::ProgressBar::fillTag[iCharTagIndex];
+          iCharTagIndex++;
+          if (iCharTagIndex >= GenericToolbox::Internals::ProgressBar::fillTag.size()) iCharTagIndex = 0;
         }
       } else {
-        displayedBarLength = 0;
-      }
-
-      if (not displayedTitle.empty()) {
-        ss << displayedTitle << " ";
-      }
-
-      if (displayedBarLength > 0) {
-
-        int nbTags = percentValue * displayedBarLength / 100;
-        int nbSpaces = displayedBarLength - nbTags;
-        ss << "[";
-        if (not GenericToolbox::Internals::ProgressBar::enableRainbowProgressBar) {
-          int iCharTagIndex = 0;
-          for (int iTag = 0; iTag < nbTags; iTag++) {
+        int nbTagsCredits = nbTags;
+        int nbColors = int(GenericToolbox::Internals::ProgressBar::rainbowColorList.size());
+        int nbTagsPerColor = displayedBarLength / nbColors;
+        if (displayedBarLength % nbColors != 0) nbTagsPerColor++;
+        int iCharTagIndex = 0;
+        for (int iColor = 0; iColor < nbColors; iColor++) {
+          ss << GenericToolbox::Internals::ProgressBar::rainbowColorList[iColor];
+          if (nbTagsCredits == 0) break;
+          int iSlot = 0;
+          while (nbTagsCredits != 0 and iSlot < nbTagsPerColor) {
             ss << GenericToolbox::Internals::ProgressBar::fillTag[iCharTagIndex];
             iCharTagIndex++;
             if (iCharTagIndex >= GenericToolbox::Internals::ProgressBar::fillTag.size()) iCharTagIndex = 0;
+            nbTagsCredits--;
+            iSlot++;
           }
-        } else {
-          int nbTagsCredits = nbTags;
-          int nbColors = int(GenericToolbox::Internals::ProgressBar::rainbowColorList.size());
-          int nbTagsPerColor = displayedBarLength / nbColors;
-          if (displayedBarLength % nbColors != 0) nbTagsPerColor++;
-          int iCharTagIndex = 0;
-          for (int iColor = 0; iColor < nbColors; iColor++) {
-            ss << GenericToolbox::Internals::ProgressBar::rainbowColorList[iColor];
-            if (nbTagsCredits == 0) break;
-            int iSlot = 0;
-            while (nbTagsCredits != 0 and iSlot < nbTagsPerColor) {
-              ss << GenericToolbox::Internals::ProgressBar::fillTag[iCharTagIndex];
-              iCharTagIndex++;
-              if (iCharTagIndex >= GenericToolbox::Internals::ProgressBar::fillTag.size()) iCharTagIndex = 0;
-              nbTagsCredits--;
-              iSlot++;
-            }
-          }
-          ss << "\033[0m";
         }
-        ss << repeatString(" ", nbSpaces) << "]";
+        ss << "\033[0m";
+      }
+      ss << repeatString(" ", nbSpaces) << "]";
+    }
+
+    ss << " " << percentValue << "%";
+    if (not speedString.empty()) {
+      ss << " " << speedString;
+    }
+
+//    ss << "\r";
+//    if( percentValue == 100 ){
+//      ss << std::endl;
+//    }
+
+    ss << std::endl; // always jump line to force flush on screen
+    if( percentValue != 100 ){
+      // static_cast<char>(27) = '\033' = 0x1b = ESC
+
+      // Since a line jump may introduce a logger header/prefix, we clear the line first
+      // https://en.wikipedia.org/wiki/ANSI_escape_code
+      // CSI n J
+      ss << static_cast<char>(27) << "[1K";
+      // pull back to cursor on the line of the progress bar
+      ss << static_cast<char>(27) << "[1;1F";
+    }
+
+    GenericToolbox::Internals::ProgressBar::lastDisplayedPercentValue = percentValue;
+    GenericToolbox::Internals::ProgressBar::lastDisplayedValue = iCurrent_;
+    GenericToolbox::Internals::ProgressBar::lastDisplayedTimePoint = newTimePoint;
+
+    return ss.str();
+
+  }
+  template<typename T, typename TT> inline bool doesPrintProgressBarOk(const T& iCurrent_, const TT& iTotal_){
+
+//    if( // Only the main thread
+//      GenericToolbox::Internals::ProgressBar::_selectedThreadId_ != std::this_thread::get_id()
+//      ){
+//      return false;
+//    }
+
+    if( // REQUIRED TO PRINTOUT
+         iCurrent_ == 0 // First call
+      or GenericToolbox::Internals::ProgressBar::lastDisplayedPercentValue == -1 // never printed before
+      or ( std::chrono::duration_cast<std::chrono::milliseconds>(
+             std::chrono::high_resolution_clock::now() - GenericToolbox::Internals::ProgressBar::lastDisplayedTimePoint
+           ).count() >= GenericToolbox::Internals::ProgressBar::refreshRateInMilliSec
+         )
+      or iCurrent_ + 1 >= iTotal_ // last entry (mandatory to print at least once: need to print endl)
+      ){
+
+      int percent = int(round(double(iCurrent_) / double(iTotal_) * 100.));
+
+      if( percent >= 100 ){ percent = 100; }
+      else if( percent < 0) percent = 0;
+
+      if( // EXCLUSION CASES
+        percent == GenericToolbox::Internals::ProgressBar::lastDisplayedPercentValue // already printed
+        ){
+        return false;
       }
 
-      ss << " " << percentValue << "%";
-      if (not speedString.empty()) {
-        ss << " " << speedString;
-      }
+      // OK!
+      return true;
+    }
 
-      *GenericToolbox::Internals::ProgressBar::outputStreamPtr << ss.str();
-
-      if (percentValue == 100) {
-        *GenericToolbox::Internals::ProgressBar::outputStreamPtr << std::endl;
-      } else {
-        *GenericToolbox::Internals::ProgressBar::outputStreamPtr << "\r";
-        GenericToolbox::Internals::ProgressBar::outputStreamPtr->flush();
-      }
-
-      GenericToolbox::Internals::ProgressBar::lastDisplayedPercentValue = percentValue;
-      GenericToolbox::Internals::ProgressBar::lastDisplayedValue = iCurrent_;
-      GenericToolbox::Internals::ProgressBar::lastDisplayedTimePoint = newTimePoint;
+    return false;
+  }
+  template<typename T, typename TT> inline std::string getProgressBarStr(const T& iCurrent_, const TT& iTotal_, const std::string &title_, bool forcePrint_ ){
+    if( forcePrint_ or doesPrintProgressBarOk(iCurrent_, iTotal_) ){
+      return generateProgressBarStr(iCurrent_, iTotal_, title_);
+    }
+    return std::string();
+  }
+  template<typename T, typename TT> void displayProgressBar(const T& iCurrent_, const TT& iTotal_, const std::string &title_, bool forcePrint_) {
+    if( forcePrint_ or doesPrintProgressBarOk(iCurrent_, iTotal_) ){
+      *GenericToolbox::Internals::ProgressBar::outputStreamPtr << generateProgressBarStr(iCurrent_, iTotal_, title_);
     }
   }
   void resetLastDisplayedValue(){
+    std::cout << "resetLastDisplayedValue" << std::endl;
       GenericToolbox::Internals::ProgressBar::lastDisplayedValue = -1;
       GenericToolbox::Internals::ProgressBar::lastDisplayedPercentValue = -1;
   }
