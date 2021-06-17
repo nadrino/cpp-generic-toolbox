@@ -379,6 +379,7 @@ namespace GenericToolbox {
     return output;
   }
   TDirectory* mkdirTFile(TDirectory* baseDir_, const std::string &dirName_){
+    if( baseDir_ == nullptr ) return nullptr;
     if(baseDir_->GetDirectory(dirName_.c_str()) == nullptr){
       baseDir_->mkdir(dirName_.c_str());
     }
