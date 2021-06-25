@@ -16,6 +16,13 @@
 // Classes : ThreadPool
 namespace GenericToolbox{
 
+  ENUM_EXPANDER(
+    ThreadStatus, 0,
+    Stopped,
+    Idle,
+    Running
+    )
+
   class ThreadPool {
 
   public:
@@ -54,6 +61,7 @@ namespace GenericToolbox{
     bool _pauseThreads_{false};
     std::mutex* _threadMutexPtr_{nullptr};
     std::vector<std::future<void>> _threadsList_;
+    std::vector<ThreadStatus> _threadStatusList_;
     std::vector<std::function<void(int)>> _jobFunctionList_;
     std::vector<std::function<void()>> _jobFunctionPostParallelList_;
     std::vector<std::string> _jobNameList_;
