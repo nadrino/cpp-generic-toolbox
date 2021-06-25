@@ -170,7 +170,9 @@ namespace GenericToolbox{
   inline int getTerminalWidth();
   inline int getTerminalHeight();
   inline std::string parseTimeUnit(long long nbMicroSec_);
+  inline std::string getElapsedTimeSinceLastCallStr(const std::string& key_);
   inline std::string getElapsedTimeSinceLastCallStr(int instance_ = -1);
+  inline long long getElapsedTimeSinceLastCallInMicroSeconds(const std::string& key_);
   inline long long getElapsedTimeSinceLastCallInMicroSeconds(int instance = -1);
   inline std::vector<std::string> getOutputOfShellCommand(const std::string& cmd_);
 
@@ -190,6 +192,7 @@ namespace GenericToolbox{
   // Not intended to be managed by the user
   namespace Internals{
     static std::map<int, std::chrono::high_resolution_clock::time_point> _lastTimePointMap_;
+    static std::map<std::string, std::chrono::high_resolution_clock::time_point> _lastTimePointMapStr_;
   }
 
 }
