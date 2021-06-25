@@ -2,8 +2,8 @@
 // Created by Nadrino on 01/09/2020.
 //
 
-#ifndef CPP_GENERIC_TOOLBOX_GENERICTOOLBOXROOTEXT_H
-#define CPP_GENERIC_TOOLBOX_GENERICTOOLBOXROOTEXT_H
+#ifndef CPP_GENERIC_TOOLBOX_GENERICTOOLBOX_ROOT_H
+#define CPP_GENERIC_TOOLBOX_GENERICTOOLBOX_ROOT_H
 
 // STD Headers
 #include <map>
@@ -79,6 +79,6 @@ namespace GenericToolbox{
 
 }
 
-#include "implementation/GenericToolboxRootExt.impl.h"
+#include "implementation/GenericToolbox.Root.impl.h"
 
-#endif //CPP_GENERIC_TOOLBOX_GENERICTOOLBOXROOTEXT_H
+#endif //CPP_GENERIC_TOOLBOX_GENERICTOOLBOX_ROOT_H

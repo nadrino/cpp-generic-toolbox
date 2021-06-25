@@ -9,7 +9,7 @@
 #include <GenericToolbox.h>
 
 #ifdef ENABLE_ROOT_EXTENSION
-#include <GenericToolboxRootExt.h>
+#include <GenericToolbox.Root.h>
 #endif
 
 #include "classExample.h"
