@@ -1622,6 +1622,7 @@ namespace GenericToolbox{
 
 }
 
+
 // Macro Tools
 #define GT_INTERNALS_VA_TO_STR(...) #__VA_ARGS__
 

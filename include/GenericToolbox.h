@@ -14,6 +14,9 @@
 #include <chrono>
 #include <map>
 
+// Pre-proc parameters
+#include "implementation/GenericToolbox.param.h"
+
 
 //! User Parameters
 //! (CAVEAT: only set for a given source file)
@@ -26,28 +29,6 @@ namespace GenericToolbox{
 
 //! Progress bar
 namespace GenericToolbox{
-
-#ifndef PROGRESS_BAR_ENABLE_RAINBOW
-#define PROGRESS_BAR_ENABLE_RAINBOW 0
-#endif
-
-#ifndef PROGRESS_BAR_LENGTH
-#define PROGRESS_BAR_LENGTH 36
-#endif
-
-#ifndef PROGRESS_BAR_SHOW_SPEED
-#define PROGRESS_BAR_SHOW_SPEED 1
-#endif
-
-#ifndef PROGRESS_BAR_REFRESH_DURATION_IN_MS
-// 33 ms per frame = 0.033 seconds per frame = 1/30 sec per frame = 30 fps
-#define PROGRESS_BAR_REFRESH_DURATION_IN_MS 33
-#endif
-
-#ifndef PROGRESS_BAR_FILL_TAG
-// multi-char is possible
-#define PROGRESS_BAR_FILL_TAG "#"
-#endif
 
   template<typename T, typename TT> inline void displayProgressBar( const T& iCurrent_, const TT& iTotal_, const std::string &title_ = "", bool forcePrint_ = false);
   template<typename T, typename TT> inline std::string getProgressBarStr(const T& iCurrent_, const TT& iTotal_, const std::string &title_ = "", bool forcePrint_ = false );
