@@ -1599,9 +1599,20 @@ namespace GenericToolbox{
     nbMicroSec_ /= 365; // in days
     return std::to_string(nbMicroSec_) + "y";
   }
+  std::string getElapsedTimeSinceLastCallStr( const std::string& key_ ) {
+    return GenericToolbox::parseTimeUnit(GenericToolbox::getElapsedTimeSinceLastCallInMicroSeconds(key_));
+  }
   std::string getElapsedTimeSinceLastCallStr(int instance_)
   {
     return GenericToolbox::parseTimeUnit(getElapsedTimeSinceLastCallInMicroSeconds(instance_));
+  }
+  long long getElapsedTimeSinceLastCallInMicroSeconds( const std::string& key_ ) {
+    auto newTimePoint = std::chrono::high_resolution_clock::now();
+    auto microseconds = std::chrono::duration_cast<std::chrono::microseconds>(
+      newTimePoint - Internals::_lastTimePointMapStr_[key_]
+    );
+    Internals::_lastTimePointMapStr_[key_] = newTimePoint;
+    return microseconds.count();
   }
   long long getElapsedTimeSinceLastCallInMicroSeconds(int instance_){
     auto newTimePoint = std::chrono::high_resolution_clock::now();

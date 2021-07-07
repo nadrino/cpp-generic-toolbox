@@ -5,6 +5,8 @@
 #ifndef CPP_GENERIC_TOOLBOX_GENERICTOOLBOX_THREADPOOL_IMPL_H
 #define CPP_GENERIC_TOOLBOX_GENERICTOOLBOX_THREADPOOL_IMPL_H
 
+#include "../GenericToolbox.h"
+
 // Classes: ParallelWorker
 namespace GenericToolbox{
 
@@ -33,6 +35,10 @@ namespace GenericToolbox{
   inline void ParallelWorker::setNThreads(int nThreads) {
     if(_isInitialized_){
       throw std::logic_error("Can't set the number of threads while already initialized.");
+    }
+    if( nThreads > std::thread::hardware_concurrency() ){
+      std::cout << GET_VAR_NAME_VALUE(std::thread::hardware_concurrency()) << std::endl;
+      throw std::logic_error("Too much threads wrt your hardware.");
     }
     _nThreads_ = nThreads;
   }
@@ -101,7 +107,7 @@ namespace GenericToolbox{
     _jobFunctionList_.at(jobIndex)(_nThreads_-1); // do the last job in the main thread
 
     for( int iThread = 0 ; iThread < _nThreads_-1 ; iThread++ ){
-      while( _jobTriggerList_.at(jobIndex).at(iThread)); // wait
+      while( _jobTriggerList_.at(jobIndex).at(iThread) ) std::this_thread::sleep_for( std::chrono::microseconds(100) ); // wait
     }
 
     if( _jobFunctionPostParallelList_.at(jobIndex) ){ // is it callable?
@@ -135,7 +141,7 @@ namespace GenericToolbox{
     _pauseThreads_ = true; // prevent the threads to loop over the available jobs
     for( const auto& threadTriggers : _jobTriggerList_ ){
       for( int iThread = 0 ; iThread < _nThreads_-1 ; iThread++ ){
-        while( threadTriggers.at(iThread) ); // wait for every thread to finish its current job
+        while( threadTriggers.at(iThread) ) std::this_thread::sleep_for( std::chrono::microseconds(100) ); // wait for every thread to finish its current job
       }
     }
   }
@@ -156,46 +162,53 @@ namespace GenericToolbox{
 
     _stopThreads_ = false;
     _threadMutexPtr_ = new std::mutex(); // We have the ownership
-    auto* mutexPtr = _threadMutexPtr_;
+    unPauseParallelThreads(); // make sure
 
     for( int iThread = 0 ; iThread < _nThreads_-1 ; iThread++ ){
-      std::function<void()> asyncLoop = [this, mutexPtr, iThread](){
-        if( _isVerbose_ ){
-          mutexPtr->lock();
-          std::cout << "Starting parallel thread #" << iThread << std::endl;
-          mutexPtr->unlock();
-        }
+
+      std::function<void()> asyncLoop = [this, iThread](){
         size_t jobIndex = 0;
         while( not _stopThreads_ ){
-          while( _pauseThreads_ ); // wait
+
+          std::this_thread::sleep_for( std::chrono::microseconds(100) ); // let space for other threads...
+
+          while( _pauseThreads_ ) std::this_thread::sleep_for( std::chrono::microseconds(100) ); // wait
           if( _stopThreads_ ) break; // if stop requested while in pause
+          _threadStatusList_.at(iThread) = ThreadStatus::Idle;
 
           jobIndex = 0;
           for( jobIndex = 0 ; jobIndex < _jobTriggerList_.size() ; jobIndex++ ){
             if( _pauseThreads_ ) break; // jump out!
             if( _jobTriggerList_[jobIndex][iThread] ){ // is it triggered?
+              _threadStatusList_.at(iThread) = ThreadStatus::Running;
               _jobFunctionList_.at(jobIndex)(iThread); // run
               _jobTriggerList_[jobIndex][iThread] = false; // un-trigger this thread
             }
           } // jobIndex
+          _threadStatusList_.at(iThread) = ThreadStatus::Idle;
+
         } // not stop
-        if( _isVerbose_ ){
-          mutexPtr->lock();
-          std::cout << "Stopping parallel thread #" << iThread << std::endl;
-          mutexPtr->unlock();
-        }
+        _threadStatusList_.at(iThread) = ThreadStatus::Stopped;
       };
+
+      _threadStatusList_.emplace_back(ThreadStatus::Stopped);
       _threadsList_.emplace_back( std::async( std::launch::async, asyncLoop ) );
+
+    }
+
+    for( int iThread = 0 ; iThread < _nThreads_-1 ; iThread++ ){
+      while( _threadStatusList_.at(iThread) == ThreadStatus::Stopped ) std::this_thread::sleep_for( std::chrono::microseconds(100) ); // wait to be in Idle state
     }
 
   }
   inline void ParallelWorker::stopThreads(){
     _stopThreads_ = true;
     this->unPauseParallelThreads(); // is the threads were on pause state
-    for( auto& thread : _threadsList_ ){
-      thread.get();
+    for( int iThread = 0 ; iThread < int(_threadsList_.size()) ; iThread++ ){
+      _threadsList_.at(iThread).get();
     }
     _threadsList_.clear();
+    _threadStatusList_.clear();
     delete _threadMutexPtr_; _threadMutexPtr_ = nullptr;
   }
 
