@@ -7,6 +7,8 @@
 #include <thread>
 
 #include <GenericToolbox.h>
+#include "GenericToolbox.ParallelWorker.h" // extension
+#include "GenericToolbox.VariablesMonitor.h" // extension
 
 #ifdef ENABLE_ROOT_EXTENSION
 #include <GenericToolbox.Root.h>
@@ -71,6 +73,40 @@ int main(){
   std::cout << "MyEnum = " << MyEnum::Case4 << ": " << MyEnumEnumNamespace::toString(MyEnum::Case4) << std::endl;
   std::cout << "MyEnum = " << MyEnum::Case5 << ": " << MyEnumEnumNamespace::toString(MyEnum::Case5) << std::endl;
   std::cout << GenericToolbox::parseVectorAsString(MyEnumEnumNamespace::enumNamesDict) << std::endl;
+
+  GenericToolbox::ParallelWorker p;
+  p.setNThreads(4); // 3 parallel threads + 1 main
+  p.setIsVerbose(true);
+  p.initialize();
+  p.addJob("exampleJob", [&p](int iThread_){
+    p.getThreadMutexPtr()->lock();
+    std::cout << "Executing in thread: " << iThread_ << std::endl;
+    p.getThreadMutexPtr()->unlock();
+  });
+  p.runJob("exampleJob");
+  p.removeJob("exampleJob"); // not necessary, but stop the parallel threads if the worker is no longer waiting for jobs (for CPU time saving)
+
+  GenericToolbox::VariablesMonitor v;
+  v.addVariable("exp(-i*1E-6)");
+  v.addVariable("i*i");
+
+  v.addDisplayedQuantity("VarName");
+  v.addDisplayedQuantity("LastAddedValue");
+  v.addDisplayedQuantity("Accumulated");
+  v.addDisplayedQuantity("AccumulationRate");
+  v.addDisplayedQuantity("SlopePerSecond");
+  v.addDisplayedQuantity("SlopePerCall");
+
+  for( int i = 0 ; i <= 1000 ; i++ ){
+    double sqrI = sqrt(i);
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    v.getVariable("exp(-i*1E-6)").addQuantity(std::exp(-i/1000000.));
+    v.getVariable("i*i").addQuantity(i*i);
+    v.setHeaderString(GET_VAR_NAME_VALUE(i));
+    std::cout << v.generateMonitorString(true);
+  }
+  std::cout << v.generateMonitorString();
+
 
   return EXIT_SUCCESS;
 }

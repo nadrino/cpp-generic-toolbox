@@ -13,14 +13,14 @@
 
 #include "GenericToolbox.h"
 
-// Classes : ThreadPool
+// Classes : ParallelWorker
 namespace GenericToolbox{
 
-  class ThreadPool {
+  class ParallelWorker {
 
   public:
-    inline ThreadPool();
-    inline virtual ~ThreadPool();
+    inline ParallelWorker();
+    inline virtual ~ParallelWorker();
 
     inline void reset();
 
@@ -30,6 +30,7 @@ namespace GenericToolbox{
     inline void initialize();
 
     inline const std::vector<std::string> &getJobNameList() const;
+    inline std::mutex* getThreadMutexPtr();
 
     inline void addJob(const std::string& jobName_, const std::function<void(int)>& function_); // int arg is supposed to be the thread id
     inline void setPostParallelJob(const std::string& jobName_, const std::function<void()>& function_);
@@ -45,7 +46,7 @@ namespace GenericToolbox{
 
   private:
     // Parameters
-    bool _isVerbose_{true};
+    bool _isVerbose_{false};
     int _nThreads_{-1};
 
     // Internals
@@ -63,6 +64,6 @@ namespace GenericToolbox{
 
 }
 
-#include "implementation/GenericToolbox.ThreadPool.impl.h"
+#include "implementation/GenericToolbox.ParallelWorker.impl.h"
 
 #endif //CPP_GENERIC_TOOLBOX_GENERICTOOLBOX_THREADPOOL_H

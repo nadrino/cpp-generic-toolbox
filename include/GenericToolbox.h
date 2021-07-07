@@ -65,6 +65,9 @@ namespace GenericToolbox{
   template<typename T> inline std::string parseVectorAsString(const std::vector<T> &vector_, bool enableLineJump_ = false);
   template<typename T> inline void printVector(const std::vector<T> &vector_, bool enableLineJump_ = false);
   template<typename T> inline std::vector<size_t> indices(const std::vector<T> &vector_);
+  template<typename T> inline double getAveragedSlope(const std::vector<T> &yValues_);
+  template<typename T, typename TT> inline double getAveragedSlope(const std::vector<T> &yValues_, const std::vector<TT> &xValues_);
+
 
 }
 
@@ -106,7 +109,7 @@ namespace GenericToolbox{
   inline void indentInputString(std::string& inputStr_, unsigned int indentCount_, const std::string& indentChar = " ");
 
   // -- Parsing
-  inline std::string parseUnitPrefix(double val_);
+  inline std::string parseUnitPrefix(double val_, int maxPadSize_=-1);
   inline std::string parseSizeUnits(unsigned int sizeInBytes_);
   inline std::string formatString( const std::string& strToFormat_ ); // overrider: make sure this is the one used when no extra args are provided.
   template<typename ... Args> inline std::string formatString(const std::string& strToFormat_, Args ... args );

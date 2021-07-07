@@ -5,18 +5,19 @@
 #ifndef CPP_GENERIC_TOOLBOX_GENERICTOOLBOX_THREADPOOL_IMPL_H
 #define CPP_GENERIC_TOOLBOX_GENERICTOOLBOX_THREADPOOL_IMPL_H
 
-// Classes: ThreadPool
+// Classes: ParallelWorker
 namespace GenericToolbox{
 
-  inline ThreadPool::ThreadPool(){
+  inline ParallelWorker::ParallelWorker(){
     this->reset();
   }
-  inline ThreadPool::~ThreadPool() {
+  inline ParallelWorker::~ParallelWorker() {
     this->reset();
   }
 
-  inline void ThreadPool::reset() {
+  inline void ParallelWorker::reset() {
     _isInitialized_ = false;
+    _isVerbose_ = false;
     _nThreads_ = -1;
 
     stopThreads();
@@ -26,17 +27,17 @@ namespace GenericToolbox{
     _jobFunctionPostParallelList_.clear();
   }
 
-  inline void ThreadPool::setIsVerbose(bool isVerbose) {
+  inline void ParallelWorker::setIsVerbose(bool isVerbose) {
     _isVerbose_ = isVerbose;
   }
-  inline void ThreadPool::setNThreads(int nThreads) {
+  inline void ParallelWorker::setNThreads(int nThreads) {
     if(_isInitialized_){
       throw std::logic_error("Can't set the number of threads while already initialized.");
     }
     _nThreads_ = nThreads;
   }
 
-  inline void ThreadPool::initialize() {
+  inline void ParallelWorker::initialize() {
 
     if( _nThreads_ < 1 ){
       throw std::logic_error("_nThreads_ should be >= 1");
@@ -45,7 +46,7 @@ namespace GenericToolbox{
     _isInitialized_ = true;
   }
 
-  inline void ThreadPool::addJob(const std::string &jobName_, const std::function<void(int)> &function_) {
+  inline void ParallelWorker::addJob(const std::string &jobName_, const std::function<void(int)> &function_) {
     if( not _isInitialized_ ){
       throw std::logic_error("Can't add job while not initialized");
     }
@@ -68,7 +69,7 @@ namespace GenericToolbox{
       reStartThreads();
     }
   }
-  inline void ThreadPool::setPostParallelJob(const std::string& jobName_, const std::function<void()>& function_){
+  inline void ParallelWorker::setPostParallelJob(const std::string& jobName_, const std::function<void()>& function_){
     if( not _isInitialized_ ){
       throw std::logic_error("Can't add post parallel job while not initialized");
     }
@@ -84,7 +85,7 @@ namespace GenericToolbox{
     _jobFunctionPostParallelList_.at(jobIndex) = function_;
     this->unPauseParallelThreads();
   }
-  inline void ThreadPool::runJob(const std::string &jobName_) {
+  inline void ParallelWorker::runJob(const std::string &jobName_) {
     if( not _isInitialized_ ){
       throw std::logic_error("Can't run job while not initialized");
     }
@@ -108,7 +109,7 @@ namespace GenericToolbox{
     }
 
   }
-  inline void ThreadPool::removeJob(const std::string& jobName_){
+  inline void ParallelWorker::removeJob(const std::string& jobName_){
     if( not _isInitialized_ ){
       throw std::logic_error("Can't run job while not initialized");
     }
@@ -130,7 +131,7 @@ namespace GenericToolbox{
     }
   }
 
-  inline void ThreadPool::pauseParallelThreads(){
+  inline void ParallelWorker::pauseParallelThreads(){
     _pauseThreads_ = true; // prevent the threads to loop over the available jobs
     for( const auto& threadTriggers : _jobTriggerList_ ){
       for( int iThread = 0 ; iThread < _nThreads_-1 ; iThread++ ){
@@ -138,15 +139,18 @@ namespace GenericToolbox{
       }
     }
   }
-  inline void ThreadPool::unPauseParallelThreads(){
+  inline void ParallelWorker::unPauseParallelThreads(){
     _pauseThreads_ = false; // that's all
   }
 
-  inline const std::vector<std::string> &ThreadPool::getJobNameList() const {
+  inline const std::vector<std::string> &ParallelWorker::getJobNameList() const {
     return _jobNameList_;
   }
+  inline std::mutex* ParallelWorker::getThreadMutexPtr(){
+    return _threadMutexPtr_;
+  }
 
-  inline void ThreadPool::reStartThreads() {
+  inline void ParallelWorker::reStartThreads() {
 
     stopThreads();
 
@@ -185,7 +189,7 @@ namespace GenericToolbox{
     }
 
   }
-  inline void ThreadPool::stopThreads(){
+  inline void ParallelWorker::stopThreads(){
     _stopThreads_ = true;
     this->unPauseParallelThreads(); // is the threads were on pause state
     for( auto& thread : _threadsList_ ){

@@ -410,8 +410,28 @@ namespace GenericToolbox {
     }
     return output;
   }
+  template<typename T> inline double getAveragedSlope(const std::vector<T> &yValues_){
+    auto xValues = yValues_;
+    for( size_t iVal = 0 ; iVal < yValues_.size() ; iVal++ ){
+      xValues.at(iVal) = iVal;
+    }
+    return getAveragedSlope(yValues_, xValues);
+  }
+  template<typename T, typename TT> inline double getAveragedSlope(const std::vector<T> &yValues_, const std::vector<TT> &xValues_){
+    if(xValues_.size() != yValues_.size()){
+      throw std::logic_error("x and y values list do have the same size.");
+    }
+    const auto n    = xValues_.size();
+    const auto s_x  = std::accumulate(xValues_.begin(), xValues_.end(), 0.0);
+    const auto s_y  = std::accumulate(yValues_.begin(), yValues_.end(), 0.0);
+    const auto s_xx = std::inner_product(xValues_.begin(), xValues_.end(), xValues_.begin(), 0.0);
+    const auto s_xy = std::inner_product(xValues_.begin(), xValues_.end(), yValues_.begin(), 0.0);
+    const auto a    = (n * s_xy - s_x * s_y) / (n * s_xx - s_x * s_x);
+    return a;
+  }
 
 }
+
 
 //! Map management
 namespace GenericToolbox {
@@ -603,33 +623,49 @@ namespace GenericToolbox {
     GenericToolbox::replaceSubstringInsideInputString(stripped_str, substr_to_look_for_, substr_to_replace_);
     return stripped_str;
   }
-  std::string parseUnitPrefix(double val_){
+  std::string parseUnitPrefix(double val_, int maxPadSize_){
     std::stringstream ss;
 
     if( val_ < 0 ){
       ss << "-";
       val_ = -val_;
+      maxPadSize_--;
     }
 
-    size_t reducedVal = fabs(val_);
-    if     ( (reducedVal = (reducedVal / 1000)) == 0 ){
-      ss << val_;
+    if(maxPadSize_ > -1){
+      ss << std::setprecision(maxPadSize_-1);
     }
-    else if( (reducedVal = (reducedVal / 1000)) == 0 ){
-      ss << val_/1E3 << "K";
+
+    auto reducedVal = size_t(fabs(val_));
+    if( reducedVal > 0 ){
+      if     ( (reducedVal = (reducedVal / 1000)) == 0 ){
+        ss << val_;
+      }
+      else if( (reducedVal = (reducedVal / 1000)) == 0 ){
+        ss << val_/1E3 << "K";
+      }
+      else if( (reducedVal = (reducedVal / 1000)) == 0 ){
+        ss << val_/1E6 << "M";
+      }
+      else if( (reducedVal = (reducedVal / 1000)) == 0 ){
+        ss << val_/1E9 << "G";
+      }
+      else if( (reducedVal = (reducedVal / 1000)) == 0 ){
+        ss << val_/1E12 << "T";
+      }
+      else {
+        ss << val_/1E15 << "P";
+      }
+    } // K, M, G, T, P
+    else{
+      if( val_ < 1E-3 ){ // force scientific notation
+        ss << std::scientific << val_;
+      }
+      else{
+        ss << val_;
+      }
     }
-    else if( (reducedVal = (reducedVal / 1000)) == 0 ){
-      ss << val_/1E6 << "M";
-    }
-    else if( (reducedVal = (reducedVal / 1000)) == 0 ){
-      ss << val_/1E9 << "G";
-    }
-    else if( (reducedVal = (reducedVal / 1000)) == 0 ){
-      ss << val_/1E12 << "T";
-    }
-    else {
-      ss << val_/1E15 << "P";
-    }
+
 
     return ss.str();
   }
