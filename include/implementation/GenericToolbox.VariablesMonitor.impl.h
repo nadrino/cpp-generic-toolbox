@@ -183,6 +183,7 @@ namespace GenericToolbox{
 
     if( trailBackCursor_ ){
       ssLineCleaner << static_cast<char>(27) << "[2K" << static_cast<char>(27) << "[" << nLines-1 << ";1F";
+      ssLineCleaner << static_cast<char>(27) << "[2K"; // un-flushed part: this clear line will only be displayed once a new line will try to override it
     }
 
     return ssLineCleaner.str();

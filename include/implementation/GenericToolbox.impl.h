@@ -46,7 +46,7 @@ namespace GenericToolbox {
       static bool enableRainbowProgressBar = PROGRESS_BAR_ENABLE_RAINBOW;
       static bool displaySpeed = PROGRESS_BAR_SHOW_SPEED;
       static int barLength = PROGRESS_BAR_LENGTH;
-      static int refreshRateInMilliSec = PROGRESS_BAR_REFRESH_DURATION_IN_MS;
+      static size_t refreshRateInMilliSec = PROGRESS_BAR_REFRESH_DURATION_IN_MS;
       static std::string fillTag(PROGRESS_BAR_FILL_TAG);
       static std::ostream* outputStreamPtr = &std::cout;
 
