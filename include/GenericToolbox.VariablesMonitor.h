@@ -33,6 +33,7 @@ namespace GenericToolbox{
     inline void setMaxRefreshRateInMs(long long int maxRefreshRateInMs);
 
     inline VariableMonitor& getVariable(const std::string& name_);
+    inline QuantityMonitor& getQuantity(const std::string& quantityName_);
 
     inline std::string generateMonitorString(bool trailBackCursor_ = false);
 

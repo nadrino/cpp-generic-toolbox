@@ -13,7 +13,7 @@
 
 #include "GenericToolbox.h"
 
-// Classes : ThreadPool
+// Classes : ParallelWorker
 namespace GenericToolbox{
 
   ENUM_EXPANDER(
@@ -37,6 +37,7 @@ namespace GenericToolbox{
     inline void initialize();
 
     inline const std::vector<std::string> &getJobNameList() const;
+    inline std::mutex* getThreadMutexPtr();
 
     inline void addJob(const std::string& jobName_, const std::function<void(int)>& function_); // int arg is supposed to be the thread id
     inline void setPostParallelJob(const std::string& jobName_, const std::function<void()>& function_);

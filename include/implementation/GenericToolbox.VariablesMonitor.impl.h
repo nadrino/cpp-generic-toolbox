@@ -85,7 +85,15 @@ namespace GenericToolbox{
         return v;
       }
     }
-    throw std::logic_error("Variable with this name is not monitored");
+    throw std::logic_error("Variable with name " + name_ + " is not monitored");
+  }
+  inline QuantityMonitor& VariablesMonitor::getQuantity(const std::string& quantityName_){
+    for( auto& q : _quantityMonitorList_ ){
+      if( q.name == quantityName_ ){
+        return q;
+      }
+    }
+    throw std::logic_error("Quantity with name " + quantityName_ + " is not monitored");
   }
 
   inline std::string VariablesMonitor::generateMonitorString(bool trailBackCursor_) {
@@ -104,7 +112,6 @@ namespace GenericToolbox{
       }
     }
 
-    std::string clearEndl = std::string("\n") + static_cast<char>(27) + "[2K";
     std::vector<std::vector<std::string>> varElementsList(_varMonitorList_.size(), std::vector<std::string>(_displayQuantityIndexList_.size()));
 
     if(_basedPaddingList_.size() != _displayQuantityIndexList_.size() ){
@@ -134,9 +141,9 @@ namespace GenericToolbox{
 
     // Optional Header
     if( not _headerString_.empty() ){
-      ss << _headerString_ << clearEndl;
+      ss << _headerString_ << std::endl;
     }
-    ss << GenericToolbox::repeatString("-", barWidth) << clearEndl;
+    ss << GenericToolbox::repeatString("-", barWidth) << std::endl;
 
     // Legend
     std::stringstream sss;
@@ -146,8 +153,8 @@ namespace GenericToolbox{
       if(not sss.str().empty()) sss << " ";
       sss << GenericToolbox::padString(_quantityMonitorList_.at(quantityIndex).title, paddingList.at(iQuantity)) << " |";
     }
-    ss << sss.str() << clearEndl;
-    ss << GenericToolbox::repeatString("-", barWidth) << clearEndl;
+    ss << sss.str() << std::endl;
+    ss << GenericToolbox::repeatString("-", barWidth) << std::endl;
 
     // Content
     for( size_t iVar = 0 ; iVar < _varMonitorList_.size() ; iVar++ ){
@@ -158,19 +165,27 @@ namespace GenericToolbox{
         if(not sss.str().empty()) sss << " ";
         sss << GenericToolbox::padString(varElementsList.at(iVar).at(iQuantity), paddingList.at(iQuantity)) << " |";
       }
-      ss << sss.str() << clearEndl;
+      ss << sss.str() << std::endl;
     }
-    ss << GenericToolbox::repeatString("-", barWidth) << clearEndl;
+    ss << GenericToolbox::repeatString("-", barWidth) << std::endl;
 
     // Optional Footer
-    if( not _footerString_.empty() ) ss << _footerString_ << clearEndl;
+    if( not _footerString_.empty() ) ss << _footerString_ << std::endl;
+
+    auto nLines = GenericToolbox::splitString(ss.str(), "\n").size();
+
+    std::stringstream ssLineCleaner;
+    for( size_t iLine = 1 ; iLine < nLines ; iLine++ ){
+      ssLineCleaner << static_cast<char>(27) << "[2K" << std::endl;
+    }
+    ssLineCleaner << static_cast<char>(27) << "[2K" << static_cast<char>(27) << "[" << nLines-1 << ";1F";
+    ssLineCleaner << "\r" << ss.str(); // "\r" can be intercepted by loggers to know if a new line header can be printed
 
     if( trailBackCursor_ ){
-      auto nLines = GenericToolbox::splitString(ss.str(), "\n").size();
-      ss << static_cast<char>(27) << "[" << nLines-1 << ";1F";
+      ssLineCleaner << static_cast<char>(27) << "[2K" << static_cast<char>(27) << "[" << nLines-1 << ";1F";
     }
 
-    return ss.str();
+    return ssLineCleaner.str();
   }
 
 
