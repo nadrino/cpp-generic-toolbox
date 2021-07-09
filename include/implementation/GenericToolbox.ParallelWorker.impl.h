@@ -20,6 +20,7 @@ namespace GenericToolbox{
   inline void ParallelWorker::reset() {
     _isInitialized_ = false;
     _isVerbose_ = false;
+    _checkHardwareCurrency_ = false;
     _nThreads_ = -1;
 
     stopThreads();
@@ -32,11 +33,14 @@ namespace GenericToolbox{
   inline void ParallelWorker::setIsVerbose(bool isVerbose) {
     _isVerbose_ = isVerbose;
   }
+  void ParallelWorker::setCheckHardwareCurrency(bool checkHardwareCurrency) {
+    _checkHardwareCurrency_ = checkHardwareCurrency;
+  }
   inline void ParallelWorker::setNThreads(int nThreads) {
     if(_isInitialized_){
       throw std::logic_error("Can't set the number of threads while already initialized.");
     }
-    if( nThreads > std::thread::hardware_concurrency() ){
+    if( _checkHardwareCurrency_ and nThreads > std::thread::hardware_concurrency() ){
       std::cout << GET_VAR_NAME_VALUE(std::thread::hardware_concurrency()) << std::endl;
       throw std::logic_error("Too much threads wrt your hardware.");
     }

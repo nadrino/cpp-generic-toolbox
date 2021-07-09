@@ -32,6 +32,7 @@ namespace GenericToolbox{
     inline void reset();
 
     inline void setIsVerbose(bool isVerbose);
+    inline void setCheckHardwareCurrency(bool checkHardwareCurrency);
     inline void setNThreads(int nThreads);
 
     inline void initialize();
@@ -54,6 +55,7 @@ namespace GenericToolbox{
   private:
     // Parameters
     bool _isVerbose_{true};
+    bool _checkHardwareCurrency_{true};
     int _nThreads_{-1};
 
     // Internals

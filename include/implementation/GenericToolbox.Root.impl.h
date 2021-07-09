@@ -601,11 +601,16 @@ namespace GenericToolbox {
   TMatrixD* getCholeskyMatrix(TMatrixD* covMatrix_){
     if(covMatrix_ == nullptr) return nullptr;
     auto* covMatrixSym = GenericToolbox::convertToSymmetricMatrix(covMatrix_);
-    auto* choleskyDecomposer = new TDecompChol((*covMatrixSym));
+    auto* out = getCholeskyMatrix(covMatrixSym);
+    delete covMatrixSym;
+    return out;
+  }
+  TMatrixD* getCholeskyMatrix(TMatrixDSym* covMatrix_){
+    if(covMatrix_ == nullptr) return nullptr;
+    auto* choleskyDecomposer = new TDecompChol((*covMatrix_));
     if( not choleskyDecomposer->Decompose() ){ return nullptr; }
     auto* output = (TMatrixD *)(((TMatrixD *)(choleskyDecomposer->GetU()).Clone())->T()).Clone();
     delete choleskyDecomposer;
-    delete covMatrixSym;
     return output;
   }
   std::vector<double> throwCorrelatedParameters(TMatrixD* choleskyCovMatrix_){
