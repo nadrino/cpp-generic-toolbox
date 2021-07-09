@@ -430,7 +430,7 @@ namespace GenericToolbox {
       }
     } // iBranch
   }
-  TMatrixD* getCovarianceMatrixOfTree(TTree* tree_){
+  TMatrixD* getCovarianceMatrixOfTree(TTree* tree_, bool showProgressBar_){
 
     TMatrixD* outCovMatrix;
 
@@ -464,6 +464,7 @@ namespace GenericToolbox {
     std::vector<double> meanValueLeafList(leafList.size(),0);
     Long64_t nEntries = tree_->GetEntries();
     for(Long64_t iEntry = 0 ; iEntry < nEntries ; iEntry++){
+      if( showProgressBar_ ) GenericToolbox::displayProgressBar(iEntry, nEntries, "Compute mean of every variable");
       tree_->GetEntry(iEntry);
       for(size_t iLeaf = 0 ; iLeaf < leafList.size() ; iLeaf++){
         meanValueLeafList[iLeaf] += leafList[iLeaf]->GetValue(0);
@@ -475,6 +476,7 @@ namespace GenericToolbox {
 
     // Compute covariance
     for(Long64_t iEntry = 0 ; iEntry < nEntries ; iEntry++){
+      if( showProgressBar_ ) GenericToolbox::displayProgressBar(iEntry, nEntries, "Compute covariance");
       tree_->GetEntry(iEntry);
       for(int iCol = 0 ; iCol < leafList.size() ; iCol++){
         for(int iRow = 0 ; iRow < leafList.size() ; iRow++){
