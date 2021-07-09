@@ -23,6 +23,7 @@
 
 // This Project
 #include <GenericToolbox.h>
+#include <TDecompChol.h>
 
 
 //! Conversion Tools
@@ -595,34 +596,35 @@ namespace GenericToolbox {
     std::sort(output.begin(), output.end(), std::greater<double>());
     return output;
   }
-//  TMatrixD* computeSqrt(TMatrixD* inputMatrix_){
-//    TMatrixD* sqrtMatrix = (TMatrixD*) inputMatrix_->Clone();
-//    // calculate sqrt(V) as lower diagonal matrix
-//    for( int iRow = 0; iRow < sqrtMatrix->GetNrows(); ++iRow ) {
-//      for( int iCol = 0; iCol < sqrtMatrix->GetNcols(); ++iCol ) {
-//        (*sqrtMatrix)[iRow][iCol] = 0;
-//      }
-//    }
-//
-//    for( int j = 0; j < sqrtMatrix->GetNrows(); ++j ) {
-//      // diagonal terms first
-//      double Ck = 0;
-//      for( int k = 0; k < j; ++k ) {
-//        Ck += C[j][k] * C[j][k];
-//      } // k
-//      C[j][j] = sqrt( fabs( V[j][j] - Ck ) );
-//
-//      // off-diagonal terms
-//      for( int i = j+1; i < sqrtMatrix->GetNrows(); ++i ) {
-//        Ck = 0;
-//        for( int k = 0; k < j; ++k ) {
-//          Ck += C[i][k] * C[j][k];
-//        } //k
-//        C[i][j] = ( V[i][j] - Ck ) / C[j][j];
-//      }// i
-//    } // j
-//  }
-
+  TMatrixD* getCholeskyMatrix(TMatrixD* covMatrix_){
+    if(covMatrix_ == nullptr) return nullptr;
+    auto* covMatrixSym = GenericToolbox::convertToSymmetricMatrix(covMatrix_);
+    auto* choleskyDecomposer = new TDecompChol((*covMatrixSym));
+    if( not choleskyDecomposer->Decompose() ){ return nullptr; }
+    auto* output = (TMatrixD *)(((TMatrixD *)(choleskyDecomposer->GetU()).Clone())->T()).Clone();
+    delete choleskyDecomposer;
+    delete covMatrixSym;
+    return output;
+  }
+  std::vector<double> throwCorrelatedParameters(TMatrixD* choleskyCovMatrix_){
+    std::vector<double> out;
+    throwCorrelatedParameters(choleskyCovMatrix_, out);
+    return out;
+  }
+  void throwCorrelatedParameters(TMatrixD* choleskyCovMatrix_, std::vector<double>& thrownParListOut_){
+    if( choleskyCovMatrix_ == nullptr ) return;
+    if( thrownParListOut_.size() != choleskyCovMatrix_->GetNcols() ){
+      thrownParListOut_.resize(choleskyCovMatrix_->GetNcols(), 0);
+    }
+    TVectorD thrownParVec(choleskyCovMatrix_->GetNcols());
+    for( int iPar = 0 ; iPar < choleskyCovMatrix_->GetNcols() ; iPar++ ){
+      thrownParVec[iPar] = gRandom->Gaus();
+    }
+    thrownParVec *= (*choleskyCovMatrix_);
+    for( int iPar = 0 ; iPar < choleskyCovMatrix_->GetNcols() ; iPar++ ){
+      thrownParListOut_.at(iPar) = thrownParVec[iPar];
+    }
+  }
 }
 
 
