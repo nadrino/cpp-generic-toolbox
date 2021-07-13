@@ -183,14 +183,11 @@ namespace GenericToolbox {
 
     ss << std::endl; // always jump line to force flush on screen
     if( percentValue != 100 ){
-      // static_cast<char>(27) = '\033' = 0x1b = ESC
-
-      // Since a line jump may introduce a logger header/prefix, we clear the line first
-      // https://en.wikipedia.org/wiki/ANSI_escape_code
-      // CSI n J
-      ss << static_cast<char>(27) << "[1K";
+      // those commands won't be flushed until a new print is called:
       // pull back to cursor on the line of the progress bar
       ss << static_cast<char>(27) << "[1;1F";
+      // Clear the line and add "\r" since a Logger might intercept it to trigger a print of a line header
+      ss << static_cast<char>(27) << "[1K" << "\r"; // trick to clear
     }
 
     GenericToolbox::Internals::ProgressBar::lastDisplayedPercentValue = percentValue;
