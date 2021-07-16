@@ -299,6 +299,13 @@ namespace GenericToolbox{
     intToFormat_/=1000.; // in P
     return std::to_string(intToFormat_) + "P";
   }
+  std::string highlightIf(bool condition_, const std::string& text_){
+    std::stringstream ss;
+    ss << ( condition_ ? ColorCodes::redBackGround : "" );
+    ss << text_;
+    ss << ( condition_ ? ColorCodes::resetColor : "" );
+    return ss.str();
+  }
 
 }
 
@@ -343,11 +350,11 @@ namespace GenericToolbox {
     return outVal / vector_.size();
   }
   template <typename T> std::vector<T> getSubVector( const std::vector<T>& vector_, size_t beginIndex_, int endIndex_ ){
-    if( endIndex_ <= 0 ){ endIndex_ += vector_.size(); }
+    if( endIndex_ < 0 ){ endIndex_ += vector_.size(); }
     if( beginIndex_ >= endIndex_ ){
       return std::vector<T> ();
     }
-    return std::vector<T> ( &vector_[beginIndex_] , &vector_[endIndex_-1] );
+    return std::vector<T> ( &vector_[beginIndex_] , &vector_[endIndex_+1] );
   }
   template <typename T> std::vector<size_t> getSortPermutation(const std::vector<T>& vectorToSort_, std::function<bool(const T, const T)> compareLambda_ ){
     std::vector<size_t> p(vectorToSort_.size());

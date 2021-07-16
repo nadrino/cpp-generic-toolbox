@@ -159,6 +159,9 @@ namespace GenericToolbox{
   inline std::mutex* ParallelWorker::getThreadMutexPtr(){
     return _threadMutexPtr_;
   }
+  inline int ParallelWorker::getNThreads() const {
+    return _nThreads_;
+  }
 
   inline void ParallelWorker::reStartThreads() {
 

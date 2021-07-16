@@ -42,8 +42,15 @@ namespace GenericToolbox{
 //! Printout Tools
 namespace GenericToolbox {
 
+  namespace ColorCodes{
+    static const char* redBackGround = "\e[41m";
+    static const char* resetColor = "\e[0m";
+  }
+
+
   inline void waitProgressBar(unsigned int nbMilliSecToWait_, const std::string &progressTitle_ = "Waiting...");
   inline std::string parseIntAsString(int intToFormat_);
+  inline std::string highlightIf(bool condition_, const std::string& text_);
 
 }
 
@@ -56,7 +63,7 @@ namespace GenericToolbox{
   template <typename T> inline int findElementIndex(T element_, const std::vector<T>& vector_ );
   inline int findElementIndex(const char* element_, const std::vector<std::string>& vector_ );
   template <typename T> inline double getAverage(const std::vector<T>& vector_);
-  template <typename T> std::vector<T> getSubVector( const std::vector<T>& vector_, size_t beginIndex_, int endIndex_ = 0 );
+  template <typename T> std::vector<T> getSubVector( const std::vector<T>& vector_, size_t beginIndex_, int endIndex_ = -1 );
   template <typename T, typename TT> inline std::vector<TT> convertVectorType( const std::vector<T>& vector_, std::function<TT(T)>& convertTypeFunction_ );
   template <typename T> inline std::vector<size_t> getSortPermutation(const std::vector<T>& vectorToSort_, std::function<bool(const T, const T)> compareLambda_ );
   template <typename T> inline std::vector<T> applyPermutation(const std::vector<T>& vectorToPermute_, const std::vector<std::size_t>& sortPermutation_ );

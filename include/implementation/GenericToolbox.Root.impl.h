@@ -645,6 +645,14 @@ namespace GenericToolbox {
       hist_->SetBinError(iBin,0);
     }
   }
+  inline void rescalePerBinWidth(TH1D* hist_){
+    for( int iBin = 0 ; iBin <= hist_->GetNbinsX()+1 ; iBin++ ){
+      hist_->SetBinContent(
+          iBin,
+          hist_->GetBinContent(iBin) / hist_->GetBinWidth(iBin)
+          );
+    }
+  }
   std::vector<double> getLogBinning(int n_bins_, double X_min_, double X_max_) {
     std::vector<double> output(n_bins_ + 1); // add one extra bin for the boundary
     double xlogmin = TMath::Log10(X_min_);

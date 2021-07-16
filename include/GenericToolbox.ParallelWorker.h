@@ -39,6 +39,7 @@ namespace GenericToolbox{
 
     inline const std::vector<std::string> &getJobNameList() const;
     inline std::mutex* getThreadMutexPtr();
+    inline int getNThreads() const;
 
     inline void addJob(const std::string& jobName_, const std::function<void(int)>& function_); // int arg is supposed to be the thread id
     inline void setPostParallelJob(const std::string& jobName_, const std::function<void()>& function_);

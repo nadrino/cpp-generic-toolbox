@@ -62,6 +62,7 @@ namespace GenericToolbox{
 
   //! Histogram Tools
   inline void resetHistogram(TH1D* hist_);
+  inline void rescalePerBinWidth(TH1D* hist_);
   inline std::vector<double> getLogBinning(int n_bins_, double X_min_, double X_max_);
   inline std::vector<double> getLinearBinning(int n_bins_, double X_min_, double X_max_);
   inline TH1D* getTH1DlogBinning(const std::string &name_, const std::string &title_, int n_bins_, double X_min_, double X_max_);
