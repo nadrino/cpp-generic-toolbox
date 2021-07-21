@@ -21,6 +21,15 @@
 #include "TTreeFormula.h"
 #include "TRandom3.h"
 
+namespace GenericToolbox{
+
+  const std::vector<Color_t> defaultColorWheel = {
+      kGreen-3, kTeal+3, kAzure+7,
+      kCyan-2, kBlue-7, kBlue+2,
+      kOrange+1, kOrange+9, kRed+2, kPink+9
+  };
+
+}
 
 namespace GenericToolbox{
 
@@ -62,7 +71,7 @@ namespace GenericToolbox{
 
   //! Histogram Tools
   inline void resetHistogram(TH1D* hist_);
-  inline void rescalePerBinWidth(TH1D* hist_);
+  inline void rescalePerBinWidth(TH1D* hist_, double globalScaler_ = 1);
   inline std::vector<double> getLogBinning(int n_bins_, double X_min_, double X_max_);
   inline std::vector<double> getLinearBinning(int n_bins_, double X_min_, double X_max_);
   inline TH1D* getTH1DlogBinning(const std::string &name_, const std::string &title_, int n_bins_, double X_min_, double X_max_);

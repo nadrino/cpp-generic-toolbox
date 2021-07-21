@@ -645,11 +645,11 @@ namespace GenericToolbox {
       hist_->SetBinError(iBin,0);
     }
   }
-  inline void rescalePerBinWidth(TH1D* hist_){
+  inline void rescalePerBinWidth(TH1D* hist_, double globalScaler_){
     for( int iBin = 0 ; iBin <= hist_->GetNbinsX()+1 ; iBin++ ){
       hist_->SetBinContent(
           iBin,
-          hist_->GetBinContent(iBin) / hist_->GetBinWidth(iBin)
+          globalScaler_ * hist_->GetBinContent(iBin) / hist_->GetBinWidth(iBin)
           );
     }
   }
