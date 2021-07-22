@@ -640,17 +640,21 @@ namespace GenericToolbox {
 
   inline void resetHistogram(TH1D* hist_){
     hist_->Reset("ICESM");
-    for(int iBin = 0 ; iBin <= hist_->GetNbinsX()+1 ; iBin++ ){
-      hist_->SetBinContent(iBin,0);
-      hist_->SetBinError(iBin,0);
-    }
+    transformBinContent(hist_, [](TH1D* h_, int iBin_){
+      h_->SetBinContent(iBin_, 0);
+      h_->SetBinError(iBin_, 0);
+    }, true);
   }
   inline void rescalePerBinWidth(TH1D* hist_, double globalScaler_){
-    for( int iBin = 0 ; iBin <= hist_->GetNbinsX()+1 ; iBin++ ){
-      hist_->SetBinContent(
-          iBin,
-          globalScaler_ * hist_->GetBinContent(iBin) / hist_->GetBinWidth(iBin)
-          );
+    transformBinContent(hist_, [&](TH1D* h_, int iBin_){
+      h_->SetBinContent( iBin_,globalScaler_ * h_->GetBinContent(iBin_)/hist_->GetBinWidth(iBin_) );
+    }, true);
+  }
+  void transformBinContent(TH1D* hist_, std::function<void(TH1D*, int)> transformFunction_, bool processOverflowBins_){
+    int firstBin = processOverflowBins_ ? 0 : 1;
+    int lastBin = processOverflowBins_ ? hist_->GetNbinsX() + 1 : hist_->GetNbinsX();
+    for( int iBin = firstBin ; iBin <= lastBin ; iBin++ ){
+      transformFunction_(hist_, iBin);
     }
   }
   std::vector<double> getLogBinning(int n_bins_, double X_min_, double X_max_) {
