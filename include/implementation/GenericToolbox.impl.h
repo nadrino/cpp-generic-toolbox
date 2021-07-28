@@ -1713,13 +1713,19 @@ namespace GenericToolbox{
     inline std::string toString(enumName_ enumValue_, bool excludeEnumName_ = false){\
       return enumName_##EnumNamespace::toString(static_cast<int>(enumValue_), excludeEnumName_);       \
     }\
-    inline int toEnumInt(const std::string& enumStr_){\
+    inline int toEnumInt(const std::string& enumStr_, bool throwIfNotFound_ = false){\
       for( int enumIndex = intOffset_ ; enumIndex < enumName_::enumName_##_OVERFLOW ; enumIndex++ ){ \
         if( enumName_##EnumNamespace::toString(enumIndex) == enumStr_ ){ return enumIndex; } \
-      }\
+        if( enumName_##EnumNamespace::toString(enumIndex, true) == enumStr_ ){ return enumIndex; } \
+      }                                                            \
+      if( throwIfNotFound_ ){                                      \
+        throw std::runtime_error( enumStr_ + " not found in " + #enumName_ );   \
+      }                                                             \
       return intOffset_ - 1; /* returns invalid value */\
     }\
-    inline enumName_ toEnum(const std::string& enumStr_){ return static_cast<enumName_>(enumName_##EnumNamespace::toEnumInt(enumStr_)); }\
+    inline enumName_ toEnum(const std::string& enumStr_, bool throwIfNotFound_ = false){                         \
+      return static_cast<enumName_>(enumName_##EnumNamespace::toEnumInt(enumStr_, throwIfNotFound_));  \
+    }\
   }
 
 #endif //CPP_GENERIC_TOOLBOX_GENERICTOOLBOX_IMPL_H

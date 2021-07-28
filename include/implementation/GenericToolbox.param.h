@@ -1,5 +1,5 @@
 //
-// Created by Adrien BLANCHET on 25/06/2021.
+// Created by Nadrino on 25/06/2021.
 //
 
 #ifndef GENERICTOOLBOX_PARAM_H

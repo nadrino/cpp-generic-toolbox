@@ -1,5 +1,5 @@
 //
-// Created by Adrien BLANCHET on 25/06/2021.
+// Created by Nadrino on 25/06/2021.
 //
 
 #ifndef CPP_GENERIC_TOOLBOX_GENERICTOOLBOX_THREADPOOL_IMPL_H
@@ -96,6 +96,7 @@ namespace GenericToolbox{
     this->unPauseParallelThreads();
   }
   inline void ParallelWorker::runJob(const std::string &jobName_) {
+    if( _isVerbose_ ) std::cout << "Running \"" << jobName_ << "\" on " << _nThreads_ << " parallel threads..." << std::endl;
     if( not _isInitialized_ ){
       throw std::logic_error("Can't run job while not initialized");
     }
@@ -111,6 +112,7 @@ namespace GenericToolbox{
     _jobFunctionList_.at(jobIndex)(_nThreads_-1); // do the last job in the main thread
 
     for( int iThread = 0 ; iThread < _nThreads_-1 ; iThread++ ){
+      if( _isVerbose_ ) std::cout << "Waiting for thread #" << iThread << " to be finish the job..." << std::endl;
       while( _jobTriggerList_.at(jobIndex).at(iThread) ) std::this_thread::sleep_for( std::chrono::microseconds(100) ); // wait
     }
 
@@ -145,6 +147,7 @@ namespace GenericToolbox{
     _pauseThreads_ = true; // prevent the threads to loop over the available jobs
     for( const auto& threadTriggers : _jobTriggerList_ ){
       for( int iThread = 0 ; iThread < _nThreads_-1 ; iThread++ ){
+        if( _isVerbose_ ) std::cout << "Waiting for thread #" << iThread << " to be on paused state..." << std::endl;
         while( threadTriggers.at(iThread) ) std::this_thread::sleep_for( std::chrono::microseconds(100) ); // wait for every thread to finish its current job
       }
     }

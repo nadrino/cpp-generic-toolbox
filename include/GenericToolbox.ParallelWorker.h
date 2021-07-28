@@ -1,5 +1,5 @@
 //
-// Created by Adrien BLANCHET on 25/06/2021.
+// Created by Nadrino on 25/06/2021.
 //
 
 #ifndef CPP_GENERIC_TOOLBOX_GENERICTOOLBOX_THREADPOOL_H
