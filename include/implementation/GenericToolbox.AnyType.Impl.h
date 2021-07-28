@@ -54,6 +54,9 @@ namespace GenericToolbox{
     if ( getType() != typeid(ValueType) ) { throw std::runtime_error("AnyType value type mismatch."); }
     return static_cast<const VariableHolder<ValueType> *>(_varPtr_.get())->_variable_;
   }
+  inline double AnyType::getValueAsDouble() const{
+    return _varPtr_->getVariableAsDouble();
+  }
 
   inline std::ostream& operator<<( std::ostream& o, const AnyType& v ) {
     if( v._varPtr_ != nullptr ) v._varPtr_->writeToStream(o);
