@@ -119,7 +119,7 @@ namespace GenericToolbox{
   template<typename T> inline T& LeafHolder::getVariable(size_t arrayIndex_){
     return _leafDataList_.at(arrayIndex_).template getValue<T>();
   }
-  inline double LeafHolder::getVariableAsDouble(size_t arrayIndex_){
+  inline double LeafHolder::getVariableAsDouble(size_t arrayIndex_) const{
     return _leafDataList_.at(arrayIndex_).getValueAsDouble();
   }
 
