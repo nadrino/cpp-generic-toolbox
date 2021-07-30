@@ -36,6 +36,10 @@ namespace GenericToolbox{
   template<typename T, typename TT> inline bool doesPrintProgressBarOk(const T& iCurrent_, const TT& iTotal_);
   inline void resetLastDisplayedValue();
 
+#define DisplayProgressBar(iCurrent_, iTotal_, titleStr_) \
+if( GenericToolbox::doesPrintProgressBarOk((iCurrent_), (iTotal_)){ \
+  *GenericToolbox::Internals::ProgressBar::outputStreamPtr << generateProgressBarStr(iCurrent_, iTotal_, title_);\
+}
 }
 
 
@@ -65,6 +69,7 @@ namespace GenericToolbox{
   template <typename T> inline double getAverage(const std::vector<T>& vector_);
   template <typename T> std::vector<T> getSubVector( const std::vector<T>& vector_, size_t beginIndex_, int endIndex_ = -1 );
   template <typename T, typename TT> inline std::vector<TT> convertVectorType( const std::vector<T>& vector_, std::function<TT(T)>& convertTypeFunction_ );
+  template <typename T> inline std::vector<size_t> getSortPermutation(const std::vector<T>& vectorToSort_, std::function<bool(const T&, const T&)> compareLambda_ );
   template <typename T> inline std::vector<size_t> getSortPermutation(const std::vector<T>& vectorToSort_, std::function<bool(const T, const T)> compareLambda_ );
   template <typename T> inline std::vector<T> applyPermutation(const std::vector<T>& vectorToPermute_, const std::vector<std::size_t>& sortPermutation_ );
   template<typename T> inline void insertInVector(std::vector<T> &vector_, const std::vector<T> &vectorToInsert_, size_t insertBeforeThisIndex_);
@@ -74,7 +79,6 @@ namespace GenericToolbox{
   template<typename T> inline std::vector<size_t> indices(const std::vector<T> &vector_);
   template<typename T> inline double getAveragedSlope(const std::vector<T> &yValues_);
   template<typename T, typename TT> inline double getAveragedSlope(const std::vector<T> &yValues_, const std::vector<TT> &xValues_);
-
 
 }
 
@@ -196,8 +200,8 @@ namespace GenericToolbox{
 namespace GenericToolbox{
 
   //! Misc Tools
-  inline std::string getClassName(const std::string& PRETTY_FUNCTION__); // When calling this functions, provide __PRETTY_FUNCTION__ macro
-  inline std::string getMethodName(const std::string& PRETTY_FUNCTION__);
+  inline std::string getClassName(const std::string& PRETTY_FUNCTION_); // When calling this functions, provide __PRETTY_FUNCTION__ macro
+  inline std::string getMethodName(const std::string& PRETTY_FUNCTION_);
 
   // Not intended to be managed by the user
   namespace Internals{

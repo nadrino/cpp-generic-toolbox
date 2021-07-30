@@ -43,6 +43,7 @@ namespace GenericToolbox{
 
     inline void addJob(const std::string& jobName_, const std::function<void(int)>& function_); // int arg is supposed to be the thread id
     inline void setPostParallelJob(const std::string& jobName_, const std::function<void()>& function_);
+    inline void setPreParallelJob(const std::string& jobName_, const std::function<void()>& function_);
     inline void runJob(const std::string& jobName_);
     inline void removeJob(const std::string& jobName_);
 
@@ -68,6 +69,7 @@ namespace GenericToolbox{
     std::vector<ThreadStatus> _threadStatusList_;
     std::vector<std::function<void(int)>> _jobFunctionList_;
     std::vector<std::function<void()>> _jobFunctionPostParallelList_;
+    std::vector<std::function<void()>> _jobFunctionPreParallelList_;
     std::vector<std::string> _jobNameList_;
     std::vector<std::vector<bool>> _jobTriggerList_;
 

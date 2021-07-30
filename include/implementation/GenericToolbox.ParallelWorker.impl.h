@@ -28,6 +28,7 @@ namespace GenericToolbox{
     _jobTriggerList_.clear();
     _jobFunctionList_.clear();
     _jobFunctionPostParallelList_.clear();
+    _jobFunctionPreParallelList_.clear();
   }
 
   inline void ParallelWorker::setIsVerbose(bool isVerbose) {
@@ -71,6 +72,7 @@ namespace GenericToolbox{
     _jobNameList_.emplace_back(jobName_);
     _jobFunctionList_.emplace_back(function_);
     _jobFunctionPostParallelList_.emplace_back();
+    _jobFunctionPreParallelList_.emplace_back();
     _jobTriggerList_.emplace_back(std::vector<bool>(_nThreads_, false));
     this->unPauseParallelThreads();
 
@@ -95,6 +97,22 @@ namespace GenericToolbox{
     _jobFunctionPostParallelList_.at(jobIndex) = function_;
     this->unPauseParallelThreads();
   }
+  inline void ParallelWorker::setPreParallelJob(const std::string& jobName_, const std::function<void()>& function_){
+    if( not _isInitialized_ ){
+      throw std::logic_error("Can't add post parallel job while not initialized");
+    }
+    int jobIndex = GenericToolbox::findElementIndex(jobName_, _jobNameList_);
+    if( jobIndex == -1 ){
+      throw std::logic_error(jobName_ + ": is not in the available jobsList");
+    }
+    if( not function_ ){ // is it callable?
+      throw std::logic_error("the provided post parallel function is not callable");
+    }
+
+    this->pauseParallelThreads();
+    _jobFunctionPreParallelList_.at(jobIndex) = function_;
+    this->unPauseParallelThreads();
+  }
   inline void ParallelWorker::runJob(const std::string &jobName_) {
     if( _isVerbose_ ) std::cout << "Running \"" << jobName_ << "\" on " << _nThreads_ << " parallel threads..." << std::endl;
     if( not _isInitialized_ ){
@@ -103,6 +121,10 @@ namespace GenericToolbox{
     int jobIndex = GenericToolbox::findElementIndex(jobName_, _jobNameList_);
     if( jobIndex == -1 ){
       throw std::logic_error(jobName_ + ": is not in the available jobsList");
+    }
+
+    if( _jobFunctionPreParallelList_.at(jobIndex) ){ // is it callable?
+      _jobFunctionPreParallelList_.at(jobIndex)();
     }
 
     for( int iThread = 0 ; iThread < _nThreads_-1 ; iThread++ ){
@@ -134,6 +156,7 @@ namespace GenericToolbox{
     _jobNameList_.erase(_jobNameList_.begin() + jobIndex);
     _jobFunctionList_.erase(_jobFunctionList_.begin() + jobIndex);
     _jobFunctionPostParallelList_.erase(_jobFunctionPostParallelList_.begin() + jobIndex);
+    _jobFunctionPreParallelList_.erase(_jobFunctionPreParallelList_.begin() + jobIndex);
     _jobTriggerList_.erase(_jobTriggerList_.begin() + jobIndex);
     this->unPauseParallelThreads();
 

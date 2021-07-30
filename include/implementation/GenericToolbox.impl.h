@@ -48,10 +48,10 @@ namespace GenericToolbox {
       static int barLength = PROGRESS_BAR_LENGTH;
       static size_t refreshRateInMilliSec = PROGRESS_BAR_REFRESH_DURATION_IN_MS;
       static std::string fillTag(PROGRESS_BAR_FILL_TAG);
-      static std::ostream* outputStreamPtr = &std::cout;
+      static std::ostream* outputStreamPtr{&std::cout};
 
-      static int lastDisplayedPercentValue = -1;
-      static int lastDisplayedValue = -1;
+      static int lastDisplayedPercentValue{-1};
+      static int lastDisplayedValue{-1};
       static auto lastDisplayedTimePoint = std::chrono::high_resolution_clock::now();
       static std::thread::id _selectedThreadId_ = std::this_thread::get_id(); // get the main thread id
       static std::vector<std::string> rainbowColorList{"\033[1;31m", "\033[1;32m", "\033[1;33m", "\033[1;34m",
@@ -236,7 +236,7 @@ namespace GenericToolbox {
     if( forcePrint_ or doesPrintProgressBarOk(iCurrent_, iTotal_) ){
       return generateProgressBarStr(iCurrent_, iTotal_, title_);
     }
-    return std::string();
+    return {};
   }
   template<typename T, typename TT> void displayProgressBar(const T& iCurrent_, const TT& iTotal_, const std::string &title_, bool forcePrint_) {
     if( forcePrint_ or doesPrintProgressBarOk(iCurrent_, iTotal_) ){
@@ -338,7 +338,7 @@ namespace GenericToolbox {
     int outIndex = -1;
     auto it = std::find(vector_.begin(), vector_.end(), element_);
     if (it != vector_.end()){
-      outIndex = std::distance(vector_.begin(), it);
+      outIndex = int(std::distance(vector_.begin(), it));
     }
     return outIndex;
   }
@@ -355,6 +355,13 @@ namespace GenericToolbox {
       return std::vector<T> ();
     }
     return std::vector<T> ( &vector_[beginIndex_] , &vector_[endIndex_+1] );
+  }
+  template <typename T> std::vector<size_t> getSortPermutation(const std::vector<T>& vectorToSort_, std::function<bool(const T&, const T&)> compareLambda_ ){
+    std::vector<size_t> p(vectorToSort_.size());
+    std::iota(p.begin(), p.end(), 0);
+    std::sort(p.begin(), p.end(),
+              [&](size_t i, size_t j){ return compareLambda_(vectorToSort_.at(i), vectorToSort_.at(j)); });
+    return p;
   }
   template <typename T> std::vector<size_t> getSortPermutation(const std::vector<T>& vectorToSort_, std::function<bool(const T, const T)> compareLambda_ ){
     std::vector<size_t> p(vectorToSort_.size());
@@ -725,7 +732,7 @@ namespace GenericToolbox {
     if (size <= 0) { throw std::runtime_error("Error during formatting."); }
     std::unique_ptr<char[]> buf(new char[size]);
     snprintf(buf.get(), size, strToFormat_.c_str(), args ...);
-    return std::string(buf.get(), buf.get() + size - 1); // We don't want the '\0' inside
+    return {buf.get(), buf.get() + size - 1}; // We don't want the '\0' inside
   }
 
   inline void replaceSubstringInsideInputString(std::string &input_str_, const std::string &substr_to_look_for_, const std::string &substr_to_replace_){
@@ -841,7 +848,7 @@ namespace GenericToolbox{
         }
       }
       else if (c[0] == '~' && c[1] != '/') { // ~user case
-        int n = strcspn(c+1, "/ ");
+        int n = int(strcspn(c+1, "/ "));
 //        assert((n+1) < bufferSize_ && "This should have been prevented by the truncation 'strlcat(inp, c, bufferSize_)'");
 //        assert((n+1) < bufferSize_ && "This should have been prevented by the truncation 'strncat(inp, c, bufferSize_)'");
         // There is no overlap here as the buffer is segment in 4 strings of at most bufferSize_
@@ -920,7 +927,7 @@ namespace GenericToolbox{
 #endif
             x++[0] = c[0];
           } else {                       // It is OK, copy result
-            int lp = strlen(expandedPathCharArray);
+            int lp = int(strlen(expandedPathCharArray));
             if (lp >= bufferSize_) {
               // make sure lx will be >= bufferSize_ (see below)
 //              strlcpy(x, expandedPathCharArray, bufferSize_);
@@ -954,7 +961,7 @@ namespace GenericToolbox{
 
   inline std::string getHomeDirectory(){
     struct passwd *pw = getpwuid(getuid());
-    return std::string(pw->pw_dir);
+    return {pw->pw_dir};
   }
   inline std::string getCurrentWorkingDirectory(){
     char cwd[1024];
@@ -968,7 +975,7 @@ namespace GenericToolbox{
     char outputName[8192];
     Internals::expandEnvironmentVariables(filePath_.c_str(), outputName);
 
-    return std::string(outputName);
+    return {outputName};
   }
   inline std::string getExecutableName(){
     std::string outStr;
@@ -1008,16 +1015,12 @@ namespace GenericToolbox{
   std::string getFileNameFromFilePath(const std::string &filePath_, bool keepExtension_){
     auto splitStr = GenericToolbox::splitString(filePath_, "/");
     if(not splitStr.empty()){
-      if(keepExtension_){
-        return splitStr[splitStr.size()-1];
-      }
-      else{
-        return GenericToolbox::splitString(splitStr[splitStr.size()-1], ".")[0];
-      }
+      return ( keepExtension_ ?
+        splitStr[splitStr.size()-1]:
+        GenericToolbox::splitString(splitStr[splitStr.size()-1], ".")[0]
+      );
     }
-    else{
-      return "";
-    }
+    return {};
   }
 
   // -- with direct IO dependencies
@@ -1049,8 +1052,8 @@ namespace GenericToolbox{
 
     while (fileStream1 and fileStream2) {
       // Try to read next chunk of data
-      fileStream1.read(buffer1, buffer_size);
-      fileStream2.read(buffer2, buffer_size);
+      fileStream1.read(buffer1, long(buffer_size));
+      fileStream2.read(buffer2, long(buffer_size));
 
       // Get the number of bytes actually read
       if(fileStream1.gcount() != fileStream2.gcount()){
@@ -1654,21 +1657,21 @@ namespace GenericToolbox{
 // Misc Tools
 namespace GenericToolbox{
 
-  std::string getClassName(const std::string& PRETTY_FUNCTION__){
-    size_t colons = PRETTY_FUNCTION__.find("::");
+  std::string getClassName(const std::string& PRETTY_FUNCTION_){
+    size_t colons = PRETTY_FUNCTION_.find("::");
     if (colons == std::string::npos)
       return "::";
-    size_t begin = PRETTY_FUNCTION__.substr(0,colons).rfind(' ') + 1;
+    size_t begin = PRETTY_FUNCTION_.substr(0, colons).rfind(' ') + 1;
     size_t end = colons - begin;
 
-    return PRETTY_FUNCTION__.substr(begin,end);
+    return PRETTY_FUNCTION_.substr(begin, end);
   }
-  std::string getMethodName(const std::string& PRETTY_FUNCTION__){
-    size_t colons = PRETTY_FUNCTION__.find("::");
-    size_t begin = PRETTY_FUNCTION__.substr(0,colons).rfind(' ') + 1;
-    size_t end = PRETTY_FUNCTION__.rfind('(') - begin;
+  std::string getMethodName(const std::string& PRETTY_FUNCTION_){
+    size_t colons = PRETTY_FUNCTION_.find("::");
+    size_t begin = PRETTY_FUNCTION_.substr(0, colons).rfind(' ') + 1;
+    size_t end = PRETTY_FUNCTION_.rfind('(') - begin;
 
-    return PRETTY_FUNCTION__.substr(begin,end) + "()";
+    return PRETTY_FUNCTION_.substr(begin, end) + "()";
   }
 
 }
