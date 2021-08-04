@@ -49,10 +49,10 @@ namespace GenericToolbox{
     if ( getType() != typeid(ValueType) ) { throw std::runtime_error("AnyType value type mismatch."); }
     return static_cast<VariableHolder<ValueType> *>(_varPtr_.get())->_variable_;
   }
-  template<typename ValueType> inline ValueType& AnyType::getValue() const{
+  template<typename ValueType> inline const ValueType& AnyType::getValue() const{
     if ( _varPtr_ == nullptr ){ throw std::runtime_error("AnyType value not set."); }
     if ( getType() != typeid(ValueType) ) { throw std::runtime_error("AnyType value type mismatch."); }
-    return static_cast<const VariableHolder<ValueType> *>(_varPtr_.get())->_variable_;
+    return static_cast<const VariableHolder<const ValueType> *>(_varPtr_.get())->_variable_;
   }
   inline double AnyType::getValueAsDouble() const{
     return _varPtr_->getVariableAsDouble();

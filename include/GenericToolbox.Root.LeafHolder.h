@@ -29,6 +29,8 @@ namespace GenericToolbox{
     inline void hookToTree(TTree* tree_, const std::string& branchName_);
     template<typename T> inline void defineVariable(T variable_, size_t arraySize_ = 1);
     template<typename T> inline T& getVariable(size_t arrayIndex_ = 0);
+
+    template<typename T> inline const T& getVariable(size_t arrayIndex_ = 0) const;
     inline double getVariableAsDouble(size_t arrayIndex_ = 0) const;
 
     inline const std::string &getLeafTypeName() const;

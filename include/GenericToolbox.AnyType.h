@@ -78,7 +78,7 @@ namespace GenericToolbox{
 
     template<typename ValueType> inline void setValue(const ValueType& value_);
     template<typename ValueType> inline ValueType& getValue();
-    template<typename ValueType> inline ValueType& getValue() const;
+    template<typename ValueType> inline const ValueType& getValue() const;
     double getValueAsDouble() const;
 
     inline friend std::ostream& operator <<( std::ostream& o, const AnyType& v );
