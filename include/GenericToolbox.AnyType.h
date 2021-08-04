@@ -17,8 +17,6 @@ namespace GenericToolbox{
   // Structs to decide if a stream function can be implemented
   template<typename S, typename T, typename = void> struct is_streamable : std::false_type {};
   template<typename S, typename T> struct is_streamable<S, T, decltype(std::declval<S&>() << std::declval<T&>(), void())> : std::true_type {};
-  template<typename T, typename = void> struct is_double_castable : std::false_type {};
-  template<typename T> struct is_double_castable<T, decltype(static_cast<double>(std::declval<T>()), (void)void())> : std::true_type {};
 
   // Required by C++11 and C++14
   template <typename T, bool> class StreamerImpl {};
@@ -50,7 +48,7 @@ namespace GenericToolbox{
       StreamerImpl<VariableType, is_streamable<std::ostream,VariableType>::value>::implement(o, _variable_);
     }
     double getVariableAsDouble() const override {
-      return DoubleCastImpl<VariableType, is_double_castable<VariableType>::value>::implement(_variable_);
+      return DoubleCastImpl<VariableType, std::is_convertible<VariableType, double>::value>::implement(_variable_);
     }
 
     VariableType _variable_;
