@@ -18,7 +18,7 @@ namespace GenericToolbox{
   template<typename S, typename T, typename = void> struct is_streamable : std::false_type {};
   template<typename S, typename T> struct is_streamable<S, T, decltype(std::declval<S&>() << std::declval<T&>(), void())> : std::true_type {};
   template<typename T, typename = void> struct is_double_castable : std::false_type {};
-  template<typename T> struct is_double_castable<T, decltype(static_cast<double>(std::declval<T>()), void())> : std::true_type {};
+  template<typename T> struct is_double_castable<T, decltype(static_cast<double>(std::declval<T>()))> : std::true_type {};
 
   // Required by C++11 and C++14
   template <typename T, bool> class StreamerImpl {};
