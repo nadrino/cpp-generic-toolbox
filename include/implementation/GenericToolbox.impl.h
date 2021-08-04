@@ -45,18 +45,18 @@ namespace GenericToolbox {
       // Parameters for the progress bar
       static bool enableRainbowProgressBar = PROGRESS_BAR_ENABLE_RAINBOW;
       static bool displaySpeed = PROGRESS_BAR_SHOW_SPEED;
-      static int barLength = PROGRESS_BAR_LENGTH;
+      static int maxBarLength = PROGRESS_BAR_LENGTH;
       static size_t refreshRateInMilliSec = PROGRESS_BAR_REFRESH_DURATION_IN_MS;
       static std::string fillTag(PROGRESS_BAR_FILL_TAG);
       static std::ostream* outputStreamPtr{&std::cout};
 
       static int lastDisplayedPercentValue{-1};
       static int lastDisplayedValue{-1};
+      static double lastDisplayedSpeed{0};
       static auto lastDisplayedTimePoint = std::chrono::high_resolution_clock::now();
       static std::thread::id _selectedThreadId_ = std::this_thread::get_id(); // get the main thread id
       static std::vector<std::string> rainbowColorList{"\033[1;31m", "\033[1;32m", "\033[1;33m", "\033[1;34m",
                                                        "\033[1;35m", "\033[1;36m"};
-
     }
   }
 
@@ -71,133 +71,142 @@ namespace GenericToolbox {
       percentValue = 0;
     }
 
-    std::stringstream ss;
+    std::stringstream ssPrefix;
+    if( not title_.empty() ) ssPrefix << title_ << " ";
 
-    int displayedBarLength = GenericToolbox::Internals::ProgressBar::barLength;
-    std::string displayedTitle = title_;
+    std::stringstream ssTail;
+    ssTail << GenericToolbox::padString(std::to_string(percentValue), 3, ' ') << "%";
 
     auto newTimePoint = std::chrono::high_resolution_clock::now();
-    std::string speedString;
     if (GenericToolbox::Internals::ProgressBar::displaySpeed) {
-      speedString += "(";
+      ssTail << " (";
       double itPerSec =
         double(iCurrent_) - GenericToolbox::Internals::ProgressBar::lastDisplayedValue; // nb iterations since last print
-      if (int(itPerSec) < 0) itPerSec = 0;
-      else {
-        double timeInterval = double(std::chrono::duration_cast<std::chrono::milliseconds>(
-          newTimePoint - GenericToolbox::Internals::ProgressBar::lastDisplayedTimePoint
-        ).count()) / 1000.;
-        itPerSec /= timeInterval; // Count per s
-      }
-      speedString += GenericToolbox::parseIntAsString(int(itPerSec));
-      speedString += " it/s)";
+        double timeInterval;
+        if (int(itPerSec) < 0) itPerSec = 0;
+        else {
+          timeInterval = double(std::chrono::duration_cast<std::chrono::milliseconds>(
+            newTimePoint - GenericToolbox::Internals::ProgressBar::lastDisplayedTimePoint
+            ).count()) / 1000.;
+          if( timeInterval != 0 ){
+            itPerSec /= timeInterval; // Count per s
+            GenericToolbox::Internals::ProgressBar::lastDisplayedSpeed = itPerSec;
+          }
+          else itPerSec = GenericToolbox::Internals::ProgressBar::lastDisplayedSpeed;
+        }
+        ssTail << GenericToolbox::padString(GenericToolbox::parseIntAsString(int(itPerSec)), 5, ' ');
+        ssTail << " it/s)";
+
+        if( GenericToolbox::doesStringEndsWithSubstring(ssTail.str(), "(-2147483648 it/s)") ){
+          std::cout << std::endl << ssTail.str() << std::endl;
+          std::cout << "itPerSec = " << itPerSec << std::endl;
+          std::cout << "timeInterval = " << timeInterval << std::endl;
+          throw std::runtime_error("STOP");
+        }
     }
 
+
+
     // test if the bar is too wide wrt the prompt width
-    if (GenericToolbox::getTerminalWidth() != 0) { // terminal width is measurable
+    int displayedBarLength = GenericToolbox::Internals::ProgressBar::maxBarLength;
 
-      // clean the full line with blank spaces
-//        std::cout << "\r" << GenericToolbox::repeatString(" ", GenericToolbox::getTerminalWidth()-1) << "\r";
+    auto termWidth = GenericToolbox::getTerminalWidth();
+    if( termWidth != 0 ) { // terminal width is measurable
 
-      unsigned long totalLength = 0;
-      std::string strippedTitle = GenericToolbox::stripStringUnicode(title_); // remove special chars and colors
-      totalLength += strippedTitle.size();
-      if (not title_.empty()) totalLength += 1; // after title space
-      if (displayedBarLength > 0) {
-        totalLength += 2; // []
-        totalLength += displayedBarLength;
+      size_t totalBarLength = GenericToolbox::getPrintSize(ssPrefix.str());
+      if(displayedBarLength > 0) {
+        totalBarLength += 2; // []
+        totalBarLength += displayedBarLength;
+        totalBarLength += 1; // space before tail
       }
-      totalLength += 1 + 3 + 1; // space, 100, %
-      totalLength += speedString.size() + 1; // space + speedString
-      totalLength += 1; // one extra free char is needed to flush
+      totalBarLength += ssTail.str().size();
+      totalBarLength += 1; // 1 extra space is necessary to std::endl
 
-      int extraCharsCount = int(totalLength) - GenericToolbox::getTerminalWidth();
-      if (extraCharsCount > 0 and displayedBarLength > 0) {
-        // first, reduce the bar width
-        displayedBarLength = GenericToolbox::Internals::ProgressBar::barLength - extraCharsCount;
-        // 12 arbitrary chosen as the minimal barWidth
-        if (displayedBarLength < 12) {
-          // if the requested bar length is lower that 12, remove it completly
-          displayedBarLength = 0;
+      int remainingSpaces = termWidth;
+      remainingSpaces -= int(totalBarLength);
+
+      if( remainingSpaces < 0 ){
+        if( displayedBarLength >= 0 ){
+          // ok, can take some extra space in the bar
+          displayedBarLength -= std::abs(remainingSpaces);
+          if (displayedBarLength < 12) {
+            displayedBarLength = 0;
+            remainingSpaces += 2; // get back the [] of the pBar
+          }
+          remainingSpaces += (GenericToolbox::Internals::ProgressBar::maxBarLength - displayedBarLength );
         }
-        extraCharsCount -= GenericToolbox::Internals::ProgressBar::barLength - displayedBarLength;
       }
 
       // if it's still to big, cut the title
-      if (extraCharsCount > 0) {
-        displayedTitle = title_.substr(0, strippedTitle.size() - extraCharsCount - 3);
-        displayedTitle += "...";
+      if ( remainingSpaces < 0) {
+        std::string cutPrefix = ssPrefix.str().substr(0, int(ssPrefix.str().size()) - std::abs(remainingSpaces) - 3);
+        ssPrefix.str("");
+        ssPrefix << cutPrefix;
+        ssPrefix << "\033[0m" << "...";
       }
-    } else {
+    }
+    else {
       displayedBarLength = 0;
     }
 
-    if (not displayedTitle.empty()) {
-      ss << displayedTitle << " ";
-    }
+    std::stringstream ssProgressBar;
+    ssProgressBar << ssPrefix.str();
 
     if (displayedBarLength > 0) {
 
       int nbTags = percentValue * displayedBarLength / 100;
       int nbSpaces = displayedBarLength - nbTags;
-      ss << "[";
+      ssProgressBar << "[";
       if (not GenericToolbox::Internals::ProgressBar::enableRainbowProgressBar) {
         int iCharTagIndex = 0;
         for (int iTag = 0; iTag < nbTags; iTag++) {
-          ss << GenericToolbox::Internals::ProgressBar::fillTag[iCharTagIndex];
+          ssProgressBar << GenericToolbox::Internals::ProgressBar::fillTag[iCharTagIndex];
           iCharTagIndex++;
           if (iCharTagIndex >= GenericToolbox::Internals::ProgressBar::fillTag.size()) iCharTagIndex = 0;
         }
-      } else {
+      }
+      else {
         int nbTagsCredits = nbTags;
         int nbColors = int(GenericToolbox::Internals::ProgressBar::rainbowColorList.size());
         int nbTagsPerColor = displayedBarLength / nbColors;
         if (displayedBarLength % nbColors != 0) nbTagsPerColor++;
         int iCharTagIndex = 0;
         for (int iColor = 0; iColor < nbColors; iColor++) {
-          ss << GenericToolbox::Internals::ProgressBar::rainbowColorList[iColor];
+          ssProgressBar << GenericToolbox::Internals::ProgressBar::rainbowColorList[iColor];
           if (nbTagsCredits == 0) break;
           int iSlot = 0;
           while (nbTagsCredits != 0 and iSlot < nbTagsPerColor) {
-            ss << GenericToolbox::Internals::ProgressBar::fillTag[iCharTagIndex];
+            ssProgressBar << GenericToolbox::Internals::ProgressBar::fillTag[iCharTagIndex];
             iCharTagIndex++;
             if (iCharTagIndex >= GenericToolbox::Internals::ProgressBar::fillTag.size()) iCharTagIndex = 0;
             nbTagsCredits--;
             iSlot++;
           }
         }
-        ss << "\033[0m";
+        ssProgressBar << "\033[0m";
       }
-      ss << repeatString(" ", nbSpaces) << "]";
+      ssProgressBar << repeatString(" ", nbSpaces) << "] ";
     }
 
-    ss << " " << percentValue << "%";
-    if (not speedString.empty()) {
-      ss << " " << speedString;
-    }
+    ssProgressBar << ssTail.str();
 
-//    ss << "\r";
-//    if( percentValue == 100 ){
-//      ss << std::endl;
-//    }
-
-    ss << std::endl; // always jump line to force flush on screen
+    ssProgressBar << std::endl; // always jump line to force flush on screen
     if( percentValue != 100 ){
       // those commands won't be flushed until a new print is called:
       // pull back to cursor on the line of the progress bar
-      ss << static_cast<char>(27) << "[1;1F";
+      ssProgressBar << static_cast<char>(27) << "[1;1F";
       // Clear the line and add "\r" since a Logger might intercept it to trigger a print of a line header
-      ss << static_cast<char>(27) << "[1K" << "\r"; // trick to clear
+      ssProgressBar << static_cast<char>(27) << "[1K" << "\r"; // trick to clear
     }
 
     GenericToolbox::Internals::ProgressBar::lastDisplayedPercentValue = percentValue;
     GenericToolbox::Internals::ProgressBar::lastDisplayedValue = iCurrent_;
     GenericToolbox::Internals::ProgressBar::lastDisplayedTimePoint = newTimePoint;
 
-    return ss.str();
+    return ssProgressBar.str();
 
   }
-  template<typename T, typename TT> inline bool doesPrintProgressBarOk(const T& iCurrent_, const TT& iTotal_){
+  template<typename T, typename TT> inline bool showProgressBar(const T& iCurrent_, const TT& iTotal_){
 
 //    if( // Only the main thread
 //      GenericToolbox::Internals::ProgressBar::_selectedThreadId_ != std::this_thread::get_id()
@@ -233,13 +242,13 @@ namespace GenericToolbox {
     return false;
   }
   template<typename T, typename TT> inline std::string getProgressBarStr(const T& iCurrent_, const TT& iTotal_, const std::string &title_, bool forcePrint_ ){
-    if( forcePrint_ or doesPrintProgressBarOk(iCurrent_, iTotal_) ){
+    if(forcePrint_ or showProgressBar(iCurrent_, iTotal_) ){
       return generateProgressBarStr(iCurrent_, iTotal_, title_);
     }
     return {};
   }
   template<typename T, typename TT> void displayProgressBar(const T& iCurrent_, const TT& iTotal_, const std::string &title_, bool forcePrint_) {
-    if( forcePrint_ or doesPrintProgressBarOk(iCurrent_, iTotal_) ){
+    if(forcePrint_ or showProgressBar(iCurrent_, iTotal_) ){
       *GenericToolbox::Internals::ProgressBar::outputStreamPtr << generateProgressBarStr(iCurrent_, iTotal_, title_);
     }
   }
@@ -498,6 +507,10 @@ namespace GenericToolbox {
 // String Management Tools
 namespace GenericToolbox {
 
+  namespace StringManagementUtils{
+    static std::regex ansiRegex("\033((\\[((\\d+;)*\\d+)?[A-DHJKMRcfghilmnprsu])|\\(|\\))");
+  }
+
   bool doesStringContainsSubstring(std::string string_, std::string substring_, bool ignoreCase_) {
     if (substring_.empty()) return true;
     if (substring_.size() > string_.size()) return false;
@@ -532,7 +545,7 @@ namespace GenericToolbox {
                    [](unsigned char c) { return std::tolower(c); });
     return output_str;
   }
-  std::string stripStringUnicode(const std::string &inputStr_){
+  inline std::string stripStringUnicode(const std::string &inputStr_){
     std::string outputStr(inputStr_);
 
     if(GenericToolbox::doesStringContainsSubstring(outputStr, "\033")){
@@ -569,10 +582,20 @@ namespace GenericToolbox {
       outputStr.end()
     );
 
-
-
-
     return outputStr;
+  }
+  inline size_t getPrintSize(const std::string& str_){
+    if( str_.empty() ) return 0;
+    std::string::iterator::difference_type result = 0;
+    std::for_each(
+      std::sregex_token_iterator(str_.begin(), str_.end(), StringManagementUtils::ansiRegex, -1),
+      std::sregex_token_iterator(),
+      [&result](std::sregex_token_iterator::value_type const& e) {
+        std::string tmp(e);
+        result += std::count_if(tmp.begin(), tmp.end(), isprint);
+      }
+    );
+    return result;
   }
   inline std::string repeatString(const std::string &inputStr_, int amount_){
     std::string outputStr;

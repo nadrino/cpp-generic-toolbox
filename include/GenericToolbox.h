@@ -33,13 +33,18 @@ namespace GenericToolbox{
   template<typename T, typename TT> inline void displayProgressBar( const T& iCurrent_, const TT& iTotal_, const std::string &title_ = "", bool forcePrint_ = false);
   template<typename T, typename TT> inline std::string getProgressBarStr(const T& iCurrent_, const TT& iTotal_, const std::string &title_ = "", bool forcePrint_ = false );
   template<typename T, typename TT> inline std::string generateProgressBarStr(const T& iCurrent_, const TT& iTotal_, const std::string &title_ = "" );
-  template<typename T, typename TT> inline bool doesPrintProgressBarOk(const T& iCurrent_, const TT& iTotal_);
+  template<typename T, typename TT> inline bool showProgressBar(const T& iCurrent_, const TT& iTotal_);
   inline void resetLastDisplayedValue();
 
 #define DisplayProgressBar(iCurrent_, iTotal_, titleStr_) \
-if( GenericToolbox::doesPrintProgressBarOk((iCurrent_), (iTotal_)){ \
-  *GenericToolbox::Internals::ProgressBar::outputStreamPtr << generateProgressBarStr(iCurrent_, iTotal_, title_);\
+if( GenericToolbox::showProgressBar((iCurrent_), (iTotal_)) ){ \
+  *GenericToolbox::Internals::ProgressBar::outputStreamPtr\
+  << GenericToolbox::generateProgressBarStr(                              \
+    (iCurrent_), (iTotal_),                               \
+    ((std::stringstream&) (std::stringstream() << titleStr_) ).str() \
+  );\
 }
+
 }
 
 
@@ -105,6 +110,7 @@ namespace GenericToolbox{
   inline bool doesStringEndsWithSubstring(std::string string_, std::string substring_, bool ignoreCase_ = false);
   inline std::string toLowerCase(const std::string &inputStr_);
   inline std::string stripStringUnicode(const std::string &inputStr_);
+  inline size_t getPrintSize(const std::string& str_);
   inline std::string repeatString(const std::string &inputStr_, int amount_);
   inline std::string trimString(const std::string &inputStr_, const std::string &strToTrim_);
   inline std::string padString(const std::string& inputStr_, unsigned int padSize_, const char& padChar = ' ');
