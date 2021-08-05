@@ -38,7 +38,7 @@ namespace GenericToolbox{
 
 #define DisplayProgressBar(iCurrent_, iTotal_, titleStr_) \
 if( GenericToolbox::showProgressBar((iCurrent_), (iTotal_)) ){ \
-  *GenericToolbox::Internals::ProgressBar::outputStreamPtr\
+  *GenericToolbox::ProgressBar::outputStreamPtr\
   << GenericToolbox::generateProgressBarStr(                              \
     (iCurrent_), (iTotal_),                               \
     ((std::stringstream&) (std::stringstream() << titleStr_) ).str() \
