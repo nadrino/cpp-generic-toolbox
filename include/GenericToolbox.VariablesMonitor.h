@@ -35,6 +35,7 @@ namespace GenericToolbox{
     inline VariableMonitor& getVariable(const std::string& name_);
     inline QuantityMonitor& getQuantity(const std::string& quantityName_);
 
+    inline bool isGenerateMonitorStringOk();
     inline std::string generateMonitorString(bool trailBackCursor_ = false);
 
   private:
