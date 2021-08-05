@@ -36,14 +36,14 @@ namespace GenericToolbox{
   template<typename T, typename TT> inline bool showProgressBar(const T& iCurrent_, const TT& iTotal_);
   inline void resetLastDisplayedValue();
 
-#define DisplayProgressBar(iCurrent_, iTotal_, titleStr_) \
-if( GenericToolbox::showProgressBar((iCurrent_), (iTotal_)) ){ \
-  *GenericToolbox::ProgressBar::outputStreamPtr\
-  << GenericToolbox::generateProgressBarStr(                              \
-    (iCurrent_), (iTotal_),                               \
-    ((std::stringstream&) (std::stringstream() << titleStr_) ).str() \
-  );\
-}
+//#define DisplayProgressBar(iCurrent_, iTotal_, titleStr_) \
+//if( GenericToolbox::showProgressBar((iCurrent_), (iTotal_)) ){ \
+//  *GenericToolbox::ProgressBar::outputStreamPtr\
+//  << GenericToolbox::generateProgressBarStr(                              \
+//    (iCurrent_), (iTotal_),                               \
+//    ((std::stringstream&) (std::stringstream() << titleStr_) ).str() \
+//  );\
+//}
 
 }
 
