@@ -259,12 +259,12 @@ namespace GenericToolbox {
     }
     return {};
   }
-  template<typename T, typename TT> void displayProgressBar(const T& iCurrent_, const TT& iTotal_, const std::string &title_, bool forcePrint_) {
-    if(forcePrint_ or showProgressBar(iCurrent_, iTotal_) ){
-      *ProgressBar::outputStreamPtr << generateProgressBarStr(iCurrent_, iTotal_, title_);
+  template<typename T, typename TT> inline void displayProgressBar(const T& iCurrent_, const TT& iTotal_, const std::string &title_, bool forcePrint_) {
+    if(forcePrint_ or GenericToolbox::showProgressBar(iCurrent_, iTotal_) ){
+      *ProgressBar::outputStreamPtr << GenericToolbox::generateProgressBarStr(iCurrent_, iTotal_, title_);
     }
   }
-  void resetLastDisplayedValue(){
+  inline void resetLastDisplayedValue(){
     std::cout << "resetLastDisplayedValue" << std::endl;
       ProgressBar::lastDisplayedValue = -1;
       ProgressBar::lastDisplayedPercentValue = -1;
