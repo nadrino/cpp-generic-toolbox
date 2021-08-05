@@ -197,6 +197,8 @@ namespace GenericToolbox {
 
     if( ProgressBar::debugMode ){
       std::cout << "New timestamp: " << ProgressBar::lastDisplayedTimePoint.time_since_epoch().count() << std::endl;
+      std::cout << "ProgressBar::lastDisplayedValue: " << ProgressBar::lastDisplayedValue << std::endl;
+      std::cout << "ProgressBar::lastDisplayedPercentValue: " << ProgressBar::lastDisplayedPercentValue << std::endl;
     }
 
     return ssProgressBar.str();
