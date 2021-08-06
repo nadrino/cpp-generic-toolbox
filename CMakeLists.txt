@@ -11,6 +11,7 @@ include_directories(./include)
 option(ENABLE_EXECUTABLES "Build executable" FALSE)
 
 if (ENABLE_EXECUTABLES)
+    set(CMAKE_CXX_FLAGS -pthread)
     add_executable(GenericToolboxExample example/main.cpp)
 endif(ENABLE_EXECUTABLES)
 
