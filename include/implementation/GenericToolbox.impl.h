@@ -998,7 +998,11 @@ namespace GenericToolbox{
     return {pw->pw_dir};
   }
   inline std::string getCurrentWorkingDirectory(){
+#ifdef PATH_MAX
+    char cwd[PATH_MAX];
+#else
     char cwd[1024];
+#endif
     if( getcwd(cwd, sizeof(cwd)) == nullptr ){
       throw std::runtime_error("getcwd() returned an invalid value.");
     }
