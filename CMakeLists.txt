@@ -8,7 +8,11 @@ set (CMAKE_CXX_STANDARD 11)
 # Include the header folder
 include_directories(./include)
 
-add_executable(GenericToolboxExample example/main.cpp)
+option(ENABLE_EXECUTABLES "Build executable" FALSE)
+
+if (ENABLE_EXECUTABLES)
+    add_executable(GenericToolboxExample example/main.cpp)
+endif(ENABLE_EXECUTABLES)
 
 if ( DEFINED ENV{ROOTSYS} )
     find_package(ROOT)
