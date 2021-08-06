@@ -999,7 +999,9 @@ namespace GenericToolbox{
   }
   inline std::string getCurrentWorkingDirectory(){
     char cwd[1024];
-    getcwd(cwd, sizeof(cwd));
+    if( getcwd(cwd, sizeof(cwd)) == nullptr ){
+      throw std::runtime_error("getcwd() returned an invalid value.");
+    }
     std::string output_cwd(cwd);
     return output_cwd;
   }
