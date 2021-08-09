@@ -27,7 +27,7 @@ namespace GenericToolbox{
       kGreen-3, kTeal+3, kAzure+7,
       kCyan-2, kBlue-7, kBlue+2,
       kOrange+1, kOrange+9, kRed+2,
-      kPink+9, kViolet, kMagenta+3,
+      kPink+9, kViolet, kGreen-8,
       kCyan+1, kOrange-4, kMagenta+1,
       kYellow-8
   };
