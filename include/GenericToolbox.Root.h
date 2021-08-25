@@ -21,6 +21,18 @@
 #include "TTreeFormula.h"
 #include "TRandom3.h"
 
+namespace GenericToolbox{
+
+  const std::vector<Color_t> defaultColorWheel = {
+      kGreen-3, kTeal+3, kAzure+7,
+      kCyan-2, kBlue-7, kBlue+2,
+      kOrange+1, kOrange+9, kRed+2,
+      kPink+9, kViolet, kGreen-8,
+      kCyan+1, kOrange-4, kMagenta+1,
+      kYellow-8
+  };
+
+}
 
 namespace GenericToolbox{
 
@@ -40,8 +52,8 @@ namespace GenericToolbox{
   inline bool doesLoadedEntryPassCut(TTreeFormula* treeFormula_);
 
   //! Files Tools
-  inline bool doesTFileIsValid(const std::string &input_file_path_);
-  inline bool doesTFileIsValid(TFile* input_tfile_, bool check_if_writable_ = false);
+  inline bool doesTFileIsValid(const std::string &inputFilePath_, const std::vector<std::string>& objectListToCheck_ = {});
+  inline bool doesTFileIsValid(TFile* tfileCandidatePtr_, bool check_if_writable_ = false);
   inline std::vector<TFile*> getListOfOpenedTFiles();
   inline std::vector<TObject*> getListOfObjectFromTDirectory(TDirectory* directory_, const std::string &class_name_ = "");
   inline TDirectory* mkdirTFile(TDirectory* baseDir_, const std::string &dirName_);
@@ -55,12 +67,15 @@ namespace GenericToolbox{
   inline std::map<std::string, TMatrixD*> invertMatrixSVD(TMatrixD *matrix_, const std::string &outputContent_= "inverse_covariance_matrix:regularized_eigen_values");
   inline std::vector<double> getEigenValues(TMatrixD *matrix_);
   inline TMatrixD* getCholeskyMatrix(TMatrixD* covMatrix_);
+  inline TMatrixD* getCholeskyMatrix(TMatrixDSym* covMatrix_);
   inline std::vector<double> throwCorrelatedParameters(TMatrixD* choleskyCovMatrix_);
   inline void throwCorrelatedParameters(TMatrixD* choleskyCovMatrix_, std::vector<double>& thrownParListOut_);
 //  inline TMatrixD* computeSqrt(TMatrixD* inputMatrix_);
 
   //! Histogram Tools
   inline void resetHistogram(TH1D* hist_);
+  inline void rescalePerBinWidth(TH1D* hist_, double globalScaler_ = 1);
+  inline void transformBinContent(TH1D* hist_, std::function<void(TH1D*, int)> transformFunction_, bool processOverflowBins_ = false);
   inline std::vector<double> getLogBinning(int n_bins_, double X_min_, double X_max_);
   inline std::vector<double> getLinearBinning(int n_bins_, double X_min_, double X_max_);
   inline TH1D* getTH1DlogBinning(const std::string &name_, const std::string &title_, int n_bins_, double X_min_, double X_max_);

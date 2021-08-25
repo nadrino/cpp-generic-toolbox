@@ -1,5 +1,5 @@
 //
-// Created by Adrien BLANCHET on 08/09/2020.
+// Created by Nadrino on 08/09/2020.
 //
 
 #ifndef CPP_GENERIC_TOOLBOX_CLASSEXAMPLE_H

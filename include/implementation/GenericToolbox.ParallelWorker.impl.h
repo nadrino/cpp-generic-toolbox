@@ -1,5 +1,5 @@
 //
-// Created by Adrien BLANCHET on 25/06/2021.
+// Created by Nadrino on 25/06/2021.
 //
 
 #ifndef CPP_GENERIC_TOOLBOX_GENERICTOOLBOX_THREADPOOL_IMPL_H
@@ -20,6 +20,7 @@ namespace GenericToolbox{
   inline void ParallelWorker::reset() {
     _isInitialized_ = false;
     _isVerbose_ = false;
+    _checkHardwareCurrency_ = false;
     _nThreads_ = -1;
 
     stopThreads();
@@ -27,16 +28,20 @@ namespace GenericToolbox{
     _jobTriggerList_.clear();
     _jobFunctionList_.clear();
     _jobFunctionPostParallelList_.clear();
+    _jobFunctionPreParallelList_.clear();
   }
 
   inline void ParallelWorker::setIsVerbose(bool isVerbose) {
     _isVerbose_ = isVerbose;
   }
+  void ParallelWorker::setCheckHardwareCurrency(bool checkHardwareCurrency) {
+    _checkHardwareCurrency_ = checkHardwareCurrency;
+  }
   inline void ParallelWorker::setNThreads(int nThreads) {
     if(_isInitialized_){
       throw std::logic_error("Can't set the number of threads while already initialized.");
     }
-    if( nThreads > std::thread::hardware_concurrency() ){
+    if( _checkHardwareCurrency_ and nThreads > std::thread::hardware_concurrency() ){
       std::cout << GET_VAR_NAME_VALUE(std::thread::hardware_concurrency()) << std::endl;
       throw std::logic_error("Too much threads wrt your hardware.");
     }
@@ -67,6 +72,7 @@ namespace GenericToolbox{
     _jobNameList_.emplace_back(jobName_);
     _jobFunctionList_.emplace_back(function_);
     _jobFunctionPostParallelList_.emplace_back();
+    _jobFunctionPreParallelList_.emplace_back();
     _jobTriggerList_.emplace_back(std::vector<bool>(_nThreads_, false));
     this->unPauseParallelThreads();
 
@@ -91,13 +97,34 @@ namespace GenericToolbox{
     _jobFunctionPostParallelList_.at(jobIndex) = function_;
     this->unPauseParallelThreads();
   }
+  inline void ParallelWorker::setPreParallelJob(const std::string& jobName_, const std::function<void()>& function_){
+    if( not _isInitialized_ ){
+      throw std::logic_error("Can't add post parallel job while not initialized");
+    }
+    int jobIndex = GenericToolbox::findElementIndex(jobName_, _jobNameList_);
+    if( jobIndex == -1 ){
+      throw std::logic_error(jobName_ + ": is not in the available jobsList");
+    }
+    if( not function_ ){ // is it callable?
+      throw std::logic_error("the provided post parallel function is not callable");
+    }
+
+    this->pauseParallelThreads();
+    _jobFunctionPreParallelList_.at(jobIndex) = function_;
+    this->unPauseParallelThreads();
+  }
   inline void ParallelWorker::runJob(const std::string &jobName_) {
+    if( _isVerbose_ ) std::cout << "Running \"" << jobName_ << "\" on " << _nThreads_ << " parallel threads..." << std::endl;
     if( not _isInitialized_ ){
       throw std::logic_error("Can't run job while not initialized");
     }
     int jobIndex = GenericToolbox::findElementIndex(jobName_, _jobNameList_);
     if( jobIndex == -1 ){
       throw std::logic_error(jobName_ + ": is not in the available jobsList");
+    }
+
+    if( _jobFunctionPreParallelList_.at(jobIndex) ){ // is it callable?
+      _jobFunctionPreParallelList_.at(jobIndex)();
     }
 
     for( int iThread = 0 ; iThread < _nThreads_-1 ; iThread++ ){
@@ -107,6 +134,7 @@ namespace GenericToolbox{
     _jobFunctionList_.at(jobIndex)(_nThreads_-1); // do the last job in the main thread
 
     for( int iThread = 0 ; iThread < _nThreads_-1 ; iThread++ ){
+      if( _isVerbose_ ) std::cout << "Waiting for thread #" << iThread << " to be finish the job..." << std::endl;
       while( _jobTriggerList_.at(jobIndex).at(iThread) ) std::this_thread::sleep_for( std::chrono::microseconds(100) ); // wait
     }
 
@@ -128,6 +156,7 @@ namespace GenericToolbox{
     _jobNameList_.erase(_jobNameList_.begin() + jobIndex);
     _jobFunctionList_.erase(_jobFunctionList_.begin() + jobIndex);
     _jobFunctionPostParallelList_.erase(_jobFunctionPostParallelList_.begin() + jobIndex);
+    _jobFunctionPreParallelList_.erase(_jobFunctionPreParallelList_.begin() + jobIndex);
     _jobTriggerList_.erase(_jobTriggerList_.begin() + jobIndex);
     this->unPauseParallelThreads();
 
@@ -141,6 +170,7 @@ namespace GenericToolbox{
     _pauseThreads_ = true; // prevent the threads to loop over the available jobs
     for( const auto& threadTriggers : _jobTriggerList_ ){
       for( int iThread = 0 ; iThread < _nThreads_-1 ; iThread++ ){
+        if( _isVerbose_ ) std::cout << "Waiting for thread #" << iThread << " to be on paused state..." << std::endl;
         while( threadTriggers.at(iThread) ) std::this_thread::sleep_for( std::chrono::microseconds(100) ); // wait for every thread to finish its current job
       }
     }
@@ -154,6 +184,9 @@ namespace GenericToolbox{
   }
   inline std::mutex* ParallelWorker::getThreadMutexPtr(){
     return _threadMutexPtr_;
+  }
+  inline int ParallelWorker::getNThreads() const {
+    return _nThreads_;
   }
 
   inline void ParallelWorker::reStartThreads() {

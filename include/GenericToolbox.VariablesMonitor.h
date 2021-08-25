@@ -1,5 +1,5 @@
 //
-// Created by Adrien BLANCHET on 25/06/2021.
+// Created by Nadrino on 25/06/2021.
 //
 
 #ifndef CPP_GENERIC_TOOLBOX_GENERICTOOLBOX_VARIABLESMONITOR_H
@@ -35,6 +35,7 @@ namespace GenericToolbox{
     inline VariableMonitor& getVariable(const std::string& name_);
     inline QuantityMonitor& getQuantity(const std::string& quantityName_);
 
+    inline bool isGenerateMonitorStringOk();
     inline std::string generateMonitorString(bool trailBackCursor_ = false);
 
   private:

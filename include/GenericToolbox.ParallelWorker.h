@@ -1,5 +1,5 @@
 //
-// Created by Adrien BLANCHET on 25/06/2021.
+// Created by Nadrino on 25/06/2021.
 //
 
 #ifndef CPP_GENERIC_TOOLBOX_GENERICTOOLBOX_THREADPOOL_H
@@ -32,15 +32,18 @@ namespace GenericToolbox{
     inline void reset();
 
     inline void setIsVerbose(bool isVerbose);
+    inline void setCheckHardwareCurrency(bool checkHardwareCurrency);
     inline void setNThreads(int nThreads);
 
     inline void initialize();
 
     inline const std::vector<std::string> &getJobNameList() const;
     inline std::mutex* getThreadMutexPtr();
+    inline int getNThreads() const;
 
     inline void addJob(const std::string& jobName_, const std::function<void(int)>& function_); // int arg is supposed to be the thread id
     inline void setPostParallelJob(const std::string& jobName_, const std::function<void()>& function_);
+    inline void setPreParallelJob(const std::string& jobName_, const std::function<void()>& function_);
     inline void runJob(const std::string& jobName_);
     inline void removeJob(const std::string& jobName_);
 
@@ -54,6 +57,7 @@ namespace GenericToolbox{
   private:
     // Parameters
     bool _isVerbose_{true};
+    bool _checkHardwareCurrency_{true};
     int _nThreads_{-1};
 
     // Internals
@@ -65,6 +69,7 @@ namespace GenericToolbox{
     std::vector<ThreadStatus> _threadStatusList_;
     std::vector<std::function<void(int)>> _jobFunctionList_;
     std::vector<std::function<void()>> _jobFunctionPostParallelList_;
+    std::vector<std::function<void()>> _jobFunctionPreParallelList_;
     std::vector<std::string> _jobNameList_;
     std::vector<std::vector<bool>> _jobTriggerList_;
 

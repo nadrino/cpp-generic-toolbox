@@ -1,5 +1,5 @@
 //
-// Created by Adrien BLANCHET on 06/07/2021.
+// Created by Nadrino on 06/07/2021.
 //
 
 #ifndef CPP_GENERIC_TOOLBOX_GENERICTOOLBOX_VARIABLEMONITOR_IMPL_H

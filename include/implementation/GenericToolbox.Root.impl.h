@@ -326,47 +326,65 @@ namespace GenericToolbox {
 //! Files Tools
 namespace GenericToolbox {
 
-  bool doesTFileIsValid(const std::string &input_file_path_){
-    bool file_is_valid = false;
-    if(GenericToolbox::doesPathIsFile(input_file_path_))
-    {
+  bool doesTFileIsValid(const std::string &inputFilePath_, const std::vector<std::string>& objectListToCheck_){
+    bool fileIsValid = false;
+    if(GenericToolbox::doesPathIsFile(inputFilePath_)) {
       auto old_verbosity = gErrorIgnoreLevel;
       gErrorIgnoreLevel  = kFatal;
-      auto* input_tfile  = TFile::Open(input_file_path_.c_str(), "READ");
-      if(doesTFileIsValid(input_tfile))
-      {
-        file_is_valid = true;
-        input_tfile->Close();
+      auto* tfileCandidatePtr  = TFile::Open(inputFilePath_.c_str(), "READ");
+      if(doesTFileIsValid(tfileCandidatePtr)) {
+        fileIsValid = true;
+        for( const auto& objectPath : objectListToCheck_ ){
+          if(tfileCandidatePtr->Get(objectPath.c_str()) == nullptr ){
+            fileIsValid = false;
+            break;
+          }
+        }
+        tfileCandidatePtr->Close();
       }
-      delete input_tfile;
+      delete tfileCandidatePtr;
       gErrorIgnoreLevel = old_verbosity;
     }
-    return file_is_valid;
+    return fileIsValid;
   }
-  bool doesTFileIsValid(TFile* input_tfile_, bool check_if_writable_){
+  bool doesTFileIsValid(TFile* tfileCandidatePtr_, bool check_if_writable_){
 
-    if(input_tfile_ == nullptr){
+    if(tfileCandidatePtr_ == nullptr){
       if(GenericToolbox::Parameters::_verboseLevel_ >= 1)
-        std::cout << "input_tfile_ is a nullptr" << std::endl;
+        std::cout << "tfileCandidatePtr_ is a nullptr" << std::endl;
       return false;
     }
 
-    if(not input_tfile_->IsOpen()){
+    if(not tfileCandidatePtr_->IsOpen()){
       if(GenericToolbox::Parameters::_verboseLevel_ >= 1)
-        std::cout << "input_tfile_ = " << input_tfile_->GetName() << " is not opened."
+        std::cout << "tfileCandidatePtr_ = " << tfileCandidatePtr_->GetName() << " is not opened."
                   << std::endl;
       if(GenericToolbox::Parameters::_verboseLevel_ >= 1)
-        std::cout << "input_tfile_->IsOpen() = " << input_tfile_->IsOpen()
+        std::cout << "tfileCandidatePtr_->IsOpen() = " << tfileCandidatePtr_->IsOpen()
                   << std::endl;
       return false;
     }
 
-    if(check_if_writable_ and not input_tfile_->IsWritable()){
+    if( tfileCandidatePtr_->IsZombie() ){
+      if(GenericToolbox::Parameters::_verboseLevel_ >= 1){
+        std::cout << GET_VAR_NAME_VALUE(tfileCandidatePtr_->IsZombie()) << std::endl;
+      }
+      return false;
+    }
+
+    if( tfileCandidatePtr_->TestBit(TFile::kRecovered) ){
+      if(GenericToolbox::Parameters::_verboseLevel_ >= 1){
+        std::cout << GET_VAR_NAME_VALUE(tfileCandidatePtr_->TestBit(TFile::kRecovered)) << std::endl;
+      }
+      return false;
+    }
+
+    if(check_if_writable_ and not tfileCandidatePtr_->IsWritable()){
       if(GenericToolbox::Parameters::_verboseLevel_ >= 1)
-        std::cout << "input_tfile_ = " << input_tfile_->GetName()
+        std::cout << "tfileCandidatePtr_ = " << tfileCandidatePtr_->GetName()
                   << " is not writable." << std::endl;
       if(GenericToolbox::Parameters::_verboseLevel_ >= 1)
-        std::cout << "input_tfile_->IsWritable() = " << input_tfile_->IsWritable()
+        std::cout << "tfileCandidatePtr_->IsWritable() = " << tfileCandidatePtr_->IsWritable()
                   << std::endl;
       return false;
     }
@@ -608,11 +626,16 @@ namespace GenericToolbox {
   TMatrixD* getCholeskyMatrix(TMatrixD* covMatrix_){
     if(covMatrix_ == nullptr) return nullptr;
     auto* covMatrixSym = GenericToolbox::convertToSymmetricMatrix(covMatrix_);
-    auto* choleskyDecomposer = new TDecompChol((*covMatrixSym));
+    auto* out = getCholeskyMatrix(covMatrixSym);
+    delete covMatrixSym;
+    return out;
+  }
+  TMatrixD* getCholeskyMatrix(TMatrixDSym* covMatrix_){
+    if(covMatrix_ == nullptr) return nullptr;
+    auto* choleskyDecomposer = new TDecompChol((*covMatrix_));
     if( not choleskyDecomposer->Decompose() ){ return nullptr; }
     auto* output = (TMatrixD *)(((TMatrixD *)(choleskyDecomposer->GetU()).Clone())->T()).Clone();
     delete choleskyDecomposer;
-    delete covMatrixSym;
     return output;
   }
   std::vector<double> throwCorrelatedParameters(TMatrixD* choleskyCovMatrix_){
@@ -642,9 +665,21 @@ namespace GenericToolbox {
 
   inline void resetHistogram(TH1D* hist_){
     hist_->Reset("ICESM");
-    for(int iBin = 0 ; iBin <= hist_->GetNbinsX()+1 ; iBin++ ){
-      hist_->SetBinContent(iBin,0);
-      hist_->SetBinError(iBin,0);
+    transformBinContent(hist_, [](TH1D* h_, int iBin_){
+      h_->SetBinContent(iBin_, 0);
+      h_->SetBinError(iBin_, 0);
+    }, true);
+  }
+  inline void rescalePerBinWidth(TH1D* hist_, double globalScaler_){
+    transformBinContent(hist_, [&](TH1D* h_, int iBin_){
+      h_->SetBinContent( iBin_,globalScaler_ * h_->GetBinContent(iBin_)/hist_->GetBinWidth(iBin_) );
+    }, true);
+  }
+  void transformBinContent(TH1D* hist_, std::function<void(TH1D*, int)> transformFunction_, bool processOverflowBins_){
+    int firstBin = processOverflowBins_ ? 0 : 1;
+    int lastBin = processOverflowBins_ ? hist_->GetNbinsX() + 1 : hist_->GetNbinsX();
+    for( int iBin = firstBin ; iBin <= lastBin ; iBin++ ){
+      transformFunction_(hist_, iBin);
     }
   }
   std::vector<double> getLogBinning(int n_bins_, double X_min_, double X_max_) {

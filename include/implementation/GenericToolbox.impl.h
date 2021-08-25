@@ -39,27 +39,25 @@ extern char* __progname;
 // Displaying Tools
 namespace GenericToolbox {
 
-  namespace Internals {
-    namespace ProgressBar {
+  namespace ProgressBar {
 
-      // Parameters for the progress bar
-      static bool enableRainbowProgressBar = PROGRESS_BAR_ENABLE_RAINBOW;
-      static bool displaySpeed = PROGRESS_BAR_SHOW_SPEED;
-      static int barLength = PROGRESS_BAR_LENGTH;
-      static size_t refreshRateInMilliSec = PROGRESS_BAR_REFRESH_DURATION_IN_MS;
-      static std::string fillTag(PROGRESS_BAR_FILL_TAG);
-      static std::ostream* outputStreamPtr = &std::cout;
+    // Parameters for the progress bar
+    static bool debugMode = false;
+    static bool enableRainbowProgressBar = PROGRESS_BAR_ENABLE_RAINBOW;
+    static bool displaySpeed = PROGRESS_BAR_SHOW_SPEED;
+    static int maxBarLength = PROGRESS_BAR_LENGTH;
+    static size_t refreshRateInMilliSec = PROGRESS_BAR_REFRESH_DURATION_IN_MS;
+    static std::string fillTag(PROGRESS_BAR_FILL_TAG);
+    static std::ostream* outputStreamPtr{&std::cout};
 
-      static int lastDisplayedPercentValue = -1;
-      static int lastDisplayedValue = -1;
-      static auto lastDisplayedTimePoint = std::chrono::high_resolution_clock::now();
-      static std::thread::id _selectedThreadId_ = std::this_thread::get_id(); // get the main thread id
-      static std::vector<std::string> rainbowColorList{"\033[1;31m", "\033[1;32m", "\033[1;33m", "\033[1;34m",
-                                                       "\033[1;35m", "\033[1;36m"};
-
-    }
+    static int lastDisplayedPercentValue{-1};
+    static int lastDisplayedValue{-1};
+    static double lastDisplayedSpeed{0};
+    static auto lastDisplayedTimePoint = std::chrono::high_resolution_clock::now();
+    static std::thread::id _selectedThreadId_ = std::this_thread::get_id(); // get the main thread id
+    static std::vector<std::string> rainbowColorList{"\033[1;31m", "\033[1;32m", "\033[1;33m", "\033[1;34m",
+                                                     "\033[1;35m", "\033[1;36m"};
   }
-
 
   template<typename T, typename TT> inline std::string generateProgressBarStr( const T& iCurrent_, const TT& iTotal_, const std::string &title_ ){
 
@@ -71,152 +69,157 @@ namespace GenericToolbox {
       percentValue = 0;
     }
 
-    std::stringstream ss;
+    std::stringstream ssPrefix;
+    if( not title_.empty() ) ssPrefix << title_ << " ";
 
-    int displayedBarLength = GenericToolbox::Internals::ProgressBar::barLength;
-    std::string displayedTitle = title_;
+    std::stringstream ssTail;
+    ssTail << GenericToolbox::padString(std::to_string(percentValue), 3, ' ') << "%";
 
     auto newTimePoint = std::chrono::high_resolution_clock::now();
-    std::string speedString;
-    if (GenericToolbox::Internals::ProgressBar::displaySpeed) {
-      speedString += "(";
+    if (ProgressBar::displaySpeed) {
+      ssTail << " (";
       double itPerSec =
-        double(iCurrent_) - GenericToolbox::Internals::ProgressBar::lastDisplayedValue; // nb iterations since last print
-      if (int(itPerSec) < 0) itPerSec = 0;
-      else {
-        double timeInterval = double(std::chrono::duration_cast<std::chrono::milliseconds>(
-          newTimePoint - GenericToolbox::Internals::ProgressBar::lastDisplayedTimePoint
-        ).count()) / 1000.;
-        itPerSec /= timeInterval; // Count per s
-      }
-      speedString += GenericToolbox::parseIntAsString(int(itPerSec));
-      speedString += " it/s)";
+        double(iCurrent_) - ProgressBar::lastDisplayedValue; // nb iterations since last print
+        double timeInterval;
+        if (int(itPerSec) < 0) itPerSec = 0;
+        else {
+          timeInterval = double(std::chrono::duration_cast<std::chrono::milliseconds>(
+            newTimePoint - ProgressBar::lastDisplayedTimePoint
+            ).count()) / 1000.;
+          if( timeInterval != 0 ){
+            itPerSec /= timeInterval; // Count per s
+            ProgressBar::lastDisplayedSpeed = itPerSec;
+          }
+          else itPerSec = ProgressBar::lastDisplayedSpeed;
+        }
+        ssTail << GenericToolbox::padString(GenericToolbox::parseIntAsString(int(itPerSec)), 5, ' ');
+        ssTail << " it/s)";
     }
 
+
+
     // test if the bar is too wide wrt the prompt width
-    if (GenericToolbox::getTerminalWidth() != 0) { // terminal width is measurable
+    int displayedBarLength = ProgressBar::maxBarLength;
 
-      // clean the full line with blank spaces
-//        std::cout << "\r" << GenericToolbox::repeatString(" ", GenericToolbox::getTerminalWidth()-1) << "\r";
+    auto termWidth = GenericToolbox::getTerminalWidth();
+    if( termWidth != 0 ) { // terminal width is measurable
 
-      unsigned long totalLength = 0;
-      std::string strippedTitle = GenericToolbox::stripStringUnicode(title_); // remove special chars and colors
-      totalLength += strippedTitle.size();
-      if (not title_.empty()) totalLength += 1; // after title space
-      if (displayedBarLength > 0) {
-        totalLength += 2; // []
-        totalLength += displayedBarLength;
+      size_t totalBarLength = GenericToolbox::getPrintSize(ssPrefix.str());
+      if(displayedBarLength > 0) {
+        totalBarLength += 2; // []
+        totalBarLength += displayedBarLength;
+        totalBarLength += 1; // space before tail
       }
-      totalLength += 1 + 3 + 1; // space, 100, %
-      totalLength += speedString.size() + 1; // space + speedString
-      totalLength += 1; // one extra free char is needed to flush
+      totalBarLength += ssTail.str().size();
+      totalBarLength += 1; // 1 extra space is necessary to std::endl
 
-      int extraCharsCount = int(totalLength) - GenericToolbox::getTerminalWidth();
-      if (extraCharsCount > 0 and displayedBarLength > 0) {
-        // first, reduce the bar width
-        displayedBarLength = GenericToolbox::Internals::ProgressBar::barLength - extraCharsCount;
-        // 12 arbitrary chosen as the minimal barWidth
-        if (displayedBarLength < 12) {
-          // if the requested bar length is lower that 12, remove it completly
-          displayedBarLength = 0;
+      int remainingSpaces = termWidth;
+      remainingSpaces -= int(totalBarLength);
+
+      if( remainingSpaces < 0 ){
+        if( displayedBarLength >= 0 ){
+          // ok, can take some extra space in the bar
+          displayedBarLength -= std::abs(remainingSpaces);
+          if (displayedBarLength < 12) {
+            displayedBarLength = 0;
+            remainingSpaces += 2; // get back the [] of the pBar
+          }
+          remainingSpaces += (ProgressBar::maxBarLength - displayedBarLength );
         }
-        extraCharsCount -= GenericToolbox::Internals::ProgressBar::barLength - displayedBarLength;
       }
 
       // if it's still to big, cut the title
-      if (extraCharsCount > 0) {
-        displayedTitle = title_.substr(0, strippedTitle.size() - extraCharsCount - 3);
-        displayedTitle += "...";
+      if ( remainingSpaces < 0) {
+        std::string cutPrefix = ssPrefix.str().substr(0, int(ssPrefix.str().size()) - std::abs(remainingSpaces) - 3);
+        ssPrefix.str("");
+        ssPrefix << cutPrefix;
+        ssPrefix << "\033[0m" << "...";
       }
-    } else {
+    }
+    else {
       displayedBarLength = 0;
     }
 
-    if (not displayedTitle.empty()) {
-      ss << displayedTitle << " ";
-    }
+    std::stringstream ssProgressBar;
+    ssProgressBar << ssPrefix.str();
 
     if (displayedBarLength > 0) {
 
       int nbTags = percentValue * displayedBarLength / 100;
       int nbSpaces = displayedBarLength - nbTags;
-      ss << "[";
-      if (not GenericToolbox::Internals::ProgressBar::enableRainbowProgressBar) {
+      ssProgressBar << "[";
+      if (not ProgressBar::enableRainbowProgressBar) {
         int iCharTagIndex = 0;
         for (int iTag = 0; iTag < nbTags; iTag++) {
-          ss << GenericToolbox::Internals::ProgressBar::fillTag[iCharTagIndex];
+          ssProgressBar << ProgressBar::fillTag[iCharTagIndex];
           iCharTagIndex++;
-          if (iCharTagIndex >= GenericToolbox::Internals::ProgressBar::fillTag.size()) iCharTagIndex = 0;
+          if (iCharTagIndex >= ProgressBar::fillTag.size()) iCharTagIndex = 0;
         }
-      } else {
+      }
+      else {
         int nbTagsCredits = nbTags;
-        int nbColors = int(GenericToolbox::Internals::ProgressBar::rainbowColorList.size());
+        int nbColors = int(ProgressBar::rainbowColorList.size());
         int nbTagsPerColor = displayedBarLength / nbColors;
         if (displayedBarLength % nbColors != 0) nbTagsPerColor++;
         int iCharTagIndex = 0;
         for (int iColor = 0; iColor < nbColors; iColor++) {
-          ss << GenericToolbox::Internals::ProgressBar::rainbowColorList[iColor];
+          ssProgressBar << ProgressBar::rainbowColorList[iColor];
           if (nbTagsCredits == 0) break;
           int iSlot = 0;
           while (nbTagsCredits != 0 and iSlot < nbTagsPerColor) {
-            ss << GenericToolbox::Internals::ProgressBar::fillTag[iCharTagIndex];
+            ssProgressBar << ProgressBar::fillTag[iCharTagIndex];
             iCharTagIndex++;
-            if (iCharTagIndex >= GenericToolbox::Internals::ProgressBar::fillTag.size()) iCharTagIndex = 0;
+            if (iCharTagIndex >= ProgressBar::fillTag.size()) iCharTagIndex = 0;
             nbTagsCredits--;
             iSlot++;
           }
         }
-        ss << "\033[0m";
+        ssProgressBar << "\033[0m";
       }
-      ss << repeatString(" ", nbSpaces) << "]";
+      ssProgressBar << repeatString(" ", nbSpaces) << "] ";
     }
 
-    ss << " " << percentValue << "%";
-    if (not speedString.empty()) {
-      ss << " " << speedString;
-    }
+    ssProgressBar << ssTail.str();
 
-//    ss << "\r";
-//    if( percentValue == 100 ){
-//      ss << std::endl;
-//    }
-
-    ss << std::endl; // always jump line to force flush on screen
+    ssProgressBar << std::endl; // always jump line to force flush on screen
     if( percentValue != 100 ){
-      // static_cast<char>(27) = '\033' = 0x1b = ESC
-
-      // Since a line jump may introduce a logger header/prefix, we clear the line first
-      // https://en.wikipedia.org/wiki/ANSI_escape_code
-      // CSI n J
-      ss << static_cast<char>(27) << "[1K";
+      // those commands won't be flushed until a new print is called:
       // pull back to cursor on the line of the progress bar
-      ss << static_cast<char>(27) << "[1;1F";
+      ssProgressBar << static_cast<char>(27) << "[1;1F";
+      // Clear the line and add "\r" since a Logger might intercept it to trigger a print of a line header
+      ssProgressBar << static_cast<char>(27) << "[1K" << "\r"; // trick to clear
     }
 
-    GenericToolbox::Internals::ProgressBar::lastDisplayedPercentValue = percentValue;
-    GenericToolbox::Internals::ProgressBar::lastDisplayedValue = iCurrent_;
-    GenericToolbox::Internals::ProgressBar::lastDisplayedTimePoint = newTimePoint;
+    ProgressBar::lastDisplayedPercentValue = percentValue;
+    ProgressBar::lastDisplayedValue = iCurrent_;
+    ProgressBar::lastDisplayedTimePoint = newTimePoint;
 
-    return ss.str();
+    if( ProgressBar::debugMode ){
+      std::cout << "New timestamp: " << ProgressBar::lastDisplayedTimePoint.time_since_epoch().count() << std::endl;
+      std::cout << "ProgressBar::lastDisplayedValue: " << ProgressBar::lastDisplayedValue << std::endl;
+      std::cout << "ProgressBar::lastDisplayedPercentValue: " << ProgressBar::lastDisplayedPercentValue << std::endl;
+    }
+
+    return ssProgressBar.str();
 
   }
-  template<typename T, typename TT> inline bool doesPrintProgressBarOk(const T& iCurrent_, const TT& iTotal_){
+  template<typename T, typename TT> inline bool showProgressBar(const T& iCurrent_, const TT& iTotal_){
 
-//    if( // Only the main thread
-//      GenericToolbox::Internals::ProgressBar::_selectedThreadId_ != std::this_thread::get_id()
-//      ){
-//      return false;
-//    }
+    //    if( // Only the main thread
+    //      ProgressBar::_selectedThreadId_ != std::this_thread::get_id()
+    //      ){
+    //      return false;
+    //    }
 
+    auto timeDiff = std::chrono::duration_cast<std::chrono::milliseconds>(
+      std::chrono::high_resolution_clock::now() - ProgressBar::lastDisplayedTimePoint
+      ).count();
     if( // REQUIRED TO PRINTOUT
-         iCurrent_ == 0 // First call
-      or GenericToolbox::Internals::ProgressBar::lastDisplayedPercentValue == -1 // never printed before
-      or ( std::chrono::duration_cast<std::chrono::milliseconds>(
-             std::chrono::high_resolution_clock::now() - GenericToolbox::Internals::ProgressBar::lastDisplayedTimePoint
-           ).count() >= GenericToolbox::Internals::ProgressBar::refreshRateInMilliSec
-         )
-      or iCurrent_ + 1 >= iTotal_ // last entry (mandatory to print at least once: need to print endl)
-      ){
+    iCurrent_ == 0 // First call
+    or ProgressBar::lastDisplayedPercentValue == -1 // never printed before
+    or timeDiff >= ProgressBar::refreshRateInMilliSec
+    or iCurrent_ + 1 >= iTotal_ // last entry (mandatory to print at least once: need to print endl)
+    ){
 
       int percent = int(round(double(iCurrent_) / double(iTotal_) * 100.));
 
@@ -224,9 +227,23 @@ namespace GenericToolbox {
       else if( percent < 0) percent = 0;
 
       if( // EXCLUSION CASES
-        percent == GenericToolbox::Internals::ProgressBar::lastDisplayedPercentValue // already printed
-        ){
+      percent == ProgressBar::lastDisplayedPercentValue // already printed
+      ){
+        if( ProgressBar::debugMode ){
+          std::cout << "Print PBar NOT Ok:" << std::endl;
+          std::cout << "percent == ProgressBar::lastDisplayedPercentValue" << std::endl;
+        }
         return false;
+      }
+
+      if( ProgressBar::debugMode ){
+        std::cout << "Print PBar Ok:" << std::endl;
+        std::cout << "percent = " << percent << std::endl;
+        std::cout << "iCurrent_ = " << iCurrent_ << std::endl;
+        std::cout << "iTotal_ = " << iTotal_ << std::endl;
+        std::cout << "ProgressBar::lastDisplayedPercentValue = " << ProgressBar::lastDisplayedPercentValue << std::endl;
+        std::cout << "ProgressBar::refreshRateInMilliSec = " << ProgressBar::refreshRateInMilliSec << std::endl;
+        std::cout << "timeDiff = " << timeDiff << std::endl;
       }
 
       // OK!
@@ -236,20 +253,20 @@ namespace GenericToolbox {
     return false;
   }
   template<typename T, typename TT> inline std::string getProgressBarStr(const T& iCurrent_, const TT& iTotal_, const std::string &title_, bool forcePrint_ ){
-    if( forcePrint_ or doesPrintProgressBarOk(iCurrent_, iTotal_) ){
+    if(forcePrint_ or showProgressBar(iCurrent_, iTotal_) ){
       return generateProgressBarStr(iCurrent_, iTotal_, title_);
     }
-    return std::string();
+    return {};
   }
-  template<typename T, typename TT> void displayProgressBar(const T& iCurrent_, const TT& iTotal_, const std::string &title_, bool forcePrint_) {
-    if( forcePrint_ or doesPrintProgressBarOk(iCurrent_, iTotal_) ){
-      *GenericToolbox::Internals::ProgressBar::outputStreamPtr << generateProgressBarStr(iCurrent_, iTotal_, title_);
+  template<typename T, typename TT> inline void displayProgressBar(const T& iCurrent_, const TT& iTotal_, const std::string &title_, bool forcePrint_) {
+    if(forcePrint_ or GenericToolbox::showProgressBar(iCurrent_, iTotal_) ){
+      *ProgressBar::outputStreamPtr << GenericToolbox::generateProgressBarStr(iCurrent_, iTotal_, title_);
     }
   }
-  void resetLastDisplayedValue(){
+  inline void resetLastDisplayedValue(){
     std::cout << "resetLastDisplayedValue" << std::endl;
-      GenericToolbox::Internals::ProgressBar::lastDisplayedValue = -1;
-      GenericToolbox::Internals::ProgressBar::lastDisplayedPercentValue = -1;
+    ProgressBar::lastDisplayedValue = -1;
+    ProgressBar::lastDisplayedPercentValue = -1;
   }
 
 }
@@ -302,6 +319,13 @@ namespace GenericToolbox{
     intToFormat_/=1000.; // in P
     return std::to_string(intToFormat_) + "P";
   }
+  std::string highlightIf(bool condition_, const std::string& text_){
+    std::stringstream ss;
+    ss << ( condition_ ? ColorCodes::redBackGround : "" );
+    ss << text_;
+    ss << ( condition_ ? ColorCodes::resetColor : "" );
+    return ss.str();
+  }
 
 }
 
@@ -334,7 +358,7 @@ namespace GenericToolbox {
     int outIndex = -1;
     auto it = std::find(vector_.begin(), vector_.end(), element_);
     if (it != vector_.end()){
-      outIndex = std::distance(vector_.begin(), it);
+      outIndex = int(std::distance(vector_.begin(), it));
     }
     return outIndex;
   }
@@ -346,11 +370,18 @@ namespace GenericToolbox {
     return outVal / vector_.size();
   }
   template <typename T> std::vector<T> getSubVector( const std::vector<T>& vector_, size_t beginIndex_, int endIndex_ ){
-    if( endIndex_ <= 0 ){ endIndex_ += vector_.size(); }
+    if( endIndex_ < 0 ){ endIndex_ += vector_.size(); }
     if( beginIndex_ >= endIndex_ ){
       return std::vector<T> ();
     }
-    return std::vector<T> ( &vector_[beginIndex_] , &vector_[endIndex_-1] );
+    return std::vector<T> ( &vector_[beginIndex_] , &vector_[endIndex_+1] );
+  }
+  template <typename T> std::vector<size_t> getSortPermutation(const std::vector<T>& vectorToSort_, std::function<bool(const T&, const T&)> compareLambda_ ){
+    std::vector<size_t> p(vectorToSort_.size());
+    std::iota(p.begin(), p.end(), 0);
+    std::sort(p.begin(), p.end(),
+              [&](size_t i, size_t j){ return compareLambda_(vectorToSort_.at(i), vectorToSort_.at(j)); });
+    return p;
   }
   template <typename T> std::vector<size_t> getSortPermutation(const std::vector<T>& vectorToSort_, std::function<bool(const T, const T)> compareLambda_ ){
     std::vector<size_t> p(vectorToSort_.size());
@@ -487,6 +518,10 @@ namespace GenericToolbox {
 // String Management Tools
 namespace GenericToolbox {
 
+  namespace StringManagementUtils{
+    static std::regex ansiRegex("\033((\\[((\\d+;)*\\d+)?[A-DHJKMRcfghilmnprsu])|\\(|\\))");
+  }
+
   bool doesStringContainsSubstring(std::string string_, std::string substring_, bool ignoreCase_) {
     if (substring_.empty()) return true;
     if (substring_.size() > string_.size()) return false;
@@ -521,7 +556,7 @@ namespace GenericToolbox {
                    [](unsigned char c) { return std::tolower(c); });
     return output_str;
   }
-  std::string stripStringUnicode(const std::string &inputStr_){
+  inline std::string stripStringUnicode(const std::string &inputStr_){
     std::string outputStr(inputStr_);
 
     if(GenericToolbox::doesStringContainsSubstring(outputStr, "\033")){
@@ -558,10 +593,20 @@ namespace GenericToolbox {
       outputStr.end()
     );
 
-
-
-
     return outputStr;
+  }
+  inline size_t getPrintSize(const std::string& str_){
+    if( str_.empty() ) return 0;
+    std::string::iterator::difference_type result = 0;
+    std::for_each(
+      std::sregex_token_iterator(str_.begin(), str_.end(), StringManagementUtils::ansiRegex, -1),
+      std::sregex_token_iterator(),
+      [&result](std::sregex_token_iterator::value_type const& e) {
+        std::string tmp(e);
+        result += std::count_if(tmp.begin(), tmp.end(), isprint);
+      }
+    );
+    return result;
   }
   inline std::string repeatString(const std::string &inputStr_, int amount_){
     std::string outputStr;
@@ -721,7 +766,7 @@ namespace GenericToolbox {
     if (size <= 0) { throw std::runtime_error("Error during formatting."); }
     std::unique_ptr<char[]> buf(new char[size]);
     snprintf(buf.get(), size, strToFormat_.c_str(), args ...);
-    return std::string(buf.get(), buf.get() + size - 1); // We don't want the '\0' inside
+    return {buf.get(), buf.get() + size - 1}; // We don't want the '\0' inside
   }
 
   inline void replaceSubstringInsideInputString(std::string &input_str_, const std::string &substr_to_look_for_, const std::string &substr_to_replace_){
@@ -837,7 +882,7 @@ namespace GenericToolbox{
         }
       }
       else if (c[0] == '~' && c[1] != '/') { // ~user case
-        int n = strcspn(c+1, "/ ");
+        int n = int(strcspn(c+1, "/ "));
 //        assert((n+1) < bufferSize_ && "This should have been prevented by the truncation 'strlcat(inp, c, bufferSize_)'");
 //        assert((n+1) < bufferSize_ && "This should have been prevented by the truncation 'strncat(inp, c, bufferSize_)'");
         // There is no overlap here as the buffer is segment in 4 strings of at most bufferSize_
@@ -916,7 +961,7 @@ namespace GenericToolbox{
 #endif
             x++[0] = c[0];
           } else {                       // It is OK, copy result
-            int lp = strlen(expandedPathCharArray);
+            int lp = int(strlen(expandedPathCharArray));
             if (lp >= bufferSize_) {
               // make sure lx will be >= bufferSize_ (see below)
 //              strlcpy(x, expandedPathCharArray, bufferSize_);
@@ -950,11 +995,17 @@ namespace GenericToolbox{
 
   inline std::string getHomeDirectory(){
     struct passwd *pw = getpwuid(getuid());
-    return std::string(pw->pw_dir);
+    return {pw->pw_dir};
   }
   inline std::string getCurrentWorkingDirectory(){
+#ifdef PATH_MAX
+    char cwd[PATH_MAX];
+#else
     char cwd[1024];
-    getcwd(cwd, sizeof(cwd));
+#endif
+    if( getcwd(cwd, sizeof(cwd)) == nullptr ){
+      throw std::runtime_error("getcwd() returned an invalid value.");
+    }
     std::string output_cwd(cwd);
     return output_cwd;
   }
@@ -964,7 +1015,7 @@ namespace GenericToolbox{
     char outputName[8192];
     Internals::expandEnvironmentVariables(filePath_.c_str(), outputName);
 
-    return std::string(outputName);
+    return {outputName};
   }
   inline std::string getExecutableName(){
     std::string outStr;
@@ -1004,16 +1055,12 @@ namespace GenericToolbox{
   std::string getFileNameFromFilePath(const std::string &filePath_, bool keepExtension_){
     auto splitStr = GenericToolbox::splitString(filePath_, "/");
     if(not splitStr.empty()){
-      if(keepExtension_){
-        return splitStr[splitStr.size()-1];
-      }
-      else{
-        return GenericToolbox::splitString(splitStr[splitStr.size()-1], ".")[0];
-      }
+      return ( keepExtension_ ?
+        splitStr[splitStr.size()-1]:
+        GenericToolbox::splitString(splitStr[splitStr.size()-1], ".")[0]
+      );
     }
-    else{
-      return "";
-    }
+    return {};
   }
 
   // -- with direct IO dependencies
@@ -1045,8 +1092,8 @@ namespace GenericToolbox{
 
     while (fileStream1 and fileStream2) {
       // Try to read next chunk of data
-      fileStream1.read(buffer1, buffer_size);
-      fileStream2.read(buffer2, buffer_size);
+      fileStream1.read(buffer1, long(buffer_size));
+      fileStream2.read(buffer2, long(buffer_size));
 
       // Get the number of bytes actually read
       if(fileStream1.gcount() != fileStream2.gcount()){
@@ -1650,21 +1697,21 @@ namespace GenericToolbox{
 // Misc Tools
 namespace GenericToolbox{
 
-  std::string getClassName(const std::string& PRETTY_FUNCTION__){
-    size_t colons = PRETTY_FUNCTION__.find("::");
+  std::string getClassName(const std::string& PRETTY_FUNCTION_){
+    size_t colons = PRETTY_FUNCTION_.find("::");
     if (colons == std::string::npos)
       return "::";
-    size_t begin = PRETTY_FUNCTION__.substr(0,colons).rfind(' ') + 1;
+    size_t begin = PRETTY_FUNCTION_.substr(0, colons).rfind(' ') + 1;
     size_t end = colons - begin;
 
-    return PRETTY_FUNCTION__.substr(begin,end);
+    return PRETTY_FUNCTION_.substr(begin, end);
   }
-  std::string getMethodName(const std::string& PRETTY_FUNCTION__){
-    size_t colons = PRETTY_FUNCTION__.find("::");
-    size_t begin = PRETTY_FUNCTION__.substr(0,colons).rfind(' ') + 1;
-    size_t end = PRETTY_FUNCTION__.rfind('(') - begin;
+  std::string getMethodName(const std::string& PRETTY_FUNCTION_){
+    size_t colons = PRETTY_FUNCTION_.find("::");
+    size_t begin = PRETTY_FUNCTION_.substr(0, colons).rfind(' ') + 1;
+    size_t end = PRETTY_FUNCTION_.rfind('(') - begin;
 
-    return PRETTY_FUNCTION__.substr(begin,end) + "()";
+    return PRETTY_FUNCTION_.substr(begin, end) + "()";
   }
 
 }
@@ -1709,13 +1756,19 @@ namespace GenericToolbox{
     inline std::string toString(enumName_ enumValue_, bool excludeEnumName_ = false){\
       return enumName_##EnumNamespace::toString(static_cast<int>(enumValue_), excludeEnumName_);       \
     }\
-    inline int toEnumInt(const std::string& enumStr_){\
+    inline int toEnumInt(const std::string& enumStr_, bool throwIfNotFound_ = false){\
       for( int enumIndex = intOffset_ ; enumIndex < enumName_::enumName_##_OVERFLOW ; enumIndex++ ){ \
         if( enumName_##EnumNamespace::toString(enumIndex) == enumStr_ ){ return enumIndex; } \
-      }\
+        if( enumName_##EnumNamespace::toString(enumIndex, true) == enumStr_ ){ return enumIndex; } \
+      }                                                            \
+      if( throwIfNotFound_ ){                                      \
+        throw std::runtime_error( enumStr_ + " not found in " + #enumName_ );   \
+      }                                                             \
       return intOffset_ - 1; /* returns invalid value */\
     }\
-    inline enumName_ toEnum(const std::string& enumStr_){ return static_cast<enumName_>(enumName_##EnumNamespace::toEnumInt(enumStr_)); }\
+    inline enumName_ toEnum(const std::string& enumStr_, bool throwIfNotFound_ = false){                         \
+      return static_cast<enumName_>(enumName_##EnumNamespace::toEnumInt(enumStr_, throwIfNotFound_));  \
+    }\
   }
 
 #endif //CPP_GENERIC_TOOLBOX_GENERICTOOLBOX_IMPL_H

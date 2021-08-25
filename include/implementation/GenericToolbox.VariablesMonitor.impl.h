@@ -1,5 +1,5 @@
 //
-// Created by Adrien BLANCHET on 06/07/2021.
+// Created by Nadrino on 06/07/2021.
 //
 
 #ifndef CPP_GENERIC_TOOLBOX_GENERICTOOLBOX_VARIABLESMONITOR_IMPL_H
@@ -96,21 +96,22 @@ namespace GenericToolbox{
     throw std::logic_error("Quantity with name " + quantityName_ + " is not monitored");
   }
 
-  inline std::string VariablesMonitor::generateMonitorString(bool trailBackCursor_) {
-
-    // skip?
-    if( _maxRefreshRateInMs_ != -1 and trailBackCursor_ ){
+  inline bool VariablesMonitor::isGenerateMonitorStringOk(){
+    if( _maxRefreshRateInMs_ != -1 ){
       if( _lastGeneratedMonitorStringTime_.time_since_epoch().count() != 0
-          and std::chrono::duration_cast<std::chrono::milliseconds>(
-          std::chrono::high_resolution_clock::now() - _lastGeneratedMonitorStringTime_
-            ).count() < _maxRefreshRateInMs_
-          ){
-        return "";
-      }
-      else{
-        _lastGeneratedMonitorStringTime_ = std::chrono::high_resolution_clock::now();
+      and std::chrono::duration_cast<std::chrono::milliseconds>(
+        std::chrono::high_resolution_clock::now() - _lastGeneratedMonitorStringTime_
+        ).count() < _maxRefreshRateInMs_
+        ){
+        return false;
       }
     }
+    return true;
+  }
+  inline std::string VariablesMonitor::generateMonitorString(bool trailBackCursor_) {
+
+    if( trailBackCursor_ and not this->isGenerateMonitorStringOk() ) return {};
+    _lastGeneratedMonitorStringTime_ = std::chrono::high_resolution_clock::now();
 
     std::vector<std::vector<std::string>> varElementsList(_varMonitorList_.size(), std::vector<std::string>(_displayQuantityIndexList_.size()));
 
