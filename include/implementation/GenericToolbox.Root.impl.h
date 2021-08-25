@@ -286,7 +286,14 @@ namespace GenericToolbox {
     return output;
   }
   inline TTreeFormula* createTreeFormulaWithoutTree(const std::string& formulaStr_, std::vector<std::string> expectedLeafNames_){
+#if ROOT_VERSION_CODE >= ROOT_VERSION(6,23,02)
+    auto* cwd = gDirectory.fValue.load();
+#else
+    // Prior releases of ROOT, gDirectory was returning a TDirectory*
+    // Implementation has been made on the 16 Dec 2020:
+    // https://github.com/root-project/root/commit/085e9c182b9f639d5921c75de284ae7f20168b6e
     auto* cwd = gDirectory;
+#endif
     ROOT::GetROOT()->cd();
     std::vector<Int_t> varObjList(expectedLeafNames_.size(),0);
     auto* fakeTree = new TTree("fakeTree", "fakeTree");
