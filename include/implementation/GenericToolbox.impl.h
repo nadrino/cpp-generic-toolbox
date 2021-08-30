@@ -603,7 +603,7 @@ namespace GenericToolbox {
       std::sregex_token_iterator(),
       [&result](std::sregex_token_iterator::value_type const& e) {
         std::string tmp(e);
-        result += std::count_if(tmp.begin(), tmp.end(), isprint);
+        result += std::count_if(tmp.begin(), tmp.end(), ::isprint);
       }
     );
     return result;
