@@ -42,6 +42,7 @@ namespace GenericToolbox{
   inline TH2D* convertTMatrixDtoTH2D(TMatrixD *XY_values_, std::string graph_title_ = "", const std::string &Z_title_ = "", const std::string &Y_title_ = "Row #", const std::string &X_title_ = "Col #");
   inline TVectorD* convertStdVectorToTVectorD(const std::vector<double> &vect_);
   inline TMatrixDSym* convertToSymmetricMatrix(TMatrixD* matrix_);
+  inline TMatrixDSym* convertToSymmetricMatrix(const TMatrixD* matrix_);
   inline TMatrixD* convertToCorrelationMatrix(TMatrixD* covarianceMatrix_);
 
   //! Formula Tools
@@ -58,6 +59,7 @@ namespace GenericToolbox{
   inline std::vector<TObject*> getListOfObjectFromTDirectory(TDirectory* directory_, const std::string &class_name_ = "");
   inline TDirectory* mkdirTFile(TDirectory* baseDir_, const std::string &dirName_);
   inline TDirectory* mkdirTFile(TFile* outputFile_, const std::string &dirName_);
+  inline TDirectory* getCurrentTDirectory();
 
   //! Trees Tools
   inline void disableUnhookedBranches(TTree* tree_);
