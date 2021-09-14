@@ -144,31 +144,55 @@ namespace GenericToolbox{
     if( not _headerString_.empty() ){
       ss << _headerString_ << std::endl;
     }
-    ss << GenericToolbox::repeatString("-", barWidth) << std::endl;
+
+    int iQuantity = -1;
+
+    // https://en.wikipedia.org/wiki/Box-drawing_character
+    ss << "┌";
+    for( iQuantity = 0 ; iQuantity < int(_displayQuantityIndexList_.size()) ; iQuantity++ ){
+      if( iQuantity != 0 ){ ss << "┬─"; }
+      ss << GenericToolbox::repeatString("─", int(paddingList.at(iQuantity)+1));
+    }
+    ss << "┐" << std::endl;
 
     // Legend
     std::stringstream sss;
-    int iQuantity = -1;
+    iQuantity = -1;
+    ss << "│";
     for( const auto& quantityIndex : _displayQuantityIndexList_ ){
       iQuantity++;
       if(not sss.str().empty()) sss << " ";
-      sss << GenericToolbox::padString(_quantityMonitorList_.at(quantityIndex).title, paddingList.at(iQuantity)) << " |";
+      sss << GenericToolbox::padString(_quantityMonitorList_.at(quantityIndex).title, paddingList.at(iQuantity)) << " │";
     }
     ss << sss.str() << std::endl;
-    ss << GenericToolbox::repeatString("-", barWidth) << std::endl;
+
+    ss << "├";
+    for( iQuantity = 0 ; iQuantity < int(_displayQuantityIndexList_.size()) ; iQuantity++ ){
+      if( iQuantity != 0 ){ ss << "┼─"; }
+      ss << GenericToolbox::repeatString("─", int(paddingList.at(iQuantity)+1));
+    }
+    ss << "┤" << std::endl;
 
     // Content
     for( size_t iVar = 0 ; iVar < _varMonitorList_.size() ; iVar++ ){
       sss.str("");
       iQuantity = -1;
+      ss << "│";
       for( const auto& quantityIndex : _displayQuantityIndexList_ ){
         iQuantity++;
         if(not sss.str().empty()) sss << " ";
-        sss << GenericToolbox::padString(varElementsList.at(iVar).at(iQuantity), paddingList.at(iQuantity)) << " |";
+        sss << GenericToolbox::padString(varElementsList.at(iVar).at(iQuantity), paddingList.at(iQuantity)) << " │";
       }
       ss << sss.str() << std::endl;
     }
-    ss << GenericToolbox::repeatString("-", barWidth) << std::endl;
+
+    ss << "└";
+    for( iQuantity = 0 ; iQuantity < int(_displayQuantityIndexList_.size()) ; iQuantity++ ){
+      if( iQuantity != 0 ){ ss << "┴─"; }
+      ss << GenericToolbox::repeatString("─", int(paddingList.at(iQuantity)+1));
+    }
+    ss << "┘" << std::endl;
+
 
     // Optional Footer
     if( not _footerString_.empty() ) ss << _footerString_ << std::endl;
