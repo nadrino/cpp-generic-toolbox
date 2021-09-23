@@ -44,6 +44,7 @@ namespace GenericToolbox {
 
   namespace ColorCodes{
     static const char* redBackGround = "\e[41m";
+    static const char* yellowBackGround = "\033[43m";
     static const char* resetColor = "\e[0m";
   }
 
