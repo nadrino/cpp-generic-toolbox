@@ -663,6 +663,17 @@ namespace GenericToolbox {
       thrownParListOut_.at(iPar) = thrownParVec[iPar];
     }
   }
+  TMatrixD* getOuterProduct(TVectorD* v_, TVectorD* w_ ){
+    if( v_ == nullptr ) return nullptr;
+    if( w_ == nullptr ) w_ = v_;
+    auto* out = new TMatrixD(v_->GetNrows(), w_->GetNrows());
+    for( int iX = 0 ; iX < v_->GetNrows() ; iX++ ){
+      for( int jX = 0 ; jX < w_->GetNrows() ; jX++ ){
+        (*out)[iX][jX] = (*v_)[iX] * (*w_)[jX];
+      }
+    }
+    return out;
+  }
 }
 
 
