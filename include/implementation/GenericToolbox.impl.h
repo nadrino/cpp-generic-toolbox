@@ -518,7 +518,7 @@ namespace GenericToolbox {
 // String Management Tools
 namespace GenericToolbox {
 
-#if defined(__GNUC__) && (__GNUC__ < 4 || (__GNUC__ == 4 && __GNUC_MINOR__ < 9))
+#if defined(__GNUC__) && !defined(__clang__) && (__GNUC__ < 4 || (__GNUC__ == 4 && __GNUC_MINOR__ < 9))
 #else
   namespace StringManagementUtils{
     static std::regex ansiRegex("\033((\\[((\\d+;)*\\d+)?[A-DHJKMRcfghilmnprsu])|\\(|\\))");
@@ -600,7 +600,7 @@ namespace GenericToolbox {
   }
   inline size_t getPrintSize(const std::string& str_){
     if( str_.empty() ) return 0;
-#if defined(__GNUC__) && (__GNUC__ < 4 || (__GNUC__ == 4 && __GNUC_MINOR__ < 9))
+#if defined(__GNUC__) && !defined(__clang__) && (__GNUC__ < 4 || (__GNUC__ == 4 && __GNUC_MINOR__ < 9))
 // this is gcc 4.8 or earlier
 // std::regex support is buggy, so don't use in this block
   return str_.size();
