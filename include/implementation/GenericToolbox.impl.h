@@ -518,9 +518,12 @@ namespace GenericToolbox {
 // String Management Tools
 namespace GenericToolbox {
 
+#if defined(__GNUC__) && (__GNUC__ < 4 || (__GNUC__ == 4 && __GNUC_MINOR__ < 9))
+#else
   namespace StringManagementUtils{
     static std::regex ansiRegex("\033((\\[((\\d+;)*\\d+)?[A-DHJKMRcfghilmnprsu])|\\(|\\))");
   }
+#endif
 
   bool doesStringContainsSubstring(std::string string_, std::string substring_, bool ignoreCase_) {
     if (substring_.empty()) return true;
@@ -597,6 +600,13 @@ namespace GenericToolbox {
   }
   inline size_t getPrintSize(const std::string& str_){
     if( str_.empty() ) return 0;
+#if defined(__GNUC__) && (__GNUC__ < 4 || (__GNUC__ == 4 && __GNUC_MINOR__ < 9))
+// this is gcc 4.8 or earlier
+// std::regex support is buggy, so don't use in this block
+  return str_.size();
+#else
+// this is gcc 4.9 or later, or other compilers like clang
+// hopefully std::regex support is ok here
     std::string::iterator::difference_type result = 0;
     std::for_each(
       std::sregex_token_iterator(str_.begin(), str_.end(), StringManagementUtils::ansiRegex, -1),
@@ -607,6 +617,7 @@ namespace GenericToolbox {
       }
     );
     return result;
+#endif
   }
   inline std::string repeatString(const std::string &inputStr_, int amount_){
     std::string outputStr;
