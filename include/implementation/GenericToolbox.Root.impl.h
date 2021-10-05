@@ -29,7 +29,7 @@
 //! Conversion Tools
 namespace GenericToolbox {
 
-  TH1D* convertTVectorDtoTH1D(TVectorD* yValuesPtr_, const std::string &histTitle_, const std::string &yTitle_,
+  TH1D* convertTVectorDtoTH1D(const TVectorD* yValuesPtr_, const std::string &histTitle_, const std::string &yTitle_,
                               const std::string &xTitle_, TVectorD* yErrorsPtr_){
 
     auto* th1_histogram = new TH1D(histTitle_.c_str(), histTitle_.c_str(),
@@ -56,7 +56,7 @@ namespace GenericToolbox {
     delete tVectorHandler;
     return out;
   }
-  TH2D* convertTMatrixDtoTH2D(TMatrixD* XY_values_, std::string graph_title_, const std::string &Z_title_,
+  TH2D* convertTMatrixDtoTH2D(const TMatrixD* XY_values_, std::string graph_title_, const std::string &Z_title_,
                               const std::string &Y_title_, const std::string &X_title_){
 
     if(graph_title_.empty()){
