@@ -28,6 +28,7 @@ namespace GenericToolbox{
   }
 
   inline void LeafHolder::hookToTree(TTree* tree_, const std::string& branchName_){
+    if(branchName_.empty()) throw std::logic_error("Can't hook empty branch name.");
     auto* treeLeafPtr = tree_->GetLeaf(branchName_.c_str());
     if( treeLeafPtr == nullptr ){
       throw std::runtime_error("Can't find branch \""+branchName_+"\" in tree "+tree_->GetName());
