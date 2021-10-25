@@ -11,6 +11,7 @@
 #include <any>
 
 #include "TTree.h"
+#include "TLeaf.h"
 
 #include "GenericToolbox.AnyType.h"
 
@@ -21,7 +22,7 @@ namespace GenericToolbox{
 
   public:
     inline LeafHolder();
-//    inline LeafHolder(const LeafHolder& other_);
+    inline LeafHolder(const LeafHolder& other_);
     inline virtual ~LeafHolder();
 
     inline void reset();

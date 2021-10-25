@@ -7,23 +7,37 @@
 
 #include "TGraph.h"
 #include "TLeaf.h"
+#include "TClonesArray.h"
 
 #include "GenericToolbox.h"
+#include "GenericToolbox.Root.h"
 
 namespace GenericToolbox{
 
   inline LeafHolder::LeafHolder() { this->reset(); }
-//  inline LeafHolder::LeafHolder(const LeafHolder& other_){
-//    this->reset();
-//    _leafTypeName_ = other_._leafTypeName_;
+  inline LeafHolder::LeafHolder(const LeafHolder& other_){
+    this->reset();
+    _leafTypeName_ = other_._leafTypeName_;
+    _leafDataList_ = other_._leafDataList_;
+    if( _leafTypeName_ == "TClonesArray" ){
+      for( size_t iLeaf = 0 ; iLeaf < _leafDataList_.size() ; iLeaf++ ){
+        _leafDataList_[iLeaf] =
+            std::shared_ptr<TClonesArray>(
+                (TClonesArray*) (other_._leafDataList_[iLeaf].getValue<std::shared_ptr<TClonesArray>>())->Clone()
+                );
+//        std::cout << _leafDataList_[iLeaf].getValue<std::shared_ptr<TClonesArray>>() << " -> "
+//        << ((TGraph*)(_leafDataList_[iLeaf].getValue<std::shared_ptr<TClonesArray>>())->At(0))->GetN() << std::endl;
+      }
+    }
 //    _leafDataList_.resize(other_._leafDataList_.size());
 //    for( size_t iLeaf = 0 ; iLeaf < _leafDataList_.size() ; iLeaf++ ){
 //      _leafDataList_[iLeaf] = AnyType(other_._leafDataList_[iLeaf]);
 //    }
-//  }
+  }
   inline LeafHolder::~LeafHolder() { this->reset(); }
 
   inline void LeafHolder::reset(){
+    _leafTypeName_ = "";
     _leafDataList_.clear();
   }
 
@@ -98,10 +112,18 @@ namespace GenericToolbox{
       tree_->SetBranchAddress(branchName_.c_str(), &this->getVariable<Double_t>());
     }
 
-    // TObjects
+    // TObjects (can't be loaded as objects)
     else if( _leafTypeName_ == "TGraph" ){
-      this->defineVariable(TGraph(), treeLeafPtr->GetNdata());
+      this->defineVariable(TGraph(), treeLeafPtr->GetLen());
       tree_->SetBranchAddress(branchName_.c_str(), &this->getVariable<TGraph>());
+    }
+    else if( _leafTypeName_ == "TClonesArray" ){
+//      this->defineVariable(std::nullptr_t(), treeLeafPtr->GetLen());
+      this->defineVariable(std::shared_ptr<TClonesArray>(), treeLeafPtr->GetLen());
+      GenericToolbox::muteRoot();
+      // ROOT will complain about the wrong type of pointer
+      tree_->SetBranchAddress(branchName_.c_str(), &(this->getVariable<std::shared_ptr<TClonesArray>>()));
+      GenericToolbox::unmuteRoot();
     }
 
     // Others
