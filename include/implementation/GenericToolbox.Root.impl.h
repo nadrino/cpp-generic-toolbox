@@ -765,7 +765,7 @@ namespace GenericToolbox {
       bin_max = h1->GetNbinsX();
 
     auto max = -1.e9;
-    for (auto bin_it = 1; bin_it <= bin_max; ++bin_it) {
+    for (auto bin_it = bin_min; bin_it <= bin_max; ++bin_it) {
       if (h1->GetBinContent(bin_it) > max)
         max = h1->GetBinContent(bin_it);
     }
@@ -773,7 +773,7 @@ namespace GenericToolbox {
     auto start = 0.;
     auto end = h1->GetBinLowEdge(bin_max) + h1->GetBinWidth(bin_max);
     int bin_it;
-    for (bin_it = 1; bin_it <= bin_max; ++bin_it) {
+    for (bin_it = bin_min; bin_it <= bin_max; ++bin_it) {
       if (h1->GetBinContent(bin_it) > max/2) {
         max = h1->GetBinContent(bin_it);
         break;
