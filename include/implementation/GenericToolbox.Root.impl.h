@@ -749,6 +749,45 @@ namespace GenericToolbox {
 
   }
 
+  template<class T> inline double getFWHM(T* histo, int bin_min, int bin_max) {
+    // test if the arg is castable to TH1*
+    auto h1 = dynamic_cast<TH1*>(histo);
+    if (!h1)
+      throw std::logic_error("Argument is not 1D histo");
+
+    // TH2 are castable to TH1 but are not allowed arg
+    // GetBinLowEdge() for TH2 return NaN. Test it.
+    double test = h1->GetBinLowEdge(1);
+    if (test != test)
+      throw std::logic_error("Argument is not 1D histo");
+
+    if (bin_max == -1)
+      bin_max = h1->GetNbinsX();
+
+    auto max = -1.e9;
+    for (auto bin_it = 1; bin_it <= bin_max; ++bin_it) {
+      if (h1->GetBinContent(bin_it) > max)
+        max = h1->GetBinContent(bin_it);
+    }
+
+    auto start = 0.;
+    auto end = h1->GetBinLowEdge(bin_max) + h1->GetBinWidth(bin_max);
+    int bin_it;
+    for (bin_it = 1; bin_it <= bin_max; ++bin_it) {
+      if (h1->GetBinContent(bin_it) > max/2) {
+        max = h1->GetBinContent(bin_it);
+        break;
+      }
+    }
+    for (bin_it = bin_it; bin_it <= bin_max; ++bin_it) {
+      if (h1->GetBinContent(bin_it) < max/2) {
+        start = h1->GetBinLowEdge(bin_it) + h1->GetBinWidth(bin_it);
+        break;
+      }
+    }
+    return end - start;
+  }
+
 
 }
 
