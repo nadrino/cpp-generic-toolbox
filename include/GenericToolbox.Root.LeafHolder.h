@@ -11,6 +11,7 @@
 #include <any>
 
 #include "TTree.h"
+#include "TLeaf.h"
 
 #include "GenericToolbox.AnyType.h"
 
@@ -21,7 +22,6 @@ namespace GenericToolbox{
 
   public:
     inline LeafHolder();
-//    inline LeafHolder(const LeafHolder& other_);
     inline virtual ~LeafHolder();
 
     inline void reset();
@@ -33,13 +33,12 @@ namespace GenericToolbox{
     template<typename T> inline const T& getVariable(size_t arrayIndex_ = 0) const;
     inline double getVariableAsDouble(size_t arrayIndex_ = 0) const;
 
-    inline const std::string &getLeafTypeName() const;
+    inline void clonePointerLeaves();
 
     // Stream operator
     inline friend std::ostream& operator <<( std::ostream& o, const LeafHolder& v );
 
   private:
-    std::string _leafTypeName_;
     std::vector<AnyType> _leafDataList_;
 
   };
