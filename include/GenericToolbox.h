@@ -13,6 +13,7 @@
 #include <functional>
 #include <chrono>
 #include <map>
+#include "list"
 
 // Pre-proc parameters
 #include "implementation/GenericToolbox.param.h"
@@ -76,6 +77,8 @@ namespace GenericToolbox{
   template<typename T> inline std::vector<size_t> indices(const std::vector<T> &vector_);
   template<typename T> inline double getAveragedSlope(const std::vector<T> &yValues_);
   template<typename T, typename TT> inline double getAveragedSlope(const std::vector<T> &yValues_, const std::vector<TT> &xValues_);
+
+  template<typename T, typename TT> inline T& getListEntry(const std::list<T>& list_, TT index_);
 
 }
 

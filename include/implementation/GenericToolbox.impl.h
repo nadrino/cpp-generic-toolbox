@@ -461,6 +461,12 @@ namespace GenericToolbox {
     return a;
   }
 
+  template<typename T, typename TT> inline T& getListEntry(const std::list<T>& list_, TT index_){
+    auto it = list_.begin();
+    std::advance(it, index_);
+    return *it;
+  }
+
 }
 
 
