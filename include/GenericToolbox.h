@@ -78,7 +78,8 @@ namespace GenericToolbox{
   template<typename T> inline double getAveragedSlope(const std::vector<T> &yValues_);
   template<typename T, typename TT> inline double getAveragedSlope(const std::vector<T> &yValues_, const std::vector<TT> &xValues_);
 
-  template<typename T, typename TT> inline T& getListEntry(const std::list<T>& list_, TT index_);
+  template<typename T, typename TT> inline T& getListEntry(std::list<T>& list_, TT index_);
+  template<typename T, typename TT> inline const T& getListEntry(const std::list<T>& list_, TT index_);
 
 }
 
