@@ -95,4 +95,4 @@ namespace GenericToolbox{
 
 #include "implementation/GenericToolbox.AnyType.Impl.h"
 
-#endif //XSLLHFITTER_GENERICTOOLBOX_ANYTYPE_H
+#endif //CPP_GENERIC_TOOLBOX_GENERICTOOLBOX_ANYTYPE_H
