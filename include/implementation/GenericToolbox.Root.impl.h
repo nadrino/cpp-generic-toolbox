@@ -682,6 +682,9 @@ namespace GenericToolbox {
     }
     return out;
   }
+  template<typename T> TVectorT<T>* getMatrixDiagonal(TMatrixTSym<double>* m_){
+    return GenericToolbox::getMatrixDiagonal((TMatrixT<T>*) m_);
+  }
 }
 
 
