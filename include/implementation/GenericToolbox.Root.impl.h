@@ -674,7 +674,7 @@ namespace GenericToolbox {
     }
     return out;
   }
-  template<typename T> TVectorT<T>* getMatrixDiagonal(TMatrixT<double>* m_){
+  template<typename T> TVectorT<T>* getMatrixDiagonal(TMatrixT<T>* m_){
     if( m_ == nullptr ) return nullptr;
     auto* out = new TVectorT<T>(std::min(m_->GetNcols(), m_->GetNrows()));
     for( int iDiag = 0 ; iDiag < out->GetNrows() ; iDiag++ ){
@@ -682,7 +682,7 @@ namespace GenericToolbox {
     }
     return out;
   }
-  template<typename T> TVectorT<T>* getMatrixDiagonal(TMatrixTSym<double>* m_){
+  template<typename T> TVectorT<T>* getMatrixDiagonal(TMatrixTSym<T>* m_){
     return GenericToolbox::getMatrixDiagonal((TMatrixT<T>*) m_);
   }
 }

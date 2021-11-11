@@ -74,8 +74,8 @@ namespace GenericToolbox{
   inline void throwCorrelatedParameters(TMatrixD* choleskyCovMatrix_, std::vector<double>& thrownParListOut_);
 //  inline TMatrixD* computeSqrt(TMatrixD* inputMatrix_);
   inline TMatrixD* getOuterProduct(TVectorD* v_, TVectorD* w_ = nullptr);
-  template<typename T> TVectorT<T>* getMatrixDiagonal(TMatrixT<double>* m_);
-  template<typename T> TVectorT<T>* getMatrixDiagonal(TMatrixTSym<double>* m_);
+  template<typename T> TVectorT<T>* getMatrixDiagonal(TMatrixT<T>* m_);
+  template<typename T> TVectorT<T>* getMatrixDiagonal(TMatrixTSym<T>* m_);
 
   //! Histogram Tools
   inline void resetHistogram(TH1D* hist_);
