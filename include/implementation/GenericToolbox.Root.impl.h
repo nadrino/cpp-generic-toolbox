@@ -674,6 +674,13 @@ namespace GenericToolbox {
     }
     return out;
   }
+  template<typename T> TMatrixT<T>* makeIdentityMatrix(int dim_){
+    auto* out = new TMatrixT<T>(dim_, dim_);
+    for( int iDiag = 0 ; iDiag < out->GetNrows() ; iDiag++ ){
+      (*out)[iDiag][iDiag] = 1;
+    }
+    return out;
+  }
   template<typename T> TMatrixT<T>* makeDiagonalMatrix(TVectorT<T>* v_){
     if( v_ == nullptr ) return nullptr;
     auto* out = new TMatrixT<T>(v_->GetNrows(), v_->GetNrows());
