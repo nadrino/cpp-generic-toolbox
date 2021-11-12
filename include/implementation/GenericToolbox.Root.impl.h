@@ -689,14 +689,14 @@ namespace GenericToolbox {
     if( m_ == nullptr ) return nullptr;
     if( line_ < 0 or line_ >= m_->GetNrows() ) throw std::runtime_error("invalid matrix line: " + std::to_string(line_));
     auto* out = new TVectorT<T>(m_->GetNcols());
-    for( int iCol = 0 ; iCol < out->GetNcols() ; iCol++ ){ (*out)[iCol] = m_[line_][iCol]; }
+    for( int iCol = 0 ; iCol < out->GetNrows() ; iCol++ ){ (*out)[iCol] = (*m_)[line_][iCol]; }
     return out;
   }
   template<typename T> inline TVectorT<T>* getMatrixColumn(TMatrixT<T>* m_, int col_){
     if( m_ == nullptr ) return nullptr;
     if( col_ < 0 or col_ >= m_->GetNcols() ) throw std::runtime_error("invalid matrix line: " + std::to_string(col_));
     auto* out = new TVectorT<T>(m_->GetNrows());
-    for( int iRow = 0 ; iRow < out->GetNrows() ; iRow++ ){ (*out)[iRow] = m_[iRow][col_]; }
+    for( int iRow = 0 ; iRow < out->GetNrows() ; iRow++ ){ (*out)[iRow] = (*m_)[iRow][col_]; }
     return out;
   }
 }
