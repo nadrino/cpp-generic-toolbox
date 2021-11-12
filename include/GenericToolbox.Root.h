@@ -76,8 +76,8 @@ namespace GenericToolbox{
   inline TMatrixD* getOuterProduct(TVectorD* v_, TVectorD* w_ = nullptr);
   template<typename T> inline TVectorT<T>* getMatrixDiagonal(TMatrixT<T>* m_);
   template<typename T> inline TVectorT<T>* getMatrixDiagonal(TMatrixTSym<T>* m_);
-  template<typename T> inline TVectorT<T>* getMatrixLine(TMatrixTSym<T>* m_, int line_);
-  template<typename T> inline TVectorT<T>* getMatrixColumn(TMatrixTSym<T>* m_, int col_);
+  template<typename T> inline TVectorT<T>* getMatrixLine(TMatrixT<T>* m_, int line_);
+  template<typename T> inline TVectorT<T>* getMatrixColumn(TMatrixT<T>* m_, int col_);
 
   //! Histogram Tools
   inline void resetHistogram(TH1D* hist_);
