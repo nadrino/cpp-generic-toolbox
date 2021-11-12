@@ -674,7 +674,15 @@ namespace GenericToolbox {
     }
     return out;
   }
-  template<typename T> auto makeIdentityMatrix(int dim_) -> TMatrixT<T>*{
+  template<typename T> void transformMatrix(TMatrixT<T>* m_, std::function<void(TMatrixT<T>*, int, int)> transformFunction_){
+    if( m_ == nullptr ) return;
+    for( int iRow = 0 ; iRow < m_->GetNrows() ; iRow++ ){
+      for( int iCol = 0 ; iCol < m_->GetNcols() ; iCol++ ){
+        transformFunction_(m_, iRow, iCol);
+      }
+    }
+  }
+  template<typename T> auto makeIdentityMatrix(int dim_) -> TMatrixT<T>* {
     auto* out = new TMatrixT<T>(dim_, dim_);
     for( int iDiag = 0 ; iDiag < out->GetNrows() ; iDiag++ ){
       (*out)[iDiag][iDiag] = 1;
