@@ -362,10 +362,10 @@ namespace GenericToolbox {
     }
     return outIndex;
   }
-  template <typename T> inline double getAverage(const std::vector<T>& vector_){
+  template <typename T, typename TT> inline double getAverage(const std::vector<T>& vector_, const TT& func){
     double outVal = 0;
     for( auto& element : vector_ ){
-      outVal += element;
+      outVal += static_cast<double>(func(element));
     }
     return outVal / vector_.size();
   }
