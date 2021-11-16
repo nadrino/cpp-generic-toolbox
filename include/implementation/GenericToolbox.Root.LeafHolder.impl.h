@@ -130,6 +130,9 @@ namespace GenericToolbox{
   inline double LeafHolder::getVariableAsDouble(size_t arrayIndex_) const{
     return _leafDataList_.at(arrayIndex_).getValueAsDouble();
   }
+  inline void* LeafHolder::getVariableAddress(size_t arrayIndex_){
+    return _leafDataList_.at(arrayIndex_).getVarPtr().get();
+  }
 
   inline void LeafHolder::clonePointerLeaves(){
     for(auto & leafData : _leafDataList_){
