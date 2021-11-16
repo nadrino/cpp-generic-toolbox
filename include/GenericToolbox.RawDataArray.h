@@ -25,9 +25,9 @@ namespace GenericToolbox{
     inline std::vector<char>& getRawDataArray();
 
     template<typename T> inline void writeRawData(const T& data); // auto incrementing "_currentOffset_"
-    template<typename T> inline void writeRawData(const T& data, size_t byteOffSet_);
+    template<typename T> inline void writeRawData(const T& data, size_t byteOffset_);
 
-    void resetOffset();
+    void resetCurrentByteOffset();
     void lockArraySize();
     void unlockArraySize();
 

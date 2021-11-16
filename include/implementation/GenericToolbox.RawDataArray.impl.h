@@ -16,7 +16,7 @@ namespace GenericToolbox{
 
   inline void RawDataArray::reset(){
     rawData = std::vector<char>();
-    resetOffset();
+    resetCurrentByteOffset();
     unlockArraySize();
   }
 
@@ -28,12 +28,15 @@ namespace GenericToolbox{
     this->writeRawData(data, _currentByteOffset_);
     _currentByteOffset_+=sizeof(data);
   }
-  template<typename T> inline void RawDataArray::writeRawData(const T& data, size_t byteOffSet_){
-    if( not _lockArraySize_ and rawData.size() < byteOffSet_ + sizeof(data) ){ rawData.resize(byteOffSet_ + sizeof(data)); }
-    memcpy(&rawData[byteOffSet_],&data,sizeof(data));
+  template<typename T> inline void RawDataArray::writeRawData(const T& data, size_t byteOffset_){
+    if(rawData.size() < byteOffset_ + sizeof(data) ){
+      if( _lockArraySize_ ) throw std::runtime_error("Can't resize raw array since _lockArraySize_ is true.");
+      rawData.resize(byteOffset_ + sizeof(data));
+    }
+    memcpy(&rawData[byteOffset_], &data, sizeof(data));
   }
 
-  inline void RawDataArray::resetOffset(){
+  inline void RawDataArray::resetCurrentByteOffset(){
     _currentByteOffset_=0;
   }
   inline void RawDataArray::lockArraySize(){
