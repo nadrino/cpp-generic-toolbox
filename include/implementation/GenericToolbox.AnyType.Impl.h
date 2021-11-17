@@ -37,8 +37,11 @@ namespace GenericToolbox{
   inline const std::type_info& AnyType::getType() const{
     return _varPtr_ != nullptr ? _varPtr_->getType() : typeid(void);
   }
-  inline const std::shared_ptr<PlaceHolder> &AnyType::getVarPtr() const {
+  inline const std::shared_ptr<PlaceHolder> &AnyType::getPlaceHolderPtr() const {
     return _varPtr_;
+  }
+  inline size_t AnyType::getStoredSize() const{
+    return _varPtr_->getVariableSize();
   }
 
   template<typename ValueType> inline void AnyType::setValue(const ValueType& value_){

@@ -29,10 +29,15 @@ namespace GenericToolbox{
     inline void hookToTree(TTree* tree_, const std::string& branchName_);
     template<typename T> inline void defineVariable(T variable_, size_t arraySize_ = 1);
     template<typename T> inline T& getVariable(size_t arrayIndex_ = 0);
-    inline void* getVariableAddress(size_t arrayIndex_ = 0);
 
     template<typename T> inline const T& getVariable(size_t arrayIndex_ = 0) const;
     inline double getVariableAsDouble(size_t arrayIndex_ = 0) const;
+    inline size_t getArraySize() const;
+
+    inline void* getVariableAddress(size_t arrayIndex_ = 0);
+    inline const AnyType& getLeafDataAddress(size_t arrayIndex_ = 0) const;
+    inline size_t getVariableSize(size_t arrayIndex_ = 0) const;
+    inline char findOriginalVariableType() const;
 
     inline void clonePointerLeaves();
 
