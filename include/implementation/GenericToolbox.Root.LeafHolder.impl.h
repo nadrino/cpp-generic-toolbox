@@ -157,7 +157,7 @@ namespace GenericToolbox{
     else if( _leafDataList_[0].getType() == typeid(Double32_t) ){ return 'd'; } // `d` : a 24 bit truncated floating point (`Double32_t`)
     else if( _leafDataList_[0].getType() == typeid(Long64_t) ){ return 'L'; }
     else if( _leafDataList_[0].getType() == typeid(ULong64_t) ){ return 'l'; }
-    else if( _leafDataList_[0].getType() == typeid(Long_t) ){ return 'F'; } // `G` : a long signed integer, stored as 64 bit (`Long_t`)
+    else if( _leafDataList_[0].getType() == typeid(Long_t) ){ return 'G'; } // `G` : a long signed integer, stored as 64 bit (`Long_t`)
     else if( _leafDataList_[0].getType() == typeid(ULong_t) ){ return 'g'; } // `g` : a long unsigned integer, stored as 64 bit (`ULong_t`)
     return char(0xFF); // OTHER??
   }
