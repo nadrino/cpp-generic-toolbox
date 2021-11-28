@@ -29,7 +29,7 @@
 //! Conversion Tools
 namespace GenericToolbox {
 
-  TH1D* convertTVectorDtoTH1D(TVectorD* yValuesPtr_, const std::string &histTitle_, const std::string &yTitle_,
+  TH1D* convertTVectorDtoTH1D(const TVectorD* yValuesPtr_, const std::string &histTitle_, const std::string &yTitle_,
                               const std::string &xTitle_, TVectorD* yErrorsPtr_){
 
     auto* th1_histogram = new TH1D(histTitle_.c_str(), histTitle_.c_str(),
@@ -56,7 +56,7 @@ namespace GenericToolbox {
     delete tVectorHandler;
     return out;
   }
-  TH2D* convertTMatrixDtoTH2D(TMatrixD* XY_values_, std::string graph_title_, const std::string &Z_title_,
+  TH2D* convertTMatrixDtoTH2D(const TMatrixD* XY_values_, std::string graph_title_, const std::string &Z_title_,
                               const std::string &Y_title_, const std::string &X_title_){
 
     if(graph_title_.empty()){
@@ -90,7 +90,10 @@ namespace GenericToolbox {
     return output;
 
   }
-  TMatrixDSym *convertToSymmetricMatrix(TMatrixD *matrix_) {
+  TMatrixDSym *convertToSymmetricMatrix(TMatrixD *matrix_){
+    return convertToSymmetricMatrix((const TMatrixD*) matrix_);
+  }
+  TMatrixDSym *convertToSymmetricMatrix(const TMatrixD *matrix_) {
 
     auto *symmetric_matrix = (TMatrixD *) matrix_->Clone();
     auto *transposed_symmetric_matrix = new TMatrixD(*matrix_);
@@ -286,7 +289,7 @@ namespace GenericToolbox {
     return output;
   }
   inline TTreeFormula* createTreeFormulaWithoutTree(const std::string& formulaStr_, std::vector<std::string> expectedLeafNames_){
-    auto* cwd = gDirectory;
+    auto* cwd = GenericToolbox::getCurrentTDirectory();
     ROOT::GetROOT()->cd();
     std::vector<Int_t> varObjList(expectedLeafNames_.size(),0);
     auto* fakeTree = new TTree("fakeTree", "fakeTree");
@@ -319,47 +322,65 @@ namespace GenericToolbox {
 //! Files Tools
 namespace GenericToolbox {
 
-  bool doesTFileIsValid(const std::string &input_file_path_){
-    bool file_is_valid = false;
-    if(GenericToolbox::doesPathIsFile(input_file_path_))
-    {
+  bool doesTFileIsValid(const std::string &inputFilePath_, const std::vector<std::string>& objectListToCheck_){
+    bool fileIsValid = false;
+    if(GenericToolbox::doesPathIsFile(inputFilePath_)) {
       auto old_verbosity = gErrorIgnoreLevel;
       gErrorIgnoreLevel  = kFatal;
-      auto* input_tfile  = TFile::Open(input_file_path_.c_str(), "READ");
-      if(doesTFileIsValid(input_tfile))
-      {
-        file_is_valid = true;
-        input_tfile->Close();
+      auto* tfileCandidatePtr  = TFile::Open(inputFilePath_.c_str(), "READ");
+      if(doesTFileIsValid(tfileCandidatePtr)) {
+        fileIsValid = true;
+        for( const auto& objectPath : objectListToCheck_ ){
+          if(tfileCandidatePtr->Get(objectPath.c_str()) == nullptr ){
+            fileIsValid = false;
+            break;
+          }
+        }
+        tfileCandidatePtr->Close();
       }
-      delete input_tfile;
+      delete tfileCandidatePtr;
       gErrorIgnoreLevel = old_verbosity;
     }
-    return file_is_valid;
+    return fileIsValid;
   }
-  bool doesTFileIsValid(TFile* input_tfile_, bool check_if_writable_){
+  bool doesTFileIsValid(TFile* tfileCandidatePtr_, bool check_if_writable_){
 
-    if(input_tfile_ == nullptr){
+    if(tfileCandidatePtr_ == nullptr){
       if(GenericToolbox::Parameters::_verboseLevel_ >= 1)
-        std::cout << "input_tfile_ is a nullptr" << std::endl;
+        std::cout << "tfileCandidatePtr_ is a nullptr" << std::endl;
       return false;
     }
 
-    if(not input_tfile_->IsOpen()){
+    if(not tfileCandidatePtr_->IsOpen()){
       if(GenericToolbox::Parameters::_verboseLevel_ >= 1)
-        std::cout << "input_tfile_ = " << input_tfile_->GetName() << " is not opened."
+        std::cout << "tfileCandidatePtr_ = " << tfileCandidatePtr_->GetName() << " is not opened."
                   << std::endl;
       if(GenericToolbox::Parameters::_verboseLevel_ >= 1)
-        std::cout << "input_tfile_->IsOpen() = " << input_tfile_->IsOpen()
+        std::cout << "tfileCandidatePtr_->IsOpen() = " << tfileCandidatePtr_->IsOpen()
                   << std::endl;
       return false;
     }
 
-    if(check_if_writable_ and not input_tfile_->IsWritable()){
+    if( tfileCandidatePtr_->IsZombie() ){
+      if(GenericToolbox::Parameters::_verboseLevel_ >= 1){
+        std::cout << GET_VAR_NAME_VALUE(tfileCandidatePtr_->IsZombie()) << std::endl;
+      }
+      return false;
+    }
+
+    if( tfileCandidatePtr_->TestBit(TFile::kRecovered) ){
+      if(GenericToolbox::Parameters::_verboseLevel_ >= 1){
+        std::cout << GET_VAR_NAME_VALUE(tfileCandidatePtr_->TestBit(TFile::kRecovered)) << std::endl;
+      }
+      return false;
+    }
+
+    if(check_if_writable_ and not tfileCandidatePtr_->IsWritable()){
       if(GenericToolbox::Parameters::_verboseLevel_ >= 1)
-        std::cout << "input_tfile_ = " << input_tfile_->GetName()
+        std::cout << "tfileCandidatePtr_ = " << tfileCandidatePtr_->GetName()
                   << " is not writable." << std::endl;
       if(GenericToolbox::Parameters::_verboseLevel_ >= 1)
-        std::cout << "input_tfile_->IsWritable() = " << input_tfile_->IsWritable()
+        std::cout << "tfileCandidatePtr_->IsWritable() = " << tfileCandidatePtr_->IsWritable()
                   << std::endl;
       return false;
     }
@@ -409,6 +430,16 @@ namespace GenericToolbox {
 
     // }
     return output;
+  }
+  inline TDirectory* getCurrentTDirectory(){
+#if ROOT_VERSION_CODE >= ROOT_VERSION(6,23,02)
+    return gDirectory.fValue.load();
+#else
+    // Prior releases of ROOT, gDirectory was returning a TDirectory*
+    // Implementation has been made on the 16 Dec 2020:
+    // https://github.com/root-project/root/commit/085e9c182b9f639d5921c75de284ae7f20168b6e
+    return gDirectory;
+#endif
   }
 
 
@@ -632,6 +663,65 @@ namespace GenericToolbox {
       thrownParListOut_.at(iPar) = thrownParVec[iPar];
     }
   }
+  TMatrixD* getOuterProduct(TVectorD* v_, TVectorD* w_ ){
+    if( v_ == nullptr ) return nullptr;
+    if( w_ == nullptr ) w_ = v_;
+    auto* out = new TMatrixD(v_->GetNrows(), w_->GetNrows());
+    for( int iX = 0 ; iX < v_->GetNrows() ; iX++ ){
+      for( int jX = 0 ; jX < w_->GetNrows() ; jX++ ){
+        (*out)[iX][jX] = (*v_)[iX] * (*w_)[jX];
+      }
+    }
+    return out;
+  }
+  template<typename T> void transformMatrix(TMatrixT<T>* m_, std::function<void(TMatrixT<T>*, int, int)> transformFunction_){
+    if( m_ == nullptr ) return;
+    for( int iRow = 0 ; iRow < m_->GetNrows() ; iRow++ ){
+      for( int iCol = 0 ; iCol < m_->GetNcols() ; iCol++ ){
+        transformFunction_(m_, iRow, iCol);
+      }
+    }
+  }
+  template<typename T> auto makeIdentityMatrix(int dim_) -> TMatrixT<T>* {
+    auto* out = new TMatrixT<T>(dim_, dim_);
+    for( int iDiag = 0 ; iDiag < out->GetNrows() ; iDiag++ ){
+      (*out)[iDiag][iDiag] = 1;
+    }
+    return out;
+  }
+  template<typename T> TMatrixT<T>* makeDiagonalMatrix(TVectorT<T>* v_){
+    if( v_ == nullptr ) return nullptr;
+    auto* out = new TMatrixT<T>(v_->GetNrows(), v_->GetNrows());
+    for( int iDiag = 0 ; iDiag < out->GetNrows() ; iDiag++ ){
+      (*out)[iDiag][iDiag] = (*v_)[iDiag];
+    }
+    return out;
+  }
+  template<typename T> TVectorT<T>* getMatrixDiagonal(TMatrixT<T>* m_){
+    if( m_ == nullptr ) return nullptr;
+    auto* out = new TVectorT<T>(std::min(m_->GetNcols(), m_->GetNrows()));
+    for( int iDiag = 0 ; iDiag < out->GetNrows() ; iDiag++ ){
+      (*out)[iDiag] = (*m_)[iDiag][iDiag];
+    }
+    return out;
+  }
+  template<typename T> TVectorT<T>* getMatrixDiagonal(TMatrixTSym<T>* m_){
+    return GenericToolbox::getMatrixDiagonal((TMatrixT<T>*) m_);
+  }
+  template<typename T> inline TVectorT<T>* getMatrixLine(TMatrixT<T>* m_, int line_){
+    if( m_ == nullptr ) return nullptr;
+    if( line_ < 0 or line_ >= m_->GetNrows() ) throw std::runtime_error("invalid matrix line: " + std::to_string(line_));
+    auto* out = new TVectorT<T>(m_->GetNcols());
+    for( int iCol = 0 ; iCol < out->GetNrows() ; iCol++ ){ (*out)[iCol] = (*m_)[line_][iCol]; }
+    return out;
+  }
+  template<typename T> inline TVectorT<T>* getMatrixColumn(TMatrixT<T>* m_, int col_){
+    if( m_ == nullptr ) return nullptr;
+    if( col_ < 0 or col_ >= m_->GetNcols() ) throw std::runtime_error("invalid matrix line: " + std::to_string(col_));
+    auto* out = new TVectorT<T>(m_->GetNrows());
+    for( int iRow = 0 ; iRow < out->GetNrows() ; iRow++ ){ (*out)[iRow] = (*m_)[iRow][col_]; }
+    return out;
+  }
 }
 
 
@@ -640,17 +730,21 @@ namespace GenericToolbox {
 
   inline void resetHistogram(TH1D* hist_){
     hist_->Reset("ICESM");
-    for(int iBin = 0 ; iBin <= hist_->GetNbinsX()+1 ; iBin++ ){
-      hist_->SetBinContent(iBin,0);
-      hist_->SetBinError(iBin,0);
-    }
+    transformBinContent(hist_, [](TH1D* h_, int iBin_){
+      h_->SetBinContent(iBin_, 0);
+      h_->SetBinError(iBin_, 0);
+    }, true);
   }
-  inline void rescalePerBinWidth(TH1D* hist_){
-    for( int iBin = 0 ; iBin <= hist_->GetNbinsX()+1 ; iBin++ ){
-      hist_->SetBinContent(
-          iBin,
-          hist_->GetBinContent(iBin) / hist_->GetBinWidth(iBin)
-          );
+  inline void rescalePerBinWidth(TH1D* hist_, double globalScaler_){
+    transformBinContent(hist_, [&](TH1D* h_, int iBin_){
+      h_->SetBinContent( iBin_,globalScaler_ * h_->GetBinContent(iBin_)/hist_->GetBinWidth(iBin_) );
+    }, true);
+  }
+  void transformBinContent(TH1D* hist_, std::function<void(TH1D*, int)> transformFunction_, bool processOverflowBins_){
+    int firstBin = processOverflowBins_ ? 0 : 1;
+    int lastBin = processOverflowBins_ ? hist_->GetNbinsX() + 1 : hist_->GetNbinsX();
+    for( int iBin = firstBin ; iBin <= lastBin ; iBin++ ){
+      transformFunction_(hist_, iBin);
     }
   }
   std::vector<double> getLogBinning(int n_bins_, double X_min_, double X_max_) {

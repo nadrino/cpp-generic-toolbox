@@ -13,6 +13,7 @@
 #include <functional>
 #include <chrono>
 #include <map>
+#include "list"
 
 // Pre-proc parameters
 #include "implementation/GenericToolbox.param.h"
@@ -33,7 +34,7 @@ namespace GenericToolbox{
   template<typename T, typename TT> inline void displayProgressBar( const T& iCurrent_, const TT& iTotal_, const std::string &title_ = "", bool forcePrint_ = false);
   template<typename T, typename TT> inline std::string getProgressBarStr(const T& iCurrent_, const TT& iTotal_, const std::string &title_ = "", bool forcePrint_ = false );
   template<typename T, typename TT> inline std::string generateProgressBarStr(const T& iCurrent_, const TT& iTotal_, const std::string &title_ = "" );
-  template<typename T, typename TT> inline bool doesPrintProgressBarOk(const T& iCurrent_, const TT& iTotal_);
+  template<typename T, typename TT> inline bool showProgressBar(const T& iCurrent_, const TT& iTotal_);
   inline void resetLastDisplayedValue();
 
 }
@@ -44,6 +45,7 @@ namespace GenericToolbox {
 
   namespace ColorCodes{
     static const char* redBackGround = "\e[41m";
+    static const char* yellowBackGround = "\033[43m";
     static const char* resetColor = "\e[0m";
   }
 
@@ -65,6 +67,7 @@ namespace GenericToolbox{
   template <typename T> inline double getAverage(const std::vector<T>& vector_);
   template <typename T> std::vector<T> getSubVector( const std::vector<T>& vector_, size_t beginIndex_, int endIndex_ = -1 );
   template <typename T, typename TT> inline std::vector<TT> convertVectorType( const std::vector<T>& vector_, std::function<TT(T)>& convertTypeFunction_ );
+  template <typename T> inline std::vector<size_t> getSortPermutation(const std::vector<T>& vectorToSort_, std::function<bool(const T&, const T&)> compareLambda_ );
   template <typename T> inline std::vector<size_t> getSortPermutation(const std::vector<T>& vectorToSort_, std::function<bool(const T, const T)> compareLambda_ );
   template <typename T> inline std::vector<T> applyPermutation(const std::vector<T>& vectorToPermute_, const std::vector<std::size_t>& sortPermutation_ );
   template<typename T> inline void insertInVector(std::vector<T> &vector_, const std::vector<T> &vectorToInsert_, size_t insertBeforeThisIndex_);
@@ -75,6 +78,8 @@ namespace GenericToolbox{
   template<typename T> inline double getAveragedSlope(const std::vector<T> &yValues_);
   template<typename T, typename TT> inline double getAveragedSlope(const std::vector<T> &yValues_, const std::vector<TT> &xValues_);
 
+  template<typename T, typename TT> inline T& getListEntry(std::list<T>& list_, TT index_);
+  template<typename T, typename TT> inline const T& getListEntry(const std::list<T>& list_, TT index_);
 
 }
 
@@ -101,6 +106,7 @@ namespace GenericToolbox{
   inline bool doesStringEndsWithSubstring(std::string string_, std::string substring_, bool ignoreCase_ = false);
   inline std::string toLowerCase(const std::string &inputStr_);
   inline std::string stripStringUnicode(const std::string &inputStr_);
+  inline size_t getPrintSize(const std::string& str_);
   inline std::string repeatString(const std::string &inputStr_, int amount_);
   inline std::string trimString(const std::string &inputStr_, const std::string &strToTrim_);
   inline std::string padString(const std::string& inputStr_, unsigned int padSize_, const char& padChar = ' ');
@@ -196,8 +202,8 @@ namespace GenericToolbox{
 namespace GenericToolbox{
 
   //! Misc Tools
-  inline std::string getClassName(const std::string& PRETTY_FUNCTION__); // When calling this functions, provide __PRETTY_FUNCTION__ macro
-  inline std::string getMethodName(const std::string& PRETTY_FUNCTION__);
+  inline std::string getClassName(const std::string& PRETTY_FUNCTION_); // When calling this functions, provide __PRETTY_FUNCTION__ macro
+  inline std::string getMethodName(const std::string& PRETTY_FUNCTION_);
 
   // Not intended to be managed by the user
   namespace Internals{
@@ -216,6 +222,7 @@ namespace GenericToolbox{
 
 //! MACROS Tools
 #define __CLASS_NAME__ GenericToolbox::getClassName(__PRETTY_FUNCTION__)
+//#define __CLASS_NAME__ ( this != nullptr ? typeid(*this).name() )
 #define __METHOD_NAME__ GenericToolbox::getMethodName(__PRETTY_FUNCTION__)
 
 #define GET_VAR_NAME_VALUE(var) ( ((std::stringstream&) (std::stringstream() << #var << " = " << (var)) ).str() )

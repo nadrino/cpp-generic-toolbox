@@ -1,5 +1,5 @@
 //
-// Created by Adrien BLANCHET on 06/07/2021.
+// Created by Nadrino on 06/07/2021.
 //
 
 #ifndef CPP_GENERIC_TOOLBOX_GENERICTOOLBOX_VARIABLESMONITOR_IMPL_H
@@ -96,21 +96,22 @@ namespace GenericToolbox{
     throw std::logic_error("Quantity with name " + quantityName_ + " is not monitored");
   }
 
-  inline std::string VariablesMonitor::generateMonitorString(bool trailBackCursor_) {
-
-    // skip?
-    if( _maxRefreshRateInMs_ != -1 and trailBackCursor_ ){
+  inline bool VariablesMonitor::isGenerateMonitorStringOk(){
+    if( _maxRefreshRateInMs_ != -1 ){
       if( _lastGeneratedMonitorStringTime_.time_since_epoch().count() != 0
-          and std::chrono::duration_cast<std::chrono::milliseconds>(
-          std::chrono::high_resolution_clock::now() - _lastGeneratedMonitorStringTime_
-            ).count() < _maxRefreshRateInMs_
-          ){
-        return "";
-      }
-      else{
-        _lastGeneratedMonitorStringTime_ = std::chrono::high_resolution_clock::now();
+      and std::chrono::duration_cast<std::chrono::milliseconds>(
+        std::chrono::high_resolution_clock::now() - _lastGeneratedMonitorStringTime_
+        ).count() < _maxRefreshRateInMs_
+        ){
+        return false;
       }
     }
+    return true;
+  }
+  inline std::string VariablesMonitor::generateMonitorString(bool trailBackCursor_) {
+
+    if( trailBackCursor_ and not this->isGenerateMonitorStringOk() ) return {};
+    _lastGeneratedMonitorStringTime_ = std::chrono::high_resolution_clock::now();
 
     std::vector<std::vector<std::string>> varElementsList(_varMonitorList_.size(), std::vector<std::string>(_displayQuantityIndexList_.size()));
 
@@ -143,31 +144,55 @@ namespace GenericToolbox{
     if( not _headerString_.empty() ){
       ss << _headerString_ << std::endl;
     }
-    ss << GenericToolbox::repeatString("-", barWidth) << std::endl;
+
+    int iQuantity = -1;
+
+    // https://en.wikipedia.org/wiki/Box-drawing_character
+    ss << "┌";
+    for( iQuantity = 0 ; iQuantity < int(_displayQuantityIndexList_.size()) ; iQuantity++ ){
+      if( iQuantity != 0 ){ ss << "┬─"; }
+      ss << GenericToolbox::repeatString("─", int(paddingList.at(iQuantity)+1));
+    }
+    ss << "┐" << std::endl;
 
     // Legend
     std::stringstream sss;
-    int iQuantity = -1;
+    iQuantity = -1;
+    ss << "│";
     for( const auto& quantityIndex : _displayQuantityIndexList_ ){
       iQuantity++;
       if(not sss.str().empty()) sss << " ";
-      sss << GenericToolbox::padString(_quantityMonitorList_.at(quantityIndex).title, paddingList.at(iQuantity)) << " |";
+      sss << GenericToolbox::padString(_quantityMonitorList_.at(quantityIndex).title, paddingList.at(iQuantity)) << " │";
     }
     ss << sss.str() << std::endl;
-    ss << GenericToolbox::repeatString("-", barWidth) << std::endl;
+
+    ss << "├";
+    for( iQuantity = 0 ; iQuantity < int(_displayQuantityIndexList_.size()) ; iQuantity++ ){
+      if( iQuantity != 0 ){ ss << "┼─"; }
+      ss << GenericToolbox::repeatString("─", int(paddingList.at(iQuantity)+1));
+    }
+    ss << "┤" << std::endl;
 
     // Content
     for( size_t iVar = 0 ; iVar < _varMonitorList_.size() ; iVar++ ){
       sss.str("");
       iQuantity = -1;
+      ss << "│";
       for( const auto& quantityIndex : _displayQuantityIndexList_ ){
         iQuantity++;
         if(not sss.str().empty()) sss << " ";
-        sss << GenericToolbox::padString(varElementsList.at(iVar).at(iQuantity), paddingList.at(iQuantity)) << " |";
+        sss << GenericToolbox::padString(varElementsList.at(iVar).at(iQuantity), paddingList.at(iQuantity)) << " │";
       }
       ss << sss.str() << std::endl;
     }
-    ss << GenericToolbox::repeatString("-", barWidth) << std::endl;
+
+    ss << "└";
+    for( iQuantity = 0 ; iQuantity < int(_displayQuantityIndexList_.size()) ; iQuantity++ ){
+      if( iQuantity != 0 ){ ss << "┴─"; }
+      ss << GenericToolbox::repeatString("─", int(paddingList.at(iQuantity)+1));
+    }
+    ss << "┘" << std::endl;
+
 
     // Optional Footer
     if( not _footerString_.empty() ) ss << _footerString_ << std::endl;
@@ -182,7 +207,7 @@ namespace GenericToolbox{
     ssLineCleaner << "\r" << ss.str(); // "\r" can be intercepted by loggers to know if a new line header can be printed
 
     if( trailBackCursor_ ){
-      ssLineCleaner << static_cast<char>(27) << "[2K" << static_cast<char>(27) << "[" << nLines-1 << ";1F";
+      ssLineCleaner << static_cast<char>(27) << "[2K" << static_cast<char>(27) << "[" << nLines << ";1F" << std::endl;
       ssLineCleaner << static_cast<char>(27) << "[2K"; // un-flushed part: this clear line will only be displayed once a new line will try to override it
     }
 

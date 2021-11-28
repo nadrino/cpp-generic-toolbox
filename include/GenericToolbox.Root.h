@@ -21,15 +21,28 @@
 #include "TTreeFormula.h"
 #include "TRandom3.h"
 
+namespace GenericToolbox{
+
+  const std::vector<Color_t> defaultColorWheel = {
+      kGreen-3, kTeal+3, kAzure+7,
+      kCyan-2, kBlue-7, kBlue+2,
+      kOrange-3, kOrange+9, kRed+2,
+      kPink+9, kViolet, kGreen-8,
+      kCyan+1, kOrange-4, kOrange+6,
+      kMagenta-10, kCyan-9, kGreen-10
+  };
+
+}
 
 namespace GenericToolbox{
 
   //! Conversion Tools
-  inline TH1D* convertTVectorDtoTH1D(TVectorD *yValuesPtr_, const std::string &histTitle_ = "", const std::string &yTitle_ = "", const std::string &xTitle_ = "Entry #", TVectorD *yErrorsPtr_ = nullptr);
+  inline TH1D* convertTVectorDtoTH1D(const TVectorD *yValuesPtr_, const std::string &histTitle_ = "", const std::string &yTitle_ = "", const std::string &xTitle_ = "Entry #", TVectorD *yErrorsPtr_ = nullptr);
   inline TH1D* convertTVectorDtoTH1D(const std::vector<double> &Y_values_, const std::string &histTitle_ = "", const std::string &Y_title_ = "", const std::string &X_title_ = "Entry #", TVectorD *Y_errors_ = nullptr);
-  inline TH2D* convertTMatrixDtoTH2D(TMatrixD *XY_values_, std::string graph_title_ = "", const std::string &Z_title_ = "", const std::string &Y_title_ = "Row #", const std::string &X_title_ = "Col #");
+  inline TH2D* convertTMatrixDtoTH2D(const TMatrixD *XY_values_, std::string graph_title_ = "", const std::string &Z_title_ = "", const std::string &Y_title_ = "Row #", const std::string &X_title_ = "Col #");
   inline TVectorD* convertStdVectorToTVectorD(const std::vector<double> &vect_);
   inline TMatrixDSym* convertToSymmetricMatrix(TMatrixD* matrix_);
+  inline TMatrixDSym* convertToSymmetricMatrix(const TMatrixD* matrix_);
   inline TMatrixD* convertToCorrelationMatrix(TMatrixD* covarianceMatrix_);
 
   //! Formula Tools
@@ -40,12 +53,13 @@ namespace GenericToolbox{
   inline bool doesLoadedEntryPassCut(TTreeFormula* treeFormula_);
 
   //! Files Tools
-  inline bool doesTFileIsValid(const std::string &input_file_path_);
-  inline bool doesTFileIsValid(TFile* input_tfile_, bool check_if_writable_ = false);
+  inline bool doesTFileIsValid(const std::string &inputFilePath_, const std::vector<std::string>& objectListToCheck_ = {});
+  inline bool doesTFileIsValid(TFile* tfileCandidatePtr_, bool check_if_writable_ = false);
   inline std::vector<TFile*> getListOfOpenedTFiles();
   inline std::vector<TObject*> getListOfObjectFromTDirectory(TDirectory* directory_, const std::string &class_name_ = "");
   inline TDirectory* mkdirTFile(TDirectory* baseDir_, const std::string &dirName_);
   inline TDirectory* mkdirTFile(TFile* outputFile_, const std::string &dirName_);
+  inline TDirectory* getCurrentTDirectory();
 
   //! Trees Tools
   inline void disableUnhookedBranches(TTree* tree_);
@@ -59,10 +73,20 @@ namespace GenericToolbox{
   inline std::vector<double> throwCorrelatedParameters(TMatrixD* choleskyCovMatrix_);
   inline void throwCorrelatedParameters(TMatrixD* choleskyCovMatrix_, std::vector<double>& thrownParListOut_);
 //  inline TMatrixD* computeSqrt(TMatrixD* inputMatrix_);
+  inline TMatrixD* getOuterProduct(TVectorD* v_, TVectorD* w_ = nullptr);
+  template<typename T> inline void transformMatrix(TMatrixT<T>* m_, std::function<void(TMatrixT<T>*, int, int)> transformFunction_);
+  template<typename T> inline TMatrixT<T>* makeIdentityMatrix(int dim_);
+  template<typename T> inline TMatrixT<T>* makeDiagonalMatrix(TVectorT<T>* v_);
+
+  template<typename T> inline TVectorT<T>* getMatrixDiagonal(TMatrixT<T>* m_);
+  template<typename T> inline TVectorT<T>* getMatrixDiagonal(TMatrixTSym<T>* m_);
+  template<typename T> inline TVectorT<T>* getMatrixLine(TMatrixT<T>* m_, int line_);
+  template<typename T> inline TVectorT<T>* getMatrixColumn(TMatrixT<T>* m_, int col_);
 
   //! Histogram Tools
   inline void resetHistogram(TH1D* hist_);
-  inline void rescalePerBinWidth(TH1D* hist_);
+  inline void rescalePerBinWidth(TH1D* hist_, double globalScaler_ = 1);
+  inline void transformBinContent(TH1D* hist_, std::function<void(TH1D*, int)> transformFunction_, bool processOverflowBins_ = false);
   inline std::vector<double> getLogBinning(int n_bins_, double X_min_, double X_max_);
   inline std::vector<double> getLinearBinning(int n_bins_, double X_min_, double X_max_);
   inline TH1D* getTH1DlogBinning(const std::string &name_, const std::string &title_, int n_bins_, double X_min_, double X_max_);
