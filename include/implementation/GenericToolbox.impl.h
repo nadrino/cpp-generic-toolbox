@@ -276,7 +276,7 @@ namespace GenericToolbox {
     if(nbCharsPerColor > 1){
       int colorSlot{0};
       for( int iChar = 0 ; iChar < inputStrStripped.size() ; iChar++ ){
-        if( iChar == 0 or iChar / nbCharsPerColor - colorSlot > 1 ){
+        if( iChar == 0 or iChar+1 / nbCharsPerColor - colorSlot > 1 ){
           outputString += ProgressBar::rainbowColorList[colorSlot++];
         }
         outputString += inputStrStripped[iChar];
