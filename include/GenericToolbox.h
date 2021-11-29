@@ -37,8 +37,6 @@ namespace GenericToolbox{
   template<typename T, typename TT> inline bool showProgressBar(const T& iCurrent_, const TT& iTotal_);
   inline void resetLastDisplayedValue();
 
-  inline std::string makeRainbowString(const std::string& inputStr_);
-
 }
 
 
@@ -55,6 +53,7 @@ namespace GenericToolbox {
   inline void waitProgressBar(unsigned int nbMilliSecToWait_, const std::string &progressTitle_ = "Waiting...");
   inline std::string parseIntAsString(int intToFormat_);
   inline std::string highlightIf(bool condition_, const std::string& text_);
+  inline std::string makeRainbowString(const std::string& inputStr_);
 
 }
 
