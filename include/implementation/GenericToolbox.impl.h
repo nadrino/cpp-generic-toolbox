@@ -326,9 +326,10 @@ namespace GenericToolbox{
     ss << ( condition_ ? ColorCodes::resetColor : "" );
     return ss.str();
   }
-  inline std::string makeRainbowString(const std::string& inputStr_){
+  inline std::string makeRainbowString(const std::string& inputStr_, bool stripUnicode_){
     std::string outputString;
-    std::string inputStrStripped = GenericToolbox::stripStringUnicode(inputStr_);
+    std::string inputStrStripped;
+    stripUnicode_ ? inputStrStripped = GenericToolbox::stripStringUnicode(inputStr_) : inputStrStripped = inputStr_;
     double nbCharsPerColor = double(inputStrStripped.size()) / double(ProgressBar::rainbowColorList.size());
     int colorSlot{0};
     for( int iChar = 0 ; iChar < inputStrStripped.size() ; iChar++ ){
