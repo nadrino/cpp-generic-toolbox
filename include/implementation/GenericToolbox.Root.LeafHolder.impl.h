@@ -143,6 +143,10 @@ namespace GenericToolbox{
     return _leafDataList_.at(arrayIndex_).getPlaceHolderPtr()->getVariableSize();
   }
   inline char LeafHolder::findOriginalVariableType() const{
+
+//    auto* classInfo = (TClass*) TDictionary::GetDictionary(_leafDataList_[0].getType());
+//    classInfo->Sizeof();
+
     if( _leafDataList_.empty() ) return 0;
     else if( _leafDataList_[0].getType() == typeid(Bool_t) ){ return 'O'; }
     else if( _leafDataList_[0].getType() == typeid(Char_t) ){ return 'B'; }
