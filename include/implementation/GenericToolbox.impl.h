@@ -269,6 +269,22 @@ namespace GenericToolbox {
     ProgressBar::lastDisplayedPercentValue = -1;
   }
 
+  std::string makeRainbowString(const std::string& inputStr_){
+    std::string outputString;
+    std::string inputStrStripped = GenericToolbox::stripStringUnicode(inputStr_);
+    double nbCharsPerColor = double(inputStrStripped.size()) / double(ProgressBar::rainbowColorList.size());
+    if(nbCharsPerColor > 1){
+      int colorSlot{0};
+      for( int iChar = 0 ; iChar < inputStrStripped.size() ; iChar++ ){
+        if( iChar == 0 or iChar / std::round(nbCharsPerColor) - colorSlot > 1 ){
+          outputString += ProgressBar::rainbowColorList[colorSlot++];
+        }
+        outputString += inputStrStripped[iChar];
+      }
+    }
+    return outputString;
+  }
+
 }
 
 

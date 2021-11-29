@@ -37,6 +37,8 @@ namespace GenericToolbox{
   template<typename T, typename TT> inline bool showProgressBar(const T& iCurrent_, const TT& iTotal_);
   inline void resetLastDisplayedValue();
 
+  std::string makeRainbowString(const std::string& inputStr_);
+
 }
 
 
