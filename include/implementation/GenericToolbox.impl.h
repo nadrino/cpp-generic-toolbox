@@ -144,39 +144,20 @@ namespace GenericToolbox {
     ssProgressBar << ssPrefix.str();
 
     if (displayedBarLength > 0) {
-
       int nbTags = percentValue * displayedBarLength / 100;
       int nbSpaces = displayedBarLength - nbTags;
-      ssProgressBar << "[";
-      if (not ProgressBar::enableRainbowProgressBar) {
-        int iCharTagIndex = 0;
-        for (int iTag = 0; iTag < nbTags; iTag++) {
-          ssProgressBar << ProgressBar::fillTag[iCharTagIndex];
-          iCharTagIndex++;
-          if (iCharTagIndex >= ProgressBar::fillTag.size()) iCharTagIndex = 0;
-        }
+
+      std::string padProgressBar;
+      for (int iTag = 0; iTag < nbTags; iTag++) {
+        padProgressBar += ProgressBar::fillTag[iTag%ProgressBar::fillTag.size()];
       }
-      else {
-        int nbTagsCredits = nbTags;
-        int nbColors = int(ProgressBar::rainbowColorList.size());
-        int nbTagsPerColor = displayedBarLength / nbColors;
-        if (displayedBarLength % nbColors != 0) nbTagsPerColor++;
-        int iCharTagIndex = 0;
-        for (int iColor = 0; iColor < nbColors; iColor++) {
-          ssProgressBar << ProgressBar::rainbowColorList[iColor];
-          if (nbTagsCredits == 0) break;
-          int iSlot = 0;
-          while (nbTagsCredits != 0 and iSlot < nbTagsPerColor) {
-            ssProgressBar << ProgressBar::fillTag[iCharTagIndex];
-            iCharTagIndex++;
-            if (iCharTagIndex >= ProgressBar::fillTag.size()) iCharTagIndex = 0;
-            nbTagsCredits--;
-            iSlot++;
-          }
-        }
-        ssProgressBar << "\033[0m";
+      padProgressBar += repeatString(" ", nbSpaces);
+
+      if( ProgressBar::enableRainbowProgressBar ){
+        padProgressBar = GenericToolbox::makeRainbowString(padProgressBar, false);
       }
-      ssProgressBar << repeatString(" ", nbSpaces) << "] ";
+
+      ssProgressBar << "[" << padProgressBar << "] ";
     }
 
     ssProgressBar << ssTail.str();
