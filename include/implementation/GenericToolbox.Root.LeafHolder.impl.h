@@ -100,17 +100,23 @@ namespace GenericToolbox{
       tree_->SetBranchAddress(branchName_.c_str(), &this->getVariable<TGraph>());
     }
     else if(leafTypeName == "TClonesArray" ){
-//      this->defineVariable(std::nullptr_t(), treeLeafPtr->GetLen());
-      this->defineVariable(std::shared_ptr<TClonesArray>(), treeLeafPtr->GetLen());
-      GenericToolbox::muteRoot();
+      TClonesArray* bufPtr{nullptr};
+      this->defineVariable(bufPtr, treeLeafPtr->GetLen());
       // ROOT will complain about the wrong type of pointer
-      tree_->SetBranchAddress(branchName_.c_str(), &(this->getVariable<std::shared_ptr<TClonesArray>>()));
-      GenericToolbox::unmuteRoot();
+      tree_->SetBranchAddress(branchName_.c_str(), &(this->getVariable<TClonesArray*>()));
     }
 
     // Others
     else{
       throw std::runtime_error(leafTypeName + " is not implemented.");
+    }
+  }
+  template<typename T> inline void LeafHolder::defineVariable(T* variable_, size_t arraySize_){
+    if( not _leafDataList_.empty() ) throw std::logic_error("LeafHolder not empty: can't defineVariable");
+    if(arraySize_ == 0) throw std::runtime_error("Invalid arraySize_");
+    _leafDataList_.resize(arraySize_);
+    for( auto& leafData: _leafDataList_ ){
+      leafData = variable_; // create the variable with the right type
     }
   }
   template<typename T> inline void LeafHolder::defineVariable(T variable_, size_t arraySize_){
