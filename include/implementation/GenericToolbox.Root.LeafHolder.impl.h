@@ -96,8 +96,9 @@ namespace GenericToolbox{
 
     // TObjects (can't be loaded as objects)
     else if(leafTypeName == "TGraph" ){
-      this->defineVariable(TGraph(), treeLeafPtr->GetLen());
-      tree_->SetBranchAddress(branchName_.c_str(), &this->getVariable<TGraph>());
+      TGraph* bufGrPtr{nullptr};
+      this->defineVariable(bufGrPtr, treeLeafPtr->GetLen());
+      tree_->SetBranchAddress(branchName_.c_str(), &(this->getVariable<TGraph*>()));
     }
     else if(leafTypeName == "TClonesArray" ){
       TClonesArray* bufPtr{nullptr};
