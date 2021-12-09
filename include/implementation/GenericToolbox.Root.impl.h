@@ -25,6 +25,8 @@
 #include <GenericToolbox.h>
 #include <TDecompChol.h>
 
+#include <utility>
+
 
 //! Conversion Tools
 namespace GenericToolbox {
@@ -80,6 +82,10 @@ namespace GenericToolbox {
     th2_histogram->GetZaxis()->SetTitle(Z_title_.c_str());
 
     return th2_histogram;
+  }
+  TH2D* convertTMatrixDtoTH2D(const TMatrixDSym* XY_values_, std::string graph_title_, const std::string &Z_title_,
+                              const std::string &Y_title_, const std::string &X_title_){
+    return convertTMatrixDtoTH2D((TMatrixD*) XY_values_, std::move(graph_title_), Z_title_, Y_title_, X_title_);
   }
   TVectorD *convertStdVectorToTVectorD(const std::vector<double> &vect_){
 
@@ -441,6 +447,16 @@ namespace GenericToolbox {
     return gDirectory;
 #endif
   }
+  inline void writeInFile(TDirectory* dir_, const TObject* objToSave_, const std::string &saveName_){
+    if( dir_ == nullptr or objToSave_ == nullptr ) return;
+    auto* prevDir = getCurrentTDirectory();
+    dir_->cd();
+    std::string className = objToSave_->ClassName();
+    GenericToolbox::replaceSubstringInsideInputString(className, "<", "_");
+    GenericToolbox::replaceSubstringInsideInputString(className, ">", "");
+    objToSave_->Write(Form("%s_%s", saveName_.c_str(), className.c_str()));
+    prevDir->cd();
+  }
 
 
 }
@@ -728,6 +744,21 @@ namespace GenericToolbox {
 //! Histogram Tools
 namespace GenericToolbox {
 
+  inline void drawHistHorizontalBars(TH1D* hist_){
+    if(hist_ == nullptr) return;
+    TLine *l;
+    int n = hist_->GetNbinsX();
+    Double_t x1,x2,y;
+    for (int i=1; i<=n; i++) {
+      y = hist_->GetBinContent(i);
+      x1= hist_->GetBinLowEdge(i);
+      x2 = hist_->GetBinWidth(i)+x1;
+      l= new TLine(x1,y,x2,y);
+      l->SetLineColor(hist_->GetLineColor());
+      l->Paint();
+//      l->Draw();
+    }
+  }
   inline void resetHistogram(TH1D* hist_){
     hist_->Reset("ICESM");
     transformBinContent(hist_, [](TH1D* h_, int iBin_){

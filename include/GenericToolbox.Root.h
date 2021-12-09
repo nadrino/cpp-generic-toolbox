@@ -37,9 +37,17 @@ namespace GenericToolbox{
 namespace GenericToolbox{
 
   //! Conversion Tools
+  inline TH1D* convertToTH1D(const TVectorD *yValuesPtr_, const std::string &histTitle_ = "", const std::string &yTitle_ = "", const std::string &xTitle_ = "Entry #", TVectorD *yErrorsPtr_ = nullptr);
+  inline TH1D* convertToTH1D(const std::vector<double> &Y_values_, const std::string &histTitle_ = "", const std::string &Y_title_ = "", const std::string &X_title_ = "Entry #", TVectorD *Y_errors_ = nullptr);
+  inline TH2D* convertToTH2D(const TMatrixD *XY_values_, std::string graph_title_ = "", const std::string &Z_title_ = "", const std::string &Y_title_ = "Row #", const std::string &X_title_ = "Col #");
+  inline TH2D* convertToTH2D(const TMatrixDSym *XY_values_, const std::string& graph_title_ = "", const std::string &Z_title_ = "", const std::string &Y_title_ = "Row #", const std::string &X_title_ = "Col #");
+  template<typename T> inline TVectorT<T>* convertToTVector(const std::vector<T>& vector_);
+
+  // Deprecated calls (kept for compatibility):
   inline TH1D* convertTVectorDtoTH1D(const TVectorD *yValuesPtr_, const std::string &histTitle_ = "", const std::string &yTitle_ = "", const std::string &xTitle_ = "Entry #", TVectorD *yErrorsPtr_ = nullptr);
   inline TH1D* convertTVectorDtoTH1D(const std::vector<double> &Y_values_, const std::string &histTitle_ = "", const std::string &Y_title_ = "", const std::string &X_title_ = "Entry #", TVectorD *Y_errors_ = nullptr);
   inline TH2D* convertTMatrixDtoTH2D(const TMatrixD *XY_values_, std::string graph_title_ = "", const std::string &Z_title_ = "", const std::string &Y_title_ = "Row #", const std::string &X_title_ = "Col #");
+  inline TH2D* convertTMatrixDtoTH2D(const TMatrixDSym *XY_values_, std::string graph_title_ = "", const std::string &Z_title_ = "", const std::string &Y_title_ = "Row #", const std::string &X_title_ = "Col #");
   inline TVectorD* convertStdVectorToTVectorD(const std::vector<double> &vect_);
   inline TMatrixDSym* convertToSymmetricMatrix(TMatrixD* matrix_);
   inline TMatrixDSym* convertToSymmetricMatrix(const TMatrixD* matrix_);
@@ -60,6 +68,7 @@ namespace GenericToolbox{
   inline TDirectory* mkdirTFile(TDirectory* baseDir_, const std::string &dirName_);
   inline TDirectory* mkdirTFile(TFile* outputFile_, const std::string &dirName_);
   inline TDirectory* getCurrentTDirectory();
+  inline void writeInFile(TDirectory* dir_, const TObject* objToSave_, const std::string &saveName_);
 
   //! Trees Tools
   inline void disableUnhookedBranches(TTree* tree_);
@@ -84,6 +93,7 @@ namespace GenericToolbox{
   template<typename T> inline TVectorT<T>* getMatrixColumn(TMatrixT<T>* m_, int col_);
 
   //! Histogram Tools
+  inline void drawHistHorizontalBars(TH1D* hist_);
   inline void resetHistogram(TH1D* hist_);
   inline void rescalePerBinWidth(TH1D* hist_, double globalScaler_ = 1);
   inline void transformBinContent(TH1D* hist_, std::function<void(TH1D*, int)> transformFunction_, bool processOverflowBins_ = false);

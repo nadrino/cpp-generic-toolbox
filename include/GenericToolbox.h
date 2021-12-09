@@ -237,5 +237,8 @@ namespace GenericToolbox{
  * */
 #define ENUM_EXPANDER(enumName_, intOffset_, v1_, ...) GT_INTERNALS_ENUM_EXPANDER(enumName_, intOffset_, v1_, __VA_ARGS__)
 
+#define BIND_VAR_NAME(var) var, #var
+#define BIND_VAR_REF_NAME(var) &(var), #var
+
 
 #endif //CPP_GENERIC_TOOLBOX_GENERICTOOLBOX_H
