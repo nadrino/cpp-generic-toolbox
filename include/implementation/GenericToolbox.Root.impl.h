@@ -745,6 +745,7 @@ namespace GenericToolbox {
 namespace GenericToolbox {
 
   inline void drawHistHorizontalBars(TH1D* hist_){
+    // Incompatible with zoom-in
     if(hist_ == nullptr) return;
     TLine *l;
     int n = hist_->GetNbinsX();
@@ -755,8 +756,8 @@ namespace GenericToolbox {
       x2 = hist_->GetBinWidth(i)+x1;
       l= new TLine(x1,y,x2,y);
       l->SetLineColor(hist_->GetLineColor());
-      l->Paint();
-//      l->Draw();
+//      l->Paint();
+      l->Draw();
     }
   }
   inline void resetHistogram(TH1D* hist_){
