@@ -749,7 +749,7 @@ namespace GenericToolbox {
 
   }
 
-  template<class T> inline double getFWHM(T* histo, int bin_min, int bin_max) {
+  template<class T> inline double getHistogramFwhm(T* histo, int bin_min, int bin_max) {
     // test if the arg is castable to TH1*
     auto h1 = dynamic_cast<TH1*>(histo);
     if (!h1)

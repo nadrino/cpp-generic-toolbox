@@ -92,7 +92,7 @@ namespace GenericToolbox{
    * @param bin_max last bin to evaluate FWHM
    * @return FWHM of the histogram
    */
-  template <class T> inline double getFWHM(T* histo, int bin_min = -1, int bin_max = -1);
+  template <class T> inline double getHistogramFwhm(T* histo, int bin_min = -1, int bin_max = -1);
 
 
   //! Canvas Tools
