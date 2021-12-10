@@ -8,6 +8,7 @@
 #include <typeinfo>
 
 #include "TGraph.h"
+#include "TSpline.h"
 #include "TLeaf.h"
 #include "TClonesArray.h"
 
@@ -99,6 +100,11 @@ namespace GenericToolbox{
       TGraph* bufGrPtr{nullptr};
       this->defineVariable(bufGrPtr, treeLeafPtr->GetLen());
       tree_->SetBranchAddress(branchName_.c_str(), &(this->getVariable<TGraph*>()));
+    }
+    else if(leafTypeName == "TSpline3" ){
+      TSpline3* bufGrPtr{nullptr};
+      this->defineVariable(bufGrPtr, treeLeafPtr->GetLen());
+      tree_->SetBranchAddress(branchName_.c_str(), &(this->getVariable<TSpline3*>()));
     }
     else if(leafTypeName == "TClonesArray" ){
       TClonesArray* bufPtr{nullptr};
