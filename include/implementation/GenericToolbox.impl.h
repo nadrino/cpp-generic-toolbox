@@ -62,7 +62,7 @@ namespace GenericToolbox {
   struct ProgressBarStruct{
     static int lastDisplayedValue;
   };
-  int ProgressBarStruct::lastDisplayedValue = -1;
+  inline int ProgressBarStruct::lastDisplayedValue = -1;
 
   template<typename T, typename TT> std::string generateProgressBarStr( const T& iCurrent_, const TT& iTotal_, const std::string &title_ ){
 
