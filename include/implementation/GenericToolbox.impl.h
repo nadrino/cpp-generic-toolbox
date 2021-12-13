@@ -51,13 +51,18 @@ namespace GenericToolbox {
     static std::ostream* outputStreamPtr{&std::cout};
 
     static int lastDisplayedPercentValue{-1};
-    static int lastDisplayedValue{-1};
+//    static int lastDisplayedValue = {-1};
     static double lastDisplayedSpeed{0};
     static auto lastDisplayedTimePoint = std::chrono::high_resolution_clock::now();
     static std::thread::id _selectedThreadId_ = std::this_thread::get_id(); // get the main thread id
     static std::vector<std::string> rainbowColorList{"\033[1;31m", "\033[1;32m", "\033[1;33m", "\033[1;34m",
                                                      "\033[1;35m", "\033[1;36m"};
-  }
+  };
+
+  struct ProgressBarStruct{
+    static int lastDisplayedValue;
+  };
+  int ProgressBarStruct::lastDisplayedValue = -1;
 
   template<typename T, typename TT> std::string generateProgressBarStr( const T& iCurrent_, const TT& iTotal_, const std::string &title_ ){
 
@@ -79,7 +84,8 @@ namespace GenericToolbox {
     if (ProgressBar::displaySpeed) {
       ssTail << " (";
       double itPerSec =
-        double(iCurrent_) - ProgressBar::lastDisplayedValue; // nb iterations since last print
+        double(iCurrent_) - ProgressBarStruct::lastDisplayedValue; // nb iterations since last print
+//        double(iCurrent_) - ProgressBar::lastDisplayedValue; // nb iterations since last print
         double timeInterval;
         if (int(itPerSec) < 0) itPerSec = 0;
         else {
@@ -172,12 +178,14 @@ namespace GenericToolbox {
     }
 
     ProgressBar::lastDisplayedPercentValue = percentValue;
-    ProgressBar::lastDisplayedValue = iCurrent_;
+//    ProgressBar::lastDisplayedValue = iCurrent_;
+    ProgressBarStruct::lastDisplayedValue = iCurrent_;
     ProgressBar::lastDisplayedTimePoint = newTimePoint;
 
     if( ProgressBar::debugMode ){
       std::cout << "New timestamp: " << ProgressBar::lastDisplayedTimePoint.time_since_epoch().count() << std::endl;
-      std::cout << "ProgressBar::lastDisplayedValue: " << ProgressBar::lastDisplayedValue << std::endl;
+//      std::cout << "ProgressBar::lastDisplayedValue: " << ProgressBar::lastDisplayedValue << std::endl;
+      std::cout << "ProgressBarStruct::lastDisplayedValue: " << ProgressBarStruct::lastDisplayedValue << std::endl;
       std::cout << "ProgressBar::lastDisplayedPercentValue: " << ProgressBar::lastDisplayedPercentValue << std::endl;
     }
 
@@ -246,7 +254,8 @@ namespace GenericToolbox {
   }
   void resetLastDisplayedValue(){
     std::cout << "resetLastDisplayedValue" << std::endl;
-    ProgressBar::lastDisplayedValue = -1;
+//    ProgressBar::lastDisplayedValue = -1;
+    ProgressBarStruct::lastDisplayedValue = -1;
     ProgressBar::lastDisplayedPercentValue = -1;
   }
 
