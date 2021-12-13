@@ -59,7 +59,7 @@ namespace GenericToolbox {
                                                      "\033[1;35m", "\033[1;36m"};
   }
 
-  template<typename T, typename TT> inline std::string generateProgressBarStr( const T& iCurrent_, const TT& iTotal_, const std::string &title_ ){
+  template<typename T, typename TT> std::string generateProgressBarStr( const T& iCurrent_, const TT& iTotal_, const std::string &title_ ){
 
     int percentValue = int(round(double(iCurrent_) / double(iTotal_) * 100.));
     if( percentValue > 100 ){
@@ -184,7 +184,7 @@ namespace GenericToolbox {
     return ssProgressBar.str();
 
   }
-  template<typename T, typename TT> inline bool showProgressBar(const T& iCurrent_, const TT& iTotal_){
+  template<typename T, typename TT> bool showProgressBar(const T& iCurrent_, const TT& iTotal_){
 
     //    if( // Only the main thread
     //      ProgressBar::_selectedThreadId_ != std::this_thread::get_id()
@@ -233,18 +233,18 @@ namespace GenericToolbox {
 
     return false;
   }
-  template<typename T, typename TT> inline std::string getProgressBarStr(const T& iCurrent_, const TT& iTotal_, const std::string &title_, bool forcePrint_ ){
+  template<typename T, typename TT> std::string getProgressBarStr(const T& iCurrent_, const TT& iTotal_, const std::string &title_, bool forcePrint_ ){
     if(forcePrint_ or showProgressBar(iCurrent_, iTotal_) ){
       return generateProgressBarStr(iCurrent_, iTotal_, title_);
     }
     return {};
   }
-  template<typename T, typename TT> inline void displayProgressBar(const T& iCurrent_, const TT& iTotal_, const std::string &title_, bool forcePrint_) {
+  template<typename T, typename TT> void displayProgressBar(const T& iCurrent_, const TT& iTotal_, const std::string &title_, bool forcePrint_) {
     if(forcePrint_ or GenericToolbox::showProgressBar(iCurrent_, iTotal_) ){
       *ProgressBar::outputStreamPtr << GenericToolbox::generateProgressBarStr(iCurrent_, iTotal_, title_);
     }
   }
-  inline void resetLastDisplayedValue(){
+  void resetLastDisplayedValue(){
     std::cout << "resetLastDisplayedValue" << std::endl;
     ProgressBar::lastDisplayedValue = -1;
     ProgressBar::lastDisplayedPercentValue = -1;
