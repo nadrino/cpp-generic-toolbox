@@ -242,6 +242,10 @@ namespace GenericToolbox {
   template<typename T, typename TT> void displayProgressBar(const T& iCurrent_, const TT& iTotal_, const std::string &title_, bool forcePrint_) {
     if(forcePrint_ or GenericToolbox::showProgressBar(iCurrent_, iTotal_) ){
       *ProgressBar::outputStreamPtr << GenericToolbox::generateProgressBarStr(iCurrent_, iTotal_, title_);
+      if(ProgressBar::lastDisplayedValue == -1){
+        // WORKAROUND FOR LINUX COMPILER?
+        ProgressBar::lastDisplayedValue = int(round(double(iCurrent_) / double(iTotal_) * 100.));
+      }
     }
   }
   void resetLastDisplayedValue(){
