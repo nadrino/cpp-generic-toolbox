@@ -6,6 +6,9 @@
 #ifndef CPP_GENERIC_TOOLBOX_GENERICTOOLBOX_H
 #define CPP_GENERIC_TOOLBOX_GENERICTOOLBOX_H
 
+// Pre-proc parameters
+#include "implementation/GenericToolbox.param.h"
+
 #include <string>
 #include <vector>
 #include <thread>
@@ -14,9 +17,6 @@
 #include <chrono>
 #include <map>
 #include "list"
-
-// Pre-proc parameters
-#include "implementation/GenericToolbox.param.h"
 
 
 //! User Parameters
