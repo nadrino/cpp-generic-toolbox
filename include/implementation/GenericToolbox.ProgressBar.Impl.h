@@ -31,7 +31,7 @@ namespace GenericToolbox{
     std::stringstream ssTail;
     ssTail << GenericToolbox::padString(std::to_string(percentValue), 3, ' ') << "%";
 
-    std::chrono::steady_clock::time_point newTimePoint = std::chrono::high_resolution_clock::now();
+    std::chrono::high_resolution_clock::time_point newTimePoint = std::chrono::high_resolution_clock::now();
     if (this->displaySpeed) {
       ssTail << " (";
       double itPerSec =

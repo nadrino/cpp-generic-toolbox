@@ -41,7 +41,7 @@ namespace GenericToolbox{
     int lastDisplayedPercentValue{-1};
     int lastDisplayedValue = {-1};
     double lastDisplayedSpeed{0};
-    std::chrono::steady_clock::time_point lastDisplayedTimePoint{std::chrono::high_resolution_clock::now()};
+    std::chrono::high_resolution_clock::time_point lastDisplayedTimePoint{std::chrono::high_resolution_clock::now()};
     std::thread::id _selectedThreadId_ = std::this_thread::get_id(); // get the main thread id
 
   };
