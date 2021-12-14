@@ -32,21 +32,21 @@ namespace GenericToolbox{
     ssTail << GenericToolbox::padString(std::to_string(percentValue), 3, ' ') << "%";
 
     auto newTimePoint = std::chrono::high_resolution_clock::now();
-    if (ProgressBar::displaySpeed) {
+    if (this->displaySpeed) {
       ssTail << " (";
       double itPerSec =
-          double(iCurrent_) - ProgressBar::lastDisplayedValue; // nb iterations since last print
+          double(iCurrent_) - this->lastDisplayedValue; // nb iterations since last print
       double timeInterval;
       if (int(itPerSec) < 0) itPerSec = 0;
       else {
         timeInterval = double(std::chrono::duration_cast<std::chrono::milliseconds>(
-            newTimePoint - ProgressBar::lastDisplayedTimePoint
+            newTimePoint - this->lastDisplayedTimePoint
         ).count()) / 1000.;
         if( timeInterval != 0 ){
           itPerSec /= timeInterval; // Count per s
-          ProgressBar::lastDisplayedSpeed = itPerSec;
+          this->lastDisplayedSpeed = itPerSec;
         }
-        else itPerSec = ProgressBar::lastDisplayedSpeed;
+        else itPerSec = this->lastDisplayedSpeed;
       }
       ssTail << GenericToolbox::padString(GenericToolbox::parseIntAsString(int(itPerSec)), 5, ' ');
       ssTail << " it/s)";
@@ -55,7 +55,7 @@ namespace GenericToolbox{
 
 
     // test if the bar is too wide wrt the prompt width
-    int displayedBarLength = ProgressBar::maxBarLength;
+    int displayedBarLength = this->maxBarLength;
 
     auto termWidth = GenericToolbox::getTerminalWidth();
     if( termWidth != 0 ) { // terminal width is measurable
@@ -80,7 +80,7 @@ namespace GenericToolbox{
             displayedBarLength = 0;
             remainingSpaces += 2; // get back the [] of the pBar
           }
-          remainingSpaces += (ProgressBar::maxBarLength - displayedBarLength );
+          remainingSpaces += (this->maxBarLength - displayedBarLength );
         }
       }
 
@@ -105,11 +105,11 @@ namespace GenericToolbox{
 
       std::string padProgressBar;
       for (int iTag = 0; iTag < nbTags; iTag++) {
-        padProgressBar += ProgressBar::fillTag[iTag%ProgressBar::fillTag.size()];
+        padProgressBar += this->fillTag[iTag%this->fillTag.size()];
       }
       padProgressBar += repeatString(" ", nbSpaces);
 
-      if( ProgressBar::enableRainbowProgressBar ){
+      if( this->enableRainbowProgressBar ){
         padProgressBar = GenericToolbox::makeRainbowString(padProgressBar, false);
       }
 
@@ -127,14 +127,14 @@ namespace GenericToolbox{
       ssProgressBar << static_cast<char>(27) << "[1K" << "\r"; // trick to clear
     }
 
-    ProgressBar::lastDisplayedPercentValue = percentValue;
-    ProgressBar::lastDisplayedValue = iCurrent_;
-    ProgressBar::lastDisplayedTimePoint = newTimePoint;
+    this->lastDisplayedPercentValue = percentValue;
+    this->lastDisplayedValue = iCurrent_;
+    this->lastDisplayedTimePoint = newTimePoint;
 
-    if( ProgressBar::debugMode ){
-      std::cout << "New timestamp: " << ProgressBar::lastDisplayedTimePoint.time_since_epoch().count() << std::endl;
-      std::cout << "ProgressBar::lastDisplayedValue: " << ProgressBar::lastDisplayedValue << std::endl;
-      std::cout << "ProgressBar::lastDisplayedPercentValue: " << ProgressBar::lastDisplayedPercentValue << std::endl;
+    if( this->debugMode ){
+      std::cout << "New timestamp: " << this->lastDisplayedTimePoint.time_since_epoch().count() << std::endl;
+      std::cout << "this->lastDisplayedValue: " << this->lastDisplayedValue << std::endl;
+      std::cout << "this->lastDisplayedPercentValue: " << this->lastDisplayedPercentValue << std::endl;
     }
 
     return ssProgressBar.str();
