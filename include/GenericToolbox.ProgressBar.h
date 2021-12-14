@@ -5,6 +5,8 @@
 #ifndef CPP_GENERIC_TOOLBOX_GENERICTOOLBOX_PROGRESS_BAR_H
 #define CPP_GENERIC_TOOLBOX_GENERICTOOLBOX_PROGRESS_BAR_H
 
+#include "implementation/GenericToolbox.param.h"
+
 #include <chrono>
 #include <thread>
 #include <string>
@@ -19,7 +21,7 @@ namespace GenericToolbox{
     inline ProgressBar();
     inline virtual ~ProgressBar();
 
-    template<typename T, typename TT> inline std::string ProgressBar::generateProgressBarStr( const T& iCurrent_, const TT& iTotal_, const std::string &title_ );
+    template<typename T, typename TT> inline std::string generateProgressBarStr( const T& iCurrent_, const TT& iTotal_, const std::string &title_ );
     template<typename T, typename TT> inline bool showProgressBar(const T& iCurrent_, const TT& iTotal_);
     template<typename T, typename TT> inline std::string getProgressBarStr(const T& iCurrent_, const TT& iTotal_, const std::string &title_, bool forcePrint_ );
     template<typename T, typename TT> inline void displayProgressBar(const T& iCurrent_, const TT& iTotal_, const std::string &title_, bool forcePrint_);
@@ -39,9 +41,8 @@ namespace GenericToolbox{
     int lastDisplayedPercentValue{-1};
     int lastDisplayedValue = {-1};
     double lastDisplayedSpeed{0};
-    auto lastDisplayedTimePoint{std::chrono::high_resolution_clock::now()};
+    std::chrono::steady_clock::time_point lastDisplayedTimePoint{std::chrono::high_resolution_clock::now()};
     std::thread::id _selectedThreadId_ = std::this_thread::get_id(); // get the main thread id
-    std::vector<std::string> rainbowColorList{"\033[1;31m", "\033[1;32m", "\033[1;33m", "\033[1;34m", "\033[1;35m", "\033[1;36m"};
 
   };
 

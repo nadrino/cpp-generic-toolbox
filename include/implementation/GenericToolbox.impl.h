@@ -120,11 +120,11 @@ namespace GenericToolbox{
     std::string outputString;
     std::string inputStrStripped;
     stripUnicode_ ? inputStrStripped = GenericToolbox::stripStringUnicode(inputStr_) : inputStrStripped = inputStr_;
-    double nbCharsPerColor = double(inputStrStripped.size()) / double(ProgressBar::rainbowColorList.size());
+    double nbCharsPerColor = double(inputStrStripped.size()) / double(ColorCodes::rainbowColorList.size());
     int colorSlot{0};
     for( int iChar = 0 ; iChar < inputStrStripped.size() ; iChar++ ){
       if( nbCharsPerColor < 1 or iChar == 0 or ( (iChar+1) / nbCharsPerColor) - colorSlot + 1 > 1 ){
-        outputString += ProgressBar::rainbowColorList[colorSlot++];
+        outputString += ColorCodes::rainbowColorList[colorSlot++];
       }
       outputString += inputStrStripped[iChar];
     }
