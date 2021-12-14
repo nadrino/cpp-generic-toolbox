@@ -675,7 +675,7 @@ namespace GenericToolbox {
     if (end_index_ == 0) end_index_ = int(string_list_.size());
 
     // circular permutation -> python style : tab[-1] = tab[tab.size - 1]
-    if (end_index_ < 0 and int(string_list_.size()) > std::fabs(end_index_))
+    if (end_index_ < 0 and int(string_list_.size()) > std::abs(end_index_))
       end_index_ = int(string_list_.size()) + end_index_;
 
     for (int i_list = begin_index_; i_list < end_index_; i_list++) {
