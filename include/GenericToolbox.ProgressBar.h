@@ -26,7 +26,7 @@ namespace GenericToolbox{
     template<typename T, typename TT> inline std::string getProgressBarStr(const T& iCurrent_, const TT& iTotal_, const std::string &title_, bool forcePrint_ );
     template<typename T, typename TT> inline void displayProgressBar(const T& iCurrent_, const TT& iTotal_, const std::string &title_, bool forcePrint_);
 
-    void resetLastDisplayedValue();
+    inline void resetLastDisplayedValue();
 
 
   private:
