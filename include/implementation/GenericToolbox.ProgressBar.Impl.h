@@ -17,7 +17,7 @@ namespace GenericToolbox{
 
   template<typename T, typename TT> std::string ProgressBar::generateProgressBarStr( const T& iCurrent_, const TT& iTotal_, const std::string &title_ ){
 
-    int percentValue = int(round(double(iCurrent_) / double(iTotal_) * 100.));
+    int percentValue = int(std::round(double(iCurrent_) / double(iTotal_) * 100.));
     if( percentValue > 100 ){
       percentValue = 100;
     }
