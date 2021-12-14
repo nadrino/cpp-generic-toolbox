@@ -8,7 +8,7 @@
 #include <chrono>
 #include <sstream>
 #include <string>
-
+#include <cmath>
 
 namespace GenericToolbox{
 
@@ -158,7 +158,7 @@ namespace GenericToolbox{
         or iCurrent_ + 1 >= iTotal_ // last entry (mandatory to print at least once: need to print endl)
         ){
 
-      int percent = int(round(double(iCurrent_) / double(iTotal_) * 100.));
+      int percent = int(std::round(double(iCurrent_) / double(iTotal_) * 100.));
 
       if( percent >= 100 ){ percent = 100; }
       else if( percent < 0) percent = 0;
