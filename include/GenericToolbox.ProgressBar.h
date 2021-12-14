@@ -28,8 +28,8 @@ namespace GenericToolbox{
 
     inline void resetLastDisplayedValue();
 
-    void setEnableRainbowProgressBar(bool enableRainbowProgressBar);
-    void setMaxBarLength(int maxBarLength);
+    inline void setEnableRainbowProgressBar(bool enableRainbowProgressBar);
+    inline void setMaxBarLength(int maxBarLength);
 
   protected:
     inline std::string _generateProgressBarStr(double iCurrent_, double iTotal_, const std::string &title_);
