@@ -15,49 +15,113 @@ namespace GenericToolbox{
   ProgressBar::ProgressBar() = default;
   ProgressBar::~ProgressBar() = default;
 
-  template<typename T, typename TT> std::string ProgressBar::generateProgressBarStr( const T& iCurrent_, const TT& iTotal_, const std::string &title_ ){
+  template<typename T, typename TT> std::string ProgressBar::generateProgressBarStr( T iCurrent_, TT iTotal_, const std::string &title_ ){
+    return this->_generateProgressBarStr(double(iCurrent_), double(iTotal_), title_);
+  }
+  template<typename T, typename TT> bool ProgressBar::showProgressBar(T iCurrent_, TT iTotal_){
 
-    int percentValue = int(std::round(double(iCurrent_) / double(iTotal_) * 100.));
-    if( percentValue > 100 ){
-      percentValue = 100;
+    //    if( // Only the main thread
+    //      this->_selectedThreadId_ != std::this_thread::get_id()
+    //      ){
+    //      return false;
+    //    }
+
+    _deltaTimeMilliSec_ = std::chrono::duration_cast<std::chrono::milliseconds>(
+        std::chrono::high_resolution_clock::now() - this->_lastDisplayedTimePoint_
+    ).count();
+    if( // REQUIRED TO PRINTOUT
+        iCurrent_ == 0 // First call
+        or this->_lastDisplayedPercentValue_ == -1 // never printed before
+        or _deltaTimeMilliSec_ >= this->_refreshRateInMilliSec_
+        or iCurrent_ + 1 >= iTotal_ // last entry (mandatory to print at least once: need to print endl)
+        ){
+
+      int percent = int(std::round(double(iCurrent_) / double(iTotal_) * 100.));
+
+      if( percent >= 100 ){ percent = 100; }
+      else if( percent < 0) percent = 0;
+
+      if( // EXCLUSION CASES
+          percent == this->_lastDisplayedPercentValue_ // already printed
+          ){
+        if( this->_debugMode_ ){
+          std::cout << "Print PBar NOT Ok:" << std::endl;
+          std::cout << "percent == this->lastDisplayedPercentValue" << std::endl;
+        }
+        return false;
+      }
+
+      if( this->_debugMode_ ){
+        std::cout << "Print PBar Ok:" << std::endl;
+        std::cout << "percent = " << percent << std::endl;
+        std::cout << "iCurrent_ = " << iCurrent_ << std::endl;
+        std::cout << "iTotal_ = " << iTotal_ << std::endl;
+        std::cout << "this->lastDisplayedPercentValue = " << this->_lastDisplayedPercentValue_ << std::endl;
+        std::cout << "this->refreshRateInMilliSec = " << this->_refreshRateInMilliSec_ << std::endl;
+      }
+
+      // OK!
+      return true;
     }
-    else if( percentValue < 0 ){
-      percentValue = 0;
+
+    return false;
+  }
+  template<typename T, typename TT> std::string ProgressBar::getProgressBarStr(T iCurrent_, TT iTotal_, const std::string &title_, bool forcePrint_ ){
+    if(forcePrint_ or this->showProgressBar(iCurrent_, iTotal_) ){
+      return this->generateProgressBarStr(iCurrent_, iTotal_, title_);
     }
+    return {};
+  }
+  template<typename T, typename TT> void ProgressBar::displayProgressBar(T iCurrent_, TT iTotal_, const std::string &title_, bool forcePrint_) {
+    if(forcePrint_ or this->showProgressBar(iCurrent_, iTotal_) ){
+      (*this->_outputStreamPtr_) << GenericToolbox::generateProgressBarStr(iCurrent_, iTotal_, title_);
+    }
+  }
+  
+  void ProgressBar::resetLastDisplayedValue(){
+    this->_lastDisplayedValue_ = -1;
+    this->_lastDisplayedPercentValue_ = -1;
+  }
+
+  inline std::string ProgressBar::_generateProgressBarStr(double iCurrent_, double iTotal_, const std::string &title_){
+
+    _lastDisplayedPercentValue_ = int(std::round(iCurrent_ / iTotal_ * 100.));
+    if     (_lastDisplayedPercentValue_ > 100 ){ _lastDisplayedPercentValue_ = 100; }
+    else if(_lastDisplayedPercentValue_ < 0   ){ _lastDisplayedPercentValue_ = 0;   }
 
     std::stringstream ssPrefix;
     if( not title_.empty() ) ssPrefix << title_ << " ";
 
     std::stringstream ssTail;
-    ssTail << GenericToolbox::padString(std::to_string(percentValue), 3, ' ') << "%";
+    ssTail << GenericToolbox::padString(std::to_string(_lastDisplayedPercentValue_), 3, ' ') << "%";
 
-    std::chrono::high_resolution_clock::time_point newTimePoint = std::chrono::high_resolution_clock::now();
-    if (this->displaySpeed) {
-      ssTail << " (";
-      double itPerSec =
-          double(iCurrent_) - this->lastDisplayedValue; // nb iterations since last print
-      double timeInterval;
-      if (int(itPerSec) < 0) itPerSec = 0;
-      else {
-        timeInterval = double(std::chrono::duration_cast<std::chrono::milliseconds>(
-            newTimePoint - this->lastDisplayedTimePoint
-        ).count()) / 1000.;
-        if( timeInterval != 0 ){
-          itPerSec /= timeInterval; // Count per s
-          this->lastDisplayedSpeed = itPerSec;
-        }
-        else itPerSec = this->lastDisplayedSpeed;
+    _timePointBuffer_ = std::chrono::high_resolution_clock::now();
+    if(_displaySpeed_){
+
+      // How much time since last call?
+      _timeIntervalBuffer_ = double(std::chrono::duration_cast<std::chrono::milliseconds>(_timePointBuffer_ - _lastDisplayedTimePoint_).count()) / 1000.;
+      if( _timeIntervalBuffer_ != 0 ){
+        // How much iterations since last call?
+        _lastDisplayedSpeed_ = iCurrent_ - _lastDisplayedValue_;
+        // Count per second
+        _lastDisplayedSpeed_ /= _timeIntervalBuffer_;
       }
-      ssTail << GenericToolbox::padString(GenericToolbox::parseIntAsString(int(itPerSec)), 5, ' ');
+
+      // When iCurrent go back to zero -> _lastDisplayedValue_ makes no sense
+      if( _lastDisplayedSpeed_ < 0 ) _lastDisplayedSpeed_ = 0;
+
+      ssTail << " (";
+      ssTail << GenericToolbox::padString(GenericToolbox::parseIntAsString(int(_lastDisplayedSpeed_)), 5, ' ');
       ssTail << " it/s)";
     }
+    _lastDisplayedValue_ = iCurrent_;
+    _lastDisplayedTimePoint_ = _timePointBuffer_;
 
 
 
     // test if the bar is too wide wrt the prompt width
-    int displayedBarLength = this->maxBarLength;
-
-    auto termWidth = GenericToolbox::getTerminalWidth();
+    int displayedBarLength = _maxBarLength_;
+    int termWidth = GenericToolbox::getTerminalWidth();
     if( termWidth != 0 ) { // terminal width is measurable
 
       size_t totalBarLength = GenericToolbox::getPrintSize(ssPrefix.str());
@@ -80,7 +144,7 @@ namespace GenericToolbox{
             displayedBarLength = 0;
             remainingSpaces += 2; // get back the [] of the pBar
           }
-          remainingSpaces += (this->maxBarLength - displayedBarLength );
+          remainingSpaces += (this->_maxBarLength_ - displayedBarLength );
         }
       }
 
@@ -100,16 +164,16 @@ namespace GenericToolbox{
     ssProgressBar << ssPrefix.str();
 
     if (displayedBarLength > 0) {
-      int nbTags = percentValue * displayedBarLength / 100;
+      int nbTags = _lastDisplayedPercentValue_ * displayedBarLength / 100;
       int nbSpaces = displayedBarLength - nbTags;
 
       std::string padProgressBar;
       for (int iTag = 0; iTag < nbTags; iTag++) {
-        padProgressBar += this->fillTag[iTag%this->fillTag.size()];
+        padProgressBar += this->_fillTag_[iTag % this->_fillTag_.size()];
       }
       padProgressBar += repeatString(" ", nbSpaces);
 
-      if( this->enableRainbowProgressBar ){
+      if( _enableRainbowProgressBar_ ){
         padProgressBar = GenericToolbox::makeRainbowString(padProgressBar, false);
       }
 
@@ -119,7 +183,7 @@ namespace GenericToolbox{
     ssProgressBar << ssTail.str();
 
     ssProgressBar << std::endl; // always jump line to force flush on screen
-    if( percentValue != 100 ){
+    if(_lastDisplayedPercentValue_ != 100 ){
       // those commands won't be flushed until a new print is called:
       // pull back to cursor on the line of the progress bar
       ssProgressBar << static_cast<char>(27) << "[1;1F";
@@ -127,82 +191,20 @@ namespace GenericToolbox{
       ssProgressBar << static_cast<char>(27) << "[1K" << "\r"; // trick to clear
     }
 
-    this->lastDisplayedPercentValue = percentValue;
-    this->lastDisplayedValue = iCurrent_;
-    this->lastDisplayedTimePoint = newTimePoint;
-
-    if( this->debugMode ){
-      std::cout << "New timestamp: " << this->lastDisplayedTimePoint.time_since_epoch().count() << std::endl;
-      std::cout << "this->lastDisplayedValue: " << this->lastDisplayedValue << std::endl;
-      std::cout << "this->lastDisplayedPercentValue: " << this->lastDisplayedPercentValue << std::endl;
+    if( this->_debugMode_ ){
+      std::cout << "New timestamp: " << this->_lastDisplayedTimePoint_.time_since_epoch().count() << std::endl;
+      std::cout << "this->lastDisplayedValue: " << this->_lastDisplayedValue_ << std::endl;
+      std::cout << "this->lastDisplayedPercentValue: " << this->_lastDisplayedPercentValue_ << std::endl;
     }
 
     return ssProgressBar.str();
-
   }
-  template<typename T, typename TT> bool ProgressBar::showProgressBar(const T& iCurrent_, const TT& iTotal_){
 
-    //    if( // Only the main thread
-    //      this->_selectedThreadId_ != std::this_thread::get_id()
-    //      ){
-    //      return false;
-    //    }
-
-    auto timeDiff = std::chrono::duration_cast<std::chrono::milliseconds>(
-        std::chrono::high_resolution_clock::now() - this->lastDisplayedTimePoint
-    ).count();
-    if( // REQUIRED TO PRINTOUT
-        iCurrent_ == 0 // First call
-        or this->lastDisplayedPercentValue == -1 // never printed before
-        or timeDiff >= this->refreshRateInMilliSec
-        or iCurrent_ + 1 >= iTotal_ // last entry (mandatory to print at least once: need to print endl)
-        ){
-
-      int percent = int(std::round(double(iCurrent_) / double(iTotal_) * 100.));
-
-      if( percent >= 100 ){ percent = 100; }
-      else if( percent < 0) percent = 0;
-
-      if( // EXCLUSION CASES
-          percent == this->lastDisplayedPercentValue // already printed
-          ){
-        if( this->debugMode ){
-          std::cout << "Print PBar NOT Ok:" << std::endl;
-          std::cout << "percent == this->lastDisplayedPercentValue" << std::endl;
-        }
-        return false;
-      }
-
-      if( this->debugMode ){
-        std::cout << "Print PBar Ok:" << std::endl;
-        std::cout << "percent = " << percent << std::endl;
-        std::cout << "iCurrent_ = " << iCurrent_ << std::endl;
-        std::cout << "iTotal_ = " << iTotal_ << std::endl;
-        std::cout << "this->lastDisplayedPercentValue = " << this->lastDisplayedPercentValue << std::endl;
-        std::cout << "this->refreshRateInMilliSec = " << this->refreshRateInMilliSec << std::endl;
-        std::cout << "timeDiff = " << timeDiff << std::endl;
-      }
-
-      // OK!
-      return true;
-    }
-
-    return false;
+  void ProgressBar::setEnableRainbowProgressBar(bool enableRainbowProgressBar) {
+    _enableRainbowProgressBar_ = enableRainbowProgressBar;
   }
-  template<typename T, typename TT> std::string ProgressBar::getProgressBarStr(const T& iCurrent_, const TT& iTotal_, const std::string &title_, bool forcePrint_ ){
-    if(forcePrint_ or this->showProgressBar(iCurrent_, iTotal_) ){
-      return this->generateProgressBarStr(iCurrent_, iTotal_, title_);
-    }
-    return {};
-  }
-  template<typename T, typename TT> void ProgressBar::displayProgressBar(const T& iCurrent_, const TT& iTotal_, const std::string &title_, bool forcePrint_) {
-    if(forcePrint_ or this->showProgressBar(iCurrent_, iTotal_) ){
-      (*this->outputStreamPtr) << GenericToolbox::generateProgressBarStr(iCurrent_, iTotal_, title_);
-    }
-  }
-  void ProgressBar::resetLastDisplayedValue(){
-    this->lastDisplayedValue = -1;
-    this->lastDisplayedPercentValue = -1;
+  void ProgressBar::setMaxBarLength(int maxBarLength) {
+    _maxBarLength_ = maxBarLength;
   }
 
 

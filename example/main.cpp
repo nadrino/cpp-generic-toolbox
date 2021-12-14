@@ -56,8 +56,8 @@ int main(){
     std::this_thread::sleep_for(std::chrono::milliseconds(1));
   }
 
-  GenericToolbox::ProgressBar::enableRainbowProgressBar = true;
-  GenericToolbox::ProgressBar::maxBarLength = 36;
+  GenericToolbox::gProgressBar.setEnableRainbowProgressBar(true);
+  GenericToolbox::gProgressBar.setMaxBarLength(36);
   for(int i = 0 ; i < 1000 ; i++){
     GenericToolbox::displayProgressBar(i, 1000, "If you like colors, but not the default bar length:");
     std::this_thread::sleep_for(std::chrono::milliseconds(1));
