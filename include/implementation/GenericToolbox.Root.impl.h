@@ -447,13 +447,14 @@ namespace GenericToolbox {
     return gDirectory;
 #endif
   }
-  inline void writeInTFile(TDirectory* dir_, const TObject* objToSave_, const std::string &saveName_){
+  inline void writeInTFile(TDirectory* dir_, const TObject* objToSave_, std::string saveName_){
     if( dir_ == nullptr or objToSave_ == nullptr ) return;
     auto* prevDir = getCurrentTDirectory();
     dir_->cd();
     std::string className = objToSave_->ClassName();
     GenericToolbox::replaceSubstringInsideInputString(className, "<", "_");
     GenericToolbox::replaceSubstringInsideInputString(className, ">", "");
+    if( saveName_.empty() ) saveName_ = objToSave_->GetName();
     objToSave_->Write(Form("%s_%s", saveName_.c_str(), className.c_str()));
     prevDir->cd();
   }
