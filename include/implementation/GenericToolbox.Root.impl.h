@@ -447,7 +447,7 @@ namespace GenericToolbox {
     return gDirectory;
 #endif
   }
-  inline void writeInFile(TDirectory* dir_, const TObject* objToSave_, const std::string &saveName_){
+  inline void writeInTFile(TDirectory* dir_, const TObject* objToSave_, const std::string &saveName_){
     if( dir_ == nullptr or objToSave_ == nullptr ) return;
     auto* prevDir = getCurrentTDirectory();
     dir_->cd();

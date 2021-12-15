@@ -68,7 +68,7 @@ namespace GenericToolbox{
   inline TDirectory* mkdirTFile(TDirectory* baseDir_, const std::string &dirName_);
   inline TDirectory* mkdirTFile(TFile* outputFile_, const std::string &dirName_);
   inline TDirectory* getCurrentTDirectory();
-  inline void writeInFile(TDirectory* dir_, const TObject* objToSave_, const std::string &saveName_);
+  inline void writeInTFile(TDirectory* dir_, const TObject* objToSave_, const std::string &saveName_);
 
   //! Trees Tools
   inline void disableUnhookedBranches(TTree* tree_);
