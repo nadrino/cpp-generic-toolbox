@@ -341,6 +341,15 @@ namespace GenericToolbox {
   }
 #endif
 
+  std::string addUpDownBars(const std::string& str_, bool stripUnicode_){
+    std::stringstream ss;
+    size_t strLength = str_.size();
+    if( stripUnicode_ ) strLength = GenericToolbox::stripStringUnicode(str_).size();
+    std::string bar = GenericToolbox::repeatString("─", strLength);
+    ss << bar << std::endl << str_ << std::endl << bar;
+    return ss.str();
+  }
+
   bool doesStringContainsSubstring(std::string string_, std::string substring_, bool ignoreCase_) {
     if (substring_.empty()) return true;
     if (substring_.size() > string_.size()) return false;

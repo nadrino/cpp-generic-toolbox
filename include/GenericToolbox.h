@@ -102,6 +102,9 @@ namespace GenericToolbox{
 //! String Management Tools
 namespace GenericToolbox{
 
+  // -- Aesthetic
+  inline std::string addUpDownBars(const std::string& str_, bool stripUnicode_ = true);
+
   // -- Transformations
   inline bool doesStringContainsSubstring(std::string string_, std::string substring_, bool ignoreCase_ = false);
   inline bool doesStringStartsWithSubstring(std::string string_, std::string substring_, bool ignoreCase_ = false);
@@ -129,7 +132,7 @@ namespace GenericToolbox{
   inline std::string formatString( const std::string& strToFormat_ ); // overrider: make sure this is the one used when no extra args are provided.
   template<typename ... Args> inline std::string formatString(const std::string& strToFormat_, Args ... args );
 
-  //! Conversion Tools
+  // -- Conversion Tools
   template<typename T> inline std::string toHexString(T integerVal_, size_t nbDigit_ = 0);
   inline bool toBool(std::string str);
 
