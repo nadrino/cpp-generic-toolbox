@@ -61,6 +61,7 @@ namespace GenericToolbox{
   inline bool doesLoadedEntryPassCut(TTreeFormula* treeFormula_);
 
   //! Files Tools
+  inline TFile* openExistingTFile(const std::string &inputFilePath_, const std::vector<std::string>& objectListToCheck_ = {});
   inline bool doesTFileIsValid(const std::string &inputFilePath_, const std::vector<std::string>& objectListToCheck_ = {});
   inline bool doesTFileIsValid(TFile* tfileCandidatePtr_, bool check_if_writable_ = false);
   inline std::vector<TFile*> getListOfOpenedTFiles();

@@ -328,6 +328,29 @@ namespace GenericToolbox {
 //! Files Tools
 namespace GenericToolbox {
 
+  TFile* openExistingTFile(const std::string &inputFilePath_, const std::vector<std::string>& objectListToCheck_){
+    TFile* outPtr{nullptr};
+
+    if( not GenericToolbox::doesPathIsFile(inputFilePath_) ){
+      throw std::runtime_error("Could not find file: \"" + inputFilePath_ + "\"");
+    }
+    auto old_verbosity = gErrorIgnoreLevel;
+    gErrorIgnoreLevel  = kFatal;
+    outPtr = TFile::Open(inputFilePath_.c_str(), "READ");
+    gErrorIgnoreLevel = old_verbosity;
+
+    if( not GenericToolbox::doesTFileIsValid(outPtr) ){
+      throw std::runtime_error("Invalid TFile: \"" + inputFilePath_ + "\"");
+    }
+
+    for( const auto& objectPath : objectListToCheck_ ){
+      if( outPtr->Get(objectPath.c_str()) == nullptr ){
+        throw std::runtime_error("Could not find: \"" + objectPath + "\" in \"" + inputFilePath_ + "\"");
+      }
+    }
+
+    return outPtr;
+  }
   bool doesTFileIsValid(const std::string &inputFilePath_, const std::vector<std::string>& objectListToCheck_){
     bool fileIsValid = false;
     if(GenericToolbox::doesPathIsFile(inputFilePath_)) {
