@@ -32,6 +32,8 @@ namespace GenericToolbox{
       kMagenta-10, kCyan-9, kGreen-10
   };
 
+
+
 }
 
 namespace GenericToolbox{
@@ -108,6 +110,7 @@ namespace GenericToolbox{
   //! Canvas Tools
   inline void setDefaultPalette();
   inline void setBlueRedPalette();
+  inline void setT2kPalette();
   inline void setOrangePalette();
   inline void fixTH2display(TH2 *histogram_);
   inline void setXaxisOfAllPads(TCanvas* canvas_, double Xmin_, double Xmax_);
