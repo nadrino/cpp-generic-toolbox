@@ -464,7 +464,8 @@ namespace GenericToolbox {
   }
   inline std::string padString(const std::string& inputStr_, unsigned int padSize_, const char& padChar){
     std::string outputString;
-    int padDelta = int(inputStr_.size()) - int(padSize_);
+//    int padDelta = int(inputStr_.size()) - int(padSize_);
+    int padDelta = int(GenericToolbox::getPrintSize(inputStr_)) - int(padSize_);
     while( padDelta < 0 ){
       // add extra chars if needed
       outputString += padChar;
