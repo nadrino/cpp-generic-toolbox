@@ -872,9 +872,9 @@ namespace GenericToolbox {
     int NCont = 255;
 
     std::vector<double> stops{0.00, 0.50, 1.000};
-    std::vector<double> red{0.00, 0.50, 1.000};
-    std::vector<double> green{0.00, 0.50, 1.000};
-    std::vector<double> blue{0.00, 0.50, 1.000};
+    std::vector<double> red{0.00, 1.00, 1.00};
+    std::vector<double> green{0.00, 1.00, 0.00};
+    std::vector<double> blue{1.00, 1.00, 0.00};
 
     TColor::CreateGradientColorTable(NRGBs,&stops[0],&red[0],&green[0],&blue[0],NCont);
     gStyle->SetNumberContours(NCont+1);
