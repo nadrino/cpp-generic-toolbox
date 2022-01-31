@@ -25,6 +25,8 @@
 #include <GenericToolbox.h>
 #include <TDecompChol.h>
 
+#include <utility>
+
 
 //! Conversion Tools
 namespace GenericToolbox {
@@ -80,6 +82,10 @@ namespace GenericToolbox {
     th2_histogram->GetZaxis()->SetTitle(Z_title_.c_str());
 
     return th2_histogram;
+  }
+  TH2D* convertTMatrixDtoTH2D(const TMatrixDSym* XY_values_, std::string graph_title_, const std::string &Z_title_,
+                              const std::string &Y_title_, const std::string &X_title_){
+    return convertTMatrixDtoTH2D((TMatrixD*) XY_values_, std::move(graph_title_), Z_title_, Y_title_, X_title_);
   }
   TVectorD *convertStdVectorToTVectorD(const std::vector<double> &vect_){
 
@@ -322,6 +328,29 @@ namespace GenericToolbox {
 //! Files Tools
 namespace GenericToolbox {
 
+  TFile* openExistingTFile(const std::string &inputFilePath_, const std::vector<std::string>& objectListToCheck_){
+    TFile* outPtr{nullptr};
+
+    if( not GenericToolbox::doesPathIsFile(inputFilePath_) ){
+      throw std::runtime_error("Could not find file: \"" + inputFilePath_ + "\"");
+    }
+    auto old_verbosity = gErrorIgnoreLevel;
+    gErrorIgnoreLevel  = kFatal;
+    outPtr = TFile::Open(inputFilePath_.c_str(), "READ");
+    gErrorIgnoreLevel = old_verbosity;
+
+    if( not GenericToolbox::doesTFileIsValid(outPtr) ){
+      throw std::runtime_error("Invalid TFile: \"" + inputFilePath_ + "\"");
+    }
+
+    for( const auto& objectPath : objectListToCheck_ ){
+      if( outPtr->Get(objectPath.c_str()) == nullptr ){
+        throw std::runtime_error("Could not find: \"" + objectPath + "\" in \"" + inputFilePath_ + "\"");
+      }
+    }
+
+    return outPtr;
+  }
   bool doesTFileIsValid(const std::string &inputFilePath_, const std::vector<std::string>& objectListToCheck_){
     bool fileIsValid = false;
     if(GenericToolbox::doesPathIsFile(inputFilePath_)) {
@@ -440,6 +469,17 @@ namespace GenericToolbox {
     // https://github.com/root-project/root/commit/085e9c182b9f639d5921c75de284ae7f20168b6e
     return gDirectory;
 #endif
+  }
+  inline void writeInTFile(TDirectory* dir_, const TObject* objToSave_, std::string saveName_){
+    if( dir_ == nullptr or objToSave_ == nullptr ) return;
+    auto* prevDir = getCurrentTDirectory();
+    dir_->cd();
+    std::string className = objToSave_->ClassName();
+    GenericToolbox::replaceSubstringInsideInputString(className, "<", "_");
+    GenericToolbox::replaceSubstringInsideInputString(className, ">", "");
+    if( saveName_.empty() ) saveName_ = objToSave_->GetName();
+    objToSave_->Write(Form("%s_%s", saveName_.c_str(), className.c_str()));
+    prevDir->cd();
   }
 
 
@@ -674,12 +714,76 @@ namespace GenericToolbox {
     }
     return out;
   }
+  template<typename T> void transformMatrix(TMatrixT<T>* m_, std::function<void(TMatrixT<T>*, int, int)> transformFunction_){
+    if( m_ == nullptr ) return;
+    for( int iRow = 0 ; iRow < m_->GetNrows() ; iRow++ ){
+      for( int iCol = 0 ; iCol < m_->GetNcols() ; iCol++ ){
+        transformFunction_(m_, iRow, iCol);
+      }
+    }
+  }
+  template<typename T> auto makeIdentityMatrix(int dim_) -> TMatrixT<T>* {
+    auto* out = new TMatrixT<T>(dim_, dim_);
+    for( int iDiag = 0 ; iDiag < out->GetNrows() ; iDiag++ ){
+      (*out)[iDiag][iDiag] = 1;
+    }
+    return out;
+  }
+  template<typename T> TMatrixT<T>* makeDiagonalMatrix(TVectorT<T>* v_){
+    if( v_ == nullptr ) return nullptr;
+    auto* out = new TMatrixT<T>(v_->GetNrows(), v_->GetNrows());
+    for( int iDiag = 0 ; iDiag < out->GetNrows() ; iDiag++ ){
+      (*out)[iDiag][iDiag] = (*v_)[iDiag];
+    }
+    return out;
+  }
+  template<typename T> TVectorT<T>* getMatrixDiagonal(TMatrixT<T>* m_){
+    if( m_ == nullptr ) return nullptr;
+    auto* out = new TVectorT<T>(std::min(m_->GetNcols(), m_->GetNrows()));
+    for( int iDiag = 0 ; iDiag < out->GetNrows() ; iDiag++ ){
+      (*out)[iDiag] = (*m_)[iDiag][iDiag];
+    }
+    return out;
+  }
+  template<typename T> TVectorT<T>* getMatrixDiagonal(TMatrixTSym<T>* m_){
+    return GenericToolbox::getMatrixDiagonal((TMatrixT<T>*) m_);
+  }
+  template<typename T> inline TVectorT<T>* getMatrixLine(TMatrixT<T>* m_, int line_){
+    if( m_ == nullptr ) return nullptr;
+    if( line_ < 0 or line_ >= m_->GetNrows() ) throw std::runtime_error("invalid matrix line: " + std::to_string(line_));
+    auto* out = new TVectorT<T>(m_->GetNcols());
+    for( int iCol = 0 ; iCol < out->GetNrows() ; iCol++ ){ (*out)[iCol] = (*m_)[line_][iCol]; }
+    return out;
+  }
+  template<typename T> inline TVectorT<T>* getMatrixColumn(TMatrixT<T>* m_, int col_){
+    if( m_ == nullptr ) return nullptr;
+    if( col_ < 0 or col_ >= m_->GetNcols() ) throw std::runtime_error("invalid matrix line: " + std::to_string(col_));
+    auto* out = new TVectorT<T>(m_->GetNrows());
+    for( int iRow = 0 ; iRow < out->GetNrows() ; iRow++ ){ (*out)[iRow] = (*m_)[iRow][col_]; }
+    return out;
+  }
 }
 
 
 //! Histogram Tools
 namespace GenericToolbox {
 
+  inline void drawHistHorizontalBars(TH1D* hist_){
+    // Incompatible with zoom-in
+    if(hist_ == nullptr) return;
+    TLine *l;
+    int n = hist_->GetNbinsX();
+    Double_t x1,x2,y;
+    for (int i=1; i<=n; i++) {
+      y = hist_->GetBinContent(i);
+      x1= hist_->GetBinLowEdge(i);
+      x2 = hist_->GetBinWidth(i)+x1;
+      l= new TLine(x1,y,x2,y);
+      l->SetLineColor(hist_->GetLineColor());
+//      l->Paint();
+      l->Draw();
+    }
+  }
   inline void resetHistogram(TH1D* hist_){
     hist_->Reset("ICESM");
     transformBinContent(hist_, [](TH1D* h_, int iBin_){
@@ -801,6 +905,18 @@ namespace GenericToolbox {
   void setBlueRedPalette(){
     gStyle->SetPalette(kBlackBody);
     TColor::InvertPalette();
+  }
+  void setT2kPalette(){
+    int NRGBs = 3;
+    int NCont = 255;
+
+    std::vector<double> stops{0.00, 0.50, 1.000};
+    std::vector<double> red{0.00, 1.00, 1.00};
+    std::vector<double> green{0.00, 1.00, 0.00};
+    std::vector<double> blue{1.00, 1.00, 0.00};
+
+    TColor::CreateGradientColorTable(NRGBs,&stops[0],&red[0],&green[0],&blue[0],NCont);
+    gStyle->SetNumberContours(NCont+1);
   }
   void setOrangePalette(){
     gStyle->SetPalette(kDarkBodyRadiator);

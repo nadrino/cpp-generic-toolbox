@@ -34,6 +34,7 @@ namespace GenericToolbox{
     inline void setIsVerbose(bool isVerbose);
     inline void setCheckHardwareCurrency(bool checkHardwareCurrency);
     inline void setNThreads(int nThreads);
+    inline void setCpuTimeSaverIsEnabled(bool cpuTimeSaverIsEnabled);
 
     inline void initialize();
 
@@ -52,12 +53,14 @@ namespace GenericToolbox{
 
   protected:
     inline void reStartThreads();
+    inline void startThreads();
     inline void stopThreads();
 
   private:
     // Parameters
     bool _isVerbose_{true};
     bool _checkHardwareCurrency_{true};
+    bool _cpuTimeSaverIsEnabled_{false};
     int _nThreads_{-1};
 
     // Internals

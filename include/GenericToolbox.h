@@ -6,6 +6,9 @@
 #ifndef CPP_GENERIC_TOOLBOX_GENERICTOOLBOX_H
 #define CPP_GENERIC_TOOLBOX_GENERICTOOLBOX_H
 
+// Pre-proc parameters
+#include "implementation/GenericToolbox.param.h"
+
 #include <string>
 #include <vector>
 #include <thread>
@@ -13,9 +16,7 @@
 #include <functional>
 #include <chrono>
 #include <map>
-
-// Pre-proc parameters
-#include "implementation/GenericToolbox.param.h"
+#include "list"
 
 
 //! User Parameters
@@ -46,12 +47,14 @@ namespace GenericToolbox {
     static const char* redBackGround = "\e[41m";
     static const char* yellowBackGround = "\033[43m";
     static const char* resetColor = "\e[0m";
+    static const std::vector<std::string> rainbowColorList{"\033[1;31m", "\033[1;32m", "\033[1;33m", "\033[1;34m", "\033[1;35m", "\033[1;36m"};
   }
 
 
   inline void waitProgressBar(unsigned int nbMilliSecToWait_, const std::string &progressTitle_ = "Waiting...");
   inline std::string parseIntAsString(int intToFormat_);
   inline std::string highlightIf(bool condition_, const std::string& text_);
+  inline std::string makeRainbowString(const std::string& inputStr_, bool stripUnicode_ = true);
 
 }
 
@@ -77,6 +80,9 @@ namespace GenericToolbox{
   template<typename T> inline double getAveragedSlope(const std::vector<T> &yValues_);
   template<typename T, typename TT> inline double getAveragedSlope(const std::vector<T> &yValues_, const std::vector<TT> &xValues_);
 
+  template<typename T, typename TT> inline T& getListEntry(std::list<T>& list_, TT index_);
+  template<typename T, typename TT> inline const T& getListEntry(const std::list<T>& list_, TT index_);
+
 }
 
 
@@ -95,6 +101,9 @@ namespace GenericToolbox{
 
 //! String Management Tools
 namespace GenericToolbox{
+
+  // -- Aesthetic
+  inline std::string addUpDownBars(const std::string& str_, bool stripUnicode_ = true);
 
   // -- Transformations
   inline bool doesStringContainsSubstring(std::string string_, std::string substring_, bool ignoreCase_ = false);
@@ -123,7 +132,7 @@ namespace GenericToolbox{
   inline std::string formatString( const std::string& strToFormat_ ); // overrider: make sure this is the one used when no extra args are provided.
   template<typename ... Args> inline std::string formatString(const std::string& strToFormat_, Args ... args );
 
-  //! Conversion Tools
+  // -- Conversion Tools
   template<typename T> inline std::string toHexString(T integerVal_, size_t nbDigit_ = 0);
   inline bool toBool(std::string str);
 
@@ -231,6 +240,9 @@ namespace GenericToolbox{
  * In addition, you can search of any enum name as a string: "MyEnumTypeEnumNamespace::toString(1)" which will return "state1".
  * */
 #define ENUM_EXPANDER(enumName_, intOffset_, v1_, ...) GT_INTERNALS_ENUM_EXPANDER(enumName_, intOffset_, v1_, __VA_ARGS__)
+
+#define BIND_VAR_NAME(var) var, #var
+#define BIND_VAR_REF_NAME(var) &(var), #var
 
 
 #endif //CPP_GENERIC_TOOLBOX_GENERICTOOLBOX_H

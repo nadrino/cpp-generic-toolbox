@@ -33,11 +33,13 @@ namespace GenericToolbox{
     virtual PlaceHolder* clone() const = 0;
     virtual void writeToStream(std::ostream& o) const = 0;
     virtual double getVariableAsDouble() const = 0;
+    virtual size_t getVariableSize() const = 0;
+    virtual const void* getVariableAddress() const = 0;
   };
 
   // VariableHolder is the specialized PlaceHolder containing the _variable_ of interest
   template<typename VariableType> struct VariableHolder: public PlaceHolder{
-    explicit VariableHolder(VariableType value_) : _variable_(std::move(value_)){  }
+    explicit VariableHolder(VariableType value_) : _nBytes_(sizeof(value_)), _variable_(std::move(value_)){  }
     const std::type_info & getType() const override { return typeid(VariableType); }
     PlaceHolder* clone() const override { return new VariableHolder(_variable_); }
     void writeToStream(std::ostream& o) const override {
@@ -50,7 +52,14 @@ namespace GenericToolbox{
     double getVariableAsDouble() const override {
       return DoubleCastImpl<VariableType, std::is_convertible<VariableType, double>::value>::implement(_variable_);
     }
+    virtual size_t getVariableSize() const override{
+      return _nBytes_;
+    }
+    virtual const void* getVariableAddress() const override{
+      return static_cast<const void*>(&_variable_);
+    }
 
+    size_t _nBytes_;
     VariableType _variable_;
   };
 
@@ -72,7 +81,8 @@ namespace GenericToolbox{
     inline void reset();
     inline bool empty();
     inline const std::type_info& getType() const;
-    const std::shared_ptr<PlaceHolder> &getVarPtr() const;
+    const std::shared_ptr<PlaceHolder> &getPlaceHolderPtr() const;
+    inline size_t getStoredSize() const;
 
     template<typename ValueType> inline void setValue(const ValueType& value_);
     template<typename ValueType> inline ValueType& getValue();
@@ -95,4 +105,4 @@ namespace GenericToolbox{
 
 #include "implementation/GenericToolbox.AnyType.Impl.h"
 
-#endif //XSLLHFITTER_GENERICTOOLBOX_ANYTYPE_H
+#endif //CPP_GENERIC_TOOLBOX_GENERICTOOLBOX_ANYTYPE_H

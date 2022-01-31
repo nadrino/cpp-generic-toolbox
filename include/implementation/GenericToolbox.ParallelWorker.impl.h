@@ -34,7 +34,7 @@ namespace GenericToolbox{
   inline void ParallelWorker::setIsVerbose(bool isVerbose) {
     _isVerbose_ = isVerbose;
   }
-  void ParallelWorker::setCheckHardwareCurrency(bool checkHardwareCurrency) {
+  inline void ParallelWorker::setCheckHardwareCurrency(bool checkHardwareCurrency) {
     _checkHardwareCurrency_ = checkHardwareCurrency;
   }
   inline void ParallelWorker::setNThreads(int nThreads) {
@@ -47,13 +47,18 @@ namespace GenericToolbox{
     }
     _nThreads_ = nThreads;
   }
+  inline void ParallelWorker::setCpuTimeSaverIsEnabled(bool cpuTimeSaverIsEnabled) {
+    if(cpuTimeSaverIsEnabled != _cpuTimeSaverIsEnabled_){
+      if(cpuTimeSaverIsEnabled) this->stopThreads();
+      if(not cpuTimeSaverIsEnabled and not _jobNameList_.empty()) this->startThreads();
+    }
+    _cpuTimeSaverIsEnabled_ = cpuTimeSaverIsEnabled;
+  }
 
   inline void ParallelWorker::initialize() {
-
     if( _nThreads_ < 1 ){
       throw std::logic_error("_nThreads_ should be >= 1");
     }
-
     _isInitialized_ = true;
   }
 
@@ -76,9 +81,9 @@ namespace GenericToolbox{
     _jobTriggerList_.emplace_back(std::vector<bool>(_nThreads_, false));
     this->unPauseParallelThreads();
 
-    if( _threadsList_.empty() ){
+    if( not _cpuTimeSaverIsEnabled_ and _threadsList_.empty() ){
       // start the parallel threads if not already
-      reStartThreads();
+      startThreads();
     }
   }
   inline void ParallelWorker::setPostParallelJob(const std::string& jobName_, const std::function<void()>& function_){
@@ -127,6 +132,7 @@ namespace GenericToolbox{
       _jobFunctionPreParallelList_.at(jobIndex)();
     }
 
+    if(_cpuTimeSaverIsEnabled_) this->startThreads();
     for( int iThread = 0 ; iThread < _nThreads_-1 ; iThread++ ){
       _jobTriggerList_.at(jobIndex).at(iThread) = true;
     }
@@ -137,6 +143,7 @@ namespace GenericToolbox{
       if( _isVerbose_ ) std::cout << "Waiting for thread #" << iThread << " to be finish the job..." << std::endl;
       while( _jobTriggerList_.at(jobIndex).at(iThread) ) std::this_thread::sleep_for( std::chrono::microseconds(100) ); // wait
     }
+    if(_cpuTimeSaverIsEnabled_) this->stopThreads();
 
     if( _jobFunctionPostParallelList_.at(jobIndex) ){ // is it callable?
       _jobFunctionPostParallelList_.at(jobIndex)();
@@ -190,9 +197,10 @@ namespace GenericToolbox{
   }
 
   inline void ParallelWorker::reStartThreads() {
-
     stopThreads();
-
+    startThreads();
+  }
+  inline void ParallelWorker::startThreads(){
     _stopThreads_ = false;
     _threadMutexPtr_ = new std::mutex(); // We have the ownership
     unPauseParallelThreads(); // make sure
@@ -232,7 +240,6 @@ namespace GenericToolbox{
     for( int iThread = 0 ; iThread < _nThreads_-1 ; iThread++ ){
       while( _threadStatusList_.at(iThread) == ThreadStatus::Stopped ) std::this_thread::sleep_for( std::chrono::microseconds(100) ); // wait to be in Idle state
     }
-
   }
   inline void ParallelWorker::stopThreads(){
     _stopThreads_ = true;
@@ -244,6 +251,7 @@ namespace GenericToolbox{
     _threadStatusList_.clear();
     delete _threadMutexPtr_; _threadMutexPtr_ = nullptr;
   }
+
 
 }
 

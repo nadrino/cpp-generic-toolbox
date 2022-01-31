@@ -8,6 +8,7 @@
 #include <typeinfo>
 
 #include "TGraph.h"
+#include "TSpline.h"
 #include "TLeaf.h"
 #include "TClonesArray.h"
 
@@ -96,21 +97,33 @@ namespace GenericToolbox{
 
     // TObjects (can't be loaded as objects)
     else if(leafTypeName == "TGraph" ){
-      this->defineVariable(TGraph(), treeLeafPtr->GetLen());
-      tree_->SetBranchAddress(branchName_.c_str(), &this->getVariable<TGraph>());
+      TGraph* bufGrPtr{nullptr};
+      this->defineVariable(bufGrPtr, treeLeafPtr->GetLen());
+      tree_->SetBranchAddress(branchName_.c_str(), &(this->getVariable<TGraph*>()));
+    }
+    else if(leafTypeName == "TSpline3" ){
+      TSpline3* bufGrPtr{nullptr};
+      this->defineVariable(bufGrPtr, treeLeafPtr->GetLen());
+      tree_->SetBranchAddress(branchName_.c_str(), &(this->getVariable<TSpline3*>()));
     }
     else if(leafTypeName == "TClonesArray" ){
-//      this->defineVariable(std::nullptr_t(), treeLeafPtr->GetLen());
-      this->defineVariable(std::shared_ptr<TClonesArray>(), treeLeafPtr->GetLen());
-      GenericToolbox::muteRoot();
+      TClonesArray* bufPtr{nullptr};
+      this->defineVariable(bufPtr, treeLeafPtr->GetLen());
       // ROOT will complain about the wrong type of pointer
-      tree_->SetBranchAddress(branchName_.c_str(), &(this->getVariable<std::shared_ptr<TClonesArray>>()));
-      GenericToolbox::unmuteRoot();
+      tree_->SetBranchAddress(branchName_.c_str(), &(this->getVariable<TClonesArray*>()));
     }
 
     // Others
     else{
       throw std::runtime_error(leafTypeName + " is not implemented.");
+    }
+  }
+  template<typename T> inline void LeafHolder::defineVariable(T* variable_, size_t arraySize_){
+    if( not _leafDataList_.empty() ) throw std::logic_error("LeafHolder not empty: can't defineVariable");
+    if(arraySize_ == 0) throw std::runtime_error("Invalid arraySize_");
+    _leafDataList_.resize(arraySize_);
+    for( auto& leafData: _leafDataList_ ){
+      leafData = variable_; // create the variable with the right type
     }
   }
   template<typename T> inline void LeafHolder::defineVariable(T variable_, size_t arraySize_){
@@ -129,6 +142,41 @@ namespace GenericToolbox{
   }
   inline double LeafHolder::getVariableAsDouble(size_t arrayIndex_) const{
     return _leafDataList_.at(arrayIndex_).getValueAsDouble();
+  }
+  inline size_t LeafHolder::getArraySize() const{
+    return _leafDataList_.size();
+  }
+  inline void* LeafHolder::getVariableAddress(size_t arrayIndex_){
+    return _leafDataList_.at(arrayIndex_).getPlaceHolderPtr().get();
+  }
+  inline const GenericToolbox::AnyType& LeafHolder::getLeafDataAddress(size_t arrayIndex_) const{
+    return _leafDataList_.at(arrayIndex_);
+  }
+  inline size_t LeafHolder::getVariableSize(size_t arrayIndex_) const{
+    return _leafDataList_.at(arrayIndex_).getPlaceHolderPtr()->getVariableSize();
+  }
+  inline char LeafHolder::findOriginalVariableType() const{
+
+//    auto* classInfo = (TClass*) TDictionary::GetDictionary(_leafDataList_[0].getType());
+//    classInfo->Sizeof();
+
+    if( _leafDataList_.empty() ) return 0;
+    else if( _leafDataList_[0].getType() == typeid(Bool_t) ){ return 'O'; }
+    else if( _leafDataList_[0].getType() == typeid(Char_t) ){ return 'B'; }
+    else if( _leafDataList_[0].getType() == typeid(UChar_t) ){ return 'b'; }
+    else if( _leafDataList_[0].getType() == typeid(Short_t) ){ return 'S'; }
+    else if( _leafDataList_[0].getType() == typeid(UShort_t) ){ return 's'; }
+    else if( _leafDataList_[0].getType() == typeid(Int_t) ){ return 'I'; }
+    else if( _leafDataList_[0].getType() == typeid(UInt_t) ){ return 'i'; }
+    else if( _leafDataList_[0].getType() == typeid(Float_t) ){ return 'F'; }    // `F` : a 32 bit floating point (`Float_t`)
+    else if( _leafDataList_[0].getType() == typeid(Float16_t) ){ return 'f'; }  // `f` : a 24 bit floating point with truncated mantissa
+    else if( _leafDataList_[0].getType() == typeid(Double_t) ){ return 'D'; }   // `D` : a 64 bit floating point (`Double_t`)
+    else if( _leafDataList_[0].getType() == typeid(Double32_t) ){ return 'd'; } // `d` : a 24 bit truncated floating point (`Double32_t`)
+    else if( _leafDataList_[0].getType() == typeid(Long64_t) ){ return 'L'; }
+    else if( _leafDataList_[0].getType() == typeid(ULong64_t) ){ return 'l'; }
+    else if( _leafDataList_[0].getType() == typeid(Long_t) ){ return 'G'; } // `G` : a long signed integer, stored as 64 bit (`Long_t`)
+    else if( _leafDataList_[0].getType() == typeid(ULong_t) ){ return 'g'; } // `g` : a long unsigned integer, stored as 64 bit (`ULong_t`)
+    return char(0xFF); // OTHER??
   }
 
   inline void LeafHolder::clonePointerLeaves(){
