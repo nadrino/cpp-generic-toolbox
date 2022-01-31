@@ -879,13 +879,13 @@ namespace GenericToolbox {
     int bin_it;
     for (bin_it = bin_min; bin_it <= bin_max; ++bin_it) {
       if (h1->GetBinContent(bin_it) > max/2) {
-        max = h1->GetBinContent(bin_it);
+        start = h1->GetBinLowEdge(bin_it);
         break;
       }
     }
     for (bin_it = bin_it; bin_it <= bin_max; ++bin_it) {
       if (h1->GetBinContent(bin_it) < max/2) {
-        start = h1->GetBinLowEdge(bin_it) + h1->GetBinWidth(bin_it);
+        end = h1->GetBinLowEdge(bin_it) + h1->GetBinWidth(bin_it);
         break;
       }
     }
