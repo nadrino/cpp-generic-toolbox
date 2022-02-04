@@ -8,6 +8,7 @@
 #include <mutex>
 #include <condition_variable>
 #include <queue>
+#include <memory>
 
 
 namespace GenericToolbox{
@@ -22,7 +23,7 @@ namespace GenericToolbox{
 
   private:
     bool _isLocked_{false};
-    std::mutex _mutexLock_{};
+    std::shared_ptr<std::mutex> _mutexLockPtr_{};
     std::queue<std::condition_variable *> _conditionVariable_{};
   };
 
