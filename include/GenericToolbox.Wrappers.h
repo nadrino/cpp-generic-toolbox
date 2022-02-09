@@ -19,6 +19,7 @@ namespace GenericToolbox{
     AtomicWrapper(const AtomicWrapper &other): atomicValue(other.atomicValue.load()){}
     AtomicWrapper &operator=(const AtomicWrapper &other){
       atomicValue.store(other.atomicValue.load());
+      return *this;
     }
 
   };
