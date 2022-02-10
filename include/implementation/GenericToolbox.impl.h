@@ -111,7 +111,7 @@ namespace GenericToolbox{
   }
   std::string highlightIf(bool condition_, const std::string& text_){
     std::stringstream ss;
-    ss << ( condition_ ? ColorCodes::redBackGround : "" );
+    ss << (condition_ ? ColorCodes::redBackground : "" );
     ss << text_;
     ss << ( condition_ ? ColorCodes::resetColor : "" );
     return ss.str();
