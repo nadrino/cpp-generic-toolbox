@@ -50,6 +50,7 @@ namespace GenericToolbox{
     ).count();
     output *= 1000.;
 
+    _lastTotalRateEval_ = std::chrono::high_resolution_clock::now();
     _lastTotalAccumulated_ = _totalAccumulated_;
     return output;
   }

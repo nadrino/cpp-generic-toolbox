@@ -44,8 +44,9 @@ namespace GenericToolbox{
 namespace GenericToolbox {
 
   namespace ColorCodes{
-    static const char* redBackGround = "\e[41m";
-    static const char* yellowBackGround = "\033[43m";
+    static const char* redBackground = "\e[41m";
+    static const char* yellowBackground = "\033[43m";
+    static const char* greyText = "\x1b[90m";
     static const char* resetColor = "\e[0m";
     static const std::vector<std::string> rainbowColorList{"\033[1;31m", "\033[1;32m", "\033[1;33m", "\033[1;34m", "\033[1;35m", "\033[1;36m"};
   }

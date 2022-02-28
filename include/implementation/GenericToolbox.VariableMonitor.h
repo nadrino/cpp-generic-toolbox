@@ -6,6 +6,9 @@
 #define CPP_GENERIC_TOOLBOX_GENERICTOOLBOX_VARIABLEMONITOR_H
 
 #include <string>
+#include "vector"
+#include "chrono"
+#include "functional"
 
 namespace GenericToolbox{
 

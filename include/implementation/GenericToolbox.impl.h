@@ -111,7 +111,7 @@ namespace GenericToolbox{
   }
   std::string highlightIf(bool condition_, const std::string& text_){
     std::stringstream ss;
-    ss << ( condition_ ? ColorCodes::redBackGround : "" );
+    ss << (condition_ ? ColorCodes::redBackground : "" );
     ss << text_;
     ss << ( condition_ ? ColorCodes::resetColor : "" );
     return ss.str();
@@ -1601,7 +1601,8 @@ namespace GenericToolbox{
       if( throwIfNotFound_ ){                                      \
         throw std::runtime_error( enumStr_ + " not found in " + #enumName_ );   \
       }                                                             \
-      return intOffset_ - 1; /* returns invalid value */\
+/*      return intOffset_ - 1; */ \
+      return int(enumName_##_OVERFLOW); /* returns invalid value */\
     }\
     inline enumName_ toEnum(const std::string& enumStr_, bool throwIfNotFound_ = false){                         \
       return static_cast<enumName_>(enumName_##EnumNamespace::toEnumInt(enumStr_, throwIfNotFound_));  \
