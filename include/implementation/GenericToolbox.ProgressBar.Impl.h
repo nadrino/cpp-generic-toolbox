@@ -186,7 +186,7 @@ namespace GenericToolbox{
     if(_lastDisplayedPercentValue_ != 100 ){
       // those commands won't be flushed until a new print is called:
       // pull back to cursor on the line of the progress bar
-      ssProgressBar << static_cast<char>(27) << "[1;1F";
+      ssProgressBar << static_cast<char>(27) << "[1F";
       // Clear the line and add "\r" since a Logger might intercept it to trigger a print of a line header
       ssProgressBar << static_cast<char>(27) << "[1K" << "\r"; // trick to clear
     }

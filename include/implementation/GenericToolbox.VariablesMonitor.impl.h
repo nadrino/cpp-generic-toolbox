@@ -203,11 +203,11 @@ namespace GenericToolbox{
     for( size_t iLine = 1 ; iLine < nLines ; iLine++ ){
       ssLineCleaner << static_cast<char>(27) << "[2K" << std::endl;
     }
-    ssLineCleaner << static_cast<char>(27) << "[2K" << static_cast<char>(27) << "[" << nLines-1 << ";1F";
+    ssLineCleaner << static_cast<char>(27) << "[2K" << static_cast<char>(27) << "[" << nLines-1 << "F";
     ssLineCleaner << "\r" << ss.str(); // "\r" can be intercepted by loggers to know if a new line header can be printed
 
     if( trailBackCursor_ ){
-      ssLineCleaner << static_cast<char>(27) << "[2K" << static_cast<char>(27) << "[" << nLines << ";1F" << std::endl;
+      ssLineCleaner << static_cast<char>(27) << "[2K" << static_cast<char>(27) << "[" << nLines << "F" << std::endl;
       ssLineCleaner << static_cast<char>(27) << "[2K"; // un-flushed part: this clear line will only be displayed once a new line will try to override it
     }
 
