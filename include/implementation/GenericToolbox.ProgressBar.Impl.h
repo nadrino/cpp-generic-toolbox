@@ -121,7 +121,6 @@ namespace GenericToolbox{
     // test if the bar is too wide wrt the prompt width
     int displayedBarLength = _maxBarLength_;
     int termWidth = 0;
-#define CPP_GENERIC_TOOLBOX_BATCH
 #ifndef CPP_GENERIC_TOOLBOX_BATCH
     termWidth = GenericToolbox::getTerminalWidth();
 #endif
