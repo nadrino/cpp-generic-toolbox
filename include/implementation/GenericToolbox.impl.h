@@ -1458,7 +1458,11 @@ namespace GenericToolbox{
 
   std::string parseTimeUnit(long long nbMicroSec_){
     if(nbMicroSec_ / 1000 < 9 ){ // print in µs if less than 9ms
+#ifndef CPP_GENERIC_TOOLBOX_BATCH
       return std::to_string(nbMicroSec_) + "µs";
+#else
+      return std::to_string(nbMicroSec_) + "us";
+#endif
     }
     nbMicroSec_ /= 1000; // in ms
     if(nbMicroSec_ / nbMicroSec_ < 3){ // print in ms if less than 3s
