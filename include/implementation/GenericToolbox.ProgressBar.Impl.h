@@ -118,11 +118,14 @@ namespace GenericToolbox{
     _lastDisplayedTimePoint_ = _timePointBuffer_;
 
 
-
     // test if the bar is too wide wrt the prompt width
     int displayedBarLength = _maxBarLength_;
-    int termWidth = GenericToolbox::getTerminalWidth();
-    if( termWidth != 0 ) { // terminal width is measurable
+    int termWidth = 0;
+#define CPP_GENERIC_TOOLBOX_BATCH
+#ifndef CPP_GENERIC_TOOLBOX_BATCH
+    termWidth = GenericToolbox::getTerminalWidth();
+#endif
+    if( termWidth > 0 ) { // terminal width is measurable
 
       size_t totalBarLength = GenericToolbox::getPrintSize(ssPrefix.str());
       if(displayedBarLength > 0) {
@@ -183,6 +186,7 @@ namespace GenericToolbox{
     ssProgressBar << ssTail.str();
 
     ssProgressBar << std::endl; // always jump line to force flush on screen
+#ifndef CPP_GENERIC_TOOLBOX_BATCH
     if(_lastDisplayedPercentValue_ != 100 ){
       // those commands won't be flushed until a new print is called:
       // pull back to cursor on the line of the progress bar
@@ -190,6 +194,7 @@ namespace GenericToolbox{
       // Clear the line and add "\r" since a Logger might intercept it to trigger a print of a line header
       ssProgressBar << static_cast<char>(27) << "[1K" << "\r"; // trick to clear
     }
+#endif
 
     if( this->_debugMode_ ){
       std::cout << "New timestamp: " << this->_lastDisplayedTimePoint_.time_since_epoch().count() << std::endl;
