@@ -153,7 +153,7 @@ namespace GenericToolbox{
         std::string cutPrefix = ssPrefix.str().substr(0, int(ssPrefix.str().size()) - std::abs(remainingSpaces) - 3);
         ssPrefix.str("");
         ssPrefix << cutPrefix;
-        ssPrefix << "\033[0m" << "...";
+        ssPrefix << static_cast<char>(27) << "[0m" << "...";
       }
     }
     else {
