@@ -10,6 +10,33 @@
 #include <string>
 #include <cmath>
 
+#define CPP_GENERIC_TOOLBOX_BATCH
+#ifndef CPP_GENERIC_TOOLBOX_BATCH
+#define CPP_GENERIC_TOOLBOX_TABLE_PRINTER_IMPL_H_LTCORN "┌"
+#define CPP_GENERIC_TOOLBOX_TABLE_PRINTER_IMPL_H_LBCORN "└"
+#define CPP_GENERIC_TOOLBOX_TABLE_PRINTER_IMPL_H_RTCORN "┐"
+#define CPP_GENERIC_TOOLBOX_TABLE_PRINTER_IMPL_H_RBCORN "┘"
+#define CPP_GENERIC_TOOLBOX_TABLE_PRINTER_IMPL_H_TRIGHT "├"
+#define CPP_GENERIC_TOOLBOX_TABLE_PRINTER_IMPL_H_TLEFT "┤"
+#define CPP_GENERIC_TOOLBOX_TABLE_PRINTER_IMPL_H_TTOP "┬"
+#define CPP_GENERIC_TOOLBOX_TABLE_PRINTER_IMPL_H_TBOT "┴"
+#define CPP_GENERIC_TOOLBOX_TABLE_PRINTER_IMPL_H_CROSS "┼"
+#define CPP_GENERIC_TOOLBOX_TABLE_PRINTER_IMPL_H_HLINE "─"
+#define CPP_GENERIC_TOOLBOX_TABLE_PRINTER_IMPL_H_VLINE "│"
+#else
+#define CPP_GENERIC_TOOLBOX_TABLE_PRINTER_IMPL_H_LTCORN "#"
+#define CPP_GENERIC_TOOLBOX_TABLE_PRINTER_IMPL_H_LBCORN "#"
+#define CPP_GENERIC_TOOLBOX_TABLE_PRINTER_IMPL_H_RTCORN "#"
+#define CPP_GENERIC_TOOLBOX_TABLE_PRINTER_IMPL_H_RBCORN "#"
+#define CPP_GENERIC_TOOLBOX_TABLE_PRINTER_IMPL_H_TRIGHT "|"
+#define CPP_GENERIC_TOOLBOX_TABLE_PRINTER_IMPL_H_TLEFT "|"
+#define CPP_GENERIC_TOOLBOX_TABLE_PRINTER_IMPL_H_TTOP "-"
+#define CPP_GENERIC_TOOLBOX_TABLE_PRINTER_IMPL_H_TBOT "-"
+#define CPP_GENERIC_TOOLBOX_TABLE_PRINTER_IMPL_H_CROSS "|"
+#define CPP_GENERIC_TOOLBOX_TABLE_PRINTER_IMPL_H_HLINE "-"
+#define CPP_GENERIC_TOOLBOX_TABLE_PRINTER_IMPL_H_VLINE "|"
+#endif
+
 namespace GenericToolbox{
 
   TablePrinter::TablePrinter() = default;
@@ -76,36 +103,44 @@ namespace GenericToolbox{
     }
 
     // ┌───────────┬───────────────┬──────────────────┐
-    ss << "┌";
+    // or
+    // #----------------------------------------------#
+    ss << CPP_GENERIC_TOOLBOX_TABLE_PRINTER_IMPL_H_LTCORN;
     for( int iCol = 0 ; iCol < int(_colTitleList_.size())-1 ; iCol++ ){
-      ss << GenericToolbox::repeatString("─", paveColList[iCol]+2);
-      ss << "┬";
+      ss << GenericToolbox::repeatString(CPP_GENERIC_TOOLBOX_TABLE_PRINTER_IMPL_H_HLINE, paveColList[iCol]+2);
+      ss << CPP_GENERIC_TOOLBOX_TABLE_PRINTER_IMPL_H_VLINE;
     }
-    ss << GenericToolbox::repeatString("─", paveColList.back()+2) << "┐" << std::endl;
+    ss << GenericToolbox::repeatString(CPP_GENERIC_TOOLBOX_TABLE_PRINTER_IMPL_H_HLINE, paveColList.back()+2) << CPP_GENERIC_TOOLBOX_TABLE_PRINTER_IMPL_H_RTCORN<< std::endl;
 
     // │ Likelihood │ Current Value │ Avg. Slope /call │
-    ss << "│";
+    // or
+    // | Likelihood | Current value | Avg. Slope /call |
+    ss << CPP_GENERIC_TOOLBOX_TABLE_PRINTER_IMPL_H_VLINE;
     for( int iCol = 0 ; iCol < int(_colTitleList_.size()) ; iCol++ ){
       ss << " " << GenericToolbox::padString(_colTitleList_[iCol], paveColList[iCol]);
-      ss << " │";
+      ss << " " << CPP_GENERIC_TOOLBOX_TABLE_PRINTER_IMPL_H_VLINE;
     }
     ss << std::endl;
 
     // ├───────────┼───────────────┼──────────────────┤
-    ss << "├";
+    // or
+    // |-----------|---------------|------------------|
+    ss << CPP_GENERIC_TOOLBOX_TABLE_PRINTER_IMPL_H_TRIGHT;
     for( int iCol = 0 ; iCol < int(_colTitleList_.size())-1 ; iCol++ ){
-      ss << GenericToolbox::repeatString("─", paveColList[iCol]+2);
-      ss << "┼";
+      ss << GenericToolbox::repeatString(CPP_GENERIC_TOOLBOX_TABLE_PRINTER_IMPL_H_HLINE, paveColList[iCol]+2);
+      ss << CPP_GENERIC_TOOLBOX_TABLE_PRINTER_IMPL_H_CROSS;
     }
-    ss << GenericToolbox::repeatString("─", paveColList.back()+2) << "┤" << std::endl;
+    ss << GenericToolbox::repeatString(CPP_GENERIC_TOOLBOX_TABLE_PRINTER_IMPL_H_HLINE, paveColList.back()+2) << CPP_GENERIC_TOOLBOX_TABLE_PRINTER_IMPL_H_TLEFT << std::endl;
 
     // │     Total │ 9.9296422e-13 │             nanP │
+    // or
+    // |     Total | 9.9296422e-13 |             nanP |
     if( not _tableContent_.empty() ){
       for( int iRow = 0 ; iRow < int(_tableContent_[0].size()) ; iRow++ ){
-        ss << "│";
+        ss << CPP_GENERIC_TOOLBOX_TABLE_PRINTER_IMPL_H_VLINE;
         for( int iCol = 0 ; iCol < int(_colTitleList_.size()) ; iCol++ ){
           ss << " " << GenericToolbox::padString(_tableContent_[iCol][iRow], paveColList[iCol]);
-          ss << " │";
+          ss << " " << CPP_GENERIC_TOOLBOX_TABLE_PRINTER_IMPL_H_VLINE;
         }
         ss << std::endl;
       }
@@ -113,12 +148,14 @@ namespace GenericToolbox{
 
 
     // └───────────┴───────────────┴──────────────────┘
-    ss << "└";
+    // or
+    // #----------------------------------------------#
+    ss << CPP_GENERIC_TOOLBOX_TABLE_PRINTER_IMPL_H_LBCORN;
     for( int iCol = 0 ; iCol < int(_colTitleList_.size())-1 ; iCol++ ){
-      ss << GenericToolbox::repeatString("─", paveColList[iCol]+2);
-      ss << "┴";
+      ss << GenericToolbox::repeatString(CPP_GENERIC_TOOLBOX_TABLE_PRINTER_IMPL_H_HLINE, paveColList[iCol]+2);
+      ss << CPP_GENERIC_TOOLBOX_TABLE_PRINTER_IMPL_H_TBOT;
     }
-    ss << GenericToolbox::repeatString("─", paveColList.back()+2) << "┘";
+    ss << GenericToolbox::repeatString(CPP_GENERIC_TOOLBOX_TABLE_PRINTER_IMPL_H_HLINE, paveColList.back()+2) << CPP_GENERIC_TOOLBOX_TABLE_PRINTER_IMPL_H_RBCORN;
 
     return ss.str();
   }
