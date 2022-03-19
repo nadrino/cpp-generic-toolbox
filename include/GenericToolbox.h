@@ -67,7 +67,7 @@ namespace GenericToolbox{
   inline bool doesElementIsInVector(const char* element_, const std::vector<std::string>& vector_);
   template <typename T> inline int findElementIndex(T element_, const std::vector<T>& vector_ );
   inline int findElementIndex(const char* element_, const std::vector<std::string>& vector_ );
-  template <typename T> inline double getAverage(const std::vector<T>& vector_);
+  template <typename T> inline double getAverage(const std::vector<T>& vector_, const std::function<double(const T&)>& evalElementFct_ = [](const T& var){return var;});
   template <typename T> std::vector<T> getSubVector( const std::vector<T>& vector_, size_t beginIndex_, int endIndex_ = -1 );
   template <typename T, typename TT> inline std::vector<TT> convertVectorType( const std::vector<T>& vector_, std::function<TT(T)>& convertTypeFunction_ );
   template <typename T> inline std::vector<size_t> getSortPermutation(const std::vector<T>& vectorToSort_, std::function<bool(const T&, const T&)> compareLambda_ );

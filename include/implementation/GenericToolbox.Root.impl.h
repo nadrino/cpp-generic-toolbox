@@ -853,6 +853,40 @@ namespace GenericToolbox {
 
   }
 
+  template<class T> inline double getHistogramFwhm(TH1* hist_, int binMin_, int binMax_) {
+  /**
+   * @param hist_ histogram to extract FWHM
+   * @param binMin_ first bin to evaluate FWHM
+   * @param binMax_ last bin to evaluate FWHM
+   * @return full width half maximum of the histogram
+   */
+
+    // Sanity check
+    if( hist_ == nullptr ) throw std::logic_error("hist_ is nullptr");
+
+    // TH2 are castable to TH1 but are not allowed arg
+    // GetBinLowEdge() for TH2 return NaN. Test it.
+    double test = hist_->GetBinLowEdge(1);
+    if( test != test ) throw std::logic_error("Argument is not 1D histo");
+
+    if( binMax_ == -1 ) binMax_ = hist_->GetNbinsX();
+    double maxValue = hist_->GetMaximum();
+
+    double lowFwhmBound{0};
+    // First, start from the lower bound
+    int iBin;
+    for( iBin = binMin_; iBin <= binMax_; iBin++ ) {
+      if( hist_->GetBinContent(iBin) > maxValue/2. ) { lowFwhmBound = hist_->GetBinLowEdge(iBin); break; }
+    }
+
+    // Continue until the high bound has been found
+    double highFwhmBound = lowFwhmBound;
+    for( ; iBin <= binMax_; iBin++ ) {
+      if( hist_->GetBinContent(iBin) < maxValue / 2) { highFwhmBound = hist_->GetBinLowEdge(iBin) + hist_->GetBinWidth(iBin); break; }
+    }
+
+    return highFwhmBound - lowFwhmBound;
+  }
 
 }
 

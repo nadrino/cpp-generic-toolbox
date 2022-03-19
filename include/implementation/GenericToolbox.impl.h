@@ -167,18 +167,14 @@ namespace GenericToolbox {
     }
     return outIndex;
   }
-  template <typename T> inline double getAverage(const std::vector<T>& vector_){
+  template <typename T> inline double getAverage(const std::vector<T>& vector_, const std::function<double(const T&)>& evalElementFct_){
     double outVal = 0;
-    for( auto& element : vector_ ){
-      outVal += element;
-    }
+    for( auto& element : vector_ ){ outVal += static_cast<double>(evalElementFct_(element)); }
     return outVal / vector_.size();
   }
   template <typename T> std::vector<T> getSubVector( const std::vector<T>& vector_, size_t beginIndex_, int endIndex_ ){
     if( endIndex_ < 0 ){ endIndex_ += vector_.size(); }
-    if( beginIndex_ >= endIndex_ ){
-      return std::vector<T> ();
-    }
+    if( beginIndex_ >= endIndex_ ){ return std::vector<T> (); }
     return std::vector<T> ( &vector_[beginIndex_] , &vector_[endIndex_+1] );
   }
   template <typename T> std::vector<size_t> getSortPermutation(const std::vector<T>& vectorToSort_, std::function<bool(const T&, const T&)> compareLambda_ ){
