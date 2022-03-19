@@ -147,6 +147,7 @@ namespace GenericToolbox{
 
     int iQuantity = -1;
 
+#ifndef CPP_GENERIC_TOOLBOX_BATCH
     // https://en.wikipedia.org/wiki/Box-drawing_character
     ss << "┌";
     for( iQuantity = 0 ; iQuantity < int(_displayQuantityIndexList_.size()) ; iQuantity++ ){
@@ -154,52 +155,72 @@ namespace GenericToolbox{
       ss << GenericToolbox::repeatString("─", int(paddingList.at(iQuantity)+1));
     }
     ss << "┐" << std::endl;
+#endif
 
     // Legend
     std::stringstream sss;
     iQuantity = -1;
-    ss << "│";
+#ifndef CPP_GENERIC_TOOLBOX_BATCH
+    sss << "│";
+#endif
     for( const auto& quantityIndex : _displayQuantityIndexList_ ){
       iQuantity++;
       if(not sss.str().empty()) sss << " ";
-      sss << GenericToolbox::padString(_quantityMonitorList_.at(quantityIndex).title, paddingList.at(iQuantity)) << " │";
+      sss << GenericToolbox::padString(_quantityMonitorList_.at(quantityIndex).title, paddingList.at(iQuantity));
+#ifndef CPP_GENERIC_TOOLBOX_BATCH
+      sss << " │";
+#endif
     }
     ss << sss.str() << std::endl;
 
+#ifndef CPP_GENERIC_TOOLBOX_BATCH
     ss << "├";
     for( iQuantity = 0 ; iQuantity < int(_displayQuantityIndexList_.size()) ; iQuantity++ ){
       if( iQuantity != 0 ){ ss << "┼─"; }
       ss << GenericToolbox::repeatString("─", int(paddingList.at(iQuantity)+1));
     }
     ss << "┤" << std::endl;
+#endif
 
     // Content
     for( size_t iVar = 0 ; iVar < _varMonitorList_.size() ; iVar++ ){
       sss.str("");
       iQuantity = -1;
-      ss << "│";
+#ifndef CPP_GENERIC_TOOLBOX_BATCH
+      sss << "│";
+#endif
       for( const auto& quantityIndex : _displayQuantityIndexList_ ){
         iQuantity++;
         if(not sss.str().empty()) sss << " ";
-        sss << GenericToolbox::padString(varElementsList.at(iVar).at(iQuantity), paddingList.at(iQuantity)) << " │";
+        sss << GenericToolbox::padString(varElementsList.at(iVar).at(iQuantity), paddingList.at(iQuantity));
+#ifndef CPP_GENERIC_TOOLBOX_BATCH
+        sss << " │";
+#endif
       }
       ss << sss.str() << std::endl;
     }
 
+#ifndef CPP_GENERIC_TOOLBOX_BATCH
     ss << "└";
     for( iQuantity = 0 ; iQuantity < int(_displayQuantityIndexList_.size()) ; iQuantity++ ){
       if( iQuantity != 0 ){ ss << "┴─"; }
       ss << GenericToolbox::repeatString("─", int(paddingList.at(iQuantity)+1));
     }
     ss << "┘" << std::endl;
+#endif
 
 
     // Optional Footer
     if( not _footerString_.empty() ) ss << _footerString_ << std::endl;
 
-    auto nLines = GenericToolbox::splitString(ss.str(), "\n").size();
 
     std::stringstream ssLineCleaner;
+#ifdef CPP_GENERIC_TOOLBOX_BATCH
+#warning Variables Monitor in batch mode
+    return ss.str();
+#endif
+
+    auto nLines = GenericToolbox::splitString(ss.str(), "\n").size();
     for( size_t iLine = 1 ; iLine < nLines ; iLine++ ){
       ssLineCleaner << static_cast<char>(27) << "[2K" << std::endl;
     }
