@@ -105,6 +105,15 @@ namespace GenericToolbox{
   inline TH1D* getTH1DlogBinning(const std::string &name_, const std::string &title_, int n_bins_, double X_min_, double X_max_);
   inline TH2D* getTH2DlogBinning(const std::string &name_, const std::string &title_, int nb_X_bins_, double X_min_, double X_max_,
                                  int nb_Y_bins_, double Y_min_, double Y_max_, std::string log_axis_= "XY");
+  /**
+   *
+   * @tparam T any type of TH1 (e.g. TH1I, TH1F, etc.)
+   * @param histo histogram to extract FWHM
+   * @param bin_min first bin to evaluate FWHM
+   * @param bin_max last bin to evaluate FWHM
+   * @return FWHM of the histogram
+   */
+  template <class T> inline double getHistogramFwhm(T* histo, int bin_min = -1, int bin_max = -1);
 
 
   //! Canvas Tools
