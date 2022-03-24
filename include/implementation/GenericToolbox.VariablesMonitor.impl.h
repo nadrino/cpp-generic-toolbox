@@ -137,8 +137,8 @@ namespace GenericToolbox{
     }
 
     std::stringstream ss;
-    int barWidth = -1;
-    for( const auto& padding : paddingList ){ barWidth += int(padding) + 3; }
+//    int barWidth = -1;
+//    for( const auto& padding : paddingList ){ barWidth += int(padding) + 3; }
 
     // Optional Header
     if( not _headerString_.empty() ){
