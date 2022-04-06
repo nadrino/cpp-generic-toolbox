@@ -88,7 +88,7 @@ namespace GenericToolbox{
     std::stringstream ss;
 
     std::vector<size_t> paveColList(_tableContent_.size(),0);
-    size_t totalLength{1}; // first line separator
+//    size_t totalLength{1}; // first line separator
     for( int iCol = 0 ; iCol < int(_colTitleList_.size()) ; iCol++ ){
       paveColList[iCol] = GenericToolbox::getPrintSize(_colTitleList_[iCol]);
       for( int iRow = 0 ; iRow < int(_tableContent_[iCol].size()) ; iRow++ ){
@@ -96,9 +96,9 @@ namespace GenericToolbox{
           paveColList[iCol] = GenericToolbox::getPrintSize(_tableContent_[iCol][iRow]);
         }
       }
-      totalLength += paveColList[iCol];
-      totalLength += 2; // space before + after
-      totalLength += 1; // line separator
+//      totalLength += paveColList[iCol];
+//      totalLength += 2; // space before + after
+//      totalLength += 1; // line separator
     }
 
     // ┌───────────┬───────────────┬──────────────────┐
@@ -107,7 +107,7 @@ namespace GenericToolbox{
     ss << CPP_GENERIC_TOOLBOX_TABLE_PRINTER_IMPL_H_LTCORN;
     for( int iCol = 0 ; iCol < int(_colTitleList_.size())-1 ; iCol++ ){
       ss << GenericToolbox::repeatString(CPP_GENERIC_TOOLBOX_TABLE_PRINTER_IMPL_H_HLINE, paveColList[iCol]+2);
-      ss << CPP_GENERIC_TOOLBOX_TABLE_PRINTER_IMPL_H_VLINE;
+      ss << CPP_GENERIC_TOOLBOX_TABLE_PRINTER_IMPL_H_TTOP;
     }
     ss << GenericToolbox::repeatString(CPP_GENERIC_TOOLBOX_TABLE_PRINTER_IMPL_H_HLINE, paveColList.back()+2) << CPP_GENERIC_TOOLBOX_TABLE_PRINTER_IMPL_H_RTCORN<< std::endl;
 
