@@ -5,12 +5,13 @@
 #ifndef CPP_GENERIC_TOOLBOX_GENERICTOOLBOX_VARIABLESMONITOR_H
 #define CPP_GENERIC_TOOLBOX_GENERICTOOLBOX_VARIABLESMONITOR_H
 
-#include <utility>
+#include "GenericToolbox.TablePrinter.h"
+#include "implementation/GenericToolbox.VariableMonitor.h" // tools
 
+#include <utility>
 #include "string"
 #include "vector"
 
-#include "implementation/GenericToolbox.VariableMonitor.h"
 
 // Classes : VariablesMonitor
 namespace GenericToolbox{
@@ -47,6 +48,8 @@ namespace GenericToolbox{
     std::vector<QuantityMonitor> _quantityMonitorList_;
     std::vector<size_t> _displayQuantityIndexList_;
     std::vector<size_t> _basedPaddingList_;
+
+    TablePrinter _tablePrinter_;
   };
 
 }

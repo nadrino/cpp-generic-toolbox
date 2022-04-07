@@ -6,6 +6,7 @@
 #define CPP_GENERIC_TOOLBOX_GENERICTOOLBOX_VARIABLESMONITOR_IMPL_H
 
 #include "GenericToolbox.VariablesMonitor.h"
+#include "GenericToolbox.TablePrinter.h"
 
 namespace GenericToolbox{
 
@@ -113,102 +114,31 @@ namespace GenericToolbox{
     if( trailBackCursor_ and not this->isGenerateMonitorStringOk() ) return {};
     _lastGeneratedMonitorStringTime_ = std::chrono::high_resolution_clock::now();
 
-    std::vector<std::vector<std::string>> varElementsList(_varMonitorList_.size(), std::vector<std::string>(_displayQuantityIndexList_.size()));
+    std::vector<std::vector<std::string>> varElementsList(_varMonitorList_.size()+1, std::vector<std::string>(_displayQuantityIndexList_.size()));
 
-    if(_basedPaddingList_.size() != _displayQuantityIndexList_.size() ){
-      _basedPaddingList_.clear();
-      for( const auto& quantityIndex : _displayQuantityIndexList_ ){
-        _basedPaddingList_.emplace_back( std::max(size_t(6), _quantityMonitorList_.at(quantityIndex).title.size()) );
-      }
+    int iQuantity = 0;
+    for( const auto& quantityIndex : _displayQuantityIndexList_ ){
+      varElementsList[0][iQuantity++] = _quantityMonitorList_.at(quantityIndex).title;
     }
-    auto paddingList = _basedPaddingList_;
 
-    for( size_t iVar = 0 ; iVar < _varMonitorList_.size() ; iVar++ ){
-      int iQuantity = -1;
-      for( const auto& quantityIndex : _displayQuantityIndexList_ ){
-        iQuantity++;
+    for( size_t iVar = 0 ; iVar < _varMonitorList_.size() ; iVar++ ){ // line
+      iQuantity = 0;
+      for( const auto& quantityIndex : _displayQuantityIndexList_ ){ // col
         if( _quantityMonitorList_.at(quantityIndex).evalFunction ){
-          varElementsList.at(iVar).at(iQuantity) = _quantityMonitorList_.at(quantityIndex).evalFunction(_varMonitorList_.at(iVar));
-        }
-        if( _quantityMonitorList_.at(quantityIndex).isExpandablePadSize ){
-          paddingList.at(iQuantity) = std::max(paddingList.at(iQuantity), varElementsList.at(iVar).at(iQuantity).size());
+          varElementsList[iVar+1][iQuantity++] = _quantityMonitorList_.at(quantityIndex).evalFunction(_varMonitorList_.at(iVar));
         }
       }
     }
+    _tablePrinter_.fillTable(varElementsList);
 
     std::stringstream ss;
-//    int barWidth = -1;
-//    for( const auto& padding : paddingList ){ barWidth += int(padding) + 3; }
 
     // Optional Header
     if( not _headerString_.empty() ){
       ss << _headerString_ << std::endl;
     }
 
-    int iQuantity = -1;
-
-#ifndef CPP_GENERIC_TOOLBOX_BATCH
-    // https://en.wikipedia.org/wiki/Box-drawing_character
-    ss << "┌";
-    for( iQuantity = 0 ; iQuantity < int(_displayQuantityIndexList_.size()) ; iQuantity++ ){
-      if( iQuantity != 0 ){ ss << "┬─"; }
-      ss << GenericToolbox::repeatString("─", int(paddingList.at(iQuantity)+1));
-    }
-    ss << "┐" << std::endl;
-#endif
-
-    // Legend
-    std::stringstream sss;
-    iQuantity = -1;
-#ifndef CPP_GENERIC_TOOLBOX_BATCH
-    sss << "│";
-#endif
-    for( const auto& quantityIndex : _displayQuantityIndexList_ ){
-      iQuantity++;
-      if(not sss.str().empty()) sss << " ";
-      sss << GenericToolbox::padString(_quantityMonitorList_.at(quantityIndex).title, paddingList.at(iQuantity));
-#ifndef CPP_GENERIC_TOOLBOX_BATCH
-      sss << " │";
-#endif
-    }
-    ss << sss.str() << std::endl;
-
-#ifndef CPP_GENERIC_TOOLBOX_BATCH
-    ss << "├";
-    for( iQuantity = 0 ; iQuantity < int(_displayQuantityIndexList_.size()) ; iQuantity++ ){
-      if( iQuantity != 0 ){ ss << "┼─"; }
-      ss << GenericToolbox::repeatString("─", int(paddingList.at(iQuantity)+1));
-    }
-    ss << "┤" << std::endl;
-#endif
-
-    // Content
-    for( size_t iVar = 0 ; iVar < _varMonitorList_.size() ; iVar++ ){
-      sss.str("");
-      iQuantity = -1;
-#ifndef CPP_GENERIC_TOOLBOX_BATCH
-      sss << "│";
-#endif
-      for( const auto& quantityIndex : _displayQuantityIndexList_ ){
-        iQuantity++;
-        if(not sss.str().empty()) sss << " ";
-        sss << GenericToolbox::padString(varElementsList.at(iVar).at(iQuantity), paddingList.at(iQuantity));
-#ifndef CPP_GENERIC_TOOLBOX_BATCH
-        sss << " │";
-#endif
-      }
-      ss << sss.str() << std::endl;
-    }
-
-#ifndef CPP_GENERIC_TOOLBOX_BATCH
-    ss << "└";
-    for( iQuantity = 0 ; iQuantity < int(_displayQuantityIndexList_.size()) ; iQuantity++ ){
-      if( iQuantity != 0 ){ ss << "┴─"; }
-      ss << GenericToolbox::repeatString("─", int(paddingList.at(iQuantity)+1));
-    }
-    ss << "┘" << std::endl;
-#endif
-
+    ss << _tablePrinter_.generateTableString() << std::endl;
 
     // Optional Footer
     if( not _footerString_.empty() ) ss << _footerString_ << std::endl;

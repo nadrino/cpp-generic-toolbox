@@ -88,17 +88,11 @@ namespace GenericToolbox{
     std::stringstream ss;
 
     std::vector<size_t> paveColList(_tableContent_.size(),0);
-//    size_t totalLength{1}; // first line separator
     for( int iCol = 0 ; iCol < int(_colTitleList_.size()) ; iCol++ ){
       paveColList[iCol] = GenericToolbox::getPrintSize(_colTitleList_[iCol]);
       for( int iRow = 0 ; iRow < int(_tableContent_[iCol].size()) ; iRow++ ){
-        if(GenericToolbox::getPrintSize(_tableContent_[iCol][iRow]) > paveColList[iCol]) {
-          paveColList[iCol] = GenericToolbox::getPrintSize(_tableContent_[iCol][iRow]);
-        }
+        paveColList[iCol] = std::max(paveColList[iCol], GenericToolbox::getPrintSize(_tableContent_[iCol][iRow]));
       }
-//      totalLength += paveColList[iCol];
-//      totalLength += 2; // space before + after
-//      totalLength += 1; // line separator
     }
 
     // ┌───────────┬───────────────┬──────────────────┐
