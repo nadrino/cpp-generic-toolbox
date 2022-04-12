@@ -46,7 +46,7 @@ namespace GenericToolbox{
 
   struct QuantityMonitor{
     QuantityMonitor(std::string  name_, std::string  title_, std::function<std::string(VariableMonitor&)>  evalFunction_, bool isExpandablePadSize_ = true ) :
-        name(std::move(name_)), title(std::move(title_)), evalFunction(std::move(evalFunction_)), isExpandablePadSize(isExpandablePadSize_) {};
+        name(std::move(name_)), title(std::move(title_)), isExpandablePadSize(isExpandablePadSize_), evalFunction(std::move(evalFunction_)) {};
     std::string name; // kept for reference
     std::string title;
     bool isExpandablePadSize{true};
