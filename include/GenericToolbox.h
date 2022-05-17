@@ -92,6 +92,8 @@ namespace GenericToolbox{
   template<typename T, typename TT> inline T& getListEntry(std::list<T>& list_, TT index_);
   template<typename T, typename TT> inline const T& getListEntry(const std::list<T>& list_, TT index_);
 
+  template<typename T, typename TT> inline std::string iterableToString(const T& iterable_, const TT& toStrFct_, bool jumpLine_=true);
+
 }
 
 

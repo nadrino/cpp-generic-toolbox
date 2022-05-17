@@ -273,6 +273,21 @@ namespace GenericToolbox {
     return *it;
   }
 
+  template<typename T, typename TT> inline std::string iterableToString(const T& iterable_, const TT& toStrFct_, bool jumpLine_){
+    std::stringstream ss;
+    ss << "{ ";
+    bool isFirst = true;
+    for(const auto& element: iterable_){
+      if(not isFirst) ss << ", ";
+      else isFirst = false;
+      if(jumpLine_) ss << std::endl;
+      ss << toStrFct_(element);
+    }
+    if(jumpLine_) ss << std::endl << "}";
+    else ss << " }";
+    return ss.str();
+  }
+
 }
 
 
