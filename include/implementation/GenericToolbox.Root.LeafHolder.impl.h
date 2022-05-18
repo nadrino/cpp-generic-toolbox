@@ -28,10 +28,12 @@ namespace GenericToolbox{
     if(branchName_.empty()) throw std::logic_error("Can't hook empty branch name.");
     auto* treeLeafPtr = tree_->GetLeaf(branchName_.c_str());
     if( treeLeafPtr == nullptr ){
-      throw std::runtime_error("Can't find branch \""+branchName_+"\" in tree "+tree_->GetName());
+      std::stringstream ss;
+      ss << "Can't find leaf " << branchName_ << " in tree " << tree_->GetName();
+      std::cout << ss.str() << std::endl;
+      throw std::runtime_error(ss.str());
     }
     std::string leafTypeName = treeLeafPtr->GetTypeName();
-
     if(leafTypeName == "Bool_t" ){
       this->defineVariable(Bool_t(), treeLeafPtr->GetNdata());
       tree_->SetBranchAddress(branchName_.c_str(), &this->getVariable<Bool_t>());
@@ -202,6 +204,10 @@ namespace GenericToolbox{
       o << ": " << GenericToolbox::parseVectorAsString(v._leafDataList_);
     }
     return o;
+  }
+
+  inline const std::vector<AnyType> &LeafHolder::getLeafDataList() const {
+    return _leafDataList_;
   }
 
 }

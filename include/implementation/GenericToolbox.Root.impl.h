@@ -976,6 +976,24 @@ namespace GenericToolbox{
     oldVerbosity      = -1;
   }
 
+  inline char findOriginalVariableType(const GenericToolbox::AnyType& obj_){
+    if     ( obj_.getType() == typeid(Bool_t) ){ return 'O'; }
+    else if( obj_.getType() == typeid(Char_t) ){ return 'B'; }
+    else if( obj_.getType() == typeid(UChar_t) ){ return 'b'; }
+    else if( obj_.getType() == typeid(Short_t) ){ return 'S'; }
+    else if( obj_.getType() == typeid(UShort_t) ){ return 's'; }
+    else if( obj_.getType() == typeid(Int_t) ){ return 'I'; }
+    else if( obj_.getType() == typeid(UInt_t) ){ return 'i'; }
+    else if( obj_.getType() == typeid(Float_t) ){ return 'F'; }    // `F` : a 32 bit floating point (`Float_t`)
+    else if( obj_.getType() == typeid(Float16_t) ){ return 'f'; }  // `f` : a 24 bit floating point with truncated mantissa
+    else if( obj_.getType() == typeid(Double_t) ){ return 'D'; }   // `D` : a 64 bit floating point (`Double_t`)
+    else if( obj_.getType() == typeid(Double32_t) ){ return 'd'; } // `d` : a 24 bit truncated floating point (`Double32_t`)
+    else if( obj_.getType() == typeid(Long64_t) ){ return 'L'; }
+    else if( obj_.getType() == typeid(ULong64_t) ){ return 'l'; }
+    else if( obj_.getType() == typeid(Long_t) ){ return 'G'; } // `G` : a long signed integer, stored as 64 bit (`Long_t`)
+    else if( obj_.getType() == typeid(ULong_t) ){ return 'g'; } // `g` : a long unsigned integer, stored as 64 bit (`ULong_t`)
+    return char(0xFF); // OTHER??
+  }
 }
 
 

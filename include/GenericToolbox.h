@@ -122,6 +122,7 @@ namespace GenericToolbox{
   inline bool doesStringEndsWithSubstring(std::string string_, std::string substring_, bool ignoreCase_ = false);
   inline std::string toLowerCase(const std::string &inputStr_);
   inline std::string stripStringUnicode(const std::string &inputStr_);
+  inline std::string stripBracket(const std::string &inputStr_, char bra_, char ket_, bool allowUnclosed_ = true, std::vector<std::string>* argBuffer_ = nullptr);
   inline size_t getPrintSize(const std::string& str_);
   inline std::string repeatString(const std::string &inputStr_, int amount_);
   inline std::string trimString(const std::string &inputStr_, const std::string &strToTrim_);

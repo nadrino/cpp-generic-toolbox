@@ -5,9 +5,8 @@
 #ifndef CPP_GENERIC_TOOLBOX_GENERICTOOLBOX_ROOT_H
 #define CPP_GENERIC_TOOLBOX_GENERICTOOLBOX_ROOT_H
 
-// STD Headers
-#include <map>
-#include <string>
+// GenericToolbox
+#include "GenericToolbox.AnyType.h"
 
 // ROOT Headers
 #include <TMatrixD.h>
@@ -20,6 +19,12 @@
 #include <TFormula.h>
 #include "TTreeFormula.h"
 #include "TRandom3.h"
+
+// STD Headers
+#include <map>
+#include <string>
+
+
 
 namespace GenericToolbox{
 
@@ -120,6 +125,8 @@ namespace GenericToolbox{
   //! ROOT Internals
   inline void muteRoot();
   inline void unmuteRoot();
+
+  inline char findOriginalVariableType(const GenericToolbox::AnyType& obj_);
 
 
 }

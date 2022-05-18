@@ -31,6 +31,8 @@ namespace GenericToolbox{
     template<typename T> inline void defineVariable(T variable_, size_t arraySize_ = 1);
     template<typename T> inline T& getVariable(size_t arrayIndex_ = 0);
 
+    inline const std::vector<AnyType> &getLeafDataList() const;
+
     template<typename T> inline const T& getVariable(size_t arrayIndex_ = 0) const;
     inline double getVariableAsDouble(size_t arrayIndex_ = 0) const;
     inline size_t getArraySize() const;

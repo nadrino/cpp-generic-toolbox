@@ -154,17 +154,13 @@ namespace GenericToolbox {
   template <typename T> inline int findElementIndex(T element_, const std::vector<T>& vector_ ){ // test
     int outIndex = -1;
     auto it = std::find(vector_.begin(), vector_.end(), element_);
-    if (it != vector_.end()){
-      outIndex = std::distance(vector_.begin(), it);
-    }
+    if (it != vector_.end()){ outIndex = std::distance(vector_.begin(), it); }
     return outIndex;
   }
   inline int findElementIndex(const char* element_, const std::vector<std::string>& vector_ ){
     int outIndex = -1;
     auto it = std::find(vector_.begin(), vector_.end(), element_);
-    if (it != vector_.end()){
-      outIndex = int(std::distance(vector_.begin(), it));
-    }
+    if (it != vector_.end()){ outIndex = int(std::distance(vector_.begin(), it)); }
     return outIndex;
   }
   template <typename T> inline double getAverage(const std::vector<T>& vector_, const std::function<double(const T&)>& evalElementFct_){
@@ -433,6 +429,27 @@ namespace GenericToolbox {
     );
 
     return outputStr;
+  }
+  inline std::string stripBracket(const std::string &inputStr_, char bra_, char ket_, bool allowUnclosed_, std::vector<std::string>* argBuffer_){
+    int iChar{0}; std::string out;
+    while( iChar < inputStr_.size() ){
+      if ( inputStr_[iChar] == bra_ ){
+        iChar++;
+        if(argBuffer_!= nullptr){ argBuffer_->emplace_back(); }
+        while(iChar < inputStr_.size()){
+          if(inputStr_[iChar] == ket_ ) { iChar++; break; }
+          if(argBuffer_!= nullptr){ argBuffer_->back() += inputStr_[iChar]; }
+          iChar++;
+          if(iChar == inputStr_.size()){
+            if( not allowUnclosed_ ){
+              throw std::runtime_error("unclosed bracket.");
+            }
+          }
+        }
+      }
+      out += inputStr_[iChar++];
+    }
+    return out;
   }
   inline size_t getPrintSize(const std::string& str_){
     if( str_.empty() ) return 0;
