@@ -36,65 +36,80 @@ namespace GenericToolbox{
     std::string leafTypeName = treeLeafPtr->GetTypeName();
     if(leafTypeName == "Bool_t" ){
       this->defineVariable(Bool_t(), treeLeafPtr->GetNdata());
-      tree_->SetBranchAddress(branchName_.c_str(), &this->getVariable<Bool_t>());
+//      tree_->SetBranchAddress(branchName_.c_str(), &this->getVariable<Bool_t>());
+      treeLeafPtr->GetBranch()->SetAddress(&this->getVariable<Bool_t>());
     }
     else if(leafTypeName == "Char_t" ){
       this->defineVariable(Char_t(), treeLeafPtr->GetNdata());
-      tree_->SetBranchAddress(branchName_.c_str(), &this->getVariable<Char_t>());
+//      tree_->SetBranchAddress(branchName_.c_str(), &this->getVariable<Char_t>());
+      treeLeafPtr->GetBranch()->SetAddress(&this->getVariable<Char_t>());
     }
     else if(leafTypeName == "UChar_t" ){
       this->defineVariable(UChar_t(), treeLeafPtr->GetNdata());
-      tree_->SetBranchAddress(branchName_.c_str(), &this->getVariable<UChar_t>());
+//      tree_->SetBranchAddress(branchName_.c_str(), &this->getVariable<UChar_t>());
+      treeLeafPtr->GetBranch()->SetAddress(&this->getVariable<UChar_t>());
     }
     else if(leafTypeName == "Short_t" ){
       this->defineVariable(Short_t(), treeLeafPtr->GetNdata());
-      tree_->SetBranchAddress(branchName_.c_str(), &this->getVariable<Short_t>());
+//      tree_->SetBranchAddress(branchName_.c_str(), &this->getVariable<Short_t>());
+      treeLeafPtr->GetBranch()->SetAddress(&this->getVariable<Short_t>());
     }
     else if(leafTypeName == "UShort_t" ){
       this->defineVariable(UShort_t(), treeLeafPtr->GetNdata());
-      tree_->SetBranchAddress(branchName_.c_str(), &this->getVariable<UShort_t>());
+//      tree_->SetBranchAddress(branchName_.c_str(), &this->getVariable<UShort_t>());
+      treeLeafPtr->GetBranch()->SetAddress(&this->getVariable<UShort_t>());
     }
     else if(leafTypeName == "Int_t" ){
       this->defineVariable(Int_t(), treeLeafPtr->GetNdata());
-      tree_->SetBranchAddress(branchName_.c_str(), &this->getVariable<Int_t>());
+//      tree_->SetBranchAddress(branchName_.c_str(), &this->getVariable<Int_t>());
+      treeLeafPtr->GetBranch()->SetAddress(&this->getVariable<Int_t>());
     }
     else if(leafTypeName == "UInt_t" ){
       this->defineVariable(UInt_t(), treeLeafPtr->GetNdata());
-      tree_->SetBranchAddress(branchName_.c_str(), &this->getVariable<UInt_t>());
+//      tree_->SetBranchAddress(branchName_.c_str(), &this->getVariable<UInt_t>());
+      treeLeafPtr->GetBranch()->SetAddress(&this->getVariable<UInt_t>());
     }
     else if(leafTypeName == "Long_t" ){
       this->defineVariable(Long_t(), treeLeafPtr->GetNdata());
-      tree_->SetBranchAddress(branchName_.c_str(), &this->getVariable<Long_t>());
+//      tree_->SetBranchAddress(branchName_.c_str(), &this->getVariable<Long_t>());
+      treeLeafPtr->GetBranch()->SetAddress(&this->getVariable<Long_t>());
     }
     else if(leafTypeName == "ULong_t" ){
       this->defineVariable(ULong_t(), treeLeafPtr->GetNdata());
-      tree_->SetBranchAddress(branchName_.c_str(), &this->getVariable<ULong_t>());
+//      tree_->SetBranchAddress(branchName_.c_str(), &this->getVariable<ULong_t>());
+      treeLeafPtr->GetBranch()->SetAddress(&this->getVariable<ULong_t>());
     }
     else if(leafTypeName == "Long64_t" ){
       this->defineVariable(Long64_t(), treeLeafPtr->GetNdata());
-      tree_->SetBranchAddress(branchName_.c_str(), &this->getVariable<Long64_t>());
+//      tree_->SetBranchAddress(branchName_.c_str(), &this->getVariable<Long64_t>());
+      treeLeafPtr->GetBranch()->SetAddress(&this->getVariable<Long64_t>());
     }
     else if(leafTypeName == "ULong64_t" ){
       this->defineVariable(ULong64_t(), treeLeafPtr->GetNdata());
-      tree_->SetBranchAddress(branchName_.c_str(), &this->getVariable<ULong64_t>());
+//      tree_->SetBranchAddress(branchName_.c_str(), &this->getVariable<ULong64_t>());
+      treeLeafPtr->GetBranch()->SetAddress(&this->getVariable<ULong64_t>());
     }
 
     // Floating Variables
     else if(leafTypeName == "Float16_t" ){
       this->defineVariable(Float16_t(), treeLeafPtr->GetNdata());
-      tree_->SetBranchAddress(branchName_.c_str(), &this->getVariable<Float16_t>());
+//      tree_->SetBranchAddress(branchName_.c_str(), &this->getVariable<Float16_t>());
+      treeLeafPtr->GetBranch()->SetAddress(&this->getVariable<Float16_t>());
     }
     else if(leafTypeName == "Float_t" ){
       this->defineVariable(Float_t(), treeLeafPtr->GetNdata());
-      tree_->SetBranchAddress(branchName_.c_str(), &this->getVariable<Float_t>());
+//      tree_->SetBranchAddress(branchName_.c_str(), &this->getVariable<Float_t>());
+      treeLeafPtr->GetBranch()->SetAddress(&this->getVariable<Float_t>());
     }
     else if(leafTypeName == "Double32_t" ){
       this->defineVariable(Double32_t(), treeLeafPtr->GetNdata());
-      tree_->SetBranchAddress(branchName_.c_str(), &this->getVariable<Double32_t>());
+//      tree_->SetBranchAddress(branchName_.c_str(), &this->getVariable<Double32_t>());
+      treeLeafPtr->GetBranch()->SetAddress(&this->getVariable<Double32_t>());
     }
     else if(leafTypeName == "Double_t" ){
       this->defineVariable(Double_t(), treeLeafPtr->GetNdata());
-      tree_->SetBranchAddress(branchName_.c_str(), &this->getVariable<Double_t>());
+//      tree_->SetBranchAddress(branchName_.c_str(), &this->getVariable<Double_t>());
+      treeLeafPtr->GetBranch()->SetAddress(&this->getVariable<Double_t>());
     }
 
     // TObjects (can't be loaded as objects)
@@ -102,17 +117,20 @@ namespace GenericToolbox{
       TGraph* bufGrPtr{nullptr};
       this->defineVariable(bufGrPtr, treeLeafPtr->GetLen());
       tree_->SetBranchAddress(branchName_.c_str(), &(this->getVariable<TGraph*>()));
+//      treeLeafPtr->GetBranch()->SetAddress(&this->getVariable<TGraph*>());
     }
     else if(leafTypeName == "TSpline3" ){
       TSpline3* bufGrPtr{nullptr};
       this->defineVariable(bufGrPtr, treeLeafPtr->GetLen());
       tree_->SetBranchAddress(branchName_.c_str(), &(this->getVariable<TSpline3*>()));
+//      treeLeafPtr->GetBranch()->SetAddress(&this->getVariable<TSpline3*>());
     }
     else if(leafTypeName == "TClonesArray" ){
       TClonesArray* bufPtr{nullptr};
       this->defineVariable(bufPtr, treeLeafPtr->GetLen());
       // ROOT will complain about the wrong type of pointer
       tree_->SetBranchAddress(branchName_.c_str(), &(this->getVariable<TClonesArray*>()));
+//      treeLeafPtr->GetBranch()->SetAddress(&this->getVariable<TClonesArray*>());
     }
 
     // Others
