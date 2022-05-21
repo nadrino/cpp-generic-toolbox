@@ -673,12 +673,12 @@ namespace GenericToolbox {
     ss << std::hex << std::setfill('0') << std::setw(2) << static_cast<unsigned>(byte_);
     return ss.str();
   }
-  template<typename T> inline std::string toHex(T& val_){
+  template<typename T> inline std::string toHex(const T& val_){
     std::stringstream ss;
     ss << std::hex << std::setfill('0') << std::setw(2);
-    unsigned char* address{(unsigned char*)(&val_) + sizeof(T)-1};
+    unsigned char* address{(unsigned char*)(&val_) + sizeof(val_)-1};
     do{ ss << byteToHex(*(address--)); }
-    while(address != (unsigned char*)(&val_));
+    while(address >= (unsigned char*)(&val_));
     return ss.str();
   }
   template<typename T> std::string toHexString(T integerVal_, size_t nbDigit_){
