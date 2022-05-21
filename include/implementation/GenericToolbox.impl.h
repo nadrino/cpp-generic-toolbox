@@ -687,18 +687,17 @@ namespace GenericToolbox {
     std::stringstream ss;
     size_t nChunks = rawData_.size()*sizeof(T)/stackSize_;
     const unsigned char* address{&rawData_[0]};
-    for( int iChunk=0 ; iChunk < nChunks+1 ; iChunk++ ){
+    for( int iChunk=0 ; iChunk < nChunks ; iChunk++ ){
       ss.str().empty()? ss << "{ ": ss << ", ";
-      ss << "0x";
-      if( (address+stackSize_ ) > &(rawData_.back())+sizeof(T) ) {
-        ss << GenericToolbox::repeatString("_-", address+stackSize_ - (&(rawData_.back())+sizeof(T)));
-        ss << GenericToolbox::toHex(address, (&(rawData_.back()) + sizeof(T)) - address);
-      }
-      else{
-        ss << GenericToolbox::toHex(address, stackSize_);
-      }
+      ss << "0x" << GenericToolbox::toHex(address, stackSize_);
       address += stackSize_;
     }
+
+    if( address < &(rawData_.back())+sizeof(T) ) {
+      ss << GenericToolbox::repeatString("_-", address+stackSize_ - (&(rawData_.back())+sizeof(T)));
+      ss << GenericToolbox::toHex(address, (&(rawData_.back()) + sizeof(T)) - address);
+    }
+
     ss << " }";
     return ss.str();
   }
