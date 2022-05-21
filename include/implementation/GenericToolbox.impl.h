@@ -674,9 +674,9 @@ namespace GenericToolbox {
     return ss.str();
   }
   template<typename T> inline std::string toHex(const T& val_){
-    std::stringstream ss;
+    std::stringstream ss(std::string(2*sizeof(val_), '\0')); ss << std::hex << std::setfill('0') << std::setw(2);
     unsigned char* address{(unsigned char*)(&val_) + sizeof(val_)-1};
-    do{ ss << GenericToolbox::byteToHex(*(address--)); }
+    do{ ss << static_cast<unsigned>(*(address--)); }
     while(address >= (unsigned char*)(&val_));
     return ss.str();
   }
