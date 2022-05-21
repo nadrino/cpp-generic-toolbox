@@ -677,7 +677,7 @@ namespace GenericToolbox {
     std::stringstream ss;
     ss << std::hex << std::setfill('0') << std::setw(2);
     unsigned char* address{(unsigned char*)(&val_) + sizeof(val_)-1};
-    do{ ss << byteToHex(*(address--)); }
+    do{ ss << GenericToolbox::byteToHex(*(address--)); }
     while(address >= (unsigned char*)(&val_));
     return ss.str();
   }
