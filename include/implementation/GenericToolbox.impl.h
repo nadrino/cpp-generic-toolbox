@@ -691,7 +691,7 @@ namespace GenericToolbox {
       ss.str().empty()? ss << "{ ": ss << ", ";
       ss << "0x";
       if( (address+stackSize_ ) > &(rawData_.back())+sizeof(T) ) {
-        ss << GenericToolbox::repeatString("X", address+stackSize_ - (&(rawData_.back())+sizeof(T)));
+        ss << GenericToolbox::repeatString("_-", address+stackSize_ - (&(rawData_.back())+sizeof(T)));
         ss << GenericToolbox::toHex(address, (&(rawData_.back()) + sizeof(T)) - address);
       }
       else{
