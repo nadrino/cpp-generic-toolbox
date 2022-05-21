@@ -668,24 +668,18 @@ namespace GenericToolbox {
 // Conversion Tools
 namespace GenericToolbox {
 
-  inline std::string byteToHex(unsigned char byte_){
-    std::stringstream ss;
-    ss << std::hex << std::setfill('0') << std::setw(2) << static_cast<unsigned>(byte_);
+  inline std::string toHex(const void* address_, size_t nBytes_){
+    std::stringstream ss(std::string(2*nBytes_, 0));
+    unsigned char* address{(unsigned char*)(address_) + nBytes_-1};
+    do{ ss << std::hex << std::setfill('0') << std::setw(2) << static_cast<unsigned>(*(address--)); } while(address >= address_);
     return ss.str();
   }
   template<typename T> inline std::string toHex(const T& val_){
-    std::stringstream ss(std::string(2*sizeof(val_), '\0')); ss << std::hex << std::setfill('0') << std::setw(2);
-    unsigned char* address{(unsigned char*)(&val_) + sizeof(val_)-1};
-    do{ ss << static_cast<unsigned>(*(address--)); }
-    while(address >= (unsigned char*)(&val_));
-    return ss.str();
+    return toHex(&val_, sizeof(val_));
   }
   template<typename T> std::string toHexString(T integerVal_, size_t nbDigit_){
-    // filling the trailing digit with 0
-    // but how many 0? -> 1 hex digit represent 4 bit -> sizeof returns the size in bytes = N x 8 bit
-    // so # of digit of hex is: # = N x 8 / 4 = N x 2
     std::stringstream stream;
-    stream << "0x" << std::setfill ('0') << std::setw(sizeof(T)*2) << std::hex << integerVal_;
+    stream << "0x" << toHex(&integerVal_, sizeof(integerVal_));
     if( nbDigit_ == 0 ) return stream.str();
     else return "0x" + stream.str().substr(2 + sizeof(T)*2 - nbDigit_, nbDigit_);
   }
