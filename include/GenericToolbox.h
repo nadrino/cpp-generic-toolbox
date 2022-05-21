@@ -146,9 +146,9 @@ namespace GenericToolbox{
 
   // -- Conversion Tools
   inline std::string toHex(const void* address_, size_t nBytes_);
-  inline std::string byteToHex(unsigned char byte_);
   template<typename T> inline std::string toHex(const T& val_);
   template<typename T> inline std::string toHexString(T integerVal_, size_t nbDigit_ = 0);
+  template<typename T> inline std::string stackToHex(const std::vector<T> &rawData_, size_t stackSize_);
   inline bool toBool(std::string str);
 
 }

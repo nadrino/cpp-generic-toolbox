@@ -683,6 +683,19 @@ namespace GenericToolbox {
     if( nbDigit_ == 0 ) return stream.str();
     else return "0x" + stream.str().substr(2 + sizeof(T)*2 - nbDigit_, nbDigit_);
   }
+  template<typename T> inline std::string stackToHex(const std::vector<T> &rawData_, size_t stackSize_) {
+    std::stringstream ss;
+    size_t nChunks = rawData_.size()*sizeof(T)/stackSize_;
+    const unsigned char* address{&rawData_[0]};
+    for( int iChunk=0 ; iChunk < nChunks ; iChunk++ ){
+      ss.str().empty()? ss << "{ ": ss << ", ";
+      if( (address+stackSize_ ) > &(rawData_.back())+sizeof(T) ) stackSize_ = &(rawData_.back())+sizeof(T) - address;
+      ss << "0x" << GenericToolbox::toHex(address, stackSize_);
+      address += stackSize_;
+    }
+    ss << " }";
+    return ss.str();
+  }
   bool toBool(std::string str) {
     std::transform(str.begin(), str.end(), str.begin(), ::tolower);
     std::istringstream is(str);
