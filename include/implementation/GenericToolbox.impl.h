@@ -447,7 +447,7 @@ namespace GenericToolbox {
           }
         }
       }
-      out += inputStr_[iChar++];
+      if(iChar < inputStr_.size()) out += inputStr_[iChar++];
     }
     return out;
   }
@@ -668,6 +668,21 @@ namespace GenericToolbox {
 // Conversion Tools
 namespace GenericToolbox {
 
+  inline std::string byteToHex(unsigned char byte_){
+    std::stringstream ss;
+    ss << std::hex << std::setfill('0') << std::setw(2) << static_cast<unsigned>(byte_);
+    return ss.str();
+  }
+  template<typename T> inline std::string toHex(T& val_){
+    std::stringstream ss;
+    ss << std::hex << std::setfill('0') << std::setw(2);
+    unsigned char* address{};
+    for(size_t iByte=sizeof(T)-1; iByte >= 0; iByte--){
+      address = &val_ + iByte;
+      ss << byteToHex(*address);
+    }
+    return ss.str();
+  }
   template<typename T> std::string toHexString(T integerVal_, size_t nbDigit_){
     // filling the trailing digit with 0
     // but how many 0? -> 1 hex digit represent 4 bit -> sizeof returns the size in bytes = N x 8 bit
