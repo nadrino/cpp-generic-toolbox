@@ -10,6 +10,7 @@
 #include "memory"
 #include "iostream"
 #include "any"
+#include "cmath"
 
 
 namespace GenericToolbox{
@@ -35,6 +36,7 @@ namespace GenericToolbox{
     virtual double getVariableAsDouble() const = 0;
     virtual size_t getVariableSize() const = 0;
     virtual const void* getVariableAddress() const = 0;
+    virtual void* getVariableAddress() = 0;
   };
 
   // VariableHolder is the specialized PlaceHolder containing the _variable_ of interest
@@ -57,6 +59,9 @@ namespace GenericToolbox{
     }
     virtual const void* getVariableAddress() const override{
       return static_cast<const void*>(&_variable_);
+    }
+    virtual void* getVariableAddress() override{
+      return static_cast<void*>(&_variable_);
     }
 
     size_t _nBytes_;

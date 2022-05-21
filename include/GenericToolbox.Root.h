@@ -127,6 +127,10 @@ namespace GenericToolbox{
   inline void unmuteRoot();
 
   inline char findOriginalVariableType(const GenericToolbox::AnyType& obj_);
+  inline GenericToolbox::AnyType leafToAnyType(const std::string& leafTypeName_);
+  inline GenericToolbox::AnyType leafToAnyType(const TLeaf* leaf_);
+  inline void leafToAnyType(const TLeaf* leaf_, GenericToolbox::AnyType& out_);
+  inline void leafToAnyType(const std::string& leafTypeName_, GenericToolbox::AnyType& out_);
 
 
 }

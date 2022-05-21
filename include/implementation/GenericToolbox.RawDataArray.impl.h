@@ -15,12 +15,15 @@
 namespace GenericToolbox{
 
   inline void RawDataArray::reset(){
-    rawData = std::vector<char>();
+    rawData = std::vector<unsigned char>();
     resetCurrentByteOffset();
     unlockArraySize();
   }
 
-  inline std::vector<char>& RawDataArray::getRawDataArray(){
+  inline std::vector<unsigned char>& RawDataArray::getRawDataArray(){
+    return rawData;
+  }
+  inline const std::vector<unsigned char>& RawDataArray::getRawDataArray() const{
     return rawData;
   }
 

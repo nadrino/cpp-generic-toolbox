@@ -22,7 +22,8 @@ namespace GenericToolbox{
 
     inline void reset();
 
-    inline std::vector<char>& getRawDataArray();
+    inline std::vector<unsigned char>& getRawDataArray();
+    inline const std::vector<unsigned char>& getRawDataArray() const;
 
     inline void writeMemoryContent(const void* address_, size_t dataSize_);
     inline void writeMemoryContent(const void* address_, size_t dataSize_, size_t byteOffset_);
@@ -36,7 +37,7 @@ namespace GenericToolbox{
   private:
     bool _lockArraySize_{false};
     size_t _currentByteOffset_{0};
-    std::vector<char> rawData{};
+    std::vector<unsigned char> rawData{};
 
   };
 

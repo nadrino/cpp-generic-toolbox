@@ -20,6 +20,9 @@
 #include <TROOT.h>
 #include <TFrame.h>
 #include <TLeaf.h>
+#include <TClonesArray.h>
+#include <TGraph.h>
+#include <TSpline.h>
 
 // This Project
 #include <GenericToolbox.h>
@@ -993,6 +996,53 @@ namespace GenericToolbox{
     else if( obj_.getType() == typeid(Long_t) ){ return 'G'; } // `G` : a long signed integer, stored as 64 bit (`Long_t`)
     else if( obj_.getType() == typeid(ULong_t) ){ return 'g'; } // `g` : a long unsigned integer, stored as 64 bit (`ULong_t`)
     return char(0xFF); // OTHER??
+  }
+  inline GenericToolbox::AnyType leafToAnyType(const std::string& leafTypeName_){
+    GenericToolbox::AnyType out;
+    leafToAnyType(leafTypeName_, out);
+    return out;
+  }
+  inline GenericToolbox::AnyType leafToAnyType(const TLeaf* leaf_){
+    GenericToolbox::AnyType out;
+    leafToAnyType(leaf_, out);
+    return out;
+  }
+  inline void leafToAnyType(const TLeaf* leaf_, GenericToolbox::AnyType& out_){
+    if( leaf_ == nullptr ){ throw std::runtime_error("leaf_ is nullptr"); }
+    leafToAnyType(leaf_->GetTypeName(), out_);
+  }
+  inline void leafToAnyType(const std::string& leafTypeName_, GenericToolbox::AnyType& out_){
+    if( leafTypeName_.empty() ){ throw std::runtime_error("empty leafTypeName_ provided."); }
+
+    // Int like variables
+    else if( leafTypeName_ == "Bool_t" )      { out_ = Bool_t(); }
+    else if( leafTypeName_ == "Char_t" )      { out_ = Char_t(); }
+    else if( leafTypeName_ == "UChar_t" )     { out_ = UChar_t(); }
+    else if( leafTypeName_ == "Short_t" )     { out_ = Short_t(); }
+    else if( leafTypeName_ == "UShort_t" )    { out_ = UShort_t(); }
+    else if( leafTypeName_ == "Int_t" )       { out_ = Int_t(); }
+    else if( leafTypeName_ == "UInt_t" )      { out_ = UInt_t(); }
+    else if( leafTypeName_ == "Long_t" )      { out_ = Long_t(); }
+    else if( leafTypeName_ == "ULong_t" )     { out_ = ULong_t(); }
+    else if( leafTypeName_ == "Long64_t" )    { out_ = Long64_t(); }
+    else if( leafTypeName_ == "ULong64_t" )   { out_ = ULong64_t(); }
+
+    // Floating Variables
+    else if( leafTypeName_ == "Float16_t" )   { out_ = Float16_t(); }
+    else if( leafTypeName_ == "Float_t" )     { out_ = Float_t(); }
+    else if( leafTypeName_ == "Double32_t" )  { out_ = Double32_t(); }
+    else if( leafTypeName_ == "Double_t" )    { out_ = Double_t(); }
+
+    // TObjects (can't be loaded as objects)
+    else if( leafTypeName_ == "TGraph" )      { out_ = (TGraph*)(nullptr); }
+    else if( leafTypeName_ == "TSpline3" )    { out_ = (TSpline3*)(nullptr); }
+    else if( leafTypeName_ == "TClonesArray" ){ out_ = (TClonesArray*)(nullptr); }
+
+    // Others
+    else{
+      std::cout << "leafToAnyType: WARNING: leafType = \"" << leafTypeName_ << "\" not set. Assuming ptr object..." << std::endl;
+      out_ = (void*)(nullptr);
+    }
   }
 }
 
