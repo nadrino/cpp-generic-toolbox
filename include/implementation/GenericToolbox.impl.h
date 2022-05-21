@@ -678,7 +678,7 @@ namespace GenericToolbox {
     ss << std::hex << std::setfill('0') << std::setw(2);
     unsigned char* address{};
     for(size_t iByte=sizeof(T)-1; iByte >= 0; iByte--){
-      address = &val_ + iByte;
+      address = static_cast<unsigned char*>(&val_) + iByte;
       ss << byteToHex(*address);
     }
     return ss.str();
