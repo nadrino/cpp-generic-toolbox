@@ -21,7 +21,6 @@ namespace GenericToolbox{
       atomicValue.store(other.atomicValue.load());
       return *this;
     }
-
   };
 
 }

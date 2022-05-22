@@ -5,13 +5,14 @@
 #ifndef CPP_GENERIC_TOOLBOX_GENERICTOOLBOX_PROGRESS_BAR_H
 #define CPP_GENERIC_TOOLBOX_GENERICTOOLBOX_PROGRESS_BAR_H
 
-#include "implementation/GenericToolbox.param.h"
-
 #include <chrono>
 #include <thread>
 #include <string>
 #include <iostream>
 #include <cstddef>
+
+#include "implementation/GenericToolbox.param.h"
+
 
 namespace GenericToolbox{
 

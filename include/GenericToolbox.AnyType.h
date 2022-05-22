@@ -5,13 +5,12 @@
 #ifndef CPP_GENERIC_TOOLBOX_GENERICTOOLBOX_ANYTYPE_H
 #define CPP_GENERIC_TOOLBOX_GENERICTOOLBOX_ANYTYPE_H
 
-#include <utility>
 
+#include <utility>
 #include "memory"
 #include "iostream"
 #include "any"
 #include "cmath"
-
 
 namespace GenericToolbox{
 

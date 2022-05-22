@@ -40,6 +40,13 @@ namespace GenericToolbox{
 }
 
 
+//! Conversion Tools
+namespace GenericToolbox {
+
+  template<typename T, typename TT> inline std::string iterableToString(const T& iterable_, const TT& toStrFct_, bool jumpLine_=true, bool indentLine_=true);
+
+}
+
 //! Printout Tools
 namespace GenericToolbox {
 
@@ -71,28 +78,37 @@ namespace GenericToolbox {
 //! Vector management
 namespace GenericToolbox{
 
+  // Content management
   template <typename T> inline bool doesElementIsInVector( T element_, const std::vector<T>& vector_ );
   inline bool doesElementIsInVector(const char* element_, const std::vector<std::string>& vector_);
   template <typename T> inline int findElementIndex(T element_, const std::vector<T>& vector_ );
   inline int findElementIndex(const char* element_, const std::vector<std::string>& vector_ );
-  template <typename T> inline double getAverage(const std::vector<T>& vector_, const std::function<double(const T&)>& evalElementFct_ = [](const T& var){return var;});
-  template <typename T> std::vector<T> getSubVector( const std::vector<T>& vector_, size_t beginIndex_, int endIndex_ = -1 );
-  template <typename T, typename TT> inline std::vector<TT> convertVectorType( const std::vector<T>& vector_, std::function<TT(T)>& convertTypeFunction_ );
-  template <typename T> inline std::vector<size_t> getSortPermutation(const std::vector<T>& vectorToSort_, std::function<bool(const T&, const T&)> compareLambda_ );
-  template <typename T> inline std::vector<size_t> getSortPermutation(const std::vector<T>& vectorToSort_, std::function<bool(const T, const T)> compareLambda_ );
-  template <typename T> inline std::vector<T> applyPermutation(const std::vector<T>& vectorToPermute_, const std::vector<std::size_t>& sortPermutation_ );
   template<typename T> inline void insertInVector(std::vector<T> &vector_, const std::vector<T> &vectorToInsert_, size_t insertBeforeThisIndex_);
   template<typename T> inline void insertInVector(std::vector<T> &vector_, const T &elementToInsert_, size_t insertBeforeThisIndex_);
-  template<typename T> inline std::string parseVectorAsString(const std::vector<T> &vector_, bool enableLineJump_ = false);
-  template<typename T> inline void printVector(const std::vector<T> &vector_, bool enableLineJump_ = false);
+
+  // Generators
   template<typename T> inline std::vector<size_t> indices(const std::vector<T> &vector_);
+  template <typename T> std::vector<T> getSubVector( const std::vector<T>& vector_, size_t beginIndex_, int endIndex_ = -1 );
+  template <typename T, typename TT> inline std::vector<TT> convertVectorType( const std::vector<T>& vector_, std::function<TT(T)>& convertTypeFunction_ );
+
+  // Printout / to string conversions
+  template<typename T> inline void printVector(const std::vector<T> &vector_, bool jumpLine_ = false, bool indentLine_=true);
+  template<typename T> inline std::string parseVectorAsString(const std::vector<T> &vector_, bool jumpLine_ = false, bool indentLine_=true);
+  inline std::string parseVectorAsString(const std::vector<std::string> &vector_, bool jumpLine_ = false, bool indentLine_=true);
+
+  // Stats
+  template <typename T> inline double getAverage(const std::vector<T>& vector_, const std::function<double(const T&)>& evalElementFct_ = [](const T& var){return var;});
   template<typename T> inline double getAveragedSlope(const std::vector<T> &yValues_);
   template<typename T, typename TT> inline double getAveragedSlope(const std::vector<T> &yValues_, const std::vector<TT> &xValues_);
 
+  // Sorting
+  template <typename T> inline std::vector<size_t> getSortPermutation(const std::vector<T>& vectorToSort_, std::function<bool(const T&, const T&)> firstArgGoesFirstFct_ );
+  template <typename T> inline std::vector<size_t> getSortPermutation(const std::vector<T>& vectorToSort_, std::function<bool(const T, const T)> firstArgGoesFirstFct_ );
+  template <typename T> inline std::vector<T> applyPermutation(const std::vector<T>& vectorToPermute_, const std::vector<std::size_t>& sortPermutation_ );
+
+  // Others
   template<typename T, typename TT> inline T& getListEntry(std::list<T>& list_, TT index_);
   template<typename T, typename TT> inline const T& getListEntry(const std::list<T>& list_, TT index_);
-
-  template<typename T, typename TT> inline std::string iterableToString(const T& iterable_, const TT& toStrFct_, bool jumpLine_=true);
 
 }
 

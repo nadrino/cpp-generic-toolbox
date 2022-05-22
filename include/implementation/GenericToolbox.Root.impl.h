@@ -5,9 +5,8 @@
 #ifndef CPP_GENERIC_TOOLBOX_GENERICTOOLBOX_ROOT_IMPL_H
 #define CPP_GENERIC_TOOLBOX_GENERICTOOLBOX_ROOT_IMPL_H
 
-// STD Headers
-#include "string"
-#include "vector"
+// This Project
+#include <GenericToolbox.h>
 
 // ROOT Headers
 #include <TMatrixDSymEigen.h>
@@ -23,11 +22,11 @@
 #include <TClonesArray.h>
 #include <TGraph.h>
 #include <TSpline.h>
-
-// This Project
-#include <GenericToolbox.h>
 #include <TDecompChol.h>
 
+// STD Headers
+#include "string"
+#include "vector"
 #include <utility>
 
 

@@ -61,6 +61,27 @@ namespace GenericToolbox {
 
 }
 
+//! Conversion Tools
+namespace GenericToolbox{
+
+  template<typename T, typename TT> inline std::string iterableToString(const T& iterable_, const TT& toStrFct_, bool jumpLine_, bool indentLine_){
+    std::stringstream ss;
+    for(const auto& element: iterable_){
+      if( ss.str().empty() ){ ss << "{ "; }
+      else{ ss << ", "; }
+      if(jumpLine_){
+        ss << std::endl;
+        if( indentLine_ ) ss << "  ";
+      }
+      ss << toStrFct_(element);
+    }
+    if( ss.str().empty() ) return {"{}"};
+    if(jumpLine_) ss << std::endl;
+    ss << "}";
+    return ss.str();
+  }
+
+}
 
 //! Printout Tools
 namespace GenericToolbox{
@@ -138,15 +159,9 @@ namespace GenericToolbox{
 //! Vector management
 namespace GenericToolbox {
 
+  // Content management
   template <typename T> bool doesElementIsInVector(T element_, const std::vector<T>& vector_){
     return std::find(vector_.begin(), vector_.end(), element_) != vector_.end();
-  }
-  template <typename T, typename TT> inline std::vector<TT> convertVectorType( const std::vector<T>& vector_, std::function<TT(T)>& convertTypeFunction_ ){
-    std::vector<TT> outVec;
-    for(const auto& element : vector_){
-      outVec.emplace_back(convertTypeFunction_(element));
-    }
-    return outVec;
   }
   bool doesElementIsInVector(const char* element_, const std::vector<std::string>& vector_){
     return std::find(vector_.begin(), vector_.end(), element_) != vector_.end();
@@ -162,36 +177,6 @@ namespace GenericToolbox {
     auto it = std::find(vector_.begin(), vector_.end(), element_);
     if (it != vector_.end()){ outIndex = int(std::distance(vector_.begin(), it)); }
     return outIndex;
-  }
-  template <typename T> inline double getAverage(const std::vector<T>& vector_, const std::function<double(const T&)>& evalElementFct_){
-    double outVal = 0;
-    for( auto& element : vector_ ){ outVal += static_cast<double>(evalElementFct_(element)); }
-    return outVal / vector_.size();
-  }
-  template <typename T> std::vector<T> getSubVector( const std::vector<T>& vector_, size_t beginIndex_, int endIndex_ ){
-    if( endIndex_ < 0 ){ endIndex_ += vector_.size(); }
-    if( beginIndex_ >= endIndex_ ){ return std::vector<T> (); }
-    return std::vector<T> ( &vector_[beginIndex_] , &vector_[endIndex_+1] );
-  }
-  template <typename T> std::vector<size_t> getSortPermutation(const std::vector<T>& vectorToSort_, std::function<bool(const T&, const T&)> compareLambda_ ){
-    std::vector<size_t> p(vectorToSort_.size());
-    std::iota(p.begin(), p.end(), 0);
-    std::sort(p.begin(), p.end(),
-              [&](size_t i, size_t j){ return compareLambda_(vectorToSort_.at(i), vectorToSort_.at(j)); });
-    return p;
-  }
-  template <typename T> std::vector<size_t> getSortPermutation(const std::vector<T>& vectorToSort_, std::function<bool(const T, const T)> compareLambda_ ){
-    std::vector<size_t> p(vectorToSort_.size());
-    std::iota(p.begin(), p.end(), 0);
-    std::sort(p.begin(), p.end(),
-              [&](size_t i, size_t j){ return compareLambda_(vectorToSort_[i], vectorToSort_[j]); });
-    return p;
-  }
-  template <typename T> std::vector<T> applyPermutation(const std::vector<T>& vectorToPermute_, const std::vector<std::size_t>& sortPermutation_ ){
-    std::vector<T> sorted_vec(vectorToPermute_.size());
-    std::transform(sortPermutation_.begin(), sortPermutation_.end(), sorted_vec.begin(),
-                   [&](std::size_t i){ return vectorToPermute_[i]; });
-    return sorted_vec;
   }
   template<typename T> inline void insertInVector(std::vector<T> &vector_, const std::vector<T> &vectorToInsert_, size_t insertBeforeThisIndex_){
     if( insertBeforeThisIndex_ > vector_.size() ){
@@ -214,29 +199,44 @@ namespace GenericToolbox {
     std::vector<T> vectorToInsert(1, elementToInsert_);
     insertInVector(vector_, vectorToInsert, insertBeforeThisIndex_);
   }
-  template <typename T> std::string parseVectorAsString(const std::vector<T>& vector_, bool enableLineJump_){
-    std::stringstream ss;
-    ss << "{ ";
-    bool isFirst = true;
-    for(const auto& element: vector_){
-      if(not isFirst) ss << ", ";
-      else isFirst = false;
-      if(enableLineJump_) ss << std::endl;
-      ss << element;
-    }
-    if(enableLineJump_) ss << std::endl << "}";
-    else ss << " }";
-    return ss.str();
-  }
-  template <typename T> void printVector(const std::vector<T>& vector_, bool enableLineJump_){
-    std::cout << parseVectorAsString(vector_, enableLineJump_) << std::endl;
-  }
+
+  // Generators
   template<typename T> inline std::vector<size_t> indices(const std::vector<T> &vector_){
     std::vector<size_t> output(vector_.size(), 0);
     for( size_t iIndex = 0 ; iIndex < output.size() ; iIndex++ ){
       output.at(iIndex) = iIndex;
     }
     return output;
+  }
+  template <typename T> std::vector<T> getSubVector( const std::vector<T>& vector_, size_t beginIndex_, int endIndex_ ){
+    if( endIndex_ < 0 ){ endIndex_ += vector_.size(); }
+    if( beginIndex_ >= endIndex_ ){ return std::vector<T> (); }
+    return std::vector<T> ( &vector_[beginIndex_] , &vector_[endIndex_+1] );
+  }
+  template <typename T, typename TT> inline std::vector<TT> convertVectorType( const std::vector<T>& vector_, std::function<TT(T)>& convertTypeFunction_ ){
+    std::vector<TT> outVec;
+    for(const auto& element : vector_){
+      outVec.emplace_back(convertTypeFunction_(element));
+    }
+    return outVec;
+  }
+
+  // Printout / to string conversions
+  template <typename T> void printVector(const std::vector<T>& vector_, bool lineJump_, bool indentLine_){
+    std::cout << parseVectorAsString(vector_, lineJump_, indentLine_) << std::endl;
+  }
+  template <typename T> std::string parseVectorAsString(const std::vector<T>& vector_, bool jumpLine_, bool indentLine_){
+    return GenericToolbox::iterableToString(vector_, [&](const T& elm_){ return elm_; }, jumpLine_, indentLine_);
+  }
+  inline std::string parseVectorAsString(const std::vector<std::string> &vector_, bool jumpLine_, bool indentLine_){
+    return GenericToolbox::iterableToString(vector_, [&](const std::string& elm_){ return std::string{"\""+elm_+"\""}; }, jumpLine_, indentLine_);
+  }
+
+  // Stats
+  template <typename T> inline double getAverage(const std::vector<T>& vector_, const std::function<double(const T&)>& evalElementFct_){
+    double outVal = 0;
+    for( auto& element : vector_ ){ outVal += static_cast<double>(evalElementFct_(element)); }
+    return outVal / vector_.size();
   }
   template<typename T> inline double getAveragedSlope(const std::vector<T> &yValues_){
     auto xValues = yValues_;
@@ -258,6 +258,29 @@ namespace GenericToolbox {
     return a;
   }
 
+  // Sorting
+  template <typename T> std::vector<size_t> getSortPermutation(const std::vector<T>& vectorToSort_, std::function<bool(const T&, const T&)> firstArgGoesFirstFct_ ){
+    std::vector<size_t> p(vectorToSort_.size());
+    std::iota(p.begin(), p.end(), 0);
+    std::sort(p.begin(), p.end(),
+              [&](size_t i, size_t j){ return firstArgGoesFirstFct_(vectorToSort_.at(i), vectorToSort_.at(j)); });
+    return p;
+  }
+  template <typename T> std::vector<size_t> getSortPermutation(const std::vector<T>& vectorToSort_, std::function<bool(const T, const T)> firstArgGoesFirstFct_ ){
+    std::vector<size_t> p(vectorToSort_.size());
+    std::iota(p.begin(), p.end(), 0);
+    std::sort(p.begin(), p.end(),
+              [&](size_t i, size_t j){ return firstArgGoesFirstFct_(vectorToSort_[i], vectorToSort_[j]); });
+    return p;
+  }
+  template <typename T> std::vector<T> applyPermutation(const std::vector<T>& vectorToPermute_, const std::vector<std::size_t>& sortPermutation_ ){
+    std::vector<T> sorted_vec(vectorToPermute_.size());
+    std::transform(sortPermutation_.begin(), sortPermutation_.end(), sorted_vec.begin(),
+                   [&](std::size_t i){ return vectorToPermute_[i]; });
+    return sorted_vec;
+  }
+
+  // Others
   template<typename T, typename TT> inline T& getListEntry(std::list<T>& list_, TT index_){
     typename std::list<T>::iterator it = list_.begin();
     std::advance(it, index_);
@@ -267,21 +290,6 @@ namespace GenericToolbox {
     typename std::list<T>::const_iterator it = list_.begin();
     std::advance(it, index_);
     return *it;
-  }
-
-  template<typename T, typename TT> inline std::string iterableToString(const T& iterable_, const TT& toStrFct_, bool jumpLine_){
-    std::stringstream ss;
-    ss << "{ ";
-    bool isFirst = true;
-    for(const auto& element: iterable_){
-      if(not isFirst) ss << ", ";
-      else isFirst = false;
-      if(jumpLine_) ss << std::endl;
-      ss << toStrFct_(element);
-    }
-    if(jumpLine_) ss << std::endl << "}";
-    else ss << " }";
-    return ss.str();
   }
 
 }

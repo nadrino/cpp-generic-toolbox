@@ -5,11 +5,11 @@
 #ifndef CPP_GENERIC_TOOLBOX_GENERICTOOLBOX_CYCLETIMER_H
 #define CPP_GENERIC_TOOLBOX_GENERICTOOLBOX_CYCLETIMER_H
 
+#include "GenericToolbox.h"
+
 #include <utility>
 #include "string"
 #include "vector"
-
-#include "GenericToolbox.h"
 
 
 // Classes : VariablesMonitor

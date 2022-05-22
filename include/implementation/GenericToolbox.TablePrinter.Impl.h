@@ -10,6 +10,7 @@
 #include <string>
 #include <cmath>
 
+
 #ifndef CPP_GENERIC_TOOLBOX_BATCH
 #define CPP_GENERIC_TOOLBOX_TABLE_PRINTER_IMPL_H_LTCORN "┌"
 #define CPP_GENERIC_TOOLBOX_TABLE_PRINTER_IMPL_H_LBCORN "└"

@@ -5,13 +5,14 @@
 #ifndef CPP_GENERIC_TOOLBOX_GENERICTOOLBOX_THREADPOOL_H
 #define CPP_GENERIC_TOOLBOX_GENERICTOOLBOX_THREADPOOL_H
 
+#include "GenericToolbox.h"
+
 #include <map>
 #include "future"
 #include "mutex"
 #include "vector"
 #include "string"
 
-#include "GenericToolbox.h"
 
 // Classes : ParallelWorker
 namespace GenericToolbox{
