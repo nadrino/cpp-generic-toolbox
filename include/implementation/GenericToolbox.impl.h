@@ -78,6 +78,7 @@ namespace GenericToolbox{
     if( ss.str().empty() ) return {"{}"};
     if(jumpLine_) ss << std::endl;
     ss << "}";
+    std::cout << ss.str()[0] << std::endl;
     return ss.str();
   }
 
@@ -222,8 +223,8 @@ namespace GenericToolbox {
   }
 
   // Printout / to string conversions
-  template <typename T> void printVector(const std::vector<T>& vector_, bool lineJump_, bool indentLine_){
-    std::cout << parseVectorAsString(vector_, lineJump_, indentLine_) << std::endl;
+  template <typename T> void printVector(const std::vector<T>& vector_, bool jumpLine_, bool indentLine_){
+    std::cout << parseVectorAsString(vector_, jumpLine_, indentLine_) << std::endl;
   }
   template <typename T> std::string parseVectorAsString(const std::vector<T>& vector_, bool jumpLine_, bool indentLine_){
     return GenericToolbox::iterableToString(vector_, [&](const T& elm_){ return elm_; }, jumpLine_, indentLine_);
