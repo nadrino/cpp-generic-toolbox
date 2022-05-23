@@ -77,8 +77,7 @@ namespace GenericToolbox{
     }
     if( ss.str().empty() ) return {"{}"};
     if(jumpLine_) ss << std::endl;
-    ss << "}";
-    std::cout << ss.str()[0] << std::endl;
+    ss << " }";
     return ss.str();
   }
 
