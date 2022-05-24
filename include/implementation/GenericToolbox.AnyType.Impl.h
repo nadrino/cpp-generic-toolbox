@@ -10,7 +10,7 @@ namespace GenericToolbox{
   inline AnyType::AnyType(){ this->reset(); }
   inline AnyType::AnyType(const AnyType& other_){
     this->reset();
-    this->_varPtr_ = std::shared_ptr<PlaceHolder>(other_._varPtr_->clone());
+    this->_varPtr_ = std::unique_ptr<PlaceHolder>(other_._varPtr_->clone());
   }
   template<typename ValueType> inline AnyType::AnyType(const ValueType& value_){
     this->reset();
@@ -37,15 +37,18 @@ namespace GenericToolbox{
   inline const std::type_info& AnyType::getType() const{
     return _varPtr_ != nullptr ? _varPtr_->getType() : typeid(void);
   }
-  inline const std::shared_ptr<PlaceHolder> &AnyType::getPlaceHolderPtr() const {
-    return _varPtr_;
+  inline const PlaceHolder* AnyType::getPlaceHolderPtr() const {
+    return _varPtr_.get();
+  }
+  inline PlaceHolder* AnyType::getPlaceHolderPtr() {
+    return _varPtr_.get();
   }
   inline size_t AnyType::getStoredSize() const{
     return _varPtr_->getVariableSize();
   }
 
   template<typename ValueType> inline void AnyType::setValue(const ValueType& value_){
-    _varPtr_ = std::shared_ptr<VariableHolder<ValueType>>(new VariableHolder<ValueType>(value_));
+    _varPtr_ = std::unique_ptr<VariableHolder<ValueType>>(new VariableHolder<ValueType>(value_));
   }
   template<typename ValueType> inline ValueType& AnyType::getValue() {
     if ( _varPtr_ == nullptr ){ throw std::runtime_error("AnyType value not set."); }

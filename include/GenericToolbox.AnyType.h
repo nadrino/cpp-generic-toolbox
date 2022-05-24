@@ -6,6 +6,8 @@
 #define CPP_GENERIC_TOOLBOX_GENERICTOOLBOX_ANYTYPE_H
 
 
+#include "GenericToolbox.Wrappers.h"
+
 #include <utility>
 #include "memory"
 #include "iostream"
@@ -85,7 +87,8 @@ namespace GenericToolbox{
     inline void reset();
     inline bool empty();
     inline const std::type_info& getType() const;
-    const std::shared_ptr<PlaceHolder> &getPlaceHolderPtr() const;
+    const PlaceHolder* getPlaceHolderPtr() const;
+    PlaceHolder* getPlaceHolderPtr();
     inline size_t getStoredSize() const;
 
     template<typename ValueType> inline void setValue(const ValueType& value_);
@@ -101,7 +104,7 @@ namespace GenericToolbox{
 
 
   private:
-    std::shared_ptr<PlaceHolder> _varPtr_{nullptr};
+    std::unique_ptr<PlaceHolder> _varPtr_;
 
   };
 
