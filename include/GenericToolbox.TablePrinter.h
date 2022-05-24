@@ -26,8 +26,9 @@ namespace GenericToolbox{
 
     inline void fillTable(const std::vector<std::vector<std::string>> &tableLines_);
 
-    inline size_t addCol(const std::string& colTitle_);
-    inline size_t addRow(const std::vector<std::string>& rowValues_=std::vector<std::string>());
+    inline size_t setColTitles(const std::vector<std::string>& colTitles_);
+    inline size_t addColTitle(const std::string& colTitle_);
+    inline size_t addTableLine(const std::vector<std::string>& colValues_=std::vector<std::string>());
 
     inline void setTableContent(size_t colIndex_, size_t rowIndex_, const std::string& value_);
 

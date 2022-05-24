@@ -51,26 +51,31 @@ namespace GenericToolbox{
   void TablePrinter::fillTable(const std::vector<std::vector<std::string>> &tableLines_){
     this->reset();
     if( tableLines_.empty() ) return;
-    for( auto& colTitle : tableLines_[0] ){
-      this->addCol(colTitle);
-    }
+    this->setColTitles(tableLines_[0]);
     for( size_t iLine = 1 ; iLine < tableLines_.size() ; iLine++ ){
-      this->addRow(tableLines_[iLine]);
+      this->addTableLine(tableLines_[iLine]);
     }
   }
 
-  size_t TablePrinter::addCol(const std::string& colTitle_){
+  inline size_t TablePrinter::setColTitles(const std::vector<std::string>& colTitles_){
+    if( colTitles_.empty() ) throw std::runtime_error("colTitles_ is empty.");
+    for( auto& colTitle : colTitles_ ){
+      this->addColTitle(colTitle);
+    }
+    return _colTitleList_.size()-1;
+  }
+  size_t TablePrinter::addColTitle(const std::string& colTitle_){
     _colTitleList_.emplace_back(colTitle_);
     _tableContent_.emplace_back();
     _colMaxWidthList_.emplace_back(-1);
     return _colTitleList_.size()-1;
   }
-  size_t TablePrinter::addRow(const std::vector<std::string>& rowValues_){
+  size_t TablePrinter::addTableLine(const std::vector<std::string>& colValues_){
     size_t rowIndex{0};
     size_t colIndex{0};
     for( auto& colTable : _tableContent_ ){
       colTable.emplace_back();
-      if( not rowValues_.empty() ) colTable.back() = rowValues_[colIndex++];
+      if( not colValues_.empty() ) colTable.back() = colValues_[colIndex++];
       rowIndex = colTable.size()-1;
     }
     return rowIndex;
