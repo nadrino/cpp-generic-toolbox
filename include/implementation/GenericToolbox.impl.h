@@ -160,13 +160,13 @@ namespace GenericToolbox{
 namespace GenericToolbox {
 
   // Content management
-  template <typename T> bool doesElementIsInVector(T element_, const std::vector<T>& vector_){
+  template <typename T> bool doesElementIsInVector(const T& element_, const std::vector<T>& vector_){
     return std::find(vector_.begin(), vector_.end(), element_) != vector_.end();
   }
   bool doesElementIsInVector(const char* element_, const std::vector<std::string>& vector_){
     return std::find(vector_.begin(), vector_.end(), element_) != vector_.end();
   }
-  template <typename T> inline int findElementIndex(T element_, const std::vector<T>& vector_ ){ // test
+  template <typename T> inline int findElementIndex(const T& element_, const std::vector<T>& vector_ ){ // test
     int outIndex = -1;
     auto it = std::find(vector_.begin(), vector_.end(), element_);
     if (it != vector_.end()){ outIndex = std::distance(vector_.begin(), it); }
@@ -360,38 +360,29 @@ namespace GenericToolbox {
     std::stringstream ss;
     size_t strLength = str_.size();
     if( stripUnicode_ ) strLength = GenericToolbox::stripStringUnicode(str_).size();
-    std::string bar = GenericToolbox::repeatString("─", strLength);
+    std::string bar = GenericToolbox::repeatString("─", int(strLength));
     ss << bar << std::endl << str_ << std::endl << bar;
     return ss.str();
   }
 
-  bool doesStringContainsSubstring(std::string string_, std::string substring_, bool ignoreCase_) {
-    if (substring_.empty()) return true;
-    if (substring_.size() > string_.size()) return false;
-    if (ignoreCase_) {
-      string_ = toLowerCase(string_);
-      substring_ = toLowerCase(substring_);
-    }
-    if (string_.find(substring_) != std::string::npos) return true;
+  bool doesStringContainsSubstring(const std::string& str_, const std::string& subStr_, bool ignoreCase_) {
+    if (subStr_.empty()) return true;
+    if (subStr_.size() > str_.size()) return false;
+    if (ignoreCase_) { return doesStringContainsSubstring(toLowerCase(str_), toLowerCase(subStr_)); }
+    if (str_.find(subStr_) != std::string::npos) return true;
     else return false;
   }
-  bool doesStringStartsWithSubstring(std::string string_, std::string substring_, bool ignoreCase_) {
-    if (substring_.empty()) return true;
-    if (substring_.size() > string_.size()) return false;
-    if (ignoreCase_) {
-      string_ = toLowerCase(string_);
-      substring_ = toLowerCase(substring_);
-    }
-    return (not string_.compare(0, substring_.size(), substring_));
+  bool doesStringStartsWithSubstring(const std::string& str_, const std::string& subStr_, bool ignoreCase_) {
+    if (subStr_.empty()) return true;
+    if (subStr_.size() > str_.size()) return false;
+    if (ignoreCase_) { return doesStringStartsWithSubstring(toLowerCase(str_), toLowerCase(subStr_)); }
+    return (not str_.compare(0, subStr_.size(), subStr_));
   }
-  bool doesStringEndsWithSubstring(std::string string_, std::string substring_, bool ignoreCase_) {
-    if (substring_.empty()) return true;
-    if (substring_.size() > string_.size()) return false;
-    if (ignoreCase_) {
-      string_ = toLowerCase(string_);
-      substring_ = toLowerCase(substring_);
-    }
-    return (not string_.compare(string_.size() - substring_.size(), substring_.size(), substring_));
+  bool doesStringEndsWithSubstring(const std::string& str_, const std::string& subStr_, bool ignoreCase_) {
+    if (subStr_.empty()) return true;
+    if (subStr_.size() > str_.size()) return false;
+    if (ignoreCase_) { return doesStringEndsWithSubstring(toLowerCase(str_), toLowerCase(subStr_)); }
+    return (not str_.compare(str_.size() - subStr_.size(), subStr_.size(), subStr_));
   }
   inline std::string toLowerCase(const std::string &inputStr_) {
     std::string output_str(inputStr_);
@@ -405,8 +396,8 @@ namespace GenericToolbox {
     if(GenericToolbox::doesStringContainsSubstring(outputStr, "\033")){
       // remove color
       std::string tempStr;
-      auto splitOuputStr = GenericToolbox::splitString(outputStr, "\033");
-      for(const auto& sliceStr : splitOuputStr){
+      auto splitOutputStr = GenericToolbox::splitString(outputStr, "\033");
+      for(const auto& sliceStr : splitOutputStr){
         if(sliceStr.empty()) continue;
         if(tempStr.empty()){
           tempStr = sliceStr;
@@ -874,7 +865,7 @@ namespace GenericToolbox{
         }
       }
 
-      x[0] = 0; lx = x - out;
+      x[0] = 0; lx = int(x - out);
 //      if (ier && iter < 3) { strlcpy(inp, out, bufferSize_); goto again; }
       if (ier && iter < 3) { strncpy(inp, out, bufferSize_); goto again; }
       ncopy = (lx >= bufferSize_) ? bufferSize_ - 1 : lx;

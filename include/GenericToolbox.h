@@ -79,9 +79,9 @@ namespace GenericToolbox {
 namespace GenericToolbox{
 
   // Content management
-  template <typename T> inline bool doesElementIsInVector( T element_, const std::vector<T>& vector_ );
+  template <typename T> inline bool doesElementIsInVector( const T& element_, const std::vector<T>& vector_ );
   inline bool doesElementIsInVector(const char* element_, const std::vector<std::string>& vector_);
-  template <typename T> inline int findElementIndex(T element_, const std::vector<T>& vector_ );
+  template <typename T> inline int findElementIndex( const T& element_, const std::vector<T>& vector_ );
   inline int findElementIndex(const char* element_, const std::vector<std::string>& vector_ );
   template<typename T> inline void insertInVector(std::vector<T> &vector_, const std::vector<T> &vectorToInsert_, size_t insertBeforeThisIndex_);
   template<typename T> inline void insertInVector(std::vector<T> &vector_, const T &elementToInsert_, size_t insertBeforeThisIndex_);
@@ -133,9 +133,9 @@ namespace GenericToolbox{
   inline std::string addUpDownBars(const std::string& str_, bool stripUnicode_ = true);
 
   // -- Transformations
-  inline bool doesStringContainsSubstring(std::string string_, std::string substring_, bool ignoreCase_ = false);
-  inline bool doesStringStartsWithSubstring(std::string string_, std::string substring_, bool ignoreCase_ = false);
-  inline bool doesStringEndsWithSubstring(std::string string_, std::string substring_, bool ignoreCase_ = false);
+  inline bool doesStringContainsSubstring(const std::string& str_, const std::string& subStr_, bool ignoreCase_ = false);
+  inline bool doesStringStartsWithSubstring(const std::string& str_, const std::string& subStr_, bool ignoreCase_ = false);
+  inline bool doesStringEndsWithSubstring(const std::string& str_, const std::string& subStr_, bool ignoreCase_ = false);
   inline std::string toLowerCase(const std::string &inputStr_);
   inline std::string stripStringUnicode(const std::string &inputStr_);
   inline std::string stripBracket(const std::string &inputStr_, char bra_, char ket_, bool allowUnclosed_ = true, std::vector<std::string>* argBuffer_ = nullptr);
