@@ -5,6 +5,8 @@
 #ifndef CPP_GENERIC_TOOLBOX_GENERICTOOLBOX_ORDEREDLOCK_H
 #define CPP_GENERIC_TOOLBOX_GENERICTOOLBOX_ORDEREDLOCK_H
 
+#include "GenericToolbox.Wrappers.h"
+
 #include <mutex>
 #include <condition_variable>
 #include <queue>
@@ -19,11 +21,12 @@ namespace GenericToolbox{
     inline OrderedLock();
     inline void lock();
     inline void unlock();
-    inline bool isLocked();
+
+    inline bool isLocked() const;
 
   private:
     bool _isLocked_{false};
-    std::shared_ptr<std::mutex> _mutexLockPtr_{};
+    NoCopyWrapper<std::mutex> _lock_{};
     std::queue<std::condition_variable *> _conditionVariable_{};
   };
 

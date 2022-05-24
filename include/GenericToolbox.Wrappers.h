@@ -9,6 +9,12 @@
 
 namespace GenericToolbox{
 
+  template <class T> class NoCopyWrapper: public T{
+  public:
+    NoCopyWrapper() = default;
+    NoCopyWrapper(const NoCopyWrapper&){}
+  };
+
   template <typename T>
   struct AtomicWrapper
   {

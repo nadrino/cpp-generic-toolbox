@@ -9,9 +9,9 @@
 
 namespace GenericToolbox{
 
-  OrderedLock::OrderedLock() : _mutexLockPtr_(std::make_shared<std::mutex>()) {}
+  OrderedLock::OrderedLock() = default;
   void OrderedLock::lock() {
-    std::unique_lock<std::mutex> acquire(*_mutexLockPtr_);
+    std::unique_lock<std::mutex> acquire(_lock_);
     if (_isLocked_) {
       std::condition_variable signal{};
       _conditionVariable_.emplace(&signal);
@@ -22,7 +22,7 @@ namespace GenericToolbox{
     }
   }
   void OrderedLock::unlock() {
-    std::unique_lock<std::mutex> acquire(*_mutexLockPtr_);
+    std::unique_lock<std::mutex> acquire(_lock_);
     if (_conditionVariable_.empty()) {
       _isLocked_ = false;
     }
@@ -32,7 +32,7 @@ namespace GenericToolbox{
     }
   }
 
-  bool OrderedLock::isLocked() {
+  bool OrderedLock::isLocked() const {
     return _isLocked_;
   }
 
