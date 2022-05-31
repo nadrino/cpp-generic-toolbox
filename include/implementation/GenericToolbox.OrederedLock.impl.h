@@ -5,7 +5,6 @@
 #ifndef CPP_GENERIC_TOOLBOX_GENERICTOOLBOX_OREDEREDLOCK_IMPL_H
 #define CPP_GENERIC_TOOLBOX_GENERICTOOLBOX_OREDEREDLOCK_IMPL_H
 
-#include "GenericToolbox.OrderedLock.h"
 
 namespace GenericToolbox{
 

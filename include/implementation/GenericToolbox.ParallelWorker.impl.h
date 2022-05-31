@@ -183,14 +183,14 @@ namespace GenericToolbox{
     }
   }
   inline void ParallelWorker::unPauseParallelThreads(){
-    _pauseThreads_ = false; // that's all
+    std::unique_lock<std::mutex> lock(_workerMutex_);
+    _pauseThreads_ = false;
+    _conditionVariable_.notify_all();
+    lock.unlock();
   }
 
   inline const std::vector<std::string> &ParallelWorker::getJobNameList() const {
     return _jobNameList_;
-  }
-  inline std::mutex* ParallelWorker::getThreadMutexPtr(){
-    return _threadMutexPtr_;
   }
   inline int ParallelWorker::getNThreads() const {
     return _nThreads_;
@@ -202,22 +202,27 @@ namespace GenericToolbox{
   }
   inline void ParallelWorker::startThreads(){
     _stopThreads_ = false;
-    _threadMutexPtr_ = new std::mutex(); // We have the ownership
     unPauseParallelThreads(); // make sure
 
     for( int iThread = 0 ; iThread < _nThreads_-1 ; iThread++ ){
 
       std::function<void()> asyncLoop = [this, iThread](){
-        size_t jobIndex = 0;
+        size_t jobIndex;
         while( not _stopThreads_ ){
 
-          std::this_thread::sleep_for( std::chrono::microseconds(100) ); // let space for other threads...
+//          std::this_thread::sleep_for( std::chrono::microseconds(100) ); // let space for other threads...
+//          while( _pauseThreads_ ) std::this_thread::sleep_for( std::chrono::microseconds(100) ); // wait
 
-          while( _pauseThreads_ ) std::this_thread::sleep_for( std::chrono::microseconds(100) ); // wait
+          if( _pauseThreads_ ){
+            std::unique_lock<std::mutex> lock(_workerMutex_);
+            _conditionVariable_.wait(lock, [&](){ return !_pauseThreads_; });
+            lock.unlock();
+          }
+
+
           if( _stopThreads_ ) break; // if stop requested while in pause
           _threadStatusList_.at(iThread) = ThreadStatus::Idle;
 
-          jobIndex = 0;
           for( jobIndex = 0 ; jobIndex < _jobTriggerList_.size() ; jobIndex++ ){
             if( _pauseThreads_ ) break; // jump out!
             if( _jobTriggerList_[jobIndex][iThread] ){ // is it triggered?
@@ -249,7 +254,6 @@ namespace GenericToolbox{
     }
     _threadsList_.clear();
     _threadStatusList_.clear();
-    delete _threadMutexPtr_; _threadMutexPtr_ = nullptr;
   }
 
 

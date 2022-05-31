@@ -6,6 +6,7 @@
 #define CPP_GENERIC_TOOLBOX_GENERICTOOLBOX_THREADPOOL_H
 
 #include "GenericToolbox.h"
+#include "GenericToolbox.Wrappers.h"
 
 #include <map>
 #include "future"
@@ -40,7 +41,6 @@ namespace GenericToolbox{
     inline void initialize();
 
     inline const std::vector<std::string> &getJobNameList() const;
-    inline std::mutex* getThreadMutexPtr();
     inline int getNThreads() const;
 
     inline void addJob(const std::string& jobName_, const std::function<void(int)>& function_); // int arg is supposed to be the thread id
@@ -68,7 +68,8 @@ namespace GenericToolbox{
     bool _isInitialized_{false};
     bool _stopThreads_{false};
     bool _pauseThreads_{false};
-    std::mutex* _threadMutexPtr_{nullptr};
+    NoCopyWrapper<std::mutex> _workerMutex_;
+    std::condition_variable _conditionVariable_;
     std::vector<std::future<void>> _threadsList_;
     std::vector<ThreadStatus> _threadStatusList_;
     std::vector<std::function<void(int)>> _jobFunctionList_;
