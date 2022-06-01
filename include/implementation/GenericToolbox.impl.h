@@ -326,18 +326,12 @@ namespace GenericToolbox {
     return outSubMap;
   }
   template <typename T1, typename T2> inline std::string parseMapAsString(const std::map<T1, T2>& map_, bool enableLineJump_){
-    std::stringstream ss;
-    ss << "{ ";
-    bool isFirst = true;
-    for(const auto& pair: map_){
-      if(not isFirst) ss << ", ";
-      else isFirst = false;
-      if(enableLineJump_) ss << std::endl;
-      ss << pair.first << " = " << pair.second;
-    }
-    if(enableLineJump_) ss << std::endl << "}";
-    else ss << " }";
-    return ss.str();
+    return GenericToolbox::iterableToString(
+        map_,
+        [&](const std::pair<T1, T2>& elm_){
+          return std::to_string(elm_.first) + " -> " << std::to_string(elm_.second);
+        },
+        enableLineJump_, enableLineJump_);
   }
   template <typename T1, typename T2> inline void printMap(const std::map<T1, T2>& map_, bool enableLineJump_){
     std::cout << parseMapAsString(map_, enableLineJump_) << std::endl;
