@@ -14,7 +14,8 @@ namespace GenericToolbox{
     this->reset();
   }
   inline ParallelWorker::~ParallelWorker() {
-    this->reset();
+    std::cout << "Stopping ParallelWorkers..." << std::endl;
+    stopThreads();
   }
 
   inline void ParallelWorker::reset() {
@@ -174,7 +175,7 @@ namespace GenericToolbox{
   }
 
   inline void ParallelWorker::pauseParallelThreads(){
-    _pauseThreads_ = true; // prevent the threads to loop over the available jobs
+    _pauseThreads_.atomicValue = true; // prevent the threads to loop over the available jobs
     for( const auto& threadTriggers : _jobTriggerList_ ){
       for( int iThread = 0 ; iThread < _nThreads_-1 ; iThread++ ){
         if( _isVerbose_ ) std::cout << "Waiting for thread #" << iThread << " to be on paused state..." << std::endl;
@@ -183,10 +184,10 @@ namespace GenericToolbox{
     }
   }
   inline void ParallelWorker::unPauseParallelThreads(){
-    std::unique_lock<std::mutex> lock(_workerMutex_);
-    _pauseThreads_ = false;
-    _conditionVariable_.notify_all();
-    lock.unlock();
+//    std::unique_lock<std::mutex> lock(_workerMutex_);
+    _pauseThreads_.atomicValue = false;
+//    _conditionVariable_.notify_all();
+//    lock.unlock();
   }
 
   inline const std::vector<std::string> &ParallelWorker::getJobNameList() const {
@@ -213,18 +214,19 @@ namespace GenericToolbox{
 //          std::this_thread::sleep_for( std::chrono::microseconds(100) ); // let space for other threads...
 //          while( _pauseThreads_ ) std::this_thread::sleep_for( std::chrono::microseconds(100) ); // wait
 
-          if( _pauseThreads_ ){
-            std::unique_lock<std::mutex> lock(_workerMutex_);
-            _conditionVariable_.wait(lock, [&](){ return !_pauseThreads_; });
-            lock.unlock();
-          }
+//          if( _pauseThreads_.atomicValue ){
+//            std::unique_lock<std::mutex> lock(_workerMutex_);
+//            _conditionVariable_.wait(lock, [&](){ return !_pauseThreads_.atomicValue; });
+//            lock.unlock();
+//          }
 
+          while( _pauseThreads_.atomicValue );
 
           if( _stopThreads_ ) break; // if stop requested while in pause
           _threadStatusList_.at(iThread) = ThreadStatus::Idle;
 
           for( jobIndex = 0 ; jobIndex < _jobTriggerList_.size() ; jobIndex++ ){
-            if( _pauseThreads_ ) break; // jump out!
+            if( _pauseThreads_.atomicValue ) break; // jump out!
             if( _jobTriggerList_[jobIndex][iThread] ){ // is it triggered?
               _threadStatusList_.at(iThread) = ThreadStatus::Running;
               _jobFunctionList_.at(jobIndex)(iThread); // run

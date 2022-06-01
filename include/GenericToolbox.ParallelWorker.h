@@ -67,9 +67,9 @@ namespace GenericToolbox{
     // Internals
     bool _isInitialized_{false};
     bool _stopThreads_{false};
-    bool _pauseThreads_{false};
-    NoCopyWrapper<std::mutex> _workerMutex_;
-    std::condition_variable _conditionVariable_;
+    AtomicWrapper<bool> _pauseThreads_{false};
+//    NoCopyWrapper<std::mutex> _workerMutex_;
+//    std::condition_variable _conditionVariable_;
     std::vector<std::future<void>> _threadsList_;
     std::vector<ThreadStatus> _threadStatusList_;
     std::vector<std::function<void(int)>> _jobFunctionList_;
