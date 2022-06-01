@@ -330,7 +330,7 @@ namespace GenericToolbox {
         map_,
         [&](const std::pair<T1, T2>& elm_){
           std::stringstream ss;
-          ss << elm_.first << " -> " << elm_.second;
+          ss << "{" << elm_.first << ": " << elm_.second << "}";
           return ss.str();
         },
         enableLineJump_, enableLineJump_);
