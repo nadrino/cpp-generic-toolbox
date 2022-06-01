@@ -27,7 +27,10 @@ namespace GenericToolbox{
   }
   inline void LeafHolder::hook(TTree *tree_, const std::string& leafName_){
     TLeaf* leaf = tree_->GetLeaf(leafName_.c_str());
-    if(leaf == nullptr) throw std::runtime_error("_leaf_ is nullptr.");
+    if(leaf == nullptr){
+      std::cerr << "Could not find leaf \"" << leafName_ << "\"" << std::endl;
+      throw std::runtime_error("_leaf_ is nullptr.");
+    }
 
     _leafTypeName_ = leaf->GetTypeName();
     _leafFullName_ = leaf->GetFullName();
