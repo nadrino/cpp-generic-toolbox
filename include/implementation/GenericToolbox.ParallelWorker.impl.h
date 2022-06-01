@@ -211,16 +211,15 @@ namespace GenericToolbox{
         size_t jobIndex;
         while( not _stopThreads_ ){
 
-//          std::this_thread::sleep_for( std::chrono::microseconds(100) ); // let space for other threads...
-//          while( _pauseThreads_ ) std::this_thread::sleep_for( std::chrono::microseconds(100) ); // wait
+          std::this_thread::sleep_for( std::chrono::microseconds(100) ); // let space for other threads...
+          while( _pauseThreads_.atomicValue ) std::this_thread::sleep_for( std::chrono::microseconds(100) ); // wait
 
+          // dev
 //          if( _pauseThreads_.atomicValue ){
 //            std::unique_lock<std::mutex> lock(_workerMutex_);
 //            _conditionVariable_.wait(lock, [&](){ return !_pauseThreads_.atomicValue; });
 //            lock.unlock();
 //          }
-
-          while( _pauseThreads_.atomicValue );
 
           if( _stopThreads_ ) break; // if stop requested while in pause
           _threadStatusList_.at(iThread) = ThreadStatus::Idle;
