@@ -329,7 +329,9 @@ namespace GenericToolbox {
     return GenericToolbox::iterableToString(
         map_,
         [&](const std::pair<T1, T2>& elm_){
-          return std::to_string(elm_.first) + " -> " << std::to_string(elm_.second);
+          std::stringstream ss;
+          ss << elm_.first << " -> " << elm_.second;
+          return ss.str();
         },
         enableLineJump_, enableLineJump_);
   }
