@@ -43,19 +43,19 @@ namespace GenericToolbox {
 
   static ProgressBar gProgressBar;
 
-  template<typename T, typename TT> std::string generateProgressBarStr( const T& iCurrent_, const TT& iTotal_, const std::string &title_ ){
+  template<typename T, typename TT> static inline std::string generateProgressBarStr( const T& iCurrent_, const TT& iTotal_, const std::string &title_ ){
     return gProgressBar.template generateProgressBarStr(iCurrent_, iTotal_, title_);
   }
-  template<typename T, typename TT> bool showProgressBar(const T& iCurrent_, const TT& iTotal_){
+  template<typename T, typename TT> static inline bool showProgressBar(const T& iCurrent_, const TT& iTotal_){
     return gProgressBar.template showProgressBar(iCurrent_, iTotal_);
   }
-  template<typename T, typename TT> std::string getProgressBarStr(const T& iCurrent_, const TT& iTotal_, const std::string &title_, bool forcePrint_ ){
+  template<typename T, typename TT> static inline std::string getProgressBarStr(const T& iCurrent_, const TT& iTotal_, const std::string &title_, bool forcePrint_ ){
     return gProgressBar.template getProgressBarStr(iCurrent_, iTotal_, title_, forcePrint_);
   }
-  template<typename T, typename TT> void displayProgressBar(const T& iCurrent_, const TT& iTotal_, const std::string &title_, bool forcePrint_) {
+  template<typename T, typename TT> static inline void displayProgressBar(const T& iCurrent_, const TT& iTotal_, const std::string &title_, bool forcePrint_) {
     return gProgressBar.template displayProgressBar(iCurrent_, iTotal_, title_, forcePrint_);
   }
-  void resetLastDisplayedValue(){
+  static inline void resetLastDisplayedValue(){
     gProgressBar.resetLastDisplayedValue();
   }
 
@@ -64,7 +64,7 @@ namespace GenericToolbox {
 //! Conversion Tools
 namespace GenericToolbox{
 
-  template<typename T, typename TT> inline std::string iterableToString(const T& iterable_, const TT& toStrFct_, bool jumpLine_, bool indentLine_){
+  template<typename T, typename TT> static inline std::string iterableToString(const T& iterable_, const TT& toStrFct_, bool jumpLine_, bool indentLine_){
     std::stringstream ss;
     for(const auto& element: iterable_){
       if( ss.str().empty() ){ ss << "{ "; }
@@ -86,7 +86,7 @@ namespace GenericToolbox{
 //! Printout Tools
 namespace GenericToolbox{
 
-  void waitProgressBar(unsigned int nbMilliSecToWait_, const std::string &progressTitle_) {
+  static inline void waitProgressBar(unsigned int nbMilliSecToWait_, const std::string &progressTitle_) {
 
     auto anchorTimePoint = std::chrono::high_resolution_clock::now();
     std::chrono::microseconds totalDurationToWait(nbMilliSecToWait_*1000);
@@ -107,7 +107,7 @@ namespace GenericToolbox{
     GenericToolbox::displayProgressBar( totalDurationToWait.count(), totalDurationToWait.count(), progressTitle_);
 
   }
-  std::string parseIntAsString(int intToFormat_){
+  static inline std::string parseIntAsString(int intToFormat_){
     if(intToFormat_ / 1000 < 10){
         return std::to_string(intToFormat_);
     }
@@ -130,14 +130,14 @@ namespace GenericToolbox{
     intToFormat_/=1000.; // in P
     return std::to_string(intToFormat_) + "P";
   }
-  std::string highlightIf(bool condition_, const std::string& text_){
+  static inline std::string highlightIf(bool condition_, const std::string& text_){
     std::stringstream ss;
     ss << (condition_ ? ColorCodes::redBackground : "" );
     ss << text_;
     ss << ( condition_ ? ColorCodes::resetColor : "" );
     return ss.str();
   }
-  inline std::string makeRainbowString(const std::string& inputStr_, bool stripUnicode_){
+  static inline std::string makeRainbowString(const std::string& inputStr_, bool stripUnicode_){
     std::string outputString;
     std::string inputStrStripped;
     stripUnicode_ ? inputStrStripped = GenericToolbox::stripStringUnicode(inputStr_) : inputStrStripped = inputStr_;
@@ -160,25 +160,25 @@ namespace GenericToolbox{
 namespace GenericToolbox {
 
   // Content management
-  template <typename T> bool doesElementIsInVector(const T& element_, const std::vector<T>& vector_){
+  template <typename T> static inline bool doesElementIsInVector(const T& element_, const std::vector<T>& vector_){
     return std::find(vector_.begin(), vector_.end(), element_) != vector_.end();
   }
-  bool doesElementIsInVector(const char* element_, const std::vector<std::string>& vector_){
+  static inline bool doesElementIsInVector(const char* element_, const std::vector<std::string>& vector_){
     return std::find(vector_.begin(), vector_.end(), element_) != vector_.end();
   }
-  template <typename T> inline int findElementIndex(const T& element_, const std::vector<T>& vector_ ){ // test
+  template <typename T> static inline int findElementIndex(const T& element_, const std::vector<T>& vector_ ){ // test
     int outIndex = -1;
     auto it = std::find(vector_.begin(), vector_.end(), element_);
     if (it != vector_.end()){ outIndex = std::distance(vector_.begin(), it); }
     return outIndex;
   }
-  inline int findElementIndex(const char* element_, const std::vector<std::string>& vector_ ){
+  static inline int findElementIndex(const char* element_, const std::vector<std::string>& vector_ ){
     int outIndex = -1;
     auto it = std::find(vector_.begin(), vector_.end(), element_);
     if (it != vector_.end()){ outIndex = int(std::distance(vector_.begin(), it)); }
     return outIndex;
   }
-  template<typename T> inline void insertInVector(std::vector<T> &vector_, const std::vector<T> &vectorToInsert_, size_t insertBeforeThisIndex_){
+  template<typename T> static inline void insertInVector(std::vector<T> &vector_, const std::vector<T> &vectorToInsert_, size_t insertBeforeThisIndex_){
     if( insertBeforeThisIndex_ > vector_.size() ){
       throw std::runtime_error("GenericToolBox::insertInVector error: insertBeforeThisIndex_ >= vector_.size()");
     }
@@ -195,25 +195,25 @@ namespace GenericToolbox {
       vector_.insert(vector_.begin() + insertBeforeThisIndex_, vectorToInsert_[iElementToInsert]);
     }
   }
-  template<typename T> inline void insertInVector(std::vector<T> &vector_, const T &elementToInsert_, size_t insertBeforeThisIndex_){
+  template<typename T> static inline void insertInVector(std::vector<T> &vector_, const T &elementToInsert_, size_t insertBeforeThisIndex_){
     std::vector<T> vectorToInsert(1, elementToInsert_);
     insertInVector(vector_, vectorToInsert, insertBeforeThisIndex_);
   }
 
   // Generators
-  template<typename T> inline std::vector<size_t> indices(const std::vector<T> &vector_){
+  template<typename T> static inline std::vector<size_t> indices(const std::vector<T> &vector_){
     std::vector<size_t> output(vector_.size(), 0);
     for( size_t iIndex = 0 ; iIndex < output.size() ; iIndex++ ){
       output.at(iIndex) = iIndex;
     }
     return output;
   }
-  template <typename T> std::vector<T> getSubVector( const std::vector<T>& vector_, size_t beginIndex_, int endIndex_ ){
+  template <typename T> static inline std::vector<T> getSubVector( const std::vector<T>& vector_, size_t beginIndex_, int endIndex_ ){
     if( endIndex_ < 0 ){ endIndex_ += vector_.size(); }
     if( beginIndex_ >= endIndex_ ){ return std::vector<T> (); }
     return std::vector<T> ( &vector_[beginIndex_] , &vector_[endIndex_+1] );
   }
-  template <typename T, typename TT> inline std::vector<TT> convertVectorType( const std::vector<T>& vector_, std::function<TT(T)>& convertTypeFunction_ ){
+  template <typename T, typename TT> static inline std::vector<TT> convertVectorType( const std::vector<T>& vector_, std::function<TT(T)>& convertTypeFunction_ ){
     std::vector<TT> outVec;
     for(const auto& element : vector_){
       outVec.emplace_back(convertTypeFunction_(element));
@@ -222,30 +222,30 @@ namespace GenericToolbox {
   }
 
   // Printout / to string conversions
-  template <typename T> void printVector(const std::vector<T>& vector_, bool jumpLine_, bool indentLine_){
+  template <typename T> static inline void printVector(const std::vector<T>& vector_, bool jumpLine_, bool indentLine_){
     std::cout << parseVectorAsString(vector_, jumpLine_, indentLine_) << std::endl;
   }
-  template <typename T> std::string parseVectorAsString(const std::vector<T>& vector_, bool jumpLine_, bool indentLine_){
+  template <typename T> static inline std::string parseVectorAsString(const std::vector<T>& vector_, bool jumpLine_, bool indentLine_){
     return GenericToolbox::iterableToString(vector_, [&](const T& elm_){ return elm_; }, jumpLine_, indentLine_);
   }
-  inline std::string parseVectorAsString(const std::vector<std::string> &vector_, bool jumpLine_, bool indentLine_){
+  static inline std::string parseVectorAsString(const std::vector<std::string> &vector_, bool jumpLine_, bool indentLine_){
     return GenericToolbox::iterableToString(vector_, [&](const std::string& elm_){ return std::string{"\""+elm_+"\""}; }, jumpLine_, indentLine_);
   }
 
   // Stats
-  template <typename T> inline double getAverage(const std::vector<T>& vector_, const std::function<double(const T&)>& evalElementFct_){
+  template <typename T> static inline double getAverage(const std::vector<T>& vector_, const std::function<double(const T&)>& evalElementFct_){
     double outVal = 0;
     for( auto& element : vector_ ){ outVal += static_cast<double>(evalElementFct_(element)); }
     return outVal / vector_.size();
   }
-  template<typename T> inline double getAveragedSlope(const std::vector<T> &yValues_){
+  template<typename T> static inline double getAveragedSlope(const std::vector<T> &yValues_){
     auto xValues = yValues_;
     for( size_t iVal = 0 ; iVal < yValues_.size() ; iVal++ ){
       xValues.at(iVal) = iVal;
     }
     return getAveragedSlope(yValues_, xValues);
   }
-  template<typename T, typename TT> inline double getAveragedSlope(const std::vector<T> &yValues_, const std::vector<TT> &xValues_){
+  template<typename T, typename TT> static inline double getAveragedSlope(const std::vector<T> &yValues_, const std::vector<TT> &xValues_){
     if(xValues_.size() != yValues_.size()){
       throw std::logic_error("x and y values list do have the same size.");
     }
@@ -259,21 +259,21 @@ namespace GenericToolbox {
   }
 
   // Sorting
-  template <typename T> std::vector<size_t> getSortPermutation(const std::vector<T>& vectorToSort_, std::function<bool(const T&, const T&)> firstArgGoesFirstFct_ ){
+  template <typename T> static inline std::vector<size_t> getSortPermutation(const std::vector<T>& vectorToSort_, std::function<bool(const T&, const T&)> firstArgGoesFirstFct_ ){
     std::vector<size_t> p(vectorToSort_.size());
     std::iota(p.begin(), p.end(), 0);
     std::sort(p.begin(), p.end(),
               [&](size_t i, size_t j){ return firstArgGoesFirstFct_(vectorToSort_.at(i), vectorToSort_.at(j)); });
     return p;
   }
-  template <typename T> std::vector<size_t> getSortPermutation(const std::vector<T>& vectorToSort_, std::function<bool(const T, const T)> firstArgGoesFirstFct_ ){
+  template <typename T> static inline std::vector<size_t> getSortPermutation(const std::vector<T>& vectorToSort_, std::function<bool(const T, const T)> firstArgGoesFirstFct_ ){
     std::vector<size_t> p(vectorToSort_.size());
     std::iota(p.begin(), p.end(), 0);
     std::sort(p.begin(), p.end(),
               [&](size_t i, size_t j){ return firstArgGoesFirstFct_(vectorToSort_[i], vectorToSort_[j]); });
     return p;
   }
-  template <typename T> std::vector<T> applyPermutation(const std::vector<T>& vectorToPermute_, const std::vector<std::size_t>& sortPermutation_ ){
+  template <typename T> static inline std::vector<T> applyPermutation(const std::vector<T>& vectorToPermute_, const std::vector<std::size_t>& sortPermutation_ ){
     std::vector<T> sorted_vec(vectorToPermute_.size());
     std::transform(sortPermutation_.begin(), sortPermutation_.end(), sorted_vec.begin(),
                    [&](std::size_t i){ return vectorToPermute_[i]; });
@@ -281,12 +281,12 @@ namespace GenericToolbox {
   }
 
   // Others
-  template<typename T, typename TT> inline T& getListEntry(std::list<T>& list_, TT index_){
+  template<typename T, typename TT> static inline T& getListEntry(std::list<T>& list_, TT index_){
     typename std::list<T>::iterator it = list_.begin();
     std::advance(it, index_);
     return *it;
   }
-  template<typename T, typename TT> inline const T& getListEntry(const std::list<T>& list_, TT index_){
+  template<typename T, typename TT> static inline const T& getListEntry(const std::list<T>& list_, TT index_){
     typename std::list<T>::const_iterator it = list_.begin();
     std::advance(it, index_);
     return *it;
@@ -298,17 +298,17 @@ namespace GenericToolbox {
 //! Map management
 namespace GenericToolbox {
 
-  template <typename K, typename  T> inline bool doesKeyIsInMap( const K& key_, const std::map<K,T>& map_ ){
+  template <typename K, typename  T> static inline bool doesKeyIsInMap( const K& key_, const std::map<K,T>& map_ ){
     return ( map_.find(key_) != map_.end() );
   }
-  template <typename K, typename T> inline T* getElementPtrIsInMap( const K& key_, std::map<K,T>& map_ ){
+  template <typename K, typename T> static inline T* getElementPtrIsInMap( const K& key_, std::map<K,T>& map_ ){
     auto it = map_.find(key_);
     if( it == map_.end() ){
       return nullptr;
     }
     return &( it->second );
   }
-  template <typename T1, typename T2> inline void appendToMap(std::map<T1, T2> &mapContainer_, const std::map<T1, T2> &mapToPushBack_, bool overwrite_) {
+  template <typename T1, typename T2> static inline void appendToMap(std::map<T1, T2> &mapContainer_, const std::map<T1, T2> &mapToPushBack_, bool overwrite_) {
     for(const auto& newEntry : mapToPushBack_){
       if(not overwrite_ and doesKeyIsInMap(newEntry.first, mapContainer_)){
         continue;
@@ -316,7 +316,7 @@ namespace GenericToolbox {
       mapContainer_[newEntry.first] = newEntry.second;
     }
   }
-  template <typename T> inline std::map<std::string, T> getSubMap(const std::map<std::string, T>& map_, const std::string &keyStrStartWith_ ){
+  template <typename T> static inline std::map<std::string, T> getSubMap(const std::map<std::string, T>& map_, const std::string &keyStrStartWith_ ){
     std::map<std::string, T> outSubMap;
     for(const auto& mapPair : map_){
       if(GenericToolbox::doesStringStartsWithSubstring(mapPair.first, keyStrStartWith_)){
@@ -325,7 +325,7 @@ namespace GenericToolbox {
     }
     return outSubMap;
   }
-  template <typename T1, typename T2> inline std::string parseMapAsString(const std::map<T1, T2>& map_, bool enableLineJump_){
+  template <typename T1, typename T2> static inline std::string parseMapAsString(const std::map<T1, T2>& map_, bool enableLineJump_){
     return GenericToolbox::iterableToString(
         map_,
         [&](const std::pair<T1, T2>& elm_){
@@ -335,7 +335,7 @@ namespace GenericToolbox {
         },
         enableLineJump_, enableLineJump_);
   }
-  template <typename T1, typename T2> inline void printMap(const std::map<T1, T2>& map_, bool enableLineJump_){
+  template <typename T1, typename T2> static inline void printMap(const std::map<T1, T2>& map_, bool enableLineJump_){
     std::cout << parseMapAsString(map_, enableLineJump_) << std::endl;
   }
 
@@ -352,7 +352,7 @@ namespace GenericToolbox {
   }
 #endif
 
-  std::string addUpDownBars(const std::string& str_, bool stripUnicode_){
+  static inline std::string addUpDownBars(const std::string& str_, bool stripUnicode_){
     std::stringstream ss;
     size_t strLength = str_.size();
     if( stripUnicode_ ) strLength = GenericToolbox::stripStringUnicode(str_).size();
@@ -361,32 +361,32 @@ namespace GenericToolbox {
     return ss.str();
   }
 
-  bool doesStringContainsSubstring(const std::string& str_, const std::string& subStr_, bool ignoreCase_) {
+  static inline bool doesStringContainsSubstring(const std::string& str_, const std::string& subStr_, bool ignoreCase_) {
     if (subStr_.empty()) return true;
     if (subStr_.size() > str_.size()) return false;
     if (ignoreCase_) { return doesStringContainsSubstring(toLowerCase(str_), toLowerCase(subStr_)); }
     if (str_.find(subStr_) != std::string::npos) return true;
     else return false;
   }
-  bool doesStringStartsWithSubstring(const std::string& str_, const std::string& subStr_, bool ignoreCase_) {
+  static inline bool doesStringStartsWithSubstring(const std::string& str_, const std::string& subStr_, bool ignoreCase_) {
     if (subStr_.empty()) return true;
     if (subStr_.size() > str_.size()) return false;
     if (ignoreCase_) { return doesStringStartsWithSubstring(toLowerCase(str_), toLowerCase(subStr_)); }
     return (not str_.compare(0, subStr_.size(), subStr_));
   }
-  bool doesStringEndsWithSubstring(const std::string& str_, const std::string& subStr_, bool ignoreCase_) {
+  static inline bool doesStringEndsWithSubstring(const std::string& str_, const std::string& subStr_, bool ignoreCase_) {
     if (subStr_.empty()) return true;
     if (subStr_.size() > str_.size()) return false;
     if (ignoreCase_) { return doesStringEndsWithSubstring(toLowerCase(str_), toLowerCase(subStr_)); }
     return (not str_.compare(str_.size() - subStr_.size(), subStr_.size(), subStr_));
   }
-  inline std::string toLowerCase(const std::string &inputStr_) {
+  static inline std::string toLowerCase(const std::string &inputStr_) {
     std::string output_str(inputStr_);
     std::transform(output_str.begin(), output_str.end(), output_str.begin(),
                    [](unsigned char c) { return std::tolower(c); });
     return output_str;
   }
-  inline std::string stripStringUnicode(const std::string &inputStr_){
+  static inline std::string stripStringUnicode(const std::string &inputStr_){
     std::string outputStr(inputStr_);
 
     if(GenericToolbox::doesStringContainsSubstring(outputStr, "\033")){
@@ -425,7 +425,7 @@ namespace GenericToolbox {
 
     return outputStr;
   }
-  inline std::string stripBracket(const std::string &inputStr_, char bra_, char ket_, bool allowUnclosed_, std::vector<std::string>* argBuffer_){
+  static inline std::string stripBracket(const std::string &inputStr_, char bra_, char ket_, bool allowUnclosed_, std::vector<std::string>* argBuffer_){
     int iChar{0}; std::string out;
     while( iChar < inputStr_.size() ){
       if ( inputStr_[iChar] == bra_ ){
@@ -446,7 +446,7 @@ namespace GenericToolbox {
     }
     return out;
   }
-  inline size_t getPrintSize(const std::string& str_){
+  static inline size_t getPrintSize(const std::string& str_){
     if( str_.empty() ) return 0;
 #if defined(__GNUC__) && !defined(__clang__) && (__GNUC__ < 4 || (__GNUC__ == 4 && __GNUC_MINOR__ < 9))
 // this is gcc 4.8 or earlier
@@ -467,7 +467,7 @@ namespace GenericToolbox {
     return result;
 #endif
   }
-  inline std::string repeatString(const std::string &inputStr_, int amount_){
+  static inline std::string repeatString(const std::string &inputStr_, int amount_){
     std::string outputStr;
     if(amount_ <= 0) return outputStr;
     for(int i_count = 0 ; i_count < amount_ ; i_count++){
@@ -475,7 +475,7 @@ namespace GenericToolbox {
     }
     return outputStr;
   }
-  inline std::string trimString(const std::string &inputStr_, const std::string &strToTrim_){
+  static inline std::string trimString(const std::string &inputStr_, const std::string &strToTrim_){
       std::string outputStr(inputStr_);
       while(GenericToolbox::doesStringStartsWithSubstring(outputStr, strToTrim_)){
           outputStr = outputStr.substr(strToTrim_.size(), outputStr.size());
@@ -485,7 +485,7 @@ namespace GenericToolbox {
       }
       return outputStr;
   }
-  inline std::string padString(const std::string& inputStr_, unsigned int padSize_, const char& padChar){
+  static inline std::string padString(const std::string& inputStr_, unsigned int padSize_, const char& padChar){
     std::string outputString;
 //    int padDelta = int(inputStr_.size()) - int(padSize_);
     int padDelta = int(GenericToolbox::getPrintSize(inputStr_)) - int(padSize_);
@@ -497,12 +497,12 @@ namespace GenericToolbox {
     outputString += inputStr_;
     return outputString.substr(0, outputString.size() - padDelta);
   }
-  inline std::string indentString(const std::string& inputStr_, unsigned int indentCount_, const std::string& indentChar){
+  static inline std::string indentString(const std::string& inputStr_, unsigned int indentCount_, const std::string& indentChar){
     std::string outStr = inputStr_;
     GenericToolbox::indentInputString(outStr, indentCount_, indentChar);
     return outStr;
   }
-  inline std::string removeRepeatedCharacters(const std::string &inputStr_, const std::string &repeatedChar_) {
+  static inline std::string removeRepeatedCharacters(const std::string &inputStr_, const std::string &repeatedChar_) {
     std::string outStr = inputStr_;
     GenericToolbox::removeRepeatedCharInsideInputStr(outStr, repeatedChar_);
     return outStr;
@@ -577,7 +577,7 @@ namespace GenericToolbox {
   std::string parseSizeUnits(unsigned int sizeInBytes_){
     return parseUnitPrefix(sizeInBytes_) + "B";
   }
-  std::vector<std::string> splitString(const std::string &inputString_, const std::string &delimiter_, bool removeEmpty_) {
+  static inline std::vector<std::string> splitString(const std::string &inputString_, const std::string &delimiter_, bool removeEmpty_) {
 
     std::vector<std::string> outputSliceList;
 
@@ -618,7 +618,7 @@ namespace GenericToolbox {
 
 
   }
-  inline std::string formatString( const std::string& strToFormat_ ){
+  static inline std::string formatString( const std::string& strToFormat_ ){
     return strToFormat_;
   }
   template<typename ... Args> std::string formatString(const std::string& strToFormat_, Args ... args) {
@@ -629,14 +629,14 @@ namespace GenericToolbox {
     return {buf.get(), buf.get() + size - 1}; // We don't want the '\0' inside
   }
 
-  inline void replaceSubstringInsideInputString(std::string &input_str_, const std::string &substr_to_look_for_, const std::string &substr_to_replace_){
+  static inline void replaceSubstringInsideInputString(std::string &input_str_, const std::string &substr_to_look_for_, const std::string &substr_to_replace_){
     size_t index = 0;
     while ((index = input_str_.find(substr_to_look_for_, index)) != std::string::npos) {
       input_str_.replace(index, substr_to_look_for_.length(), substr_to_replace_);
       index += substr_to_replace_.length();
     }
   }
-  inline void removeRepeatedCharInsideInputStr(std::string &inputStr_, const std::string &doubledChar_){
+  static inline void removeRepeatedCharInsideInputStr(std::string &inputStr_, const std::string &doubledChar_){
     std::string doubledCharStr = doubledChar_+doubledChar_;
     std::string lastStr;
     do{
@@ -644,7 +644,7 @@ namespace GenericToolbox {
       GenericToolbox::replaceSubstringInsideInputString(inputStr_, doubledCharStr, doubledChar_);
     } while( lastStr != inputStr_ );
   }
-  inline void indentInputString(std::string& inputStr_, unsigned int indentCount_, const std::string& indentChar){
+  static inline void indentInputString(std::string& inputStr_, unsigned int indentCount_, const std::string& indentChar){
     int originalSize = int(inputStr_.size());
     for( int iChar = originalSize-1 ; iChar >= 0 ; iChar-- ){
       if( iChar == 0 or inputStr_[iChar] == '\n'){
@@ -663,22 +663,22 @@ namespace GenericToolbox {
 // Conversion Tools
 namespace GenericToolbox {
 
-  inline std::string toHex(const void* address_, size_t nBytes_){
+  static inline std::string toHex(const void* address_, size_t nBytes_){
     std::stringstream ss(std::string(2*nBytes_, 0));
     unsigned char* address{(unsigned char*)(address_) + nBytes_-1};
     do{ ss << std::hex << std::setfill('0') << std::setw(2) << static_cast<unsigned>(*(address--)); } while(address >= address_);
     return ss.str();
   }
-  template<typename T> inline std::string toHex(const T& val_){
+  template<typename T> static inline std::string toHex(const T& val_){
     return toHex(&val_, sizeof(val_));
   }
-  template<typename T> std::string toHexString(T integerVal_, size_t nbDigit_){
+  template<typename T> static inline std::string toHexString(T integerVal_, size_t nbDigit_){
     std::stringstream stream;
     stream << "0x" << toHex(&integerVal_, sizeof(integerVal_));
     if( nbDigit_ == 0 ) return stream.str();
     else return "0x" + stream.str().substr(2 + sizeof(T)*2 - nbDigit_, nbDigit_);
   }
-  template<typename T> inline std::string stackToHex(const std::vector<T> &rawData_, size_t stackSize_) {
+  template<typename T> static inline std::string stackToHex(const std::vector<T> &rawData_, size_t stackSize_) {
     std::stringstream ss;
     size_t nChunks = rawData_.size()*sizeof(T)/stackSize_;
     const unsigned char* address{&rawData_[0]};
@@ -697,7 +697,7 @@ namespace GenericToolbox {
     ss << " }";
     return ss.str();
   }
-  bool toBool(std::string str) {
+  static inline bool toBool(std::string str) {
     std::transform(str.begin(), str.end(), str.begin(), ::tolower);
     std::istringstream is(str);
     bool b;
@@ -712,7 +712,7 @@ namespace GenericToolbox {
 namespace GenericToolbox{
 
   namespace Internals {
-    inline char * getEnvironmentVariable(char const envVarName_[]){
+    static inline char * getEnvironmentVariable(char const envVarName_[]){
 #if defined _WIN32 // getenv() is deprecated on Windows
       char *buf{nullptr};
     size_t sz;
@@ -725,7 +725,7 @@ namespace GenericToolbox{
       return getenv(envVarName_);
 #endif
     }
-    inline bool expandEnvironmentVariables(const char *inputFilePath_, char *extendedFilePath_) {
+    static inline bool expandEnvironmentVariables(const char *inputFilePath_, char *extendedFilePath_) {
       int ier, iter, lx, ncopy;
       char *inp, *out, *x, *t, *charBuffer;
       const char *b, *c, *e;
@@ -878,11 +878,11 @@ namespace GenericToolbox{
     }
   }
 
-  inline std::string getHomeDirectory(){
+  static inline std::string getHomeDirectory(){
     struct passwd *pw = getpwuid(getuid());
     return {pw->pw_dir};
   }
-  inline std::string getCurrentWorkingDirectory(){
+  static inline std::string getCurrentWorkingDirectory(){
 #ifdef PATH_MAX
     char cwd[PATH_MAX];
 #else
@@ -894,7 +894,7 @@ namespace GenericToolbox{
     std::string output_cwd(cwd);
     return output_cwd;
   }
-  inline std::string expandEnvironmentVariables(const std::string &filePath_){
+  static inline std::string expandEnvironmentVariables(const std::string &filePath_){
 
 //    char outputName[PATH_MAX];
     char outputName[8192];
@@ -902,7 +902,7 @@ namespace GenericToolbox{
 
     return {outputName};
   }
-  inline std::string getExecutableName(){
+  static inline std::string getExecutableName(){
     std::string outStr;
 #if defined(__linux__) || defined(__linux) || defined(linux) || defined(__gnu_linux__) //check defines for your setup
     std::ifstream("/proc/self/comm") >> outStr;
@@ -922,10 +922,10 @@ namespace GenericToolbox{
 namespace GenericToolbox{
 
   // -- without IO dependencies (string parsing)
-  bool doesFilePathHasExtension(const std::string &filePath_, const std::string &extension_){
+  static inline bool doesFilePathHasExtension(const std::string &filePath_, const std::string &extension_){
     return doesStringEndsWithSubstring(filePath_, "." + extension_);
   }
-  std::string getFolderPathFromFilePath(const std::string &filePath_){
+  static inline std::string getFolderPathFromFilePath(const std::string &filePath_){
     std::string folder_path;
     if(filePath_[0] == '/') folder_path += "/";
     auto splitted_path = splitString(filePath_, "/");
@@ -937,7 +937,7 @@ namespace GenericToolbox{
     );
     return folder_path;
   }
-  std::string getFileNameFromFilePath(const std::string &filePath_, bool keepExtension_){
+  static inline std::string getFileNameFromFilePath(const std::string &filePath_, bool keepExtension_){
     auto splitStr = GenericToolbox::splitString(filePath_, "/");
     if(not splitStr.empty()){
       return ( keepExtension_ ?
@@ -949,17 +949,17 @@ namespace GenericToolbox{
   }
 
   // -- with direct IO dependencies
-  bool doesPathIsFile(const std::string &filePath_){
+  static inline bool doesPathIsFile(const std::string &filePath_){
     struct stat info{};
     stat(filePath_.c_str(), &info);
     return S_ISREG(info.st_mode);
   }
-  bool doesPathIsFolder(const std::string &folderPath_){
+  static inline bool doesPathIsFolder(const std::string &folderPath_){
     struct stat info{};
     stat( folderPath_.c_str(), &info );
     return bool(S_ISDIR(info.st_mode));
   }
-  bool doFilesAreTheSame(const std::string &filePath1_, const std::string &filePath2_){
+  static inline bool doFilesAreTheSame(const std::string &filePath1_, const std::string &filePath2_){
 
     if( not doesPathIsFile(filePath1_) ) return false;
     if( not doesPathIsFile(filePath2_) ) return false;
@@ -1002,7 +1002,7 @@ namespace GenericToolbox{
 
     return true;
   }
-  bool mkdirPath(const std::string &newFolderPath_){
+  static inline bool mkdirPath(const std::string &newFolderPath_){
     bool result = false;
     if(doesPathIsFolder(newFolderPath_)) return true;
 
@@ -1026,12 +1026,12 @@ namespace GenericToolbox{
     return result;
 
   }
-  bool deleteFile(const std::string &filePath_){
+  static inline bool deleteFile(const std::string &filePath_){
     if(not doesPathIsFile(filePath_)) return true;
     std::remove(filePath_.c_str());
     return not doesPathIsFile(filePath_);
   }
-  bool copyFile(const std::string &source_file_path_, const std::string &destination_file_path_, bool force_){
+  static inline bool copyFile(const std::string &source_file_path_, const std::string &destination_file_path_, bool force_){
 
     if( not doesPathIsFile(source_file_path_) ){
       return false;
@@ -1053,7 +1053,7 @@ namespace GenericToolbox{
 
     return true;
   }
-  bool mvFile(const std::string &sourceFilePath_, const std::string &destinationFilePath_, bool force_) {
+  static inline bool mvFile(const std::string &sourceFilePath_, const std::string &destinationFilePath_, bool force_) {
 
     if( not doesPathIsFile(sourceFilePath_) ){
       return false;
@@ -1082,11 +1082,11 @@ namespace GenericToolbox{
       ) return true;
     else return false;
   }
-  size_t getHashFile(const std::string &filePath_) {
+  static inline size_t getHashFile(const std::string &filePath_) {
     std::hash<std::string> hashString;
     return hashString(dumpFileAsString(filePath_));
   }
-  long int getFileSizeInBytes(const std::string &filePath_){
+  static inline long int getFileSizeInBytes(const std::string &filePath_){
     long int output_size = 0;
     if(doesPathIsFile(filePath_)){
       std::ifstream testFile(filePath_.c_str(), std::ios::binary);
@@ -1098,12 +1098,12 @@ namespace GenericToolbox{
     }
     return output_size;
   }
-  void dumpStringInFile(const std::string &outFilePath_, const std::string &stringToWrite_){
+  static inline void dumpStringInFile(const std::string &outFilePath_, const std::string &stringToWrite_){
     std::ofstream out(outFilePath_.c_str());
     out << stringToWrite_;
     out.close();
   }
-  std::string dumpFileAsString(const std::string &filePath_){
+  static inline std::string dumpFileAsString(const std::string &filePath_){
     std::string data;
     if(doesPathIsFile(filePath_)){
       std::ifstream input_file(filePath_.c_str(), std::ios::binary | std::ios::in );
@@ -1114,7 +1114,7 @@ namespace GenericToolbox{
     }
     return data;
   }
-  std::vector<std::string> dumpFileAsVectorString(const std::string &filePath_){
+  static inline std::vector<std::string> dumpFileAsVectorString(const std::string &filePath_){
     std::vector<std::string> lines;
     if(doesPathIsFile(filePath_)){
       std::string data = GenericToolbox::dumpFileAsString(filePath_);
@@ -1128,7 +1128,7 @@ namespace GenericToolbox{
 
     return lines;
   }
-  std::vector<std::string> getListOfEntriesInFolder(const std::string &folderPath_, const std::string &entryNameRegex_) {
+  static inline std::vector<std::string> getListOfEntriesInFolder(const std::string &folderPath_, const std::string &entryNameRegex_) {
 
     std::vector<std::string> entries_list;
     if(not doesPathIsFolder(folderPath_)) return entries_list;
@@ -1189,7 +1189,7 @@ namespace GenericToolbox{
     }
 
   }
-  std::vector<std::string> getListOfSubfoldersInFolder(const std::string &folderPath_, const std::string &entryNameRegex_) {
+  static inline std::vector<std::string> getListOfSubfoldersInFolder(const std::string &folderPath_, const std::string &entryNameRegex_) {
     std::vector<std::string> subfolders_list;
     if(not doesPathIsFolder(folderPath_)) return subfolders_list;
     DIR* directory;
@@ -1250,7 +1250,7 @@ namespace GenericToolbox{
     }
 
   }
-  std::vector<std::string> getListOfFilesInFolder(const std::string &folderPath_, const std::string &entryNameRegex_){
+  static inline std::vector<std::string> getListOfFilesInFolder(const std::string &folderPath_, const std::string &entryNameRegex_){
     std::vector<std::string> files_list;
     if(not doesPathIsFolder(folderPath_)) return files_list;
     DIR* directory;
@@ -1309,11 +1309,11 @@ namespace GenericToolbox{
   }
 
   // -- with direct IO dependencies
-  bool doesFolderIsEmpty(const std::string &folderPath_){
+  static inline bool doesFolderIsEmpty(const std::string &folderPath_){
     if(not doesPathIsFolder(folderPath_)) return false;
     return getListOfEntriesInFolder(folderPath_, std::string()).empty();
   }
-  std::vector<std::string> getListFilesInSubfolders(const std::string &folderPath_) {
+  static inline std::vector<std::string> getListFilesInSubfolders(const std::string &folderPath_) {
 
     // WARNING : Recursive function
     std::vector<std::string> output_file_paths = getListOfFilesInFolder(folderPath_);
@@ -1378,7 +1378,7 @@ namespace GenericToolbox{
 #endif
 namespace GenericToolbox{
 
-  size_t getProcessMemoryUsage(){
+  static inline size_t getProcessMemoryUsage(){
     /**
      * Returns the current resident set size (physical memory use) measured
      * in bytes, or zero if the value cannot be determined on this OS.
@@ -1418,7 +1418,7 @@ namespace GenericToolbox{
 
 #endif
   }
-  size_t getProcessMaxMemoryUsage(){
+  static inline size_t getProcessMaxMemoryUsage(){
     /**
      * Returns the peak (maximum so far) resident set size (physical
      * memory use) measured in bytes, or zero if the value cannot be
@@ -1463,13 +1463,13 @@ namespace GenericToolbox{
     return (size_t)0L;          /* Unsupported. */
 #endif
   }
-  long getProcessMemoryUsageDiffSinceLastCall(){
+  static inline long getProcessMemoryUsageDiffSinceLastCall(){
       size_t currentProcessMemoryUsage = getProcessMemoryUsage();
       long outVal = static_cast<long>(currentProcessMemoryUsage) - static_cast<long>(Hardware::lastProcessMemoryUsage);
       Hardware::lastProcessMemoryUsage = currentProcessMemoryUsage;
       return outVal;
   }
-  int getTerminalWidth(){
+  static inline int getTerminalWidth(){
     int outWith = 0;
 #if defined(_WIN32)
     CONSOLE_SCREEN_BUFFER_INFO csbi;
@@ -1486,7 +1486,7 @@ namespace GenericToolbox{
 #endif // Windows/Linux
     return outWith;
   }
-  int getTerminalHeight(){
+  static inline int getTerminalHeight(){
     int outWith = 0;
 #if defined(_WIN32)
     CONSOLE_SCREEN_BUFFER_INFO csbi;
@@ -1504,7 +1504,7 @@ namespace GenericToolbox{
     return outWith;
   }
 
-  std::string parseTimeUnit(long long nbMicroSec_){
+  static inline std::string parseTimeUnit(long long nbMicroSec_){
     if(nbMicroSec_ / 1000 < 9 ){ // print in µs if less than 9ms
       return std::to_string(nbMicroSec_) + "µs";
     }
@@ -1531,14 +1531,14 @@ namespace GenericToolbox{
     nbMicroSec_ /= 365; // in days
     return std::to_string(nbMicroSec_) + "y";
   }
-  std::string getElapsedTimeSinceLastCallStr( const std::string& key_ ) {
+  static inline std::string getElapsedTimeSinceLastCallStr( const std::string& key_ ) {
     return GenericToolbox::parseTimeUnit(GenericToolbox::getElapsedTimeSinceLastCallInMicroSeconds(key_));
   }
-  std::string getElapsedTimeSinceLastCallStr(int instance_)
+  static inline std::string getElapsedTimeSinceLastCallStr(int instance_)
   {
     return GenericToolbox::parseTimeUnit(getElapsedTimeSinceLastCallInMicroSeconds(instance_));
   }
-  long long getElapsedTimeSinceLastCallInMicroSeconds( const std::string& key_ ) {
+  static inline long long getElapsedTimeSinceLastCallInMicroSeconds( const std::string& key_ ) {
     auto newTimePoint = std::chrono::high_resolution_clock::now();
     auto microseconds = std::chrono::duration_cast<std::chrono::microseconds>(
       newTimePoint - Internals::_lastTimePointMapStr_[key_]
@@ -1546,7 +1546,7 @@ namespace GenericToolbox{
     Internals::_lastTimePointMapStr_[key_] = newTimePoint;
     return microseconds.count();
   }
-  long long getElapsedTimeSinceLastCallInMicroSeconds(int instance_){
+  static inline long long getElapsedTimeSinceLastCallInMicroSeconds(int instance_){
     auto newTimePoint = std::chrono::high_resolution_clock::now();
     auto microseconds = std::chrono::duration_cast<std::chrono::microseconds>(
       newTimePoint - Internals::_lastTimePointMap_[instance_]
@@ -1554,7 +1554,7 @@ namespace GenericToolbox{
     Internals::_lastTimePointMap_[instance_] = newTimePoint;
     return microseconds.count();
   }
-  std::vector<std::string> getOutputOfShellCommand(const std::string& cmd_) {
+  static inline std::vector<std::string> getOutputOfShellCommand(const std::string& cmd_) {
     // Inspired from: https://stackoverflow.com/questions/478898/how-do-i-execute-a-command-and-get-the-output-of-the-command-within-c-using-po
     std::array<char, 128> buffer{};
     std::string resultStr;
@@ -1582,7 +1582,7 @@ namespace GenericToolbox{
 // Misc Tools
 namespace GenericToolbox{
 
-  std::string getClassName(const std::string& PRETTY_FUNCTION_){
+  static inline std::string getClassName(const std::string& PRETTY_FUNCTION_){
     size_t colons = PRETTY_FUNCTION_.find("::");
     if (colons == std::string::npos)
       return "::";
@@ -1591,7 +1591,7 @@ namespace GenericToolbox{
 
     return PRETTY_FUNCTION_.substr(begin, end);
   }
-  std::string getMethodName(const std::string& PRETTY_FUNCTION_){
+  static inline std::string getMethodName(const std::string& PRETTY_FUNCTION_){
     size_t colons = PRETTY_FUNCTION_.find("::");
     size_t begin = PRETTY_FUNCTION_.substr(0, colons).rfind(' ') + 1;
     size_t end = PRETTY_FUNCTION_.rfind('(') - begin;
@@ -1610,36 +1610,36 @@ namespace GenericToolbox{
   namespace _enumName_##EnumNamespace{\
     static const char *enumNamesAggregate = GT_INTERNALS_VA_TO_STR(_v1_, __VA_ARGS__); \
                                                                       \
-    inline size_t getEnumSize(){\
+    static inline size_t getEnumSize(){\
       return std::count(&enumNamesAggregate[0], &enumNamesAggregate[strlen(enumNamesAggregate)], ',')+1;\
     }                                                                 \
-    inline std::string getEnumStr(int enumValue_){\
+    static inline std::string getEnumStr(int enumValue_){\
       enumValue_ -= (_intOffset_);\
       if( enumValue_ < 0 || enumValue_ >= getEnumSize() ) throw std::runtime_error("invalid enum.");\
       std::string out; std::stringstream ss{enumNamesAggregate};\
       while (enumValue_-- >= 0) { std::getline(ss, out, ','); } \
       return GenericToolbox::trimString(out, " ");\
     }\
-    inline std::vector<std::string> getEnumNamesList(){              \
+    static inline std::vector<std::string> getEnumNamesList(){              \
       std::vector<std::string> out(getEnumSize());                    \
       for(int iEnum = 0 ; iEnum < int(out.size()) ; iEnum++){ out[iEnum] = getEnumStr(iEnum+(_intOffset_)); } \
       return out;              \
     }                                                              \
-    inline std::vector<_enumName_> getEnumList(){                   \
+    static inline std::vector<_enumName_> getEnumList(){                   \
       std::vector<_enumName_> output(_enumName_##_OVERFLOW);         \
       for( int iIndex = _intOffset_ ; iIndex < _enumName_##_OVERFLOW ; iIndex++ ){     \
         output.at(iIndex) = (static_cast<_enumName_>(iIndex));      \
       }                                                            \
       return output;\
     }\
-    inline std::string toString(int enumValue_, bool excludeEnumName_ = false){      \
+    static inline std::string toString(int enumValue_, bool excludeEnumName_ = false){      \
       if( excludeEnumName_ ) return getEnumStr(enumValue_);        \
       return {(#_enumName_) + std::string{"::"} + getEnumStr(enumValue_)};\
     }\
-    inline std::string toString(_enumName_ enumValue_, bool excludeEnumName_ = false){\
+    static inline std::string toString(_enumName_ enumValue_, bool excludeEnumName_ = false){\
       return _enumName_##EnumNamespace::toString(static_cast<int>(enumValue_), excludeEnumName_);       \
     }\
-    inline int toEnumInt(const std::string& enumStr_, bool throwIfNotFound_ = false){\
+    static inline int toEnumInt(const std::string& enumStr_, bool throwIfNotFound_ = false){\
       for( int enumIndex = _intOffset_ ; enumIndex < _enumName_::_enumName_##_OVERFLOW ; enumIndex++ ){             \
         if( _enumName_##EnumNamespace::toString(enumIndex) == enumStr_ ){ return enumIndex; } \
         if( _enumName_##EnumNamespace::toString(enumIndex, true) == enumStr_ ){ return enumIndex; } \
@@ -1651,7 +1651,7 @@ namespace GenericToolbox{
 /*      return _intOffset_ - 1; */ \
       return int(_enumName_##_OVERFLOW); /* returns invalid value */\
     }\
-    inline _enumName_ toEnum(const std::string& enumStr_, bool throwIfNotFound_ = false){                         \
+    static inline _enumName_ toEnum(const std::string& enumStr_, bool throwIfNotFound_ = false){                         \
       return static_cast<_enumName_>(_enumName_##EnumNamespace::toEnumInt(enumStr_, throwIfNotFound_));  \
     }\
   }
