@@ -1438,7 +1438,7 @@ namespace GenericToolbox{
       }
     }
     fclose(file);
-    return result;
+    return result*1000;
 
 #else
     // AIX, BSD, Solaris, and Unknown OS
