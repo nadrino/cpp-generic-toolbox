@@ -22,16 +22,15 @@ namespace GenericToolbox{
     inline ProgressBar();
     inline virtual ~ProgressBar();
 
-    template<typename T, typename TT> inline std::string generateProgressBarStr(T iCurrent_, TT iTotal_, const std::string &title_="" );
+    template<typename T, typename TT> inline std::string generateProgressBarStr(T iCurrent_, TT iTotal_, const std::string &title_ );
     template<typename T, typename TT> inline bool showProgressBar(T iCurrent_, TT iTotal_);
-    template<typename T, typename TT> inline std::string getProgressBarStr(T iCurrent_, TT iTotal_, const std::string &title_="", bool forcePrint_ = false );
-    template<typename T, typename TT> inline void displayProgressBar(T iCurrent_, TT iTotal_, const std::string &title_="", bool forcePrint_ = false);
+    template<typename T, typename TT> inline std::string getProgressBarStr(T iCurrent_, TT iTotal_, const std::string &title_, bool forcePrint_ );
+    template<typename T, typename TT> inline void displayProgressBar(T iCurrent_, TT iTotal_, const std::string &title_, bool forcePrint_);
 
     inline void resetLastDisplayedValue();
 
     inline void setEnableRainbowProgressBar(bool enableRainbowProgressBar);
     inline void setMaxBarLength(int maxBarLength);
-    inline void setMaxRefreshRateInMs(size_t refreshRateInMilliSec);
 
   protected:
     inline std::string _generateProgressBarStr(double iCurrent_, double iTotal_, const std::string &title_);

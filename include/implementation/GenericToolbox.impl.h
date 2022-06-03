@@ -34,6 +34,7 @@
 #include <string>
 #include <array>
 #include <vector>
+#include "sys/times.h"
 
 extern char* __progname;
 
@@ -1378,6 +1379,14 @@ namespace GenericToolbox{
 #endif
 namespace GenericToolbox{
 
+  struct CpuStat{
+    CpuStat(){ getCpuUsageByProcess(); }
+
+    clock_t lastCPU{}, lastSysCPU{}, lastUserCPU{};
+    int numProcessors{-1};
+  };
+  static CpuStat cs{};
+
   static inline size_t getProcessMemoryUsage(){
     /**
      * Returns the current resident set size (physical memory use) measured
@@ -1400,17 +1409,36 @@ namespace GenericToolbox{
 
 #elif defined(__linux__) || defined(__linux) || defined(linux) || defined(__gnu_linux__)
     // Linux
-    long rss = 0L;
-    FILE* fp = NULL;
-    if ( (fp = fopen( "/proc/self/statm", "r" )) == NULL )
-        return (size_t)0L;      /* Can't open? */
-    if ( fscanf( fp, "%*s%ld", &rss ) != 1 )
-    {
-        fclose( fp );
-        return (size_t)0L;      /* Can't read? */
+//    long rss = 0L;
+//    FILE* fp = NULL;
+//    if ( (fp = fopen( "/proc/self/statm", "r" )) == NULL )
+//        return (size_t)0L;      /* Can't open? */
+//    if ( fscanf( fp, "%*s%ld", &rss ) != 1 )
+//    {
+//        fclose( fp );
+//        return (size_t)0L;      /* Can't read? */
+//    }
+//    fclose( fp );
+//    return (size_t)rss * (size_t)sysconf( _SC_PAGESIZE);
+
+    // Physical Memory currently used by current process
+    // https://stackoverflow.com/questions/63166/how-to-determine-cpu-and-memory-consumption-from-inside-a-process
+    FILE* file = fopen("/proc/self/status", "r");
+    int result = -1;
+    char line[128];
+
+    while (fgets(line, 128, file) != NULL){
+      if (strncmp(line, "VmRSS:", 6) == 0){
+        result = strlen(line);
+        const char* p = line;
+        while (*p <'0' || *p > '9') p++;
+        line[result-3] = '\0';
+        result = atoi(p);
+        break;
+      }
     }
-    fclose( fp );
-    return (size_t)rss * (size_t)sysconf( _SC_PAGESIZE);
+    fclose(file);
+    return result;
 
 #else
     // AIX, BSD, Solaris, and Unknown OS
@@ -1462,6 +1490,32 @@ namespace GenericToolbox{
     // Unknown OS
     return (size_t)0L;          /* Unsupported. */
 #endif
+  }
+  static inline double getCpuUsageByProcess(){
+    double percent{0};
+#if defined(_WIN32)
+#elif defined(__linux__) || defined(__linux) || defined(linux) || defined(__gnu_linux__) || defined(__APPLE__) && defined(__MACH__)
+    struct tms timeSample{};
+    clock_t now;
+
+    now = times(&timeSample);
+    if (now <= cs.lastCPU || timeSample.tms_stime < cs.lastSysCPU ||
+        timeSample.tms_utime < cs.lastUserCPU){
+      //Overflow detection. Just skip this value.
+      percent = -1.0;
+    }
+    else{
+      percent = double(timeSample.tms_stime - cs.lastSysCPU) +
+                double(timeSample.tms_utime - cs.lastUserCPU);
+      percent /= double(now - cs.lastCPU);
+//      percent /= cs.numProcessors;
+      percent *= 100;
+    }
+    cs.lastCPU = now;
+    cs.lastSysCPU = timeSample.tms_stime;
+    cs.lastUserCPU = timeSample.tms_utime;
+#endif
+    return percent;
   }
   static inline long getProcessMemoryUsageDiffSinceLastCall(){
       size_t currentProcessMemoryUsage = getProcessMemoryUsage();

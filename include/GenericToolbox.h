@@ -218,6 +218,7 @@ namespace GenericToolbox{
 
   static inline size_t getProcessMemoryUsage();
   static inline size_t getProcessMaxMemoryUsage();
+  static inline double getCpuUsageByProcess();
   static inline long getProcessMemoryUsageDiffSinceLastCall();
   static inline int getTerminalWidth();
   static inline int getTerminalHeight();
