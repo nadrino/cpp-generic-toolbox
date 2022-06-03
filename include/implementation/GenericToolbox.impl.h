@@ -1380,10 +1380,33 @@ namespace GenericToolbox{
 namespace GenericToolbox{
 
   struct CpuStat{
-    CpuStat(){ getCpuUsageByProcess(); }
-
+    inline CpuStat(){ this->getCpuUsageByProcess(); }
     clock_t lastCPU{}, lastSysCPU{}, lastUserCPU{};
-    int numProcessors{-1};
+    inline double getCpuUsageByProcess(){
+      double percent{0};
+#if defined(_WIN32)
+#elif defined(__linux__) || defined(__linux) || defined(linux) || defined(__gnu_linux__) || defined(__APPLE__) && defined(__MACH__)
+      struct tms timeSample{};
+      clock_t now;
+
+      now = times(&timeSample);
+      if (now <= lastCPU || timeSample.tms_stime < lastSysCPU ||
+          timeSample.tms_utime < lastUserCPU){
+        //Overflow detection. Just skip this value.
+        percent = -1.0;
+      }
+      else{
+        percent = double(timeSample.tms_stime - lastSysCPU) +
+                  double(timeSample.tms_utime - lastUserCPU);
+        percent /= double(now - lastCPU);
+        percent *= 100;
+      }
+      lastCPU = now;
+      lastSysCPU = timeSample.tms_stime;
+      lastUserCPU = timeSample.tms_utime;
+#endif
+      return percent;
+    }
   };
   static CpuStat cs{};
 
@@ -1407,6 +1430,7 @@ namespace GenericToolbox{
       return (size_t)info.resident_size;
     return (size_t)0; /* query failed */
 
+
 #elif defined(__linux__) || defined(__linux) || defined(linux) || defined(__gnu_linux__)
     // Linux
 //    long rss = 0L;
@@ -1420,26 +1444,24 @@ namespace GenericToolbox{
 //    }
 //    fclose( fp );
 //    return (size_t)rss * (size_t)sysconf( _SC_PAGESIZE);
-
     // Physical Memory currently used by current process
     // https://stackoverflow.com/questions/63166/how-to-determine-cpu-and-memory-consumption-from-inside-a-process
     FILE* file = fopen("/proc/self/status", "r");
-    int result = -1;
+    size_t result{0};
     char line[128];
 
-    while (fgets(line, 128, file) != NULL){
+    while (fgets(line, 128, file) != nullptr){
       if (strncmp(line, "VmRSS:", 6) == 0){
         result = strlen(line);
         const char* p = line;
         while (*p <'0' || *p > '9') p++;
         line[result-3] = '\0';
-        result = atoi(p);
+        result = size_t(atol(p));
         break;
       }
     }
     fclose(file);
     return result*1000;
-
 #else
     // AIX, BSD, Solaris, and Unknown OS
     return (size_t)0L;          /* Unsupported. */
@@ -1492,30 +1514,7 @@ namespace GenericToolbox{
 #endif
   }
   static inline double getCpuUsageByProcess(){
-    double percent{0};
-#if defined(_WIN32)
-#elif defined(__linux__) || defined(__linux) || defined(linux) || defined(__gnu_linux__) || defined(__APPLE__) && defined(__MACH__)
-    struct tms timeSample{};
-    clock_t now;
-
-    now = times(&timeSample);
-    if (now <= cs.lastCPU || timeSample.tms_stime < cs.lastSysCPU ||
-        timeSample.tms_utime < cs.lastUserCPU){
-      //Overflow detection. Just skip this value.
-      percent = -1.0;
-    }
-    else{
-      percent = double(timeSample.tms_stime - cs.lastSysCPU) +
-                double(timeSample.tms_utime - cs.lastUserCPU);
-      percent /= double(now - cs.lastCPU);
-//      percent /= cs.numProcessors;
-      percent *= 100;
-    }
-    cs.lastCPU = now;
-    cs.lastSysCPU = timeSample.tms_stime;
-    cs.lastUserCPU = timeSample.tms_utime;
-#endif
-    return percent;
+    return cs.getCpuUsageByProcess();
   }
   static inline long getProcessMemoryUsageDiffSinceLastCall(){
       size_t currentProcessMemoryUsage = getProcessMemoryUsage();
