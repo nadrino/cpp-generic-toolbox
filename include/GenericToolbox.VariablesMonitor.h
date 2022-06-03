@@ -33,6 +33,7 @@ namespace GenericToolbox{
     inline void setFooterString(const std::string &footerString);
     inline void setMaxRefreshRateInMs(long long int maxRefreshRateInMs);
 
+    inline long long int getMaxRefreshRateInMs() const;
     inline VariableMonitor& getVariable(const std::string& name_);
     inline QuantityMonitor& getQuantity(const std::string& quantityName_);
 
@@ -40,7 +41,7 @@ namespace GenericToolbox{
     inline std::string generateMonitorString(bool trailBackCursor_ = false);
 
   private:
-    long long _maxRefreshRateInMs_{500}; // 1/0.033 = 30 fps, 500 = 1/0.500 = 2 fps
+    long long int _maxRefreshRateInMs_{500}; // 1/0.033 = 30 fps, 500 = 1/0.500 = 2 fps
     std::chrono::high_resolution_clock::time_point _lastGeneratedMonitorStringTime_;
     std::string _headerString_;
     std::string _footerString_;

@@ -80,6 +80,9 @@ namespace GenericToolbox{
     _maxRefreshRateInMs_ = maxRefreshRateInMs;
   }
 
+  inline long long int VariablesMonitor::getMaxRefreshRateInMs() const {
+    return _maxRefreshRateInMs_;
+  }
   inline VariableMonitor& VariablesMonitor::getVariable(const std::string& name_){
     for( auto& v : _varMonitorList_ ){
       if( v.getName() == name_ ){
@@ -162,10 +165,9 @@ namespace GenericToolbox{
       ssLineCleaner << static_cast<char>(27) << "[2K"; // un-flushed part: this clear line will only be displayed once a new line will try to override it
     }
 
+    ssLineCleaner << std::flush;
     return ssLineCleaner.str();
   }
-
-
 
 
 }
