@@ -311,17 +311,22 @@ namespace GenericToolbox {
     cwd->cd();
     return output;
   }
-  inline bool doesLoadedEntryPassCut(TTreeFormula* treeFormula_){
+  inline bool doesEntryPassCut(TTreeFormula* treeFormula_){
     // instances are distinct expressions which are separated with ";", for example: "var1 == 4; var2 == var3"
-    // In practice, we never use multiple instance. In case we do this algo will understand the ";" as "&&"
-    bool entryPassCut = true;
+    // In practice, we never use multiple instance. In case we do, this algo will understand the ";" as "&&"
     for(int jInstance = 0; jInstance < treeFormula_->GetNdata(); jInstance++) {
       if ( treeFormula_->EvalInstance(jInstance) == 0 ) {
-        entryPassCut = false;
+        return false;
         break;
       }
     }
-    return entryPassCut;
+    return true;
+  }
+  inline void enableSelectedBranches(TTree* tree_, TTreeFormula* formula_){
+    for( int iLeaf = 0 ; iLeaf < formula_->GetNcodes() ; iLeaf++ ){
+      if( formula_->GetLeaf(iLeaf) == nullptr ) continue; // for "Entry$" like dummy leaves
+      tree_->SetBranchStatus(formula_->GetLeaf(iLeaf)->GetBranch()->GetName(), true);
+    }
   }
 
 }
