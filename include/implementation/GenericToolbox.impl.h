@@ -575,7 +575,7 @@ namespace GenericToolbox {
 
     return ss.str();
   }
-  std::string parseSizeUnits(unsigned int sizeInBytes_){
+  std::string parseSizeUnits(double sizeInBytes_){
     return parseUnitPrefix(sizeInBytes_) + "B";
   }
   static inline std::vector<std::string> splitString(const std::string &inputString_, const std::string &delimiter_, bool removeEmpty_) {

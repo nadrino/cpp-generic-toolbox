@@ -156,7 +156,7 @@ namespace GenericToolbox{
 
   // -- Parsing
   static inline std::string parseUnitPrefix(double val_, int maxPadSize_=-1);
-  static inline std::string parseSizeUnits(unsigned int sizeInBytes_);
+  static inline std::string parseSizeUnits(double sizeInBytes_);
   static inline std::string formatString( const std::string& strToFormat_ ); // overrider: make sure this is the one used when no extra args are provided.
   template<typename ... Args> static inline std::string formatString(const std::string& strToFormat_, Args ... args );
 
