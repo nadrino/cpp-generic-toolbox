@@ -38,7 +38,7 @@ namespace GenericToolbox{
     inline QuantityMonitor& getQuantity(const std::string& quantityName_);
 
     inline bool isGenerateMonitorStringOk();
-    inline std::string generateMonitorString(bool trailBackCursor_ = false);
+    inline std::string generateMonitorString(bool trailBackCursor_ = false, bool forceGenerate_ = false);
 
   private:
     long long int _maxRefreshRateInMs_{500}; // 1/0.033 = 30 fps, 500 = 1/0.500 = 2 fps

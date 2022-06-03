@@ -112,9 +112,9 @@ namespace GenericToolbox{
     }
     return true;
   }
-  inline std::string VariablesMonitor::generateMonitorString(bool trailBackCursor_) {
+  inline std::string VariablesMonitor::generateMonitorString(bool trailBackCursor_, bool forceGenerate_) {
 
-    if( trailBackCursor_ and not this->isGenerateMonitorStringOk() ) return {};
+    if( not forceGenerate_ and trailBackCursor_ and not this->isGenerateMonitorStringOk() ) return {};
     _lastGeneratedMonitorStringTime_ = std::chrono::high_resolution_clock::now();
 
     std::vector<std::vector<std::string>> varElementsList(_varMonitorList_.size()+1, std::vector<std::string>(_displayQuantityIndexList_.size()));
