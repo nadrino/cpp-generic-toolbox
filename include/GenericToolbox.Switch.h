@@ -33,15 +33,17 @@ namespace GenericToolbox::Switch{
       FsFileSystem* fsBuffer{nullptr};
       bool useCrcCheck{true};
 
-      static const size_t maxBufferSize{0x100000}; // 1MB
+      static const size_t maxBufferSize{0x200000}; // 2 MB
+      static const size_t minBufferSize{0x10000}; // 65 KB
     };
     static ParametersHolder p{};
 
 
     // Poll
     static inline bool doesPathIsValue(const std::string& path_);
-    static inline bool doesPathIsFile(const std::string& path_);
     static inline bool doesPathIsFolder(const std::string& path_);
+    static inline bool doesPathIsFile(const std::string& path_);
+    static inline ssize_t getFileSize(const std::string& path_);
 
     // Read/Write
     static inline bool mkdirPath(const std::string& dirPath_);

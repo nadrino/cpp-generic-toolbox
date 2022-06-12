@@ -10,6 +10,7 @@
 #include "GenericToolbox.h"
 
 #include <sys/stat.h>
+#include "fstream"
 
 namespace GenericToolbox::Switch {
 
@@ -20,19 +21,25 @@ namespace GenericToolbox::Switch {
       struct stat buffer{};
       return ( stat(path_.c_str(), &buffer) == 0 );
     }
-    static inline bool doesPathIsFile(const std::string& path_){
-      struct stat path_stat{};
-      stat(path_.c_str(), &path_stat);
-      return S_ISREG(path_stat.st_mode); // is regular file?
-    }
     static inline bool doesPathIsFolder(const std::string& path_){
       struct stat path_stat{};
       stat(path_.c_str(), &path_stat);
       return S_ISDIR(path_stat.st_mode);
     }
+    static inline bool doesPathIsFile(const std::string& path_){
+      struct stat path_stat{};
+      stat(path_.c_str(), &path_stat);
+      return S_ISREG(path_stat.st_mode); // is regular file?
+    }
+    static inline ssize_t getFileSize(const std::string& path_){
+      struct stat st{};
+      stat(path_.c_str(), &st);
+      return ssize_t(st.st_size);
+    }
 
 
     static inline bool mkdirPath(const std::string& dirPath_){
+#if 0
       bool isSuccess{true};
 
       if(doesPathIsFolder(dirPath_)) return isSuccess;
@@ -54,6 +61,10 @@ namespace GenericToolbox::Switch {
       }
 
       return isSuccess;
+#else
+      GenericToolbox::mkdirPath(dirPath_);
+      return true;
+#endif
     }
     static inline bool deleteFile(const std::string& filePath_){
       return (::remove(filePath_.c_str()) == 0);
@@ -61,11 +72,18 @@ namespace GenericToolbox::Switch {
     static inline bool copyFile(const std::string& srcFilePath_, const std::string& dstFilePath_, bool force_){
       bool isSuccess{false};
 
-      if(not force_ and doesPathIsFile(dstFilePath_)){ return false; }
+      if(not doesPathIsFile(srcFilePath_)) return false;
+
+      if( doesPathIsFile(dstFilePath_) ){
+        if( not force_ ){ return false; }
+        if( not deleteFile(dstFilePath_) ){ return false; }
+      }
 
       auto outDir = GenericToolbox::getFolderPathFromFilePath(dstFilePath_);
       if( not doesPathIsFolder(outDir) ){ mkdirPath(outDir); }
 
+#if 0
+      GenericToolbox::Switch::Utils::b.progressMap["copyFile"] = 0;
       // opening source file
       FsFile srcFile;
       if(R_SUCCEEDED(fsFsOpenFile(p.fsBuffer, srcFilePath_.c_str(), FsOpenMode_Read, &srcFile))){
@@ -84,31 +102,49 @@ namespace GenericToolbox::Switch {
               s64 readOffset{0};
               isSuccess = true; // consider it worked by default -> will change if not
 
-              size_t bufferSize = std::min(size_t(srcFileSize/100), GenericToolbox::Switch::IO::ParametersHolder::maxBufferSize);
-              bufferSize = std::min(bufferSize, size_t(srcFileSize));
+              auto bufferSize = size_t(srcFileSize/100); // 1 chunk per %
+              bufferSize = std::min(bufferSize, GenericToolbox::Switch::IO::ParametersHolder::maxBufferSize); // cap the buffer size -> not too big
+              bufferSize = std::max(bufferSize, GenericToolbox::Switch::IO::ParametersHolder::minBufferSize); // cap the buffer size -> not too small
               std::vector<u8> contentBuffer(bufferSize, 0);
               size_t nChunk = (size_t(srcFileSize)/bufferSize) + 1;
               std::string pTitle = GenericToolbox::getFileNameFromFilePath(srcFilePath_) + " -> " + outDir;
+
+              size_t timeLoad{0};
+              size_t timeDrop{0};
 
               for( size_t iChunk = 0 ; iChunk < nChunk ; iChunk++ ){
                 GenericToolbox::displayProgressBar(iChunk, nChunk, pTitle);
                 Utils::b.progressMap["copyFile"] = double(iChunk) / double(nChunk);
 
                 // buffering source file
+                GenericToolbox::getElapsedTimeSinceLastCallInMicroSeconds(1);
                 if(R_FAILED(fsFileRead(&srcFile, readOffset, &contentBuffer[0], bufferSize, FsReadOption_None, &bytesRedCounter))){
                   isSuccess = false;
                   break;
                 }
+                timeLoad += GenericToolbox::getElapsedTimeSinceLastCallInMicroSeconds(1);
 
                 // dumping data in destination file
                 if(R_FAILED(fsFileWrite(&dstFile, readOffset, &contentBuffer[0], bytesRedCounter, FsWriteOption_Flush))){
                   isSuccess = false;
                   break;
                 }
+                timeDrop += GenericToolbox::getElapsedTimeSinceLastCallInMicroSeconds(1);
 
                 // preparing next loop
                 readOffset += s64(bytesRedCounter);
+                if( readOffset == srcFileSize ) break;
               }
+              GenericToolbox::displayProgressBar(nChunk, nChunk, pTitle);
+
+              if( not isSuccess ){
+                std::cout << "NOT SUCCESS" << std::endl;
+              }
+              if( readOffset != srcFileSize ){
+                std::cout << GET_VAR_NAME_VALUE(readOffset) << " -> " << GET_VAR_NAME_VALUE(srcFileSize) << std::endl;
+              }
+
+              std::cout << GET_VAR_NAME_VALUE(timeLoad) << " / " << GET_VAR_NAME_VALUE(timeDrop) << std::endl;
 
             }
             fsFileClose(&dstFile);
@@ -117,16 +153,49 @@ namespace GenericToolbox::Switch {
         }
       }
       fsFileClose(&srcFile);
+#else
+      ssize_t srcFileSize = getFileSize(srcFilePath_);
+      std::ifstream in(srcFilePath_, std::ios::in | std::ios::binary);
+      std::ofstream out(dstFilePath_, std::ios::out | std::ios::binary);
+
+      auto bufferSize = ssize_t(srcFileSize/500); // 0.2 chunk per % (can see on pixels)
+      bufferSize = std::min(bufferSize, ssize_t(GenericToolbox::Switch::IO::ParametersHolder::maxBufferSize)); // cap the buffer size -> not too big
+      bufferSize = std::max(bufferSize, ssize_t(GenericToolbox::Switch::IO::ParametersHolder::minBufferSize)); // cap the buffer size -> not too small
+      std::vector<char> contentBuffer(bufferSize, 0);
+      size_t nChunk = (size_t(srcFileSize)/bufferSize) + 1;
+      Utils::b.progressMap["copyFile"] = double(1) / double(nChunk);
+      std::string pTitle = GenericToolbox::getFileNameFromFilePath(srcFilePath_) + " -> " + outDir;
+
+      size_t timeLoad{0};
+      size_t timeDrop{0};
+
+      for( size_t iChunk = 0 ; iChunk < nChunk ; iChunk++ ) {
+        GenericToolbox::displayProgressBar(iChunk, nChunk, pTitle);
+        Utils::b.progressMap["copyFile"] = double(iChunk+1) / double(nChunk);
+
+        // buffering source file
+        GenericToolbox::getElapsedTimeSinceLastCallInMicroSeconds(1);
+        in.read(contentBuffer.data(), bufferSize);
+        timeLoad += GenericToolbox::getElapsedTimeSinceLastCallInMicroSeconds(1);
+
+        out.write(contentBuffer.data(), in.gcount());
+        timeDrop += GenericToolbox::getElapsedTimeSinceLastCallInMicroSeconds(1);
+      }
+
+      GenericToolbox::displayProgressBar(nChunk, nChunk, pTitle);
+      std::cout << GET_VAR_NAME_VALUE(timeLoad) << " / " << GET_VAR_NAME_VALUE(timeDrop) << std::endl;
+#endif
 
       Utils::b.progressMap["copyFile"] = 1.;
       return isSuccess;
     }
     static inline bool doFilesAreIdentical(const std::string& file1Path_, const std::string& file2Path_){
+      if( not doesPathIsFile(file2Path_) ) { return false; }
+      if( not doesPathIsFile(file1Path_) ) { return false; }
+
+#if 0
+      GenericToolbox::Switch::Utils::b.progressMap["doFilesAreIdentical"] = 0.;
       bool areIdentical{false};
-
-      if( not doesPathIsFile(file1Path_) ) return false;
-      if( not doesPathIsFile(file2Path_) ) return false;
-
       // opening file1
       char path_buffer_file1[FS_MAX_PATH];
       FsFile file1;
@@ -148,12 +217,12 @@ namespace GenericToolbox::Switch {
                 areIdentical = true;
                 if(p.useCrcCheck){
 
-//                  size_t copy_buffer_size = 0x10000; // 65 kB (65536 B) // too much for 2 files...
-//                  size_t copy_buffer_size = 0x1000; // 4,096 B // on the safe side
-//                  size_t bufferSize{0xD000}; // 53,248 B
                   s64 readOffset{0};
 
-                  size_t bufferSize = std::min(GenericToolbox::Switch::IO::ParametersHolder::maxBufferSize, size_t(file1Size));
+                  auto bufferSize = size_t(file1Size/100); // 1 chunk per %
+                  bufferSize = std::min(bufferSize, GenericToolbox::Switch::IO::ParametersHolder::maxBufferSize); // cap the buffer size -> not too big
+                  bufferSize = std::max(bufferSize, GenericToolbox::Switch::IO::ParametersHolder::minBufferSize); // cap the buffer size -> not too small
+
                   std::vector<u8> file1ContentBuffer(bufferSize,0);
                   u64 file1CounterBytesRed{0};
                   auto file1Crc = crc32(0L, Z_NULL, 0);
@@ -205,8 +274,43 @@ namespace GenericToolbox::Switch {
         fsFileClose(&file2);
       } // open file 1
       fsFileClose(&file1);
-
       return areIdentical;
+#else
+      ssize_t file1Size = getFileSize(file1Path_);
+      if( file1Size != getFileSize(file2Path_) ) return false;
+      if(p.useCrcCheck){
+        std::ifstream file1(file1Path_, std::ios::in | std::ios::binary);
+        std::ifstream file2(file2Path_, std::ios::in | std::ios::binary);
+
+        auto bufferSize = ssize_t(file1Size/200); // 1 chunk per %
+        bufferSize = std::min(bufferSize, ssize_t(GenericToolbox::Switch::IO::ParametersHolder::maxBufferSize)); // cap the buffer size -> not too big
+        bufferSize = std::max(bufferSize, ssize_t(GenericToolbox::Switch::IO::ParametersHolder::minBufferSize)); // cap the buffer size -> not too small
+        std::vector<u8> file1Buffer(bufferSize, 0);
+        std::vector<u8> file2Buffer(bufferSize, 0);
+        size_t nChunk = (size_t(file1Size)/bufferSize) + 1;
+        Utils::b.progressMap["doFilesAreIdentical"] = double(1) / double(nChunk);
+
+        auto file1Crc = crc32(0L, Z_NULL, 0);
+        auto file2Crc = crc32(0L, Z_NULL, 0);
+
+        for( size_t iChunk = 0 ; iChunk < nChunk ; iChunk++ ) {
+          Utils::b.progressMap["doFilesAreIdentical"] = double(iChunk+1) / double(nChunk);
+
+          // buffering source file
+          file1.read(reinterpret_cast<char *>(file1Buffer.data()), bufferSize);
+          file2.read(reinterpret_cast<char *>(file2Buffer.data()), bufferSize);
+
+          // check read size
+          if( file1.gcount() != file2.gcount() ) return false;
+
+          // check crc
+          file1Crc = crc32(file1Crc, file1Buffer.data(), file1.gcount());
+          file2Crc = crc32(file2Crc, file2Buffer.data(), file2.gcount());
+          if(file1Crc != file2Crc){ return false; }
+        }
+      }
+      return true;
+#endif
     }
   }
 }
