@@ -56,8 +56,7 @@ namespace GenericToolbox::Switch {
       return isSuccess;
     }
     static inline bool deleteFile(const std::string& filePath_){
-      fsFsDeleteFile(p.fsBuffer, filePath_.c_str());
-      return not doesPathIsFile(filePath_);
+      return (::remove(filePath_.c_str()) == 0);
     }
     static inline bool copyFile(const std::string& srcFilePath_, const std::string& dstFilePath_){
       bool isSuccess{false};
@@ -85,17 +84,15 @@ namespace GenericToolbox::Switch {
               s64 readOffset{0};
               isSuccess = true; // consider it worked by default -> will change if not
 
-              s64 bufferSize = std::min(GenericToolbox::Switch::IO::ParametersHolder::copyBufferSize, srcFileSize);
-              std::cout << GET_VAR_NAME_VALUE(bufferSize) << std::endl;
-              u8 contentBuffer[bufferSize];
-
-              s64 iChunk = 0;
-              s64 nChunk = (srcFileSize/bufferSize) + 1;
-
+              size_t bufferSize = std::min(size_t(srcFileSize/100), GenericToolbox::Switch::IO::ParametersHolder::maxBufferSize);
+              bufferSize = std::min(bufferSize, size_t(srcFileSize));
+              std::vector<u8> contentBuffer(bufferSize, 0);
+              size_t nChunk = (size_t(srcFileSize)/bufferSize) + 1;
               std::string pTitle = GenericToolbox::getFileNameFromFilePath(srcFilePath_) + " -> " + outDir;
-              do {
+
+              for( size_t iChunk = 0 ; iChunk < nChunk ; iChunk++ ){
                 GenericToolbox::displayProgressBar(iChunk, nChunk, pTitle);
-                Utils::b.progressMap["copyFile"] = double(iChunk++) / double(nChunk);
+                Utils::b.progressMap["copyFile"] = double(iChunk) / double(nChunk);
 
                 // buffering source file
                 if(R_FAILED(fsFileRead(&srcFile, readOffset, &contentBuffer[0], bufferSize, FsReadOption_None, &bytesRedCounter))){
@@ -112,7 +109,6 @@ namespace GenericToolbox::Switch {
                 // preparing next loop
                 readOffset += s64(bytesRedCounter);
               }
-              while(readOffset < srcFileSize);
 
             }
             fsFileClose(&dstFile);
@@ -138,52 +134,46 @@ namespace GenericToolbox::Switch {
       if(R_SUCCEEDED(fsFsOpenFile(p.fsBuffer, path_buffer_file1, FsOpenMode_Read, &file1))){
         // opening file2
         char path_buffer_file2[FS_MAX_PATH];
-        FsFile fs_file2;
+        FsFile file2;
         snprintf(path_buffer_file2, FS_MAX_PATH, "%s", file2Path_.c_str());
-        if(R_SUCCEEDED(fsFsOpenFile(p.fsBuffer, path_buffer_file2, FsOpenMode_Read, &fs_file2))){
+        if(R_SUCCEEDED(fsFsOpenFile(p.fsBuffer, path_buffer_file2, FsOpenMode_Read, &file2))){
 
           // get size of file1
           s64 file1Size = 0;
           if(R_SUCCEEDED(fsFileGetSize(&file1, &file1Size))){
             // get size of file2
             s64 file2Size = 0;
-            if(R_SUCCEEDED(fsFileGetSize(&fs_file2, &file2Size))){
+            if(R_SUCCEEDED(fsFileGetSize(&file2, &file2Size))){
               if(file1Size == file2Size){
                 areIdentical = true;
                 if(p.useCrcCheck){
 
 //                  size_t copy_buffer_size = 0x10000; // 65 kB (65536 B) // too much for 2 files...
 //                  size_t copy_buffer_size = 0x1000; // 4,096 B // on the safe side
-                  size_t bufferSize{0xD000}; // 53,248 B
+//                  size_t bufferSize{0xD000}; // 53,248 B
                   s64 readOffset{0};
-                  s64 counts = 0;
-                  s64 expected_total_count = file1Size / s64(bufferSize);
 
-                  u8 file1ContentBuffer[bufferSize];
+                  size_t bufferSize = std::min(GenericToolbox::Switch::IO::ParametersHolder::maxBufferSize, size_t(file1Size));
+                  std::vector<u8> file1ContentBuffer(bufferSize,0);
                   u64 file1CounterBytesRed{0};
                   auto file1Crc = crc32(0L, Z_NULL, 0);
 
-                  u8 file2ContentBuffer[bufferSize];
+                  std::vector<u8> file2ContentBuffer(bufferSize,0);
                   u64 file2CounterBytesRed{0};
                   auto file2Crc = crc32(0L, Z_NULL, 0);
 
-                  do {
-                    GenericToolbox::Switch::Utils::b.progressMap["doFilesAreIdentical"] = double(counts++)/double(expected_total_count);
+                  size_t nChunk = (size_t(file1Size)/bufferSize) + 1;
+                  for(size_t iChunk = 0 ; iChunk < nChunk ; iChunk++ ){
+                    GenericToolbox::Switch::Utils::b.progressMap["doFilesAreIdentical"] = double(iChunk)/double(nChunk);
 
                     // buffering file1
-                    if( R_FAILED(
-                          fsFileRead(
-                              &file1, readOffset, &file1ContentBuffer[0],
-                              bufferSize, FsReadOption_None, &file1CounterBytesRed
-                          )
-                        )
-                      ){
+                    if( R_FAILED(fsFileRead(&file1, readOffset, &file1ContentBuffer[0],bufferSize, FsReadOption_None, &file1CounterBytesRed))){
                       areIdentical = false;
                       break;
                     }
 
                     // buffering file2
-                    if(R_FAILED(fsFileRead(&fs_file2, readOffset, &file2ContentBuffer[0], bufferSize, FsReadOption_None, &file2CounterBytesRed))){
+                    if(R_FAILED(fsFileRead(&file2, readOffset, &file2ContentBuffer[0], bufferSize, FsReadOption_None, &file2CounterBytesRed))){
                       areIdentical = false; break;
                     }
 
@@ -194,15 +184,13 @@ namespace GenericToolbox::Switch {
                     }
 
                     // check crc
-                    file1Crc = crc32(file1Crc, file1ContentBuffer, file1CounterBytesRed);
-                    file2Crc = crc32(file2Crc, file2ContentBuffer, file2CounterBytesRed);
+                    file1Crc = crc32(file1Crc, &file1ContentBuffer[0], file1CounterBytesRed);
+                    file2Crc = crc32(file2Crc, &file2ContentBuffer[0], file2CounterBytesRed);
                     if(file1Crc != file2Crc){ areIdentical = false; break; }
 
                     // preparing next loop
                     readOffset += s64(file1CounterBytesRed);
-
                   }
-                  while(readOffset < file1Size);
 
                 } // CRC ? yes
                 else {
@@ -214,7 +202,7 @@ namespace GenericToolbox::Switch {
             } // size file 2
           } // size file 1
         } // open file 2
-        fsFileClose(&fs_file2);
+        fsFileClose(&file2);
       } // open file 1
       fsFileClose(&file1);
 
