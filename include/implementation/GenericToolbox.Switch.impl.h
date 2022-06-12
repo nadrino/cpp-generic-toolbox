@@ -58,10 +58,10 @@ namespace GenericToolbox::Switch {
     static inline bool deleteFile(const std::string& filePath_){
       return (::remove(filePath_.c_str()) == 0);
     }
-    static inline bool copyFile(const std::string& srcFilePath_, const std::string& dstFilePath_){
+    static inline bool copyFile(const std::string& srcFilePath_, const std::string& dstFilePath_, bool force_){
       bool isSuccess{false};
 
-      if(doesPathIsFile(dstFilePath_) and not deleteFile(dstFilePath_)){ return false; }
+      if(not force_ and doesPathIsFile(dstFilePath_)){ return false; }
 
       auto outDir = GenericToolbox::getFolderPathFromFilePath(dstFilePath_);
       if( not doesPathIsFolder(outDir) ){ mkdirPath(outDir); }

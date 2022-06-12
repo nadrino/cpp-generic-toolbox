@@ -46,7 +46,7 @@ namespace GenericToolbox::Switch{
     // Read/Write
     static inline bool mkdirPath(const std::string& dirPath_);
     static inline bool deleteFile(const std::string& filePath_);
-    static inline bool copyFile(const std::string& srcFilePath_, const std::string& dstFilePath_);
+    static inline bool copyFile(const std::string& srcFilePath_, const std::string& dstFilePath_, bool force_=true);
     static inline bool doFilesAreIdentical(const std::string& file1Path_, const std::string& file2Path_);
   }
 
