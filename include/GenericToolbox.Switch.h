@@ -32,15 +32,23 @@ namespace GenericToolbox::Switch{
 
       FsFileSystem* fsBuffer{nullptr};
       bool useCrcCheck{true};
+//      const size_t copyBufferSize = 0x10000; // 65 kB
+//      static const size_t copyBufferSize = 0x1A000; // 106.496 kB
+      static const s64 copyBufferSize = 0xF0000; // 106.496 kB
+//      const size_t copyBufferSize = 0x1000; // 4 kB
     };
     static ParametersHolder p{};
 
 
+    // Poll
     static inline bool doesPathIsValue(const std::string& path_);
     static inline bool doesPathIsFile(const std::string& path_);
     static inline bool doesPathIsFolder(const std::string& path_);
-    static inline void deleteFile(const std::string& filePath_);
 
+    // Read/Write
+    static inline bool mkdirPath(const std::string& dirPath_);
+    static inline bool deleteFile(const std::string& filePath_);
+    static inline bool copyFile(const std::string& srcFilePath_, const std::string& dstFilePath_);
     static inline bool doFilesAreIdentical(const std::string& file1Path_, const std::string& file2Path_);
   }
 

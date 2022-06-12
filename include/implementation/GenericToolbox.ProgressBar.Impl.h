@@ -32,7 +32,7 @@ namespace GenericToolbox{
     if( // REQUIRED TO PRINTOUT
         iCurrent_ == 0 // First call
         or this->_lastDisplayedPercentValue_ == -1 // never printed before
-        or _deltaTimeMilliSec_ >= this->_refreshRateInMilliSec_
+        or _deltaTimeMilliSec_ >= long(this->_refreshRateInMilliSec_)
         or iCurrent_ + 1 >= iTotal_ // last entry (mandatory to print at least once: need to print endl)
         ){
 

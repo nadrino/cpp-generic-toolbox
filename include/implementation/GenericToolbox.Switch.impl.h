@@ -7,6 +7,8 @@
 
 #ifdef __SWITCH__
 
+#include "GenericToolbox.h"
+
 #include <sys/stat.h>
 
 namespace GenericToolbox::Switch {
@@ -28,10 +30,101 @@ namespace GenericToolbox::Switch {
       stat(path_.c_str(), &path_stat);
       return S_ISDIR(path_stat.st_mode);
     }
-    static inline void deleteFile(const std::string& filePath_){
-      fsFsDeleteFile(p.fsBuffer, filePath_.c_str());
-    }
 
+
+    static inline bool mkdirPath(const std::string& dirPath_){
+      bool isSuccess{true};
+
+      if(doesPathIsFolder(dirPath_)) return isSuccess;
+
+      std::string stagedPath;
+      std::string folderLevel;
+      std::stringstream ss(dirPath_);
+
+      // split path using slash as a separator
+      while (std::getline(ss, folderLevel, '/')) {
+        stagedPath += folderLevel; // append folder to the current level
+        if(stagedPath.empty()) stagedPath = "/";
+        GenericToolbox::removeRepeatedCharInsideInputStr(stagedPath, "/");
+        // create current level
+        if(not doesPathIsFolder(stagedPath)){
+          if(R_FAILED(fsFsCreateDirectory(p.fsBuffer, stagedPath.c_str()))){ isSuccess = false; break; }
+        }
+        stagedPath += "/"; // don't forget to append a slash
+      }
+
+      return isSuccess;
+    }
+    static inline bool deleteFile(const std::string& filePath_){
+      fsFsDeleteFile(p.fsBuffer, filePath_.c_str());
+      return not doesPathIsFile(filePath_);
+    }
+    static inline bool copyFile(const std::string& srcFilePath_, const std::string& dstFilePath_){
+      bool isSuccess{false};
+
+      if(doesPathIsFile(dstFilePath_) and not deleteFile(dstFilePath_)){ return false; }
+
+      auto outDir = GenericToolbox::getFolderPathFromFilePath(dstFilePath_);
+      if( not doesPathIsFolder(outDir) ){ mkdirPath(outDir); }
+
+      // opening source file
+      FsFile srcFile;
+      if(R_SUCCEEDED(fsFsOpenFile(p.fsBuffer, srcFilePath_.c_str(), FsOpenMode_Read, &srcFile))){
+        // get size of source file
+        s64 srcFileSize{0};
+        if(R_SUCCEEDED(fsFileGetSize(&srcFile, &srcFileSize))){
+
+          // create destination file
+          if(R_SUCCEEDED(fsFsCreateFile(p.fsBuffer, dstFilePath_.c_str(), srcFileSize, 0))){
+
+            // open destination file
+            FsFile dstFile;
+            if(R_SUCCEEDED(fsFsOpenFile(p.fsBuffer, dstFilePath_.c_str(), FsOpenMode_Write, &dstFile))){
+
+              u64 bytesRedCounter{0};
+              s64 readOffset{0};
+              isSuccess = true; // consider it worked by default -> will change if not
+
+              s64 bufferSize = std::min(GenericToolbox::Switch::IO::ParametersHolder::copyBufferSize, srcFileSize);
+              std::cout << GET_VAR_NAME_VALUE(bufferSize) << std::endl;
+              u8 contentBuffer[bufferSize];
+
+              s64 iChunk = 0;
+              s64 nChunk = (srcFileSize/bufferSize) + 1;
+
+              std::string pTitle = GenericToolbox::getFileNameFromFilePath(srcFilePath_) + " -> " + outDir;
+              do {
+                GenericToolbox::displayProgressBar(iChunk, nChunk, pTitle);
+                Utils::b.progressMap["copyFile"] = double(iChunk++) / double(nChunk);
+
+                // buffering source file
+                if(R_FAILED(fsFileRead(&srcFile, readOffset, &contentBuffer[0], bufferSize, FsReadOption_None, &bytesRedCounter))){
+                  isSuccess = false;
+                  break;
+                }
+
+                // dumping data in destination file
+                if(R_FAILED(fsFileWrite(&dstFile, readOffset, &contentBuffer[0], bytesRedCounter, FsWriteOption_Flush))){
+                  isSuccess = false;
+                  break;
+                }
+
+                // preparing next loop
+                readOffset += s64(bytesRedCounter);
+              }
+              while(readOffset < srcFileSize);
+
+            }
+            fsFileClose(&dstFile);
+          }
+
+        }
+      }
+      fsFileClose(&srcFile);
+
+      Utils::b.progressMap["copyFile"] = 1.;
+      return isSuccess;
+    }
     static inline bool doFilesAreIdentical(const std::string& file1Path_, const std::string& file2Path_){
       bool areIdentical{false};
 
@@ -62,7 +155,7 @@ namespace GenericToolbox::Switch {
 //                  size_t copy_buffer_size = 0x10000; // 65 kB (65536 B) // too much for 2 files...
 //                  size_t copy_buffer_size = 0x1000; // 4,096 B // on the safe side
                   size_t bufferSize{0xD000}; // 53,248 B
-                  u64 readOffset{0};
+                  s64 readOffset{0};
                   s64 counts = 0;
                   s64 expected_total_count = file1Size / s64(bufferSize);
 
@@ -106,10 +199,10 @@ namespace GenericToolbox::Switch {
                     if(file1Crc != file2Crc){ areIdentical = false; break; }
 
                     // preparing next loop
-                    readOffset += file1CounterBytesRed;
+                    readOffset += s64(file1CounterBytesRed);
 
                   }
-                  while(s64(readOffset) < file1Size);
+                  while(readOffset < file1Size);
 
                 } // CRC ? yes
                 else {

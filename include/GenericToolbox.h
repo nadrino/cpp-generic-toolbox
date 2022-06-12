@@ -6,6 +6,11 @@
 #ifndef CPP_GENERIC_TOOLBOX_GENERICTOOLBOX_H
 #define CPP_GENERIC_TOOLBOX_GENERICTOOLBOX_H
 
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-function"
+#pragma GCC diagnostic ignored "-Wunused-variable"
+
 // Pre-proc parameters
 #include "implementation/GenericToolbox.param.h"
 

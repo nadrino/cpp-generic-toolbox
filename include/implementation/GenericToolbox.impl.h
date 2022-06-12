@@ -144,8 +144,8 @@ namespace GenericToolbox{
     stripUnicode_ ? inputStrStripped = GenericToolbox::stripStringUnicode(inputStr_) : inputStrStripped = inputStr_;
     double nbCharsPerColor = double(inputStrStripped.size()) / double(ColorCodes::rainbowColorList.size());
     int colorSlot{0};
-    for( int iChar = 0 ; iChar < inputStrStripped.size() ; iChar++ ){
-      if( nbCharsPerColor < 1 or iChar == 0 or ( (iChar+1) / nbCharsPerColor) - colorSlot + 1 > 1 ){
+    for( size_t iChar = 0 ; iChar < inputStrStripped.size() ; iChar++ ){
+      if( nbCharsPerColor < 1 or iChar == 0 or ( int(iChar+1) / nbCharsPerColor) - colorSlot + 1 > 1 ){
         outputString += ColorCodes::rainbowColorList[colorSlot++];
       }
       outputString += inputStrStripped[iChar];
@@ -427,7 +427,7 @@ namespace GenericToolbox {
     return outputStr;
   }
   static inline std::string stripBracket(const std::string &inputStr_, char bra_, char ket_, bool allowUnclosed_, std::vector<std::string>* argBuffer_){
-    int iChar{0}; std::string out;
+    size_t iChar{0}; std::string out;
     while( iChar < inputStr_.size() ){
       if ( inputStr_[iChar] == bra_ ){
         iChar++;
