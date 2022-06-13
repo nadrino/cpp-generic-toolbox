@@ -195,25 +195,29 @@ namespace GenericToolbox{
   static inline std::string getFileNameFromFilePath(const std::string &filePath_, bool keepExtension_ = true);
 
   // -- with direct IO dependencies
+  static inline bool doesPathIsValid(const std::string &filePath_);
   static inline bool doesPathIsFile(const std::string &filePath_);
   static inline bool doesPathIsFolder(const std::string &folderPath_);
   static inline bool doFilesAreTheSame(const std::string &filePath1_, const std::string &filePath2_);
   static inline bool mkdirPath(const std::string &newFolderPath_);
   static inline bool deleteFile(const std::string &filePath_);
+  static inline bool isFolderEmpty(const std::string &dirPath_);
+  static inline bool deleteEmptyDirectory(const std::string &dirPath_);
   static inline bool copyFile(const std::string &source_file_path_, const std::string &destination_file_path_, bool force_ = false);
   static inline bool mvFile(const std::string &sourceFilePath_, const std::string &destinationFilePath_, bool force_ = false);
   static inline size_t getHashFile(const std::string &filePath_);
+  static inline ssize_t getFileSize(const std::string& path_);
   static inline long int getFileSizeInBytes(const std::string &filePath_);
   static inline void dumpStringInFile(const std::string &outFilePath_, const std::string &stringToWrite_);
   static inline std::string dumpFileAsString(const std::string &filePath_);
   static inline std::vector<std::string> dumpFileAsVectorString(const std::string &filePath_);
-  static inline std::vector<std::string> getListOfEntriesInFolder(const std::string &folderPath_, const std::string &entryNameRegex_ = "");
-  static inline std::vector<std::string> getListOfSubfoldersInFolder(const std::string &folderPath_, const std::string &entryNameRegex_ = "");
+  static inline std::vector<std::string> getListOfEntriesInFolder(const std::string &folderPath_, const std::string &entryNameRegex_ = "", int type_=-1);
+  static inline std::vector<std::string> getListOfSubFoldersInFolder(const std::string &folderPath_, const std::string &entryNameRegex_ = "");
   static inline std::vector<std::string> getListOfFilesInFolder(const std::string &folderPath_, const std::string &entryNameRegex_ = "");
 
   // -- with indirect IO dependencies
   static inline bool doesFolderIsEmpty(const std::string &folderPath_);
-  static inline std::vector<std::string> getListOfFilesInSubfolders(const std::string &folderPath_);
+  static inline std::vector<std::string> getListOfFilesInSubFolders(const std::string &folderPath_);
 
 }
 

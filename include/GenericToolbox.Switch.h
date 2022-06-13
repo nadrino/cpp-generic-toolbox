@@ -38,20 +38,7 @@ namespace GenericToolbox::Switch{
     };
     static ParametersHolder p{};
 
-
-    // Poll
-    static inline bool doesPathIsValue(const std::string& path_);
-    static inline bool doesPathIsFolder(const std::string& path_);
-    static inline bool doesPathIsFile(const std::string& path_);
-    static inline ssize_t getFileSize(const std::string& path_);
-    static inline std::vector<std::string> getListOfEntriesInFolder(const std::string& folder_path_);
-    static inline std::vector<std::string> getListOfSubFoldersInFolder(const std::string& folder_path_);
-    static inline std::vector<std::string> getListOfFilesInFolder(const std::string& folderPath_);
-    static inline std::vector<std::string> getListOfFilesInSubFolders(const std::string &folderPath_);
-
     // Read/Write
-    static inline bool mkdirPath(const std::string& dirPath_);
-    static inline bool deleteFile(const std::string& filePath_);
     static inline bool copyFile(const std::string& srcFilePath_, const std::string& dstFilePath_, bool force_=true);
     static inline bool doFilesAreIdentical(const std::string& file1Path_, const std::string& file2Path_);
   }
@@ -61,8 +48,14 @@ namespace GenericToolbox::Switch{
     struct BuffersHolder{
       std::map<std::string, double> progressMap;
     };
-    static BuffersHolder b;
+    static BuffersHolder b{};
 
+    static inline std::string lookForTidInSubFolders(const std::string& folderPath_);
+    static inline uint8_t* getFolderIconFromTitleId(const std::string& titleId_);
+  }
+
+  // Printout
+  namespace Printout{
 
   }
 

@@ -950,6 +950,10 @@ namespace GenericToolbox{
   }
 
   // -- with direct IO dependencies
+  static inline bool doesPathIsValid(const std::string &filePath_){
+    struct stat info{};
+    return ( stat(filePath_.c_str(), &info) == 0 );
+  }
   static inline bool doesPathIsFile(const std::string &filePath_){
     struct stat info{};
     stat(filePath_.c_str(), &info);
@@ -1028,9 +1032,14 @@ namespace GenericToolbox{
 
   }
   static inline bool deleteFile(const std::string &filePath_){
-    if(not doesPathIsFile(filePath_)) return true;
-    std::remove(filePath_.c_str());
-    return not doesPathIsFile(filePath_);
+    return (::remove(filePath_.c_str()) == 0);
+  }
+  static inline bool isFolderEmpty(const std::string &dirPath_){
+    if(not doesPathIsFolder(dirPath_)) return false;
+    return getListOfEntriesInFolder(dirPath_).empty();
+  }
+  static inline bool deleteEmptyDirectory(const std::string &dirPath_){
+    return (::rmdir(dirPath_.c_str()) == 0);
   }
   static inline bool copyFile(const std::string &source_file_path_, const std::string &destination_file_path_, bool force_){
 
@@ -1087,6 +1096,11 @@ namespace GenericToolbox{
     std::hash<std::string> hashString;
     return hashString(dumpFileAsString(filePath_));
   }
+  static inline ssize_t getFileSize(const std::string& path_){
+    struct stat st{};
+    stat(path_.c_str(), &st);
+    return ssize_t(st.st_size);
+  }
   static inline long int getFileSizeInBytes(const std::string &filePath_){
     long int output_size = 0;
     if(doesPathIsFile(filePath_)){
@@ -1129,184 +1143,62 @@ namespace GenericToolbox{
 
     return lines;
   }
-  static inline std::vector<std::string> getListOfEntriesInFolder(const std::string &folderPath_, const std::string &entryNameRegex_) {
-
-    std::vector<std::string> entries_list;
-    if(not doesPathIsFolder(folderPath_)) return entries_list;
+  static inline std::vector<std::string> getListOfEntriesInFolder(const std::string &folderPath_, const std::string &entryNameRegex_, int type_) {
+    std::vector<std::string> subFoldersList;
+    if(not doesPathIsFolder(folderPath_)) return subFoldersList;
     DIR* directory;
     directory = opendir(folderPath_.c_str()); //Open current-working-directory.
-    if( directory == nullptr ) {
-      std::cout << "Failed to open directory : " << folderPath_ << std::endl;
-      return entries_list;
-    }
-    else {
+    if( directory == nullptr ) { std::cout << "Failed to open directory : " << folderPath_ << std::endl; return {}; }
 
-      std::vector<std::string> nameElements;
+    std::vector<std::string> nameElements;
+    if(not entryNameRegex_.empty()){ nameElements = GenericToolbox::splitString(entryNameRegex_, "*"); }
+
+    struct dirent* entry;
+    while ( (entry = readdir(directory)) ) {
+      if( type_ != -1 and entry->d_type != type_ ){ continue; }
+      if( strcmp(entry->d_name, ".") == 0 or strcmp(entry->d_name, "..") == 0 ){ continue; }
+
       if(not entryNameRegex_.empty()){
-        nameElements = GenericToolbox::splitString(entryNameRegex_, "*");
-      }
-      bool isValid;
+        std::string entryCandidate = entry->d_name;
 
-      struct dirent* entry;
-      while ( (entry = readdir(directory)) ) {
-        isValid = true;
+        bool isValid{true};
+        for( size_t iElement = 0 ; iElement < nameElements.size() ; iElement++ ){
 
-        if(std::string(entry->d_name) == "." or std::string(entry->d_name) == ".."){
-          isValid = false;
-        }
-        else if(not entryNameRegex_.empty()){
-          std::string entryCandidate = entry->d_name;
-
-          for( int iElement = 0 ; iElement < int(nameElements.size()) ; iElement++ ){
-
-            if( iElement == 0 ){
-              if( not GenericToolbox::doesStringStartsWithSubstring(entryCandidate, nameElements[iElement]) ){
-                isValid = false;
-                break;
-              }
-            }
-            else if( iElement+1 == int(nameElements.size()) ){
-              if(not GenericToolbox::doesStringEndsWithSubstring(entryCandidate, nameElements[iElement]) ){
-                isValid = false;
-              }
-            }
-            else{
-              if( not GenericToolbox::doesStringContainsSubstring(entryCandidate, nameElements[iElement])
-                  ){
-                isValid = false;
-                break;
-              }
-            }
-
-            if( iElement+1 != int(nameElements.size()) ){
-              entryCandidate = GenericToolbox::splitString(entryCandidate, nameElements[iElement]).back();
+          if( iElement == 0 ){
+            if( not GenericToolbox::doesStringStartsWithSubstring(entryCandidate, nameElements[iElement]) ){
+              isValid = false;
+              break;
             }
           }
-        }
-        if(isValid) entries_list.emplace_back(entry->d_name);
-      }
-      closedir(directory);
-      return entries_list;
-    }
+          else if( iElement+1 == nameElements.size() ){
+            if(not GenericToolbox::doesStringEndsWithSubstring(entryCandidate, nameElements[iElement]) ){
+              isValid = false;
+            }
+          }
+          else{
+            if( not GenericToolbox::doesStringContainsSubstring(entryCandidate, nameElements[iElement])
+                ){
+              isValid = false;
+              break;
+            }
+          }
 
+          if( iElement+1 != nameElements.size() ){
+            entryCandidate = GenericToolbox::splitString(entryCandidate, nameElements[iElement]).back();
+          }
+        }
+        if( not isValid ) continue;
+      }
+      subFoldersList.emplace_back(entry->d_name);
+    }
+    closedir(directory);
+    return subFoldersList;
   }
-  static inline std::vector<std::string> getListOfSubfoldersInFolder(const std::string &folderPath_, const std::string &entryNameRegex_) {
-    std::vector<std::string> subfolders_list;
-    if(not doesPathIsFolder(folderPath_)) return subfolders_list;
-    DIR* directory;
-    directory = opendir(folderPath_.c_str()); //Open current-working-directory.
-    if( directory == nullptr ) {
-      std::cout << "Failed to open directory : " << folderPath_ << std::endl;
-      return subfolders_list;
-    } else {
-
-        std::vector<std::string> nameElements;
-        if(not entryNameRegex_.empty()){
-            nameElements = GenericToolbox::splitString(entryNameRegex_, "*");
-        }
-        bool isValid;
-
-      struct dirent* entry;
-      while ( (entry = readdir(directory)) ) {
-          isValid = true;
-        std::string folder_candidate = folderPath_ + "/" + std::string(entry->d_name);
-        if(doesPathIsFolder(folder_candidate)){
-            if(std::string(entry->d_name) == "." or std::string(entry->d_name) == ".."){
-                isValid = false;
-            }
-            else if(not entryNameRegex_.empty()){
-              std::string entryCandidate = entry->d_name;
-
-              for( int iElement = 0 ; iElement < int(nameElements.size()) ; iElement++ ){
-
-                if( iElement == 0 ){
-                  if( not GenericToolbox::doesStringStartsWithSubstring(entryCandidate, nameElements[iElement]) ){
-                    isValid = false;
-                    break;
-                  }
-                }
-                else if( iElement+1 == int(nameElements.size()) ){
-                  if(not GenericToolbox::doesStringEndsWithSubstring(entryCandidate, nameElements[iElement]) ){
-                    isValid = false;
-                  }
-                }
-                else{
-                  if( not GenericToolbox::doesStringContainsSubstring(entryCandidate, nameElements[iElement])
-                      ){
-                    isValid = false;
-                    break;
-                  }
-                }
-
-                if( iElement+1 != int(nameElements.size()) ){
-                  entryCandidate = GenericToolbox::splitString(entryCandidate, nameElements[iElement]).back();
-                }
-              }
-            }
-            if(isValid) subfolders_list.emplace_back(entry->d_name);
-        }
-      }
-      closedir(directory);
-      return subfolders_list;
-    }
-
+  static inline std::vector<std::string> getListOfSubFoldersInFolder(const std::string &folderPath_, const std::string &entryNameRegex_) {
+    return GenericToolbox::getListOfEntriesInFolder(folderPath_, entryNameRegex_, DT_DIR);
   }
   static inline std::vector<std::string> getListOfFilesInFolder(const std::string &folderPath_, const std::string &entryNameRegex_){
-    std::vector<std::string> files_list;
-    if(not doesPathIsFolder(folderPath_)) return files_list;
-    DIR* directory;
-    directory = opendir(folderPath_.c_str()); //Open current-working-directory.
-    if( directory == nullptr ) {
-      std::cout << "Failed to open directory : " << folderPath_ << std::endl;
-      return files_list;
-    } else {
-
-        std::vector<std::string> nameElements;
-        if(not entryNameRegex_.empty()){
-            nameElements = GenericToolbox::splitString(entryNameRegex_, "*");
-        }
-        bool isValid;
-
-      struct dirent* entry;
-      while ( (entry = readdir(directory)) ) {
-          isValid = true;
-        std::string file_candidate = folderPath_ + "/" + std::string(entry->d_name);
-        if(doesPathIsFile(file_candidate)){
-            if(not entryNameRegex_.empty()){
-              std::string entryCandidate = entry->d_name;
-
-              for( int iElement = 0 ; iElement < int(nameElements.size()) ; iElement++ ){
-
-                if( iElement == 0 ){
-                  if( not GenericToolbox::doesStringStartsWithSubstring(entryCandidate, nameElements[iElement]) ){
-                    isValid = false;
-                    break;
-                  }
-                }
-                else if( iElement+1 == int(nameElements.size()) ){
-                  if(not GenericToolbox::doesStringEndsWithSubstring(entryCandidate, nameElements[iElement]) ){
-                    isValid = false;
-                  }
-                }
-                else{
-                  if( not GenericToolbox::doesStringContainsSubstring(entryCandidate, nameElements[iElement])
-                      ){
-                    isValid = false;
-                    break;
-                  }
-                }
-
-                if( iElement+1 != int(nameElements.size()) ){
-                  entryCandidate = GenericToolbox::splitString(entryCandidate, nameElements[iElement]).back();
-                }
-              }
-            }
-            if(isValid) files_list.emplace_back(entry->d_name);
-        }
-      }
-      closedir(directory);
-      return files_list;
-    }
+    return GenericToolbox::getListOfEntriesInFolder(folderPath_, entryNameRegex_, DT_REG);
   }
 
   // -- with direct IO dependencies
@@ -1314,28 +1206,23 @@ namespace GenericToolbox{
     if(not doesPathIsFolder(folderPath_)) return false;
     return getListOfEntriesInFolder(folderPath_, std::string()).empty();
   }
-  static inline std::vector<std::string> getListOfFilesInSubfolders(const std::string &folderPath_) {
-
+  static inline std::vector<std::string> getListOfFilesInSubFolders(const std::string &folderPath_) {
     // WARNING : Recursive function
-    std::vector<std::string> outputFilePaths = getListOfFilesInFolder(folderPath_);
 
-    auto subFolderList = getListOfSubfoldersInFolder(folderPath_);
-    for(auto &subfolder_name : subFolderList){
-      std::string subfolder_full_path = folderPath_;
-      subfolder_full_path += "/";
-      subfolder_full_path += subfolder_name;
-      auto subfile_names_list = getListOfFilesInSubfolders(subfolder_full_path);
-      for(auto &subfile_name : subfile_names_list){
-        std::string relative_subfile_path;
-        relative_subfile_path += subfolder_name;
-        relative_subfile_path += "/";
-        relative_subfile_path += subfile_name;
-        outputFilePaths.emplace_back(removeRepeatedCharacters(relative_subfile_path, "/"));
+    // first, get the files in this folder
+    std::vector<std::string> outputFilePaths = GenericToolbox::getListOfFilesInFolder(folderPath_);
+
+    // then walk in sub-folders
+    for(auto &subFolder : GenericToolbox::getListOfSubFoldersInFolder(folderPath_)){
+      for(auto &subFile : GenericToolbox::getListOfFilesInSubFolders(folderPath_ + "/" + subFolder)){ // recursive
+        std::string relativeSubFilePath{subFolder};
+        relativeSubFilePath += "/";
+        relativeSubFilePath += subFile;
+        outputFilePaths.emplace_back(GenericToolbox::removeRepeatedCharacters(relativeSubFilePath, "/"));
       }
     }
 
     return outputFilePaths;
-
   }
 
 }
