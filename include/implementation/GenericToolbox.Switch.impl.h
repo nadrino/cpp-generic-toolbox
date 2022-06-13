@@ -298,6 +298,87 @@ namespace GenericToolbox::Switch {
       return icon;
     }
   }
+
+  namespace Printout {
+
+    static inline void printRight(const std::string& input_, const std::string& color_, bool flush_){
+      int nbSpaceLeft{GenericToolbox::Switch::Hardware::getTerminalWidth()};
+      nbSpaceLeft -= int(GenericToolbox::getPrintSize(input_));
+      if( nbSpaceLeft <= 0 ){
+        GenericToolbox::Switch::Printout::printRight(
+            input_.substr(0, input_.size() + nbSpaceLeft - int(flush_)), // remove extra char if flush
+            color_,
+            flush_
+            );
+        return;
+      }
+
+      if(flush_){ nbSpaceLeft-=1; std::cout << "\r"; }
+      std::cout << color_ << GenericToolbox::repeatString(" ", nbSpaceLeft) << input_ << GenericToolbox::ColorCodes::resetColor;
+      if(flush_) std::cout << "\r";
+      else if(int(input_.size()) > GenericToolbox::Switch::Hardware::getTerminalWidth()) std::cout << std::endl;
+    }
+    static inline void printLeft(const std::string& input_, const std::string& color_, bool flush_){
+      int nbSpaceLeft{GenericToolbox::Switch::Hardware::getTerminalWidth()};
+      nbSpaceLeft -= int(GenericToolbox::getPrintSize(input_));
+      if( nbSpaceLeft <= 0 ){
+        GenericToolbox::Switch::Printout::printLeft(
+            input_.substr(0, input_.size() + nbSpaceLeft - int(flush_)), // remove extra char if flush
+            color_,
+            flush_
+        );
+        return;
+      }
+      if(flush_){ nbSpaceLeft-=1; std::cout << "\r"; }
+      std::cout << color_ << input_ << GenericToolbox::repeatString(" ", nbSpaceLeft) << GenericToolbox::ColorCodes::resetColor;
+      if(flush_) std::cout << "\r";
+      else if(int(input_.size()) > GenericToolbox::Switch::Hardware::getTerminalWidth()) std::cout << std::endl;
+    }
+    static inline void printLeftRight(const std::string& input_left_, const std::string& input_right_, const std::string& color_){
+      int nbSpaceLeft{GenericToolbox::Switch::Hardware::getTerminalWidth()};
+      nbSpaceLeft -= int(GenericToolbox::getPrintSize(input_left_));
+      nbSpaceLeft -= int(GenericToolbox::getPrintSize(input_right_));
+
+      if(nbSpaceLeft <= 0){
+        GenericToolbox::Switch::Printout::printLeftRight(
+            input_left_.substr(0, input_left_.size() + nbSpaceLeft),
+            input_right_,
+            color_
+        );
+        return;
+      }
+
+      std::cout << color_ << input_left_;
+      std::cout << GenericToolbox::repeatString(" ", nbSpaceLeft);
+      std::cout << input_right_;
+      std::cout << GenericToolbox::ColorCodes::resetColor;
+      if(GenericToolbox::Switch::Hardware::getTerminalWidth() < int(input_left_.size()) + int(input_right_.size())) std::cout << std::endl;
+    }
+
+  }
+
+  namespace Hardware{
+    static inline u64 getMemoryInfo(PhysicalMemoryType type_, PhysicalMemoryOf of_) {
+      u64 out{0};
+      svcGetSystemInfo(&out, type_, INVALID_HANDLE, of_);
+      return out;
+    }
+    static inline std::string getMemoryUsageStr(PhysicalMemoryOf of_) {
+      std::stringstream ss;
+      ss << PhysicalMemoryOfEnumNamespace::toString(of_) << ": ";
+      ss << GenericToolbox::parseSizeUnits(double(getMemoryInfo(UsedPhysicalMemorySize, of_)));
+      ss << "/";
+      ss << GenericToolbox::parseSizeUnits(double(getMemoryInfo(TotalPhysicalMemorySize, of_)));
+      return ss.str();
+    }
+
+    static inline int getTerminalWidth(){
+      return consoleGetDefault()->consoleWidth;
+    }
+    static inline int getTerminalHeight(){
+      return consoleGetDefault()->consoleHeight;
+    }
+  }
 }
 
 #endif

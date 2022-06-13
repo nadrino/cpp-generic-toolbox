@@ -7,6 +7,8 @@
 
 #ifdef __SWITCH__
 
+#include "GenericToolbox.h"
+
 #include "switch.h"
 #include "zlib.h"
 
@@ -56,6 +58,34 @@ namespace GenericToolbox::Switch{
 
   // Printout
   namespace Printout{
+
+    static inline void printRight(const std::string& input_, const std::string& color_ = "", bool flush_ = false);
+    static inline void printLeft(const std::string& input_, const std::string& color_ = "", bool flush_ = false);
+    static inline void printLeftRight(const std::string& input_left_, const std::string& input_right_, const std::string& color_ = "");
+
+  }
+
+  // Hardware
+  namespace Hardware{
+    ENUM_EXPANDER(
+        PhysicalMemoryType, 0,
+        TotalPhysicalMemorySize,
+        UsedPhysicalMemorySize
+    )
+
+    ENUM_EXPANDER(
+        PhysicalMemoryOf, 0,
+        Application,
+        Applet,
+        System,
+        SystemUnsafe
+        )
+
+    static inline u64 getMemoryInfo(PhysicalMemoryType type_, PhysicalMemoryOf of_);
+    static inline std::string getMemoryUsageStr(PhysicalMemoryOf of_);
+
+    static inline int getTerminalWidth();
+    static inline int getTerminalHeight();
 
   }
 

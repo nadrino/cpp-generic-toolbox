@@ -1555,7 +1555,7 @@ namespace GenericToolbox{
     }                                                                 \
     static inline std::string getEnumStr(int enumValue_){\
       enumValue_ -= (_intOffset_);\
-      if( enumValue_ < 0 || enumValue_ >= getEnumSize() ) throw std::runtime_error("invalid enum.");\
+      if( enumValue_ < 0 || enumValue_ >= int(getEnumSize()) ) throw std::runtime_error("invalid enum.");\
       std::string out; std::stringstream ss{enumNamesAggregate};\
       while (enumValue_-- >= 0) { std::getline(ss, out, ','); } \
       return GenericToolbox::trimString(out, " ");\
