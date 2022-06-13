@@ -21,20 +21,7 @@ namespace GenericToolbox::Switch{
   namespace IO{
 
     struct ParametersHolder{
-      inline void initFileSystemBuffer(){
-        if( this->fsBuffer != nullptr ){ return; }
-        fsdevMountSdmc();
-        this->fsBuffer = fsdevGetDeviceFileSystem("sdmc");
-      }
-
-//      ParametersHolder() = default;
-      ParametersHolder(){
-        this->initFileSystemBuffer();
-      };
-
-      FsFileSystem* fsBuffer{nullptr};
       bool useCrcCheck{true};
-
       static const size_t maxBufferSize{0x200000}; // 2 MB
       static const size_t minBufferSize{0x10000}; // 65 KB
     };
@@ -43,11 +30,13 @@ namespace GenericToolbox::Switch{
     // Read/Write
     static inline bool copyFile(const std::string& srcFilePath_, const std::string& dstFilePath_, bool force_=true);
     static inline bool doFilesAreIdentical(const std::string& file1Path_, const std::string& file2Path_);
+    static inline void dumpStringInFile(const std::string &outFilePath_, const std::string &stringToWrite_);
   }
 
   // Utils
   namespace Utils{
     struct BuffersHolder{
+      std::map<std::string, std::string> strMap;
       std::map<std::string, double> progressMap;
     };
     static BuffersHolder b{};
@@ -56,12 +45,18 @@ namespace GenericToolbox::Switch{
     static inline uint8_t* getFolderIconFromTitleId(const std::string& titleId_);
   }
 
+  namespace UI{
+    static inline std::string openKeyboardUi(const std::string &defaultStr_ = "");
+  }
+
   // Printout
   namespace Printout{
-
     static inline void printRight(const std::string& input_, const std::string& color_ = "", bool flush_ = false);
     static inline void printLeft(const std::string& input_, const std::string& color_ = "", bool flush_ = false);
     static inline void printLeftRight(const std::string& input_left_, const std::string& input_right_, const std::string& color_ = "");
+
+    static inline void makePause();
+    template<typename T, typename TT> static inline void displayProgressBar( const T& iCurrent_, const TT& iTotal_, const std::string &title_ = "", bool forcePrint_ = false);
 
   }
 

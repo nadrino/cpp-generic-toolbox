@@ -33,7 +33,7 @@ namespace GenericToolbox{
         iCurrent_ == 0 // First call
         or this->_lastDisplayedPercentValue_ == -1 // never printed before
         or _deltaTimeMilliSec_ >= long(this->_refreshRateInMilliSec_)
-        or iCurrent_ + 1 >= iTotal_ // last entry (mandatory to print at least once: need to print endl)
+        or iCurrent_ + 1 >= T(iTotal_) // last entry (mandatory to print at least once: need to print endl)
         ){
 
       int percent = int(std::round(double(iCurrent_) / double(iTotal_) * 100.));

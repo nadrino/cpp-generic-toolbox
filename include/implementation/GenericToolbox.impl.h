@@ -1064,33 +1064,18 @@ namespace GenericToolbox{
     return true;
   }
   static inline bool mvFile(const std::string &sourceFilePath_, const std::string &destinationFilePath_, bool force_) {
-
-    if( not doesPathIsFile(sourceFilePath_) ){
-      return false;
-    }
+    if( not doesPathIsFile(sourceFilePath_) ){ return false; }
 
     if( doesPathIsFile(destinationFilePath_) ){
-      if(force_){
-        deleteFile(destinationFilePath_);
-      }
-      else{
-        return false;
-      }
+      if(force_){ deleteFile(destinationFilePath_); }
+      else{ return false; }
     }
     else{
       std::string destination_folder_path = getFolderPathFromFilePath(destinationFilePath_);
-      if(not doesPathIsFile(destination_folder_path)){
-        mkdirPath(destination_folder_path);
-      }
+      if(not doesPathIsFile(destination_folder_path)){ mkdirPath(destination_folder_path); }
     }
 
-    std::rename(sourceFilePath_.c_str(), destinationFilePath_.c_str());
-
-    if(
-      doesPathIsFile(destinationFilePath_)
-      and not doesPathIsFile(sourceFilePath_)
-      ) return true;
-    else return false;
+    return (std::rename(sourceFilePath_.c_str(), destinationFilePath_.c_str()) == 0);
   }
   static inline size_t getHashFile(const std::string &filePath_) {
     std::hash<std::string> hashString;
