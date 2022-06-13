@@ -44,6 +44,10 @@ namespace GenericToolbox::Switch{
     static inline bool doesPathIsFolder(const std::string& path_);
     static inline bool doesPathIsFile(const std::string& path_);
     static inline ssize_t getFileSize(const std::string& path_);
+    static inline std::vector<std::string> getListOfEntriesInFolder(const std::string& folder_path_);
+    static inline std::vector<std::string> getListOfSubFoldersInFolder(const std::string& folder_path_);
+    static inline std::vector<std::string> getListOfFilesInFolder(const std::string& folderPath_);
+    static inline std::vector<std::string> getListOfFilesInSubFolders(const std::string &folderPath_);
 
     // Read/Write
     static inline bool mkdirPath(const std::string& dirPath_);

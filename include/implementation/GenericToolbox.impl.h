@@ -1314,27 +1314,27 @@ namespace GenericToolbox{
     if(not doesPathIsFolder(folderPath_)) return false;
     return getListOfEntriesInFolder(folderPath_, std::string()).empty();
   }
-  static inline std::vector<std::string> getListFilesInSubfolders(const std::string &folderPath_) {
+  static inline std::vector<std::string> getListOfFilesInSubfolders(const std::string &folderPath_) {
 
     // WARNING : Recursive function
-    std::vector<std::string> output_file_paths = getListOfFilesInFolder(folderPath_);
+    std::vector<std::string> outputFilePaths = getListOfFilesInFolder(folderPath_);
 
-    auto subfolder_names_list = getListOfSubfoldersInFolder(folderPath_);
-    for(auto &subfolder_name : subfolder_names_list){
+    auto subFolderList = getListOfSubfoldersInFolder(folderPath_);
+    for(auto &subfolder_name : subFolderList){
       std::string subfolder_full_path = folderPath_;
       subfolder_full_path += "/";
       subfolder_full_path += subfolder_name;
-      auto subfile_names_list = getListFilesInSubfolders(subfolder_full_path);
+      auto subfile_names_list = getListOfFilesInSubfolders(subfolder_full_path);
       for(auto &subfile_name : subfile_names_list){
         std::string relative_subfile_path;
         relative_subfile_path += subfolder_name;
         relative_subfile_path += "/";
         relative_subfile_path += subfile_name;
-        output_file_paths.emplace_back(removeRepeatedCharacters(relative_subfile_path, "/"));
+        outputFilePaths.emplace_back(removeRepeatedCharacters(relative_subfile_path, "/"));
       }
     }
 
-    return output_file_paths;
+    return outputFilePaths;
 
   }
 

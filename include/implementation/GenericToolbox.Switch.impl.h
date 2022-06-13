@@ -36,6 +36,115 @@ namespace GenericToolbox::Switch {
       stat(path_.c_str(), &st);
       return ssize_t(st.st_size);
     }
+    static inline std::vector<std::string> getListOfEntriesInFolder(const std::string& folder_path_){
+      std::vector<std::string> out;
+      FsDir fs_DirBuffer;
+      if(R_FAILED(fsFsOpenDirectory(p.fsBuffer, folder_path_.c_str(), FsDirOpenMode_ReadDirs | FsDirOpenMode_ReadFiles, &fs_DirBuffer))){
+        fsDirClose(&fs_DirBuffer);
+        return out;
+      }
+      s64 entry_count;
+      if(R_FAILED(fsDirGetEntryCount(&fs_DirBuffer, &entry_count))){
+        fsDirClose(&fs_DirBuffer);
+        return out;
+      }
+      size_t entry_count_size_t(entry_count);
+      s64 total_entries;
+      std::vector<FsDirectoryEntry> fs_directory_entries(entry_count_size_t);
+      if(R_FAILED(fsDirRead(&fs_DirBuffer, &total_entries, entry_count_size_t, &fs_directory_entries[0]))){
+        fsDirClose(&fs_DirBuffer);
+        return out;
+      }
+      for(u32 i_entry = 0 ; i_entry < entry_count_size_t ; i_entry++){
+        std::string entry_name = fs_directory_entries[i_entry].name;
+        if(entry_name == "." or entry_name == ".."){
+          continue;
+        }
+        out.emplace_back(fs_directory_entries[i_entry].name);
+      }
+      fsDirClose(&fs_DirBuffer);
+      return out;
+    }
+    static inline std::vector<std::string> getListOfSubFoldersInFolder(const std::string& folder_path_){
+      std::vector<std::string> out;
+      FsDir fs_DirBuffer;
+      if(R_FAILED(fsFsOpenDirectory(p.fsBuffer, folder_path_.c_str(), FsDirOpenMode_ReadDirs, &fs_DirBuffer))){
+        fsDirClose(&fs_DirBuffer);
+        return out;
+      }
+      s64 entry_count;
+      if(R_FAILED(fsDirGetEntryCount(&fs_DirBuffer, &entry_count))){
+        fsDirClose(&fs_DirBuffer);
+        return out;
+      }
+      size_t entry_count_size_t(entry_count);
+      s64 total_entries;
+      std::vector<FsDirectoryEntry> fs_directory_entries(entry_count_size_t);
+      if(R_FAILED(fsDirRead(&fs_DirBuffer, &total_entries, entry_count_size_t, &fs_directory_entries[0]))){
+        fsDirClose(&fs_DirBuffer);
+        return out;
+      }
+      for(u32 i_entry = 0 ; i_entry < entry_count_size_t ; i_entry++){
+        if(fs_directory_entries[i_entry].type != FsDirEntryType_Dir) // should not be necessary
+          continue;
+        std::string entry_name = fs_directory_entries[i_entry].name;
+        if(entry_name == "." or entry_name == ".."){
+          continue;
+        }
+        out.emplace_back(fs_directory_entries[i_entry].name);
+      }
+      fsDirClose(&fs_DirBuffer);
+      return out;
+    }
+    static inline std::vector<std::string> getListOfFilesInFolder(const std::string& folderPath_){
+      std::vector<std::string> out;
+      FsDir fs_DirBuffer;
+      if(R_FAILED(fsFsOpenDirectory(p.fsBuffer, folderPath_.c_str(), FsDirOpenMode_ReadFiles, &fs_DirBuffer))){
+        fsDirClose(&fs_DirBuffer);
+        return out;
+      }
+      s64 entry_count;
+      if(R_FAILED(fsDirGetEntryCount(&fs_DirBuffer, &entry_count))){
+        fsDirClose(&fs_DirBuffer);
+        return out;
+      }
+      size_t entry_count_size_t(entry_count);
+      s64 total_entries;
+      std::vector<FsDirectoryEntry> fs_directory_entries(entry_count_size_t);
+      if(R_FAILED(fsDirRead(&fs_DirBuffer, &total_entries, entry_count_size_t, &fs_directory_entries[0]))){
+        fsDirClose(&fs_DirBuffer);
+        return out;
+      }
+      for(u32 i_entry = 0 ; i_entry < entry_count_size_t ; i_entry++){
+        if(fs_directory_entries[i_entry].type != FsDirEntryType_File)
+          continue;
+        std::string entry_name = fs_directory_entries[i_entry].name;
+        if(entry_name == "." or entry_name == ".."){
+          continue;
+        }
+        out.emplace_back(fs_directory_entries[i_entry].name);
+      }
+      fsDirClose(&fs_DirBuffer);
+      return out;
+    }
+    static inline std::vector<std::string> getListOfFilesInSubFolders(const std::string &folderPath_){
+      // WARNING : Recursive function
+      std::vector<std::string> out(GenericToolbox::Switch::IO::getListOfFilesInFolder(folderPath_));
+      for(auto &subFolder : GenericToolbox::Switch::IO::getListOfSubFoldersInFolder(folderPath_)){
+        std::string subfolder_full_path = folderPath_;
+        subfolder_full_path += "/";
+        subfolder_full_path += subFolder;
+        auto subfile_names_list = GenericToolbox::Switch::IO::getListOfFilesInSubFolders(subfolder_full_path);
+        for(auto &subfile_name : subfile_names_list){
+          std::string relative_subfile_path;
+          relative_subfile_path += subFolder;
+          relative_subfile_path += "/";
+          relative_subfile_path += subfile_name;
+          out.emplace_back(GenericToolbox::removeRepeatedCharacters(relative_subfile_path, "/"));
+        }
+      }
+      return out;
+    }
 
 
     static inline bool mkdirPath(const std::string& dirPath_){
