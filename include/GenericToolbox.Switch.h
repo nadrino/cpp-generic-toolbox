@@ -50,7 +50,7 @@ namespace GenericToolbox::Switch{
   }
 
   // Printout
-  namespace Printout{
+  namespace Terminal{
     static inline void printRight(const std::string& input_, const std::string& color_ = "", bool flush_ = false);
     static inline void printLeft(const std::string& input_, const std::string& color_ = "", bool flush_ = false);
     static inline void printLeftRight(const std::string& input_left_, const std::string& input_right_, const std::string& color_ = "");

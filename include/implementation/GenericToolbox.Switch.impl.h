@@ -162,13 +162,13 @@ namespace GenericToolbox::Switch {
     }
   }
 
-  namespace Printout {
+  namespace Terminal {
 
     static inline void printRight(const std::string& input_, const std::string& color_, bool flush_){
       int nbSpaceLeft{GenericToolbox::Switch::Hardware::getTerminalWidth()};
       nbSpaceLeft -= int(GenericToolbox::getPrintSize(input_));
       if( nbSpaceLeft <= 0 ){
-        GenericToolbox::Switch::Printout::printRight(
+        GenericToolbox::Switch::Terminal::printRight(
             input_.substr(0, input_.size() + nbSpaceLeft - int(flush_)), // remove extra char if flush
             color_,
             flush_
@@ -185,7 +185,7 @@ namespace GenericToolbox::Switch {
       int nbSpaceLeft{GenericToolbox::Switch::Hardware::getTerminalWidth()};
       nbSpaceLeft -= int(GenericToolbox::getPrintSize(input_));
       if( nbSpaceLeft <= 0 ){
-        GenericToolbox::Switch::Printout::printLeft(
+        GenericToolbox::Switch::Terminal::printLeft(
             input_.substr(0, input_.size() + nbSpaceLeft - int(flush_)), // remove extra char if flush
             color_,
             flush_
@@ -203,7 +203,7 @@ namespace GenericToolbox::Switch {
       nbSpaceLeft -= int(GenericToolbox::getPrintSize(input_right_));
 
       if(nbSpaceLeft <= 0){
-        GenericToolbox::Switch::Printout::printLeftRight(
+        GenericToolbox::Switch::Terminal::printLeftRight(
             input_left_.substr(0, input_left_.size() + nbSpaceLeft),
             input_right_,
             color_
