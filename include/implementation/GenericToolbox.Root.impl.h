@@ -803,12 +803,40 @@ namespace GenericToolbox {
       h_->SetBinContent( iBin_,globalScaler_ * h_->GetBinContent(iBin_)/hist_->GetBinWidth(iBin_) );
     }, true);
   }
-  void transformBinContent(TH1D* hist_, std::function<void(TH1D*, int)> transformFunction_, bool processOverflowBins_){
+  void transformBinContent(TH1D* hist_, const std::function<void(TH1D*, int)>& transformFunction_, bool processOverflowBins_){
     int firstBin = processOverflowBins_ ? 0 : 1;
     int lastBin = processOverflowBins_ ? hist_->GetNbinsX() + 1 : hist_->GetNbinsX();
     for( int iBin = firstBin ; iBin <= lastBin ; iBin++ ){
       transformFunction_(hist_, iBin);
     }
+  }
+  inline std::pair<double, double> getYBounds(TH1* h_, const std::pair<double, double>& margins_){
+    std::pair<double, double> out{std::nan("unset"), std::nan("unset")};
+    if( h_ == nullptr ) return out;
+    for( int iBin = 1 ; iBin <= h_->GetNbinsX() ; iBin++ ){
+      double minValCandidate = h_->GetBinContent(iBin) - h_->GetBinError(iBin);
+      double maxValCandidate = h_->GetBinContent(iBin) + h_->GetBinError(iBin);
+      if( out.first != out.first ) out.first = minValCandidate;
+      if( out.second != out.second ) out.second = maxValCandidate;
+      out.first = std::min(out.first, minValCandidate);
+      out.second = std::max(out.second, maxValCandidate);
+    }
+    double yRange = (out.second-out.first);
+    out.first -= margins_.first * yRange;
+    out.second += margins_.second * yRange;
+    return out;
+  }
+  inline std::pair<double, double> getYBounds(const std::vector<TH1*>& h_, const std::pair<double, double>& margins_){
+    std::pair<double, double> out{std::nan("unset"), std::nan("unset")};
+    for( auto& hist : h_ ){
+      if( hist == nullptr ) continue;
+      auto bounds = getYBounds(hist, margins_);
+      if( out.first != out.first ) out.first = bounds.first;
+      if( out.second != out.second ) out.second = bounds.second;
+      out.first = std::min(out.first, bounds.first);
+      out.second = std::max(out.second, bounds.second);
+    }
+    return out;
   }
   std::vector<double> getLogBinning(int n_bins_, double X_min_, double X_max_) {
     std::vector<double> output(n_bins_ + 1); // add one extra bin for the boundary
