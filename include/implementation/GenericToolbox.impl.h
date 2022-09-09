@@ -260,14 +260,14 @@ namespace GenericToolbox {
   }
 
   // Sorting
-  template <typename T> static inline std::vector<size_t> getSortPermutation(const std::vector<T>& vectorToSort_, std::function<bool(const T&, const T&)> firstArgGoesFirstFct_ ){
+  template <typename T> static inline std::vector<size_t> getSortPermutation(const std::vector<T>& vectorToSort_, const std::function<bool(const T&, const T&)>& firstArgGoesFirstFct_ ){
     std::vector<size_t> p(vectorToSort_.size());
     std::iota(p.begin(), p.end(), 0);
     std::sort(p.begin(), p.end(),
               [&](size_t i, size_t j){ return firstArgGoesFirstFct_(vectorToSort_.at(i), vectorToSort_.at(j)); });
     return p;
   }
-  template <typename T> static inline std::vector<size_t> getSortPermutation(const std::vector<T>& vectorToSort_, std::function<bool(const T, const T)> firstArgGoesFirstFct_ ){
+  template <typename T> static inline std::vector<size_t> getSortPermutation(const std::vector<T>& vectorToSort_, const std::function<bool(T, T)>& firstArgGoesFirstFct_ ){
     std::vector<size_t> p(vectorToSort_.size());
     std::iota(p.begin(), p.end(), 0);
     std::sort(p.begin(), p.end(),
@@ -281,12 +281,28 @@ namespace GenericToolbox {
                    [&](std::size_t i){ return vectorToPermute_[i]; });
     return sorted_vec;
   }
-  template <typename T> static inline void applySwapPermutation(std::vector<T>& vectorToPermute_, const std::vector<std::size_t>& sortPermutation_ ){
-    std::transform(sortPermutation_.begin(), sortPermutation_.end(), vectorToPermute_.begin(),
-                   [&](std::size_t i){ return vectorToPermute_[i]; });
-  }
+  template <typename T> static inline void applySwapPermutation(std::vector<T>& vectorToPermute_, std::vector<std::size_t> sortPermutation_ ){
+		for(size_t index = 0 ; index < vectorToPermute_.size(); index++){
+			// Swap the element at "index" with the one that should be here
+			std::swap(vectorToPermute_[index], vectorToPermute_[sortPermutation_[index]]);
+			// Now make sure the one that was originally at this place gets its index updated in the permutation list
+			for( size_t iPermut = index ; iPermut < sortPermutation_.size() ; iPermut++ ){
+				// Searching for its "index" in the permutation list
+				if( index == sortPermutation_[iPermut] ){
+					// Update with its new index and leave the loop
+					sortPermutation_[iPermut] = sortPermutation_[index]; break;
+				}
+			}
+		}
+	}
+	template <typename T> static inline void sortVector(std::vector<T>& vectorToSort_, const std::function<bool(const T&, const T&)>& firstArgGoesFirstFct_){
+		GenericToolbox::applySwapPermutation( vectorToSort_, GenericToolbox::getSortPermutation(vectorToSort_, firstArgGoesFirstFct_) );
+	}
+	template <typename T> static inline void sortVector(std::vector<T>& vectorToSort_, const std::function<bool(T, T)>& firstArgGoesFirstFct_){
+		GenericToolbox::applySwapPermutation( vectorToSort_, GenericToolbox::getSortPermutation(vectorToSort_, firstArgGoesFirstFct_) );
+	}
 
-  // Others
+	// Others
   template<typename T, typename TT> static inline T& getListEntry(std::list<T>& list_, TT index_){
     typename std::list<T>::iterator it = list_.begin();
     std::advance(it, index_);
