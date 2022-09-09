@@ -110,7 +110,7 @@ namespace GenericToolbox{
   }
   static inline std::string parseIntAsString(int intToFormat_){
     if(intToFormat_ / 1000 < 10){
-        return std::to_string(intToFormat_);
+      return std::to_string(intToFormat_);
     }
     intToFormat_/=1000.; // in K
     if(intToFormat_ / 1000 < 10){
@@ -282,27 +282,27 @@ namespace GenericToolbox {
     return sorted_vec;
   }
   template <typename T> static inline void applySwapPermutation(std::vector<T>& vectorToPermute_, std::vector<std::size_t> sortPermutation_ ){
-		for(size_t index = 0 ; index < vectorToPermute_.size(); index++){
-			// Swap the element at "index" with the one that should be here
-			std::swap(vectorToPermute_[index], vectorToPermute_[sortPermutation_[index]]);
-			// Now make sure the one that was originally at this place gets its index updated in the permutation list
-			for( size_t iPermut = index ; iPermut < sortPermutation_.size() ; iPermut++ ){
-				// Searching for its "index" in the permutation list
-				if( index == sortPermutation_[iPermut] ){
-					// Update with its new index and leave the loop
-					sortPermutation_[iPermut] = sortPermutation_[index]; break;
-				}
-			}
-		}
-	}
-	template <typename T> static inline void sortVector(std::vector<T>& vectorToSort_, const std::function<bool(const T&, const T&)>& firstArgGoesFirstFct_){
-		GenericToolbox::applySwapPermutation( vectorToSort_, GenericToolbox::getSortPermutation(vectorToSort_, firstArgGoesFirstFct_) );
-	}
-	template <typename T> static inline void sortVector(std::vector<T>& vectorToSort_, const std::function<bool(T, T)>& firstArgGoesFirstFct_){
-		GenericToolbox::applySwapPermutation( vectorToSort_, GenericToolbox::getSortPermutation(vectorToSort_, firstArgGoesFirstFct_) );
-	}
+    for(size_t index = 0 ; index < vectorToPermute_.size(); index++){
+      // Swap the element at "index" with the one that should be here
+      std::swap(vectorToPermute_[index], vectorToPermute_[sortPermutation_[index]]);
+      // Now make sure the one that was originally at this place gets its index updated in the permutation list
+      for( size_t iPermut = index ; iPermut < sortPermutation_.size() ; iPermut++ ){
+        // Searching for its "index" in the permutation list
+        if( index == sortPermutation_[iPermut] ){
+          // Update with its new index and leave the loop
+          sortPermutation_[iPermut] = sortPermutation_[index]; break;
+        }
+      }
+    }
+  }
+  template <typename T> static inline void sortVector(std::vector<T>& vectorToSort_, const std::function<bool(const T&, const T&)>& firstArgGoesFirstFct_){
+    GenericToolbox::applySwapPermutation( vectorToSort_, GenericToolbox::getSortPermutation(vectorToSort_, firstArgGoesFirstFct_) );
+  }
+  template <typename T> static inline void sortVector(std::vector<T>& vectorToSort_, const std::function<bool(T, T)>& firstArgGoesFirstFct_){
+    GenericToolbox::applySwapPermutation( vectorToSort_, GenericToolbox::getSortPermutation(vectorToSort_, firstArgGoesFirstFct_) );
+  }
 
-	// Others
+  // Others
   template<typename T, typename TT> static inline T& getListEntry(std::list<T>& list_, TT index_){
     typename std::list<T>::iterator it = list_.begin();
     std::advance(it, index_);
@@ -349,13 +349,13 @@ namespace GenericToolbox {
   }
   template <typename T1, typename T2> static inline std::string parseMapAsString(const std::map<T1, T2>& map_, bool enableLineJump_){
     return GenericToolbox::iterableToString(
-        map_,
-        [&](const std::pair<T1, T2>& elm_){
-          std::stringstream ss;
-          ss << "{ " << elm_.first << ": " << elm_.second << " }";
-          return ss.str();
-        },
-        enableLineJump_, enableLineJump_);
+            map_,
+            [&](const std::pair<T1, T2>& elm_){
+              std::stringstream ss;
+              ss << "{ " << elm_.first << ": " << elm_.second << " }";
+              return ss.str();
+            },
+            enableLineJump_, enableLineJump_);
   }
   template <typename T1, typename T2> static inline void printMap(const std::map<T1, T2>& map_, bool enableLineJump_){
     std::cout << parseMapAsString(map_, enableLineJump_) << std::endl;
@@ -438,11 +438,11 @@ namespace GenericToolbox {
     }
 
     outputStr.erase(
-      remove_if(
-        outputStr.begin(), outputStr.end(),
-        [](const char& c){return !isprint( static_cast<unsigned char>( c ) );}
-      ),
-      outputStr.end()
+            remove_if(
+                    outputStr.begin(), outputStr.end(),
+                    [](const char& c){return !isprint( static_cast<unsigned char>( c ) );}
+            ),
+            outputStr.end()
     );
 
     return outputStr;
@@ -471,7 +471,7 @@ namespace GenericToolbox {
   static inline size_t getPrintSize(const std::string& str_){
     if( str_.empty() ) return 0;
 #if defined(__GNUC__) && !defined(__clang__) && (__GNUC__ < 4 || (__GNUC__ == 4 && __GNUC_MINOR__ < 9))
-// this is gcc 4.8 or earlier
+    // this is gcc 4.8 or earlier
 // std::regex support is buggy, so don't use in this block
   return str_.size();
 #else
@@ -479,12 +479,12 @@ namespace GenericToolbox {
 // hopefully std::regex support is ok here
     std::string::iterator::difference_type result = 0;
     std::for_each(
-      std::sregex_token_iterator(str_.begin(), str_.end(), StringManagementUtils::ansiRegex, -1),
-      std::sregex_token_iterator(),
-      [&result](std::sregex_token_iterator::value_type const& e) {
-        std::string tmp(e);
-        result += std::count_if(tmp.begin(), tmp.end(), ::isprint);
-      }
+            std::sregex_token_iterator(str_.begin(), str_.end(), StringManagementUtils::ansiRegex, -1),
+            std::sregex_token_iterator(),
+            [&result](std::sregex_token_iterator::value_type const& e) {
+              std::string tmp(e);
+              result += std::count_if(tmp.begin(), tmp.end(), ::isprint);
+            }
     );
     return result;
 #endif
@@ -498,14 +498,14 @@ namespace GenericToolbox {
     return outputStr;
   }
   static inline std::string trimString(const std::string &inputStr_, const std::string &strToTrim_){
-      std::string outputStr(inputStr_);
-      while(GenericToolbox::doesStringStartsWithSubstring(outputStr, strToTrim_)){
-          outputStr = outputStr.substr(strToTrim_.size(), outputStr.size());
-      }
-      while(GenericToolbox::doesStringEndsWithSubstring(outputStr, strToTrim_)){
-          outputStr = outputStr.substr(0, outputStr.size() - strToTrim_.size());
-      }
-      return outputStr;
+    std::string outputStr(inputStr_);
+    while(GenericToolbox::doesStringStartsWithSubstring(outputStr, strToTrim_)){
+      outputStr = outputStr.substr(strToTrim_.size(), outputStr.size());
+    }
+    while(GenericToolbox::doesStringEndsWithSubstring(outputStr, strToTrim_)){
+      outputStr = outputStr.substr(0, outputStr.size() - strToTrim_.size());
+    }
+    return outputStr;
   }
   static inline std::string padString(const std::string& inputStr_, unsigned int padSize_, const char& padChar){
     std::string outputString;
@@ -952,10 +952,10 @@ namespace GenericToolbox{
     if(filePath_[0] == '/') folder_path += "/";
     auto splitted_path = splitString(filePath_, "/");
     folder_path += joinVectorString(
-      splitted_path,
-      "/",
-      0,
-      int(splitted_path.size()) - 1
+            splitted_path,
+            "/",
+            0,
+            int(splitted_path.size()) - 1
     );
     return folder_path;
   }
@@ -963,8 +963,8 @@ namespace GenericToolbox{
     auto splitStr = GenericToolbox::splitString(filePath_, "/");
     if(not splitStr.empty()){
       return ( keepExtension_ ?
-        splitStr[splitStr.size()-1]:
-        GenericToolbox::splitString(splitStr[splitStr.size()-1], ".")[0]
+               splitStr[splitStr.size()-1]:
+               GenericToolbox::splitString(splitStr[splitStr.size()-1], ".")[0]
       );
     }
     return {};
@@ -1183,7 +1183,7 @@ namespace GenericToolbox{
           }
           else{
             if( not GenericToolbox::doesStringContainsSubstring(entryCandidate, nameElements[iElement])
-                ){
+                    ){
               isValid = false;
               break;
             }
@@ -1410,10 +1410,10 @@ namespace GenericToolbox{
     return cs.getCpuUsageByProcess();
   }
   static inline long getProcessMemoryUsageDiffSinceLastCall(){
-      size_t currentProcessMemoryUsage = getProcessMemoryUsage();
-      long outVal = static_cast<long>(currentProcessMemoryUsage) - static_cast<long>(Hardware::lastProcessMemoryUsage);
-      Hardware::lastProcessMemoryUsage = currentProcessMemoryUsage;
-      return outVal;
+    size_t currentProcessMemoryUsage = getProcessMemoryUsage();
+    long outVal = static_cast<long>(currentProcessMemoryUsage) - static_cast<long>(Hardware::lastProcessMemoryUsage);
+    Hardware::lastProcessMemoryUsage = currentProcessMemoryUsage;
+    return outVal;
   }
   static inline int getTerminalWidth(){
     int outWith = 0;
@@ -1487,7 +1487,7 @@ namespace GenericToolbox{
   static inline long long getElapsedTimeSinceLastCallInMicroSeconds( const std::string& key_ ) {
     auto newTimePoint = std::chrono::high_resolution_clock::now();
     auto microseconds = std::chrono::duration_cast<std::chrono::microseconds>(
-      newTimePoint - Internals::_lastTimePointMapStr_[key_]
+            newTimePoint - Internals::_lastTimePointMapStr_[key_]
     );
     Internals::_lastTimePointMapStr_[key_] = newTimePoint;
     return microseconds.count();
@@ -1495,8 +1495,8 @@ namespace GenericToolbox{
   static inline long long getElapsedTimeSinceLastCallInMicroSeconds(int instance_){
     auto newTimePoint = std::chrono::high_resolution_clock::now();
     auto microseconds = std::chrono::duration_cast<std::chrono::microseconds>(
-      newTimePoint - Internals::_lastTimePointMap_[instance_]
-      );
+            newTimePoint - Internals::_lastTimePointMap_[instance_]
+    );
     Internals::_lastTimePointMap_[instance_] = newTimePoint;
     return microseconds.count();
   }
