@@ -275,10 +275,15 @@ namespace GenericToolbox {
     return p;
   }
   template <typename T> static inline std::vector<T> applyPermutation(const std::vector<T>& vectorToPermute_, const std::vector<std::size_t>& sortPermutation_ ){
-    std::vector<T> sorted_vec(vectorToPermute_.size());
+    if(vectorToPermute_.empty()) return {};
+    std::vector<T> sorted_vec(vectorToPermute_.size(), vectorToPermute_[0]);
     std::transform(sortPermutation_.begin(), sortPermutation_.end(), sorted_vec.begin(),
                    [&](std::size_t i){ return vectorToPermute_[i]; });
     return sorted_vec;
+  }
+  template <typename T> static inline void applySwapPermutation(std::vector<T>& vectorToPermute_, const std::vector<std::size_t>& sortPermutation_ ){
+    std::transform(sortPermutation_.begin(), sortPermutation_.end(), vectorToPermute_.begin(),
+                   [&](std::size_t i){ return vectorToPermute_[i]; });
   }
 
   // Others

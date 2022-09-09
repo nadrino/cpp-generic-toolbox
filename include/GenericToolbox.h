@@ -114,6 +114,7 @@ namespace GenericToolbox{
   template <typename T> static inline std::vector<size_t> getSortPermutation(const std::vector<T>& vectorToSort_, std::function<bool(const T&, const T&)> firstArgGoesFirstFct_ );
   template <typename T> static inline std::vector<size_t> getSortPermutation(const std::vector<T>& vectorToSort_, std::function<bool(const T, const T)> firstArgGoesFirstFct_ );
   template <typename T> static inline std::vector<T> applyPermutation(const std::vector<T>& vectorToPermute_, const std::vector<std::size_t>& sortPermutation_ );
+  template <typename T> static inline void applySwapPermutation(std::vector<T>& vectorToPermute_, const std::vector<std::size_t>& sortPermutation_);
 
   // Others
   template<typename T, typename TT> static inline T& getListEntry(std::list<T>& list_, TT index_);
