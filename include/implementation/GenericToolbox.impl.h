@@ -1169,6 +1169,7 @@ namespace GenericToolbox{
 
         bool isValid{true};
         for( size_t iElement = 0 ; iElement < nameElements.size() ; iElement++ ){
+          if(nameElements[iElement].empty()) continue;
 
           if( iElement == 0 ){
             if( not GenericToolbox::doesStringStartsWithSubstring(entryCandidate, nameElements[iElement]) ){
