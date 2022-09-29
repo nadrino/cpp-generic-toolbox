@@ -948,9 +948,11 @@ namespace GenericToolbox{
     return doesStringEndsWithSubstring(filePath_, "." + extension_);
   }
   static inline std::string getFileExtension(const std::string& filePath_){
+    if( filePath_.find_last_of('.') == -1 ) return {};
     return filePath_.substr(filePath_.find_last_of('.') + 1);
   }
   static inline std::string getFolderPathFromFilePath(const std::string &filePath_){
+    if( filePath_.find_last_of("/\\") == -1 ) return {};
     return filePath_.substr(0,filePath_.find_last_of("/\\"));
   }
   static inline std::string getFileNameFromFilePath(const std::string &filePath_, bool keepExtension_){
