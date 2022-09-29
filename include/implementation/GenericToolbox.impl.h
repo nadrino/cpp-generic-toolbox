@@ -956,9 +956,11 @@ namespace GenericToolbox{
     return filePath_.substr(0,filePath_.find_last_of("/\\"));
   }
   static inline std::string getFileNameFromFilePath(const std::string &filePath_, bool keepExtension_){
-    return filePath_.substr(filePath_.find_last_of("/\\")+1);
+    if( keepExtension_ ) return filePath_.substr(filePath_.find_last_of("/\\")+1);
+    else{ return GenericToolbox::replaceFileExtension(filePath_.substr(filePath_.find_last_of("/\\")+1), ""); }
   }
   static inline std::string replaceFileExtension(const std::string& filePath_, const std::string& newExtension_){
+    if( newExtension_.empty() ) return filePath_.substr(0, filePath_.find_last_of('.'));
     return filePath_.substr(0, filePath_.find_last_of('.')) + "." + newExtension_;
   }
 
