@@ -947,27 +947,17 @@ namespace GenericToolbox{
   static inline bool doesFilePathHasExtension(const std::string &filePath_, const std::string &extension_){
     return doesStringEndsWithSubstring(filePath_, "." + extension_);
   }
+  static inline std::string getFileExtension(const std::string& filePath_){
+    return filePath_.substr(filePath_.find_last_of('.') + 1);
+  }
   static inline std::string getFolderPathFromFilePath(const std::string &filePath_){
-    std::string folder_path;
-    if(filePath_[0] == '/') folder_path += "/";
-    auto splitted_path = splitString(filePath_, "/");
-    folder_path += joinVectorString(
-            splitted_path,
-            "/",
-            0,
-            int(splitted_path.size()) - 1
-    );
-    return folder_path;
+    return filePath_.substr(0,filePath_.find_last_of("/\\"));
   }
   static inline std::string getFileNameFromFilePath(const std::string &filePath_, bool keepExtension_){
-    auto splitStr = GenericToolbox::splitString(filePath_, "/");
-    if(not splitStr.empty()){
-      return ( keepExtension_ ?
-               splitStr[splitStr.size()-1]:
-               GenericToolbox::splitString(splitStr[splitStr.size()-1], ".")[0]
-      );
-    }
-    return {};
+    return filePath_.substr(filePath_.find_last_of("/\\")+1);
+  }
+  static inline std::string replaceFileExtension(const std::string& filePath_, const std::string& newExtension_){
+    return filePath_.substr(0, filePath_.find_last_of('.')) + "." + newExtension_;
   }
 
   // -- with direct IO dependencies

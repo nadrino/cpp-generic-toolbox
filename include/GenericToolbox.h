@@ -198,8 +198,10 @@ namespace GenericToolbox{
 
   // -- without IO dependencies (string parsing)
   static inline bool doesFilePathHasExtension(const std::string &filePath_, const std::string &extension_);
+  static inline std::string getFileExtension(const std::string& filePath_);
   static inline std::string getFolderPathFromFilePath(const std::string &filePath_);
   static inline std::string getFileNameFromFilePath(const std::string &filePath_, bool keepExtension_ = true);
+  static inline std::string replaceFileExtension(const std::string& filePath_, const std::string& newExtension_);
 
   // -- with direct IO dependencies
   static inline bool doesPathIsValid(const std::string &filePath_);
