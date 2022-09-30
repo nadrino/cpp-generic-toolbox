@@ -489,6 +489,10 @@ namespace GenericToolbox {
     return result;
 #endif
   }
+  static inline size_t getNLines(const std::string& str_){
+    if( str_.empty() ) return 0;
+    return std::count(str_.begin(), str_.end(), '\n')+1;
+  }
   static inline std::string repeatString(const std::string &inputStr_, int amount_){
     std::string outputStr;
     if(amount_ <= 0) return outputStr;

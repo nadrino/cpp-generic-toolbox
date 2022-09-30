@@ -126,7 +126,9 @@ namespace GenericToolbox{
 #endif
     if( termWidth > 0 ) { // terminal width is measurable
 
-      size_t totalBarLength = GenericToolbox::getPrintSize(ssPrefix.str());
+      size_t lastLinePos = ssPrefix.str().find_last_of('\n');
+      if( lastLinePos == -1 ) lastLinePos = 0;
+      size_t totalBarLength = GenericToolbox::getPrintSize(ssPrefix.str().substr(lastLinePos));
       if(displayedBarLength > 0) {
         totalBarLength += 2; // []
         totalBarLength += displayedBarLength;
@@ -185,12 +187,14 @@ namespace GenericToolbox{
     ssProgressBar << ssTail.str();
 
     ssProgressBar << std::endl; // always jump line to force flush on screen
+    auto nLines = GenericToolbox::getNLines(ssProgressBar.str());
 #ifndef CPP_GENERIC_TOOLBOX_BATCH
     if(_lastDisplayedPercentValue_ != 100 ){
       // those commands won't be flushed until a new print is called:
       // pull back to cursor on the line of the progress bar
-      ssProgressBar << static_cast<char>(27) << "[1F";
-      // Clear the line and add "\r" since a Logger might intercept it to trigger a print of a line header
+      ssProgressBar << static_cast<char>(27) << "[" << nLines-1 << "F";
+      // Clear the line and add "\r" since a logger (in charge of printing this string)
+      // might intercept it to trigger a print of a line header
       ssProgressBar << static_cast<char>(27) << "[1K" << "\r"; // trick to clear
     }
 #endif

@@ -151,7 +151,6 @@ namespace GenericToolbox{
   static inline std::string toLowerCase(const std::string &inputStr_);
   static inline std::string stripStringUnicode(const std::string &inputStr_);
   static inline std::string stripBracket(const std::string &inputStr_, char bra_, char ket_, bool allowUnclosed_ = true, std::vector<std::string>* argBuffer_ = nullptr);
-  static inline size_t getPrintSize(const std::string& str_);
   static inline std::string repeatString(const std::string &inputStr_, int amount_);
   static inline std::string trimString(const std::string &inputStr_, const std::string &strToTrim_);
   static inline std::string padString(const std::string& inputStr_, unsigned int padSize_, const char& padChar = ' ');
@@ -167,6 +166,8 @@ namespace GenericToolbox{
   static inline void indentInputString(std::string& inputStr_, unsigned int indentCount_, const std::string& indentChar = " ");
 
   // -- Parsing
+  static inline size_t getPrintSize(const std::string& str_);
+  static inline size_t getNLines(const std::string& str_);
   static inline std::string parseUnitPrefix(double val_, int maxPadSize_=-1);
   static inline std::string parseSizeUnits(double sizeInBytes_);
   static inline std::string formatString( const std::string& strToFormat_ ); // overrider: make sure this is the one used when no extra args are provided.
