@@ -37,8 +37,6 @@ namespace GenericToolbox{
       kMagenta-10, kCyan-9, kGreen-10
   };
 
-
-
 }
 
 namespace GenericToolbox{

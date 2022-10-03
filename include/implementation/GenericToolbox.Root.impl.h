@@ -23,6 +23,7 @@
 #include <TGraph.h>
 #include <TSpline.h>
 #include <TDecompChol.h>
+#include <TEnv.h>
 
 // STD Headers
 #include "string"
@@ -343,6 +344,7 @@ namespace GenericToolbox {
     }
     auto old_verbosity = gErrorIgnoreLevel;
     gErrorIgnoreLevel  = kFatal;
+    gEnv->SetValue("TFile.Recover", 0);
     outPtr = TFile::Open(inputFilePath_.c_str(), "READ");
     gErrorIgnoreLevel = old_verbosity;
 
@@ -360,6 +362,7 @@ namespace GenericToolbox {
   }
   bool doesTFileIsValid(const std::string &inputFilePath_, const std::vector<std::string>& objectListToCheck_){
     bool fileIsValid = false;
+    gEnv->SetValue("TFile.Recover", 0);
     if(GenericToolbox::doesPathIsFile(inputFilePath_)) {
       auto old_verbosity = gErrorIgnoreLevel;
       gErrorIgnoreLevel  = kFatal;
