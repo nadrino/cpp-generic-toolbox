@@ -271,7 +271,7 @@ namespace GenericToolbox {
     std::vector<size_t> p(vectorToSort_.size());
     std::iota(p.begin(), p.end(), 0);
     std::sort(p.begin(), p.end(),
-              [&](size_t i, size_t j){ return firstArgGoesFirstFct_(vectorToSort_[i], vectorToSort_[j]); });
+              [&](size_t i, size_t j){ return firstArgGoesFirstFct_(vectorToSort_.at(i), vectorToSort_.at(j)); });
     return p;
   }
   template <typename T> static inline std::vector<T> applyPermutation(const std::vector<T>& vectorToPermute_, const std::vector<std::size_t>& sortPermutation_ ){
