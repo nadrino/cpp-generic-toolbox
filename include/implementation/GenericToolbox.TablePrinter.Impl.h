@@ -70,12 +70,16 @@ namespace GenericToolbox{
     _colMaxWidthList_.emplace_back(-1);
     return _colTitleList_.size()-1;
   }
-  size_t TablePrinter::addTableLine(const std::vector<std::string>& colValues_){
+  size_t TablePrinter::addTableLine(const std::vector<std::string>& colValues_, const std::string&  colorCode_){
     size_t rowIndex{0};
     size_t colIndex{0};
     for( auto& colTable : _tableContent_ ){
       colTable.emplace_back();
-      if( not colValues_.empty() ) colTable.back() = colValues_[colIndex++];
+      if( not colValues_.empty() ) {
+        if( not colorCode_.empty() ) colTable.back() += colorCode_;
+        colTable.back() += colValues_[colIndex++];
+        if( not colorCode_.empty() ) colTable.back() += GenericToolbox::ColorCodes::resetColor;
+      }
       rowIndex = colTable.size()-1;
     }
     return rowIndex;
