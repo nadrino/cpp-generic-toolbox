@@ -39,6 +39,7 @@ namespace GenericToolbox{
 
     template<typename T> inline TablePrinter &operator<<(const T &data);
     inline TablePrinter &operator<<(std::ostream &(*f)(std::ostream &));
+    inline void setColorBuffer(const std::string& colorBuffer_){ _colorBuffer_ = colorBuffer_; }
 
   private:
     std::vector<std::string> _colTitleList_{};
@@ -46,6 +47,7 @@ namespace GenericToolbox{
     std::vector<int> _colMaxWidthList_{};
 
     std::vector<std::string> _lineBuffer_;
+    std::string _colorBuffer_;
     size_t _currentRow_{0};
 
   };

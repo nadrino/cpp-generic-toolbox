@@ -182,8 +182,9 @@ namespace GenericToolbox{
     _currentRow_++;
 
     if(_currentRow_>=_colTitleList_.size()){
-      this->addTableLine(_lineBuffer_);
+      this->addTableLine(_lineBuffer_, _colorBuffer_);
       _currentRow_ = 0;
+      _colorBuffer_ = "";
     }
     return *this;
   }
