@@ -166,6 +166,27 @@ namespace GenericToolbox{
     std::cout << generateTableString() << std::endl;
   }
 
+  template<typename T> TablePrinter &TablePrinter::operator<<(const T &data){
+    if(_currentRow_==0){
+      _lineBuffer_.clear();
+      _lineBuffer_.resize(_colTitleList_.size(), "");
+    }
+
+    std::stringstream ss;
+    ss << data;
+    _lineBuffer_[_currentRow_] += ss.str();
+
+    return *this;
+  }
+  TablePrinter &TablePrinter::operator<<(std::ostream &(*f)(std::ostream &)){
+    _currentRow_++;
+
+    if(_currentRow_>=_colTitleList_.size()){
+      this->addTableLine(_lineBuffer_);
+      _currentRow_ = 0;
+    }
+    return *this;
+  }
 }
 
 #endif //CPP_GENERIC_TOOLBOX_GENERICTOOLBOX_TABLE_PRINTER_IMPL_H

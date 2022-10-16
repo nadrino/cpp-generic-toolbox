@@ -37,10 +37,16 @@ namespace GenericToolbox{
     inline std::string generateTableString();
     inline void printTable();
 
+    template<typename T> inline TablePrinter &operator<<(const T &data);
+    inline TablePrinter &operator<<(std::ostream &(*f)(std::ostream &));
+
   private:
     std::vector<std::string> _colTitleList_{};
     std::vector<std::vector<std::string>> _tableContent_{};
     std::vector<int> _colMaxWidthList_{};
+
+    std::vector<std::string> _lineBuffer_;
+    size_t _currentRow_{0};
 
   };
 
