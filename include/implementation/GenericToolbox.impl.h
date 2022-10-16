@@ -357,6 +357,16 @@ namespace GenericToolbox {
             },
             enableLineJump_, enableLineJump_);
   }
+  template <typename T1, typename T2, typename T3> static inline std::string parseMapAsString(const std::map<T1, std::pair<T2,T3>>& map_, bool enableLineJump_){
+    return GenericToolbox::iterableToString(
+        map_,
+        [&](const std::pair<T1, std::pair<T2,T3>>& elm_){
+          std::stringstream ss;
+          ss << "{ " << elm_.first << ": {" << elm_.second.first << ", " << elm_.second.second << "} }";
+          return ss.str();
+        },
+        enableLineJump_, enableLineJump_);
+  }
   template <typename T1, typename T2> static inline void printMap(const std::map<T1, T2>& map_, bool enableLineJump_){
     std::cout << parseMapAsString(map_, enableLineJump_) << std::endl;
   }

@@ -23,11 +23,13 @@ namespace GenericToolbox{
 
     inline void reset();
     inline void hook(TTree *tree_, const std::string& leafName_);
+    inline void hookDummyDouble(const std::string& leafName_);
 
     // const
     inline size_t getLeafTypeSize() const;
     inline const std::string &getLeafTypeName() const;
     inline const std::string &getLeafFullName() const;
+    inline const std::string getSummary() const;
     inline const std::vector<unsigned char> &getByteBuffer() const;
 
     // non-const
@@ -36,8 +38,8 @@ namespace GenericToolbox{
 
     // core
     template<typename T> inline const T& getVariable(size_t arrayIndex_ = 0) const;
-    inline void copyToAny(std::vector<AnyType>& anyV_) const;
-    inline void copyToAny(AnyType& any_, size_t slot_) const;
+    inline void dropToAny(std::vector<AnyType>& anyV_) const;
+    inline void dropToAny(AnyType& any_, size_t slot_) const;
     inline size_t getArraySize() const;
 
     // Stream operator

@@ -55,6 +55,18 @@ namespace GenericToolbox{
 //    _leaf_->GetBranch()->SetAddress(&_byteBuffer_[0]);
 //    _leaf_->SetAddress(&_byteBuffer_[0]);
   }
+  inline void LeafHolder::hookDummyDouble(const std::string& leafName_){
+    _leafTypeName_ = "Double_t";
+    _leafTypeSize_ = 8;
+
+    _leafFullName_  = leafName_;
+    _leafFullName_ += ".";
+    _leafFullName_ += leafName_;
+
+    // Setup buffer
+    _byteBuffer_.clear();
+    _byteBuffer_.resize(_leafTypeSize_, 0);
+  }
 
   inline size_t LeafHolder::getLeafTypeSize() const {
     return _leafTypeSize_;
@@ -64,6 +76,26 @@ namespace GenericToolbox{
   }
   inline const std::string &LeafHolder::getLeafFullName() const {
     return _leafFullName_;
+  }
+  inline const std::string LeafHolder::getSummary() const {
+    std::stringstream o;
+    o << _leafFullName_ << "/" << _leafTypeName_ << " = ";
+    if( not _byteBuffer_.empty() ){
+      o << "{ ";
+      auto aBuf = GenericToolbox::leafToAnyType(_leafTypeName_);
+      for(int iSlot=0 ; iSlot < getArraySize() ; iSlot++ ){
+        if( iSlot != 0 ) o << ", ";
+        dropToAny(aBuf, iSlot);
+        o << aBuf;
+      }
+      o << " } | ";
+      o << GenericToolbox::stackToHex(_byteBuffer_, _leafTypeSize_);
+      o << " / addr{" << GenericToolbox::toHex(&_byteBuffer_[0]) << "}";
+    }
+    else{
+      o << "{ EMPTY }";
+    }
+    return o.str();
   }
   inline const std::vector<unsigned char> &LeafHolder::getByteBuffer() const {
     return _byteBuffer_;
@@ -80,11 +112,11 @@ namespace GenericToolbox{
     return *((T*) &_byteBuffer_[arrayIndex_ * sizeof(T)]);
   }
 
-  inline void LeafHolder::copyToAny(std::vector<AnyType>& anyV_) const{
+  inline void LeafHolder::dropToAny(std::vector<AnyType>& anyV_) const{
     if(anyV_.empty()){ anyV_.resize(getArraySize(), GenericToolbox::leafToAnyType(_leafTypeName_)); }
-    for( size_t iSlot = 0 ; iSlot < anyV_.size() ; iSlot++ ){ this->copyToAny(anyV_[iSlot], iSlot); }
+    for( size_t iSlot = 0 ; iSlot < anyV_.size() ; iSlot++ ){ this->dropToAny(anyV_[iSlot], iSlot); }
   }
-  inline void LeafHolder::copyToAny(AnyType& any_, size_t slot_) const{
+  inline void LeafHolder::dropToAny(AnyType& any_, size_t slot_) const{
     memcpy(any_.getPlaceHolderPtr()->getVariableAddress(), &_byteBuffer_[slot_ * _leafTypeSize_], _leafTypeSize_);
   }
   inline size_t LeafHolder::getArraySize() const{
@@ -93,15 +125,7 @@ namespace GenericToolbox{
 
   inline std::ostream& operator <<( std::ostream& o, const LeafHolder& v ){
     if( not v._byteBuffer_.empty() ){
-      o << v._leafFullName_ << "/" << v._leafTypeName_ << " = { ";
-      auto aBuf = GenericToolbox::leafToAnyType(v._leafTypeName_);
-      for(int iSlot=0 ; iSlot < v.getArraySize() ; iSlot++ ){
-        if( iSlot != 0 ) o << ", ";
-        v.copyToAny(aBuf, iSlot);
-        o << aBuf;
-      }
-      o << " } | ";
-      o << GenericToolbox::stackToHex(v._byteBuffer_, v._leafTypeSize_);
+      o << v.getSummary();
     }
     return o;
   }

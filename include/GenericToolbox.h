@@ -133,6 +133,7 @@ namespace GenericToolbox{
   template <typename T1, typename T2> static inline void appendToMap( std::map<T1, T2> &mapContainer_, const std::map<T1, T2> &mapToPushBack_, bool overwrite_ = true );
   template <typename T> static inline std::map<std::string, T> getSubMap(const std::map<std::string, T>& map_, const std::string &keyStrStartWith_ );
   template <typename T1, typename T2> static inline std::string parseMapAsString(const std::map<T1, T2>& map_, bool enableLineJump_ = true);
+  template <typename T1, typename T2, typename T3> static inline std::string parseMapAsString(const std::map<T1, std::pair<T2,T3>>& map_, bool enableLineJump_ = true);
   template <typename T1, typename T2> static inline void printMap(const std::map<T1, T2>& map_, bool enableLineJump_ = true);
 
 }

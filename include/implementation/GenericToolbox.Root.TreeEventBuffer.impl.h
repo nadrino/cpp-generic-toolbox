@@ -9,35 +9,46 @@
 
 namespace GenericToolbox{
 
-  inline TreeEventBuffer::TreeEventBuffer() = default;
-  inline TreeEventBuffer::~TreeEventBuffer() = default;
+  inline TreeEntryBuffer::TreeEntryBuffer() = default;
+  inline TreeEntryBuffer::~TreeEntryBuffer() = default;
 
-  inline void TreeEventBuffer::hook(TTree* tree_){
+  inline void TreeEntryBuffer::hook(TTree* tree_){
     _leafContentList_.clear();
     _leafContentList_.resize(_leafNameList_.size());
-    int iLeaf{0};
-    for( auto& leafName : _leafNameList_ ){
-      _leafContentList_[iLeaf++].hook(tree_, leafName);
+    for( size_t iLeaf{0} ; iLeaf < _leafNameList_.size() ; iLeaf++ ){
+      if( _dummyLeafStateLeaf_[iLeaf] ){ _leafContentList_[iLeaf].hookDummyDouble( _leafNameList_[iLeaf] ); }
+      else{ _leafContentList_[iLeaf].hook(tree_, _leafNameList_[iLeaf]); }
     }
   }
 
-  inline void TreeEventBuffer::setLeafNameList(const std::vector<std::string> &leafNameList) {
-    _leafNameList_ = leafNameList;
+  inline void TreeEntryBuffer::setLeafNameList(const std::vector<std::string> &leafNameList_) {
+    _leafNameList_ = leafNameList_;
+    _dummyLeafStateLeaf_.resize(_leafNameList_.size(), false);
+  }
+  inline void TreeEntryBuffer::setIsDummyLeaf(const std::string& leafName_, bool isDummy_){
+    int index = GenericToolbox::findElementIndex( leafName_, _leafNameList_ );
+    if( index == -1 ) {
+      throw std::runtime_error(
+          "TreeEntryBuffer::setIsDummyLeaf: \"" + leafName_ + "\" not found in leaf list: "
+          + GenericToolbox::parseVectorAsString(_leafNameList_)
+          );
+    }
+    _dummyLeafStateLeaf_[index] = isDummy_;
   }
 
-  inline const std::vector<GenericToolbox::LeafHolder> &TreeEventBuffer::getLeafContentList() const {
+  inline const std::vector<GenericToolbox::LeafHolder> &TreeEntryBuffer::getLeafContentList() const {
     return _leafContentList_;
   }
 
-  inline int TreeEventBuffer::fetchLeafIndex(const std::string& leafName_) const{
+  inline int TreeEntryBuffer::fetchLeafIndex(const std::string& leafName_) const{
     return GenericToolbox::findElementIndex(leafName_, _leafNameList_);
   }
-  inline const GenericToolbox::LeafHolder& TreeEventBuffer::getLeafContent(const std::string& leafName_) const{
+  inline const GenericToolbox::LeafHolder& TreeEntryBuffer::getLeafContent(const std::string& leafName_) const{
     int i = this->fetchLeafIndex(leafName_);
     if(i==-1){ throw std::runtime_error(leafName_ + ": not found."); }
     return _leafContentList_[i];
   }
-  inline std::string TreeEventBuffer::getSummary(){
+  inline std::string TreeEntryBuffer::getSummary() const{
     std::stringstream ss;
     ss << "TreeEventBuffer:" << std::endl << "_leafContentList_ = {";
     if( not _leafNameList_.empty() ){
