@@ -564,6 +564,16 @@ namespace GenericToolbox {
     GenericToolbox::replaceSubstringInsideInputString(stripped_str, substr_to_look_for_, substr_to_replace_);
     return stripped_str;
   }
+  std::string replaceSubstringInString(const std::string &input_str_, const std::vector<std::string> &substr_to_look_for_, const std::vector<std::string> &substr_to_replace_){
+    std::string stripped_str = input_str_;
+    if(substr_to_look_for_.size() != substr_to_replace_.size()){
+      throw std::runtime_error("vec size mismatch btw substr_to_look_for_(" + std::to_string(substr_to_look_for_.size()) + ") != substr_to_replace_(" + std::to_string(substr_to_replace_.size()) + ")");
+    }
+    for( int iSub = 0 ; iSub < substr_to_look_for_.size() ; iSub++ ){
+      GenericToolbox::replaceSubstringInsideInputString(stripped_str, substr_to_look_for_[iSub], substr_to_replace_[iSub]);
+    }
+    return input_str_;
+  }
   std::string parseUnitPrefix(double val_, int maxPadSize_){
     std::stringstream ss;
 
