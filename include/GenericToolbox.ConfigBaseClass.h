@@ -21,6 +21,7 @@ namespace GenericToolbox{
     inline void readConfig(const ConfigType& config_);
 
     inline void initialize();
+    inline void unInitialize();
 
     inline bool isConfigReadDone() const;
     inline bool isInitialized() const;
