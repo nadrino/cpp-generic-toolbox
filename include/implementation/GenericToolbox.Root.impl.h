@@ -480,16 +480,27 @@ namespace GenericToolbox {
     return gDirectory;
 #endif
   }
-  inline void writeInTFile(TDirectory* dir_, const TObject* objToSave_, std::string saveName_){
+  inline void writeInTFile(TDirectory* dir_, const TObject* objToSave_, std::string saveName_, bool forceWriteFile_){
     if( dir_ == nullptr or objToSave_ == nullptr ) return;
-    auto* prevDir = getCurrentTDirectory();
-    dir_->cd();
+
+    // Object name:
+    if( saveName_.empty() ) saveName_ = objToSave_->GetName();
+
+    // Building custom extension:
     std::string className = objToSave_->ClassName();
     GenericToolbox::replaceSubstringInsideInputString(className, "<", "_");
     GenericToolbox::replaceSubstringInsideInputString(className, ">", "");
-    if( saveName_.empty() ) saveName_ = objToSave_->GetName();
-    objToSave_->Write(Form("%s_%s", saveName_.c_str(), className.c_str()));
-    prevDir->cd();
+    if( className == "TMatrixT_double" ) className = "TMatrixD";
+    else if( className == "TMatrixTSym_double" ) className = "TMatrixDSym";
+
+    // Write call
+    dir_->WriteObject(objToSave_, Form("%s_%s", saveName_.c_str(), className.c_str()), "overwrite");
+
+    // Force TFile Write?
+    if( forceWriteFile_ ) GenericToolbox::triggerTFileWrite(dir_);
+  }
+  inline void triggerTFileWrite(TDirectory* dir_){
+    if( dir_->GetFile() != nullptr ) dir_->GetFile()->Write();
   }
 
 
