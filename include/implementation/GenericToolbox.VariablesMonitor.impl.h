@@ -10,19 +10,7 @@
 
 namespace GenericToolbox{
 
-  inline VariablesMonitor::VariablesMonitor(){ this->reset(); }
-  inline VariablesMonitor::~VariablesMonitor() { this->reset(); }
-
-  inline void VariablesMonitor::clearDisplayQuantityList(){
-    _displayQuantityIndexList_.clear();
-  }
-
-  inline void VariablesMonitor::reset() {
-    _varMonitorList_.clear();
-    _quantityMonitorList_.clear();
-    _displayQuantityIndexList_.clear();
-    _basedPaddingList_.clear();
-
+  inline VariablesMonitor::VariablesMonitor(){
     this->defineNewQuantity({ "VarName", "Variable",  [](VariableMonitor& v){ return v.getName(); } });
     this->defineNewQuantity({ "LastAddedValue", "Last Value", [](VariableMonitor& v){ return parseUnitPrefix(v.getLastValue(), 8); } });
     this->defineNewQuantity({ "Accumulated", "Accumulated", [](VariableMonitor& v){ return parseUnitPrefix(v.getTotalAccumulated(), 8); } });
@@ -30,7 +18,11 @@ namespace GenericToolbox{
     this->defineNewQuantity({ "SlopePerSecond", "Slope /s", [](VariableMonitor& v){ return parseUnitPrefix(v.evalCallGrowthRatePerSecond(),5); } });
     this->defineNewQuantity({ "SlopePerCall", "Slope /call", [](VariableMonitor& v){ return parseUnitPrefix(v.evalCallGrowthRate(), 5); } });
   }
+  inline VariablesMonitor::~VariablesMonitor() = default;
 
+  inline void VariablesMonitor::clearDisplayQuantityList(){
+    _displayQuantityIndexList_.clear();
+  }
   inline void VariablesMonitor::addVariable(const std::string& name_){
     for( const auto& v : _varMonitorList_ ){
       if( v.getName() == name_ ){

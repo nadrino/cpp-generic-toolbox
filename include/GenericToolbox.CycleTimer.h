@@ -20,7 +20,7 @@ namespace GenericToolbox{
     long long cumulated{0};
     friend std::ostream& operator<< (std::ostream& stream, const CycleTimer& timer_) {
       if(timer_.counts == 0) stream << "0s";
-      else stream << GenericToolbox::parseTimeUnit(timer_.cumulated / timer_.counts);
+      else stream << GenericToolbox::parseTimeUnit(double(timer_.cumulated) / double(timer_.counts));
       return stream;
     }
   };

@@ -243,7 +243,7 @@ namespace GenericToolbox{
   static inline long getProcessMemoryUsageDiffSinceLastCall();
   static inline int getTerminalWidth();
   static inline int getTerminalHeight();
-  static inline std::string parseTimeUnit(long long nbMicroSec_);
+  static inline std::string parseTimeUnit(double nbMicroSec_, int maxPadSize_=-1);
   static inline std::string getElapsedTimeSinceLastCallStr(const std::string& key_);
   static inline std::string getElapsedTimeSinceLastCallStr(int instance_ = -1);
   static inline long long getElapsedTimeSinceLastCallInMicroSeconds(const std::string& key_);

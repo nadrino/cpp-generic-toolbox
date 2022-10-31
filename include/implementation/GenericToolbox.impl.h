@@ -1469,39 +1469,49 @@ namespace GenericToolbox{
     return outWith;
   }
 
-  static inline std::string parseTimeUnit(long long nbMicroSec_){
-    if(nbMicroSec_ / 1000 < 9 ){ // print in µs if less than 9ms
-      return std::to_string(nbMicroSec_) + "µs";
+  static inline std::string parseTimeUnit(double nbMicroSec_, int maxPadSize_){
+
+    std::stringstream ss;
+
+    if( nbMicroSec_ < 0 ){
+      ss << "-";
+      nbMicroSec_ = -nbMicroSec_;
+      maxPadSize_--;
     }
-    nbMicroSec_ /= 1000; // in ms
-    if(nbMicroSec_ / nbMicroSec_ < 3){ // print in ms if less than 3s
-      return std::to_string(nbMicroSec_) + "ms";
+
+    if(maxPadSize_ > -1){
+      ss << std::setprecision(maxPadSize_-1);
     }
-    nbMicroSec_ /= 1000; // in s
-    if(nbMicroSec_ / 60 < 5){
-      return std::to_string(nbMicroSec_) + "s";
+
+    auto reducedVal = size_t(fabs(nbMicroSec_));
+    if     ( (reducedVal = (reducedVal / 1000)) < 9 ){ // print in ms?
+      ss << nbMicroSec_ << "µs";                       // <- no
     }
-    nbMicroSec_ /= 60; // in min
-    if(nbMicroSec_ / 60 < 3){ // print in min
-      return std::to_string(nbMicroSec_) + "min";
+    else if( (reducedVal = (reducedVal / 1000)) < 3 ){ // print in s?
+      ss << nbMicroSec_/1E3 << "ms";
     }
-    nbMicroSec_ /= 60; // in hours
-    if(nbMicroSec_ / 24 < 2){ // print in hours
-      return std::to_string(nbMicroSec_) + "h";
+    else if( (reducedVal = (reducedVal / 60)) < 2 ){ // print in min?
+      ss << nbMicroSec_/1E6 << "s";
     }
-    nbMicroSec_ /= 24; // in days
-    if(nbMicroSec_ / 365 < 2){ // print in hours
-      return std::to_string(nbMicroSec_) + "d";
+    else if( (reducedVal = (reducedVal / 60)) < 2 ){ // print in h?
+      ss << nbMicroSec_/1E6/60. << "min";
     }
-    nbMicroSec_ /= 365; // in days
-    return std::to_string(nbMicroSec_) + "y";
+    else if( (reducedVal = (reducedVal / 24)) < 2 ){ // print in d?
+      ss << nbMicroSec_/1E6/3600. << "h";
+    }
+    else if( (reducedVal = (reducedVal / 24)) < 2 ){ // print in y?
+      ss << nbMicroSec_/1E6/3600./24. << "d";
+    }
+    else {
+      ss << nbMicroSec_/1E6/3600./24./365.25 << "y";
+    }
+    return ss.str();
   }
   static inline std::string getElapsedTimeSinceLastCallStr( const std::string& key_ ) {
-    return GenericToolbox::parseTimeUnit(GenericToolbox::getElapsedTimeSinceLastCallInMicroSeconds(key_));
+    return GenericToolbox::parseTimeUnit(double(GenericToolbox::getElapsedTimeSinceLastCallInMicroSeconds(key_)));
   }
-  static inline std::string getElapsedTimeSinceLastCallStr(int instance_)
-  {
-    return GenericToolbox::parseTimeUnit(getElapsedTimeSinceLastCallInMicroSeconds(instance_));
+  static inline std::string getElapsedTimeSinceLastCallStr(int instance_){
+    return GenericToolbox::parseTimeUnit(double(getElapsedTimeSinceLastCallInMicroSeconds(instance_)));
   }
   static inline long long getElapsedTimeSinceLastCallInMicroSeconds( const std::string& key_ ) {
     auto newTimePoint = std::chrono::high_resolution_clock::now();

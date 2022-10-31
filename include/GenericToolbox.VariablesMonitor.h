@@ -24,8 +24,6 @@ namespace GenericToolbox{
 
     inline void clearDisplayQuantityList();
 
-    inline void reset();
-
     inline void addVariable(const std::string& name_);
     inline void addDisplayedQuantity(const std::string& quantityName_);
     inline void defineNewQuantity(const QuantityMonitor& quantity_);
