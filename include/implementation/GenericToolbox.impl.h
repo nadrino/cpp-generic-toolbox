@@ -1468,6 +1468,33 @@ namespace GenericToolbox{
 #endif // Windows/Linux
     return outWith;
   }
+  static inline std::vector<std::string> getOutputOfShellCommand(const std::string& cmd_) {
+    // Inspired from: https://stackoverflow.com/questions/478898/how-do-i-execute-a-command-and-get-the-output-of-the-command-within-c-using-po
+    std::array<char, 128> buffer{};
+    std::string resultStr;
+    std::vector<std::string> output;
+#if defined(_WIN32)
+    std::unique_ptr<FILE, decltype(&_pclose)> pipe(_popen(cmd_.c_str(), "r"), _pclose);
+#else
+    std::unique_ptr<FILE, decltype(&pclose)> pipe(popen(cmd_.c_str(), "r"), pclose);
+#endif
+    if (!pipe) {
+//      throw std::runtime_error("popen() failed!");
+    }
+    else{
+      while (fgets(buffer.data(), buffer.size(), pipe.get()) != nullptr) {
+        resultStr += buffer.data();
+      }
+      output = GenericToolbox::splitString(resultStr, "\n", true);
+    }
+    return output;
+  }
+
+}
+
+
+// Time tools
+namespace GenericToolbox{
 
   static inline std::string parseTimeUnit(double nbMicroSec_, int maxPadSize_){
 
@@ -1529,26 +1556,13 @@ namespace GenericToolbox{
     Internals::_lastTimePointMap_[instance_] = newTimePoint;
     return microseconds.count();
   }
-  static inline std::vector<std::string> getOutputOfShellCommand(const std::string& cmd_) {
-    // Inspired from: https://stackoverflow.com/questions/478898/how-do-i-execute-a-command-and-get-the-output-of-the-command-within-c-using-po
-    std::array<char, 128> buffer{};
-    std::string resultStr;
-    std::vector<std::string> output;
-#if defined(_WIN32)
-    std::unique_ptr<FILE, decltype(&_pclose)> pipe(_popen(cmd_.c_str(), "r"), _pclose);
-#else
-    std::unique_ptr<FILE, decltype(&pclose)> pipe(popen(cmd_.c_str(), "r"), pclose);
-#endif
-    if (!pipe) {
-//      throw std::runtime_error("popen() failed!");
-    }
-    else{
-      while (fgets(buffer.data(), buffer.size(), pipe.get()) != nullptr) {
-        resultStr += buffer.data();
-      }
-      output = GenericToolbox::splitString(resultStr, "\n", true);
-    }
-    return output;
+  static inline std::string getNowDateString(const std::string& dateFormat_){
+    auto now = std::chrono::system_clock::now();
+    auto in_time_t = std::chrono::system_clock::to_time_t(now);
+
+    std::stringstream ss;
+    ss << std::put_time(std::localtime(&in_time_t), dateFormat_.c_str());
+    return ss.str();
   }
 
 }

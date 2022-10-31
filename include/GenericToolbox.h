@@ -243,16 +243,24 @@ namespace GenericToolbox{
   static inline long getProcessMemoryUsageDiffSinceLastCall();
   static inline int getTerminalWidth();
   static inline int getTerminalHeight();
-  static inline std::string parseTimeUnit(double nbMicroSec_, int maxPadSize_=-1);
-  static inline std::string getElapsedTimeSinceLastCallStr(const std::string& key_);
-  static inline std::string getElapsedTimeSinceLastCallStr(int instance_ = -1);
-  static inline long long getElapsedTimeSinceLastCallInMicroSeconds(const std::string& key_);
-  static inline long long getElapsedTimeSinceLastCallInMicroSeconds(int instance = -1);
   static inline std::vector<std::string> getOutputOfShellCommand(const std::string& cmd_);
 
   namespace Hardware{
       static size_t lastProcessMemoryUsage = 0;
   }
+}
+
+
+//! Time Tools
+namespace GenericToolbox{
+
+  static inline std::string parseTimeUnit(double nbMicroSec_, int maxPadSize_=-1);
+  static inline std::string getElapsedTimeSinceLastCallStr(const std::string& key_);
+  static inline std::string getElapsedTimeSinceLastCallStr(int instance_ = -1);
+  static inline long long getElapsedTimeSinceLastCallInMicroSeconds(const std::string& key_);
+  static inline long long getElapsedTimeSinceLastCallInMicroSeconds(int instance = -1);
+  static inline std::string getNowDateString(const std::string& dateFormat_="%Y_%m_%d-%H_%M_%S");
+
 }
 
 
