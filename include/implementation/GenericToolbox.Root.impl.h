@@ -530,7 +530,7 @@ namespace GenericToolbox {
     for(int iLeaf = 0 ; iLeaf < tree_->GetListOfLeaves()->GetEntries() ; iLeaf++){
       // DONT SUPPORT ARRAYS AT THE MOMENT
       TLeaf* leafBufferPtr = tree_->GetLeaf(tree_->GetListOfLeaves()->At(iLeaf)->GetName());
-      if(tree_->GetBranchStatus(leafBufferPtr->GetName()) == 1){ // check if this branch is active
+      if(tree_->GetBranchStatus(leafBufferPtr->GetBranch()->GetName()) == 1){ // check if this branch is active
         if(leafBufferPtr->GetNdata() == 1){
 //          std::cout << "Adding: " << leafBufferPtr->GetName() << std::endl;
           leafList.emplace_back(leafBufferPtr);
