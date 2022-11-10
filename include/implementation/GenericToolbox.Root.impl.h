@@ -587,6 +587,19 @@ namespace GenericToolbox {
     return outCovMatrix;
 
   }
+  std::string generateCleanBranchName(const std::string& name_){
+    std::string out{name_};
+
+    GenericToolbox::replaceSubstringInsideInputString(out, " ", "_");
+    GenericToolbox::replaceSubstringInsideInputString(out, "-", "_");
+
+    GenericToolbox::replaceSubstringInsideInputString(out, "(", "");
+    GenericToolbox::replaceSubstringInsideInputString(out, ")", "");
+    GenericToolbox::replaceSubstringInsideInputString(out, "[", "");
+    GenericToolbox::replaceSubstringInsideInputString(out, "]", "");
+
+    return out;
+  }
 
 }
 

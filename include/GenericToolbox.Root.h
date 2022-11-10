@@ -81,6 +81,7 @@ namespace GenericToolbox{
   //! Trees Tools
   inline void disableUnhookedBranches(TTree* tree_);
   inline TMatrixD* getCovarianceMatrixOfTree(TTree* tree_, bool showProgressBar_ = false);
+  inline std::string generateCleanBranchName(const std::string& name_);
 
   //! Matrix Tools
   inline std::map<std::string, TMatrixD*> invertMatrixSVD(TMatrixD *matrix_, const std::string &outputContent_= "inverse_covariance_matrix:regularized_eigen_values");
