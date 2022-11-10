@@ -486,6 +486,12 @@ namespace GenericToolbox {
     // Object name:
     if( saveName_.empty() ) saveName_ = objToSave_->GetName();
 
+    // Cleaning up object name
+    saveName_ = GenericToolbox::generateCleanBranchName(saveName_);
+    GenericToolbox::replaceSubstringInsideInputString(saveName_, "#", "");
+    GenericToolbox::replaceSubstringInsideInputString(saveName_, "<", "_");
+    GenericToolbox::replaceSubstringInsideInputString(saveName_, ">", "");
+
     // Building custom extension:
     std::string className = objToSave_->ClassName();
     GenericToolbox::replaceSubstringInsideInputString(className, "<", "_");
@@ -522,20 +528,16 @@ namespace GenericToolbox {
       }
     } // iBranch
   }
-  TMatrixD* getCovarianceMatrixOfTree(TTree* tree_, bool showProgressBar_){
-
-    TMatrixD* outCovMatrix;
-
+  std::vector<TLeaf*> getEnabledLeavesList(TTree* tree_, bool includeArrayLeaves_){
     std::vector<TLeaf*> leafList;
     for(int iLeaf = 0 ; iLeaf < tree_->GetListOfLeaves()->GetEntries() ; iLeaf++){
-      // DONT SUPPORT ARRAYS AT THE MOMENT
       TLeaf* leafBufferPtr = tree_->GetLeaf(tree_->GetListOfLeaves()->At(iLeaf)->GetName());
       if(tree_->GetBranchStatus(leafBufferPtr->GetBranch()->GetName()) == 1){ // check if this branch is active
-        if(leafBufferPtr->GetNdata() == 1){
-//          std::cout << "Adding: " << leafBufferPtr->GetName() << std::endl;
+        if( includeArrayLeaves_ or leafBufferPtr->GetNdata() == 1){
           leafList.emplace_back(leafBufferPtr);
         }
         else{
+          // DON'T SUPPORT ARRAYS AT THE MOMENT
           std::cout << __METHOD_NAME__
                     << ": " << tree_->GetListOfLeaves()->At(iLeaf)->GetName()
                     << " -> array leaves are not supported yet." << std::endl;
@@ -543,6 +545,33 @@ namespace GenericToolbox {
       }
 
     }
+    return leafList;
+  }
+  TVectorD* generateMeanVectorOfTree(TTree* tree_, bool showProgressBar_){
+    TVectorD* outMeanVector;
+    std::vector<TLeaf*> leafList = GenericToolbox::getEnabledLeavesList(tree_, false);
+
+    outMeanVector = new TVectorD(int(leafList.size()));
+    for(int iLeaf = 0 ; iLeaf < outMeanVector->GetNrows() ; iLeaf++){ (*outMeanVector)[iLeaf] = 0; }
+
+    Long64_t nEntries = tree_->GetEntries();
+    for(Long64_t iEntry = 0 ; iEntry < nEntries ; iEntry++){
+      if( showProgressBar_ ) GenericToolbox::displayProgressBar(iEntry, nEntries, "Compute mean of every variable");
+      tree_->GetEntry(iEntry);
+      for(int iLeaf = 0 ; iLeaf < outMeanVector->GetNrows() ; iLeaf++){
+        (*outMeanVector)[iLeaf] += leafList[iLeaf]->GetValue(0);
+      }
+    }
+    for(int iLeaf = 0 ; iLeaf < outMeanVector->GetNrows() ; iLeaf++){
+      (*outMeanVector)[iLeaf] /= double(nEntries);
+    }
+  }
+  TMatrixD* generateCovarianceMatrixOfTree(TTree* tree_, bool showProgressBar_){
+
+    TMatrixD* outCovMatrix;
+
+    // Generate covariance matrix of all ENABLED branches of the input tree
+    std::vector<TLeaf*> leafList = GenericToolbox::getEnabledLeavesList(tree_, false);
 
     // Initializing the matrix
     outCovMatrix = new TMatrixD(int(leafList.size()), int(leafList.size()));
@@ -553,28 +582,18 @@ namespace GenericToolbox {
     }
 
     // Compute mean of every variable
-    std::vector<double> meanValueLeafList(leafList.size(),0);
-    Long64_t nEntries = tree_->GetEntries();
-    for(Long64_t iEntry = 0 ; iEntry < nEntries ; iEntry++){
-      if( showProgressBar_ ) GenericToolbox::displayProgressBar(iEntry, nEntries, "Compute mean of every variable");
-      tree_->GetEntry(iEntry);
-      for(size_t iLeaf = 0 ; iLeaf < leafList.size() ; iLeaf++){
-        meanValueLeafList[iLeaf] += leafList[iLeaf]->GetValue(0);
-      }
-    }
-    for(int iLeaf = 0 ; iLeaf < leafList.size() ; iLeaf++){
-      meanValueLeafList[iLeaf] /= double(nEntries);
-    }
+    auto* meanValueLeafList = GenericToolbox::generateMeanVectorOfTree(tree_, showProgressBar_);
 
     // Compute covariance
+    Long64_t nEntries = tree_->GetEntries();
     for(Long64_t iEntry = 0 ; iEntry < nEntries ; iEntry++){
       if( showProgressBar_ ) GenericToolbox::displayProgressBar(iEntry, nEntries, "Compute covariance");
       tree_->GetEntry(iEntry);
       for(int iCol = 0 ; iCol < leafList.size() ; iCol++){
         for(int iRow = 0 ; iRow < leafList.size() ; iRow++){
           (*outCovMatrix)[iCol][iRow] +=
-            (leafList[iCol]->GetValue(0) - meanValueLeafList[iCol])
-            *(leafList[iRow]->GetValue(0) - meanValueLeafList[iRow]);
+            (leafList[iCol]->GetValue(0) - (*meanValueLeafList)[iCol])
+            *(leafList[iRow]->GetValue(0) - (*meanValueLeafList)[iRow]);
         } // iRow
       } // iCol
     } // iEntry

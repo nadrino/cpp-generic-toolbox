@@ -80,7 +80,9 @@ namespace GenericToolbox{
 
   //! Trees Tools
   inline void disableUnhookedBranches(TTree* tree_);
-  inline TMatrixD* getCovarianceMatrixOfTree(TTree* tree_, bool showProgressBar_ = false);
+  inline std::vector<TLeaf*> getEnabledLeavesList(TTree* tree_, bool includeArrayLeaves_ = true);
+  inline TVectorD* generateMeanVectorOfTree(TTree* tree_, bool showProgressBar_ = false);
+  inline TMatrixD* generateCovarianceMatrixOfTree(TTree* tree_, bool showProgressBar_ = false);
   inline std::string generateCleanBranchName(const std::string& name_);
 
   //! Matrix Tools
