@@ -565,6 +565,8 @@ namespace GenericToolbox {
     for(int iLeaf = 0 ; iLeaf < outMeanVector->GetNrows() ; iLeaf++){
       (*outMeanVector)[iLeaf] /= double(nEntries);
     }
+
+    return outMeanVector;
   }
   TMatrixD* generateCovarianceMatrixOfTree(TTree* tree_, bool showProgressBar_){
 
