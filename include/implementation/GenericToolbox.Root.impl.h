@@ -491,6 +491,8 @@ namespace GenericToolbox {
     GenericToolbox::replaceSubstringInsideInputString(saveName_, "#", "");
     GenericToolbox::replaceSubstringInsideInputString(saveName_, "<", "_");
     GenericToolbox::replaceSubstringInsideInputString(saveName_, ">", "");
+    GenericToolbox::replaceSubstringInsideInputString(saveName_, "{", "");
+    GenericToolbox::replaceSubstringInsideInputString(saveName_, "}", "");
 
     // Building custom extension:
     std::string className = objToSave_->ClassName();
