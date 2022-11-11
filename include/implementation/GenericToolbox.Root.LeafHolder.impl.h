@@ -66,6 +66,9 @@ namespace GenericToolbox{
     // Setup buffer
     _byteBuffer_.clear();
     _byteBuffer_.resize(_leafTypeSize_, 0);
+
+    double nanValue{std::nan("dummyLeaf")};
+    memcpy(&_byteBuffer_[0], &nanValue, 8);
   }
 
   inline size_t LeafHolder::getLeafTypeSize() const {
