@@ -426,18 +426,35 @@ namespace GenericToolbox {
 
     return true;
   }
-  std::vector<TObject *> getListOfObjectFromTDirectory(TDirectory *directory_, const std::string &class_name_) {
-    std::vector<TObject *> output;
+  std::vector<TObject *> getListOfObjectFromTDirectory(TDirectory *directory_, const std::string &className_) {
+    if( directory_ == nullptr ) return {};
 
-    for (int i_entry = 0; i_entry < directory_->GetListOfKeys()->GetSize(); i_entry++) {
-      std::string object_name = directory_->GetListOfKeys()->At(i_entry)->GetName();
-      TObject *obj = directory_->Get(object_name.c_str());
-      if (class_name_.empty() or obj->ClassName() == class_name_) {
-        output.emplace_back((TObject *) obj->Clone(object_name.c_str()));
+    auto ls = GenericToolbox::lsTDirectory(directory_, className_);
+
+    std::vector<TObject *> output{};
+    output.reserve(ls.size());
+
+    for( auto& entry : ls ){
+      output.emplace_back( directory_->Get(entry.c_str()) );
+    }
+
+    return output;
+  }
+  std::vector<std::string> lsTDirectory(TDirectory* directory_, const std::string& className_){
+    std::vector<std::string> output{};
+    if( directory_ == nullptr ) return output;
+
+    for (int iEntry = 0; iEntry < directory_->GetListOfKeys()->GetSize(); iEntry++) {
+      std::string entryName{directory_->GetListOfKeys()->At(iEntry)->GetName()};
+      if( className_.empty() or directory_->Get(entryName.c_str())->ClassName() == className_ ){
+        output.emplace_back(entryName);
       }
     }
 
     return output;
+  }
+  std::vector<std::string> lsSubDirTDirectory(TDirectory* directory_){
+    return GenericToolbox::lsTDirectory(directory_, "TDirectoryFile");
   }
   TDirectory* mkdirTFile(TDirectory* baseDir_, const std::string &dirName_){
     if( baseDir_ == nullptr ) return nullptr;
