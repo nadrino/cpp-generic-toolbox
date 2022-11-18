@@ -639,6 +639,7 @@ namespace GenericToolbox {
 
     GenericToolbox::replaceSubstringInsideInputString(out, " ", "_");
     GenericToolbox::replaceSubstringInsideInputString(out, "-", "_");
+    GenericToolbox::replaceSubstringInsideInputString(out, "/", "_");
 
     GenericToolbox::replaceSubstringInsideInputString(out, "(", "");
     GenericToolbox::replaceSubstringInsideInputString(out, ")", "");
