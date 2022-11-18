@@ -426,19 +426,26 @@ namespace GenericToolbox {
 
     return true;
   }
-  std::vector<TObject *> getListOfObjectFromTDirectory(TDirectory *directory_, const std::string &className_) {
+  template<typename T> std::vector<T*> getObjectList(TDirectory* directory_, bool cloneObj_){
     if( directory_ == nullptr ) return {};
 
-    auto ls = GenericToolbox::lsTDirectory(directory_, className_);
-
-    std::vector<TObject *> output{};
-    output.reserve(ls.size());
-
-    for( auto& entry : ls ){
-      output.emplace_back( directory_->Get(entry.c_str()) );
+    TClass* templateClass = TClass::GetClass<T>();
+    if( templateClass == nullptr ){
+      throw std::runtime_error("invalid template class in GenericToolbox::getObjectList. Not TObject castable?");
     }
 
+    auto ls = GenericToolbox::lsTDirectory(directory_, templateClass->GetName());
+    std::vector<T*> output; output.reserve(ls.size());
+    for( auto& entry : ls ){
+      output.template emplace_back( directory_->Get<T>(entry.c_str()) );
+      if( cloneObj_ ){ output.back() = (T*) output.back()->Clone(); }
+    }
+
+    delete templateClass;
     return output;
+  }
+  std::vector<TObject *> getListOfObjectFromTDirectory(TDirectory *directory_, const std::string &className_, bool cloneObj_) {
+    return GenericToolbox::getObjectList<TObject>(directory_, cloneObj_);
   }
   std::vector<std::string> lsTDirectory(TDirectory* directory_, const std::string& className_){
     std::vector<std::string> output{};
@@ -637,6 +644,7 @@ namespace GenericToolbox {
     GenericToolbox::replaceSubstringInsideInputString(out, ")", "");
     GenericToolbox::replaceSubstringInsideInputString(out, "[", "");
     GenericToolbox::replaceSubstringInsideInputString(out, "]", "");
+    GenericToolbox::replaceSubstringInsideInputString(out, "#", "");
 
     return out;
   }

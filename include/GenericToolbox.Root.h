@@ -71,14 +71,16 @@ namespace GenericToolbox{
   inline bool doesTFileIsValid(const std::string &inputFilePath_, const std::vector<std::string>& objectListToCheck_ = {});
   inline bool doesTFileIsValid(TFile* tfileCandidatePtr_, bool check_if_writable_ = false);
   inline std::vector<TFile*> getListOfOpenedTFiles();
-  inline std::vector<TObject*> getListOfObjectFromTDirectory(TDirectory* directory_, const std::string &className_ = "");
-  inline std::vector<std::string> lsTDirectory(TDirectory* directory_, const std::string& className_ = "");
-  inline std::vector<std::string> lsSubDirTDirectory(TDirectory* directory_);
   inline TDirectory* mkdirTFile(TDirectory* baseDir_, const std::string &dirName_);
   inline TDirectory* mkdirTFile(TFile* outputFile_, const std::string &dirName_);
   inline TDirectory* getCurrentTDirectory();
   inline void writeInTFile(TDirectory* dir_, const TObject* objToSave_, std::string saveName_ = "", bool forceWriteFile_=false);
   inline void triggerTFileWrite(TDirectory* dir_);
+
+  inline std::vector<std::string> lsTDirectory(TDirectory* directory_, const std::string& className_ = "");
+  inline std::vector<std::string> lsSubDirTDirectory(TDirectory* directory_);
+  inline std::vector<TObject*> getListOfObjectFromTDirectory(TDirectory* directory_, const std::string &className_ = "", bool cloneObj_=false);
+  template<typename T> std::vector<T*> getObjectList(TDirectory* directory_, bool cloneObj_ = false);
 
   //! Trees Tools
   inline void disableUnhookedBranches(TTree* tree_);
