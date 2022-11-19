@@ -1028,8 +1028,9 @@ namespace GenericToolbox {
     gStyle->SetPalette(kDarkBodyRadiator);
   }
   void fixTH2display(TH2 *histogram_){
+    if( histogram_ == nullptr ) return;
 
-    gPad->SetRightMargin(0.15);
+    if( gPad != nullptr ) gPad->SetRightMargin(0.15);
     histogram_->GetZaxis()->SetTitleOffset(0.8);
     auto* pal = (TPaletteAxis*) histogram_->GetListOfFunctions()->FindObject("palette");
     // TPaletteAxis* pal = (TPaletteAxis*) histogram_->GetListOfFunctions()->At(0);
