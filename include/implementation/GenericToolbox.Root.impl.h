@@ -512,11 +512,6 @@ namespace GenericToolbox {
 
     // Cleaning up object name
     saveName_ = GenericToolbox::generateCleanBranchName(saveName_);
-    GenericToolbox::replaceSubstringInsideInputString(saveName_, "#", "");
-    GenericToolbox::replaceSubstringInsideInputString(saveName_, "<", "_");
-    GenericToolbox::replaceSubstringInsideInputString(saveName_, ">", "");
-    GenericToolbox::replaceSubstringInsideInputString(saveName_, "{", "");
-    GenericToolbox::replaceSubstringInsideInputString(saveName_, "}", "");
 
     // Building custom extension:
     std::string className = objToSave_->ClassName();
@@ -525,8 +520,15 @@ namespace GenericToolbox {
     if( className == "TMatrixT_double" ) className = "TMatrixD";
     else if( className == "TMatrixTSym_double" ) className = "TMatrixDSym";
 
-    // Write call
-    dir_->WriteObject(objToSave_, Form("%s_%s", saveName_.c_str(), className.c_str()), "overwrite");
+    if( GenericToolbox::doesStringEndsWithSubstring(saveName_, className) ){
+      // extension already included in the obj name
+      dir_->WriteObject(objToSave_, Form("%s", saveName_.c_str()), "overwrite");
+    }
+    else{
+      // add extension
+      dir_->WriteObject(objToSave_, Form("%s_%s", saveName_.c_str(), className.c_str()), "overwrite");
+    }
+
 
     // Force TFile Write?
     if( forceWriteFile_ ) GenericToolbox::triggerTFileWrite(dir_);
@@ -640,7 +642,9 @@ namespace GenericToolbox {
     GenericToolbox::replaceSubstringInsideInputString(out, " ", "_");
     GenericToolbox::replaceSubstringInsideInputString(out, "-", "_");
     GenericToolbox::replaceSubstringInsideInputString(out, "/", "_");
+    GenericToolbox::replaceSubstringInsideInputString(out, "<", "_");
 
+    GenericToolbox::replaceSubstringInsideInputString(out, ">", "");
     GenericToolbox::replaceSubstringInsideInputString(out, "(", "");
     GenericToolbox::replaceSubstringInsideInputString(out, ")", "");
     GenericToolbox::replaceSubstringInsideInputString(out, "{", "");
