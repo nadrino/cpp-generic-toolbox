@@ -643,6 +643,8 @@ namespace GenericToolbox {
 
     GenericToolbox::replaceSubstringInsideInputString(out, "(", "");
     GenericToolbox::replaceSubstringInsideInputString(out, ")", "");
+    GenericToolbox::replaceSubstringInsideInputString(out, "{", "");
+    GenericToolbox::replaceSubstringInsideInputString(out, "}", "");
     GenericToolbox::replaceSubstringInsideInputString(out, "[", "");
     GenericToolbox::replaceSubstringInsideInputString(out, "]", "");
     GenericToolbox::replaceSubstringInsideInputString(out, "#", "");
