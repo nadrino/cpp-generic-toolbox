@@ -200,6 +200,16 @@ namespace GenericToolbox {
     std::vector<T> vectorToInsert(1, elementToInsert_);
     insertInVector(vector_, vectorToInsert, insertBeforeThisIndex_);
   }
+  template<typename T> static inline void addIfNotInVector(const T& element_, std::vector<T> &vector_){
+    if( not GenericToolbox::doesElementIsInVector(element_, vector_) ){
+      vector_.template emplace_back(element_);
+    }
+  }
+  static inline void addIfNotInVector(const char* element_, std::vector<std::string> &vector_){
+    if( not GenericToolbox::doesElementIsInVector(element_, vector_) ){
+      vector_.emplace_back(element_);
+    }
+  }
 
   // Generators
   template<typename T> static inline std::vector<size_t> indices(const std::vector<T> &vector_){

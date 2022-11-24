@@ -426,18 +426,42 @@ namespace GenericToolbox {
 
     return true;
   }
-  std::vector<TObject *> getListOfObjectFromTDirectory(TDirectory *directory_, const std::string &class_name_) {
-    std::vector<TObject *> output;
+  template<typename T> std::vector<T*> getObjectList(TDirectory* directory_, bool cloneObj_){
+    if( directory_ == nullptr ) return {};
 
-    for (int i_entry = 0; i_entry < directory_->GetListOfKeys()->GetSize(); i_entry++) {
-      std::string object_name = directory_->GetListOfKeys()->At(i_entry)->GetName();
-      TObject *obj = directory_->Get(object_name.c_str());
-      if (class_name_.empty() or obj->ClassName() == class_name_) {
-        output.emplace_back((TObject *) obj->Clone(object_name.c_str()));
+    TClass* templateClass = TClass::GetClass<T>();
+    if( templateClass == nullptr ){
+      throw std::runtime_error("invalid template class in GenericToolbox::getObjectList. Not TObject castable?");
+    }
+
+    auto ls = GenericToolbox::lsTDirectory(directory_, templateClass->GetName());
+    std::vector<T*> output; output.reserve(ls.size());
+    for( auto& entry : ls ){
+      output.template emplace_back( directory_->Get<T>(entry.c_str()) );
+      if( cloneObj_ ){ output.back() = (T*) output.back()->Clone(); }
+    }
+
+    delete templateClass;
+    return output;
+  }
+  std::vector<TObject *> getListOfObjectFromTDirectory(TDirectory *directory_, const std::string &className_, bool cloneObj_) {
+    return GenericToolbox::getObjectList<TObject>(directory_, cloneObj_);
+  }
+  std::vector<std::string> lsTDirectory(TDirectory* directory_, const std::string& className_){
+    std::vector<std::string> output{};
+    if( directory_ == nullptr ) return output;
+
+    for (int iEntry = 0; iEntry < directory_->GetListOfKeys()->GetSize(); iEntry++) {
+      std::string entryName{directory_->GetListOfKeys()->At(iEntry)->GetName()};
+      if( className_.empty() or directory_->Get(entryName.c_str())->ClassName() == className_ ){
+        output.emplace_back(entryName);
       }
     }
 
     return output;
+  }
+  std::vector<std::string> lsSubDirTDirectory(TDirectory* directory_){
+    return GenericToolbox::lsTDirectory(directory_, "TDirectoryFile");
   }
   TDirectory* mkdirTFile(TDirectory* baseDir_, const std::string &dirName_){
     if( baseDir_ == nullptr ) return nullptr;
@@ -486,6 +510,9 @@ namespace GenericToolbox {
     // Object name:
     if( saveName_.empty() ) saveName_ = objToSave_->GetName();
 
+    // Cleaning up object name
+    saveName_ = GenericToolbox::generateCleanBranchName(saveName_);
+
     // Building custom extension:
     std::string className = objToSave_->ClassName();
     GenericToolbox::replaceSubstringInsideInputString(className, "<", "_");
@@ -493,8 +520,15 @@ namespace GenericToolbox {
     if( className == "TMatrixT_double" ) className = "TMatrixD";
     else if( className == "TMatrixTSym_double" ) className = "TMatrixDSym";
 
-    // Write call
-    dir_->WriteObject(objToSave_, Form("%s_%s", saveName_.c_str(), className.c_str()), "overwrite");
+    if( GenericToolbox::doesStringEndsWithSubstring(saveName_, className) ){
+      // extension already included in the obj name
+      dir_->WriteObject(objToSave_, Form("%s", saveName_.c_str()), "overwrite");
+    }
+    else{
+      // add extension
+      dir_->WriteObject(objToSave_, Form("%s_%s", saveName_.c_str(), className.c_str()), "overwrite");
+    }
+
 
     // Force TFile Write?
     if( forceWriteFile_ ) GenericToolbox::triggerTFileWrite(dir_);
@@ -522,20 +556,16 @@ namespace GenericToolbox {
       }
     } // iBranch
   }
-  TMatrixD* getCovarianceMatrixOfTree(TTree* tree_, bool showProgressBar_){
-
-    TMatrixD* outCovMatrix;
-
+  std::vector<TLeaf*> getEnabledLeavesList(TTree* tree_, bool includeArrayLeaves_){
     std::vector<TLeaf*> leafList;
     for(int iLeaf = 0 ; iLeaf < tree_->GetListOfLeaves()->GetEntries() ; iLeaf++){
-      // DONT SUPPORT ARRAYS AT THE MOMENT
       TLeaf* leafBufferPtr = tree_->GetLeaf(tree_->GetListOfLeaves()->At(iLeaf)->GetName());
-      if(tree_->GetBranchStatus(leafBufferPtr->GetName()) == 1){ // check if this branch is active
-        if(leafBufferPtr->GetNdata() == 1){
-//          std::cout << "Adding: " << leafBufferPtr->GetName() << std::endl;
+      if(tree_->GetBranchStatus(leafBufferPtr->GetBranch()->GetName()) == 1){ // check if this branch is active
+        if( includeArrayLeaves_ or leafBufferPtr->GetNdata() == 1){
           leafList.emplace_back(leafBufferPtr);
         }
         else{
+          // DON'T SUPPORT ARRAYS AT THE MOMENT
           std::cout << __METHOD_NAME__
                     << ": " << tree_->GetListOfLeaves()->At(iLeaf)->GetName()
                     << " -> array leaves are not supported yet." << std::endl;
@@ -543,6 +573,35 @@ namespace GenericToolbox {
       }
 
     }
+    return leafList;
+  }
+  TVectorD* generateMeanVectorOfTree(TTree* tree_, bool showProgressBar_){
+    TVectorD* outMeanVector;
+    std::vector<TLeaf*> leafList = GenericToolbox::getEnabledLeavesList(tree_, false);
+
+    outMeanVector = new TVectorD(int(leafList.size()));
+    for(int iLeaf = 0 ; iLeaf < outMeanVector->GetNrows() ; iLeaf++){ (*outMeanVector)[iLeaf] = 0; }
+
+    Long64_t nEntries = tree_->GetEntries();
+    for(Long64_t iEntry = 0 ; iEntry < nEntries ; iEntry++){
+      if( showProgressBar_ ) GenericToolbox::displayProgressBar(iEntry, nEntries, "Compute mean of every variable");
+      tree_->GetEntry(iEntry);
+      for(int iLeaf = 0 ; iLeaf < outMeanVector->GetNrows() ; iLeaf++){
+        (*outMeanVector)[iLeaf] += leafList[iLeaf]->GetValue(0);
+      }
+    }
+    for(int iLeaf = 0 ; iLeaf < outMeanVector->GetNrows() ; iLeaf++){
+      (*outMeanVector)[iLeaf] /= double(nEntries);
+    }
+
+    return outMeanVector;
+  }
+  TMatrixD* generateCovarianceMatrixOfTree(TTree* tree_, bool showProgressBar_){
+
+    TMatrixD* outCovMatrix;
+
+    // Generate covariance matrix of all ENABLED branches of the input tree
+    std::vector<TLeaf*> leafList = GenericToolbox::getEnabledLeavesList(tree_, false);
 
     // Initializing the matrix
     outCovMatrix = new TMatrixD(int(leafList.size()), int(leafList.size()));
@@ -553,28 +612,18 @@ namespace GenericToolbox {
     }
 
     // Compute mean of every variable
-    std::vector<double> meanValueLeafList(leafList.size(),0);
-    Long64_t nEntries = tree_->GetEntries();
-    for(Long64_t iEntry = 0 ; iEntry < nEntries ; iEntry++){
-      if( showProgressBar_ ) GenericToolbox::displayProgressBar(iEntry, nEntries, "Compute mean of every variable");
-      tree_->GetEntry(iEntry);
-      for(size_t iLeaf = 0 ; iLeaf < leafList.size() ; iLeaf++){
-        meanValueLeafList[iLeaf] += leafList[iLeaf]->GetValue(0);
-      }
-    }
-    for(int iLeaf = 0 ; iLeaf < leafList.size() ; iLeaf++){
-      meanValueLeafList[iLeaf] /= double(nEntries);
-    }
+    auto* meanValueLeafList = GenericToolbox::generateMeanVectorOfTree(tree_, showProgressBar_);
 
     // Compute covariance
+    Long64_t nEntries = tree_->GetEntries();
     for(Long64_t iEntry = 0 ; iEntry < nEntries ; iEntry++){
       if( showProgressBar_ ) GenericToolbox::displayProgressBar(iEntry, nEntries, "Compute covariance");
       tree_->GetEntry(iEntry);
       for(int iCol = 0 ; iCol < leafList.size() ; iCol++){
         for(int iRow = 0 ; iRow < leafList.size() ; iRow++){
           (*outCovMatrix)[iCol][iRow] +=
-            (leafList[iCol]->GetValue(0) - meanValueLeafList[iCol])
-            *(leafList[iRow]->GetValue(0) - meanValueLeafList[iRow]);
+            (leafList[iCol]->GetValue(0) - (*meanValueLeafList)[iCol])
+            *(leafList[iRow]->GetValue(0) - (*meanValueLeafList)[iRow]);
         } // iRow
       } // iCol
     } // iEntry
@@ -586,6 +635,25 @@ namespace GenericToolbox {
 
     return outCovMatrix;
 
+  }
+  std::string generateCleanBranchName(const std::string& name_){
+    std::string out{name_};
+
+    GenericToolbox::replaceSubstringInsideInputString(out, " ", "_");
+    GenericToolbox::replaceSubstringInsideInputString(out, "-", "_");
+    GenericToolbox::replaceSubstringInsideInputString(out, "/", "_");
+    GenericToolbox::replaceSubstringInsideInputString(out, "<", "_");
+
+    GenericToolbox::replaceSubstringInsideInputString(out, ">", "");
+    GenericToolbox::replaceSubstringInsideInputString(out, "(", "");
+    GenericToolbox::replaceSubstringInsideInputString(out, ")", "");
+    GenericToolbox::replaceSubstringInsideInputString(out, "{", "");
+    GenericToolbox::replaceSubstringInsideInputString(out, "}", "");
+    GenericToolbox::replaceSubstringInsideInputString(out, "[", "");
+    GenericToolbox::replaceSubstringInsideInputString(out, "]", "");
+    GenericToolbox::replaceSubstringInsideInputString(out, "#", "");
+
+    return out;
   }
 
 }
@@ -966,8 +1034,9 @@ namespace GenericToolbox {
     gStyle->SetPalette(kDarkBodyRadiator);
   }
   void fixTH2display(TH2 *histogram_){
+    if( histogram_ == nullptr ) return;
 
-    gPad->SetRightMargin(0.15);
+    if( gPad != nullptr ) gPad->SetRightMargin(0.15);
     histogram_->GetZaxis()->SetTitleOffset(0.8);
     auto* pal = (TPaletteAxis*) histogram_->GetListOfFunctions()->FindObject("palette");
     // TPaletteAxis* pal = (TPaletteAxis*) histogram_->GetListOfFunctions()->At(0);
