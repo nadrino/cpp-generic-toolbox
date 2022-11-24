@@ -31,6 +31,7 @@ namespace GenericToolbox {
     // Write
     bool setKey(const std::string &path_, const DWORD& type_);
     template<class T> bool write(const std::string &path_, const T &objToWrite_, bool createKeyIsNotPresent_ = false);
+    bool write(const std::string &path_, const std::string &objToWrite_, bool createKeyIsNotPresent_ = false);
 
     /* initializeHotLink() make the hotLink definition at the Midas level.
    *
