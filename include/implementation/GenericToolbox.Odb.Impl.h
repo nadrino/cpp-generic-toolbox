@@ -127,7 +127,27 @@ namespace GenericToolbox {
         if( createKeyIsNotPresent_ ){
           if( not setKey(path_, getTypeId(objToWrite_)) ){
             throw std::runtime_error("Could not create key " + path_);
-            return false;
+          }
+        }
+        else{
+          return false;
+        }
+      }
+
+      HNDLE hKey = 0;
+      INT type, num_values, item_size;
+      db_get_key_info(hDB, hKey, (char*) path_.c_str(), int(path_.size()), &type, &num_values, &item_size);
+
+      // TODO: UNFINISHED
+      // Do a generic function to write void* raw data and specialize after
+      throw std::runtime_error("UNFINISHED IMPL");
+      db_set_data_index(hDB, hKey, &objToWrite_, item_size, 0, getTypeId(objToWrite_));
+    }
+    bool write(const std::string &path_, const std::string &objToWrite_, bool createKeyIsNotPresent_){
+      if( not isKey(path_)){
+        if( createKeyIsNotPresent_ ){
+          if( not setKey(path_, getTypeId(objToWrite_)) ){
+            throw std::runtime_error("Could not create key " + path_);
           }
         }
         else{
@@ -141,6 +161,7 @@ namespace GenericToolbox {
 
       // TODO: UNFINISHED
       throw std::runtime_error("UNFINISHED IMPL");
+      db_set_data_index(hDB, hKey, &objToWrite_, item_size, 0, getTypeId(objToWrite_));
     }
 
     template<class T> inline DWORD getTypeId(const T& object_){
