@@ -141,6 +141,12 @@ namespace GenericToolbox{
   inline void leafToAnyType(const TLeaf* leaf_, GenericToolbox::AnyType& out_);
   inline void leafToAnyType(const std::string& leafTypeName_, GenericToolbox::AnyType& out_);
 
+  // LinkDef does not enable function declaration by itself.
+  // A proxy class can be used to trigger the function declaration on CINT startup
+  class Enabler{
+  public:
+    Enabler() = default;
+  };
 
 }
 
