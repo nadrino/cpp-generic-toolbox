@@ -43,19 +43,19 @@ extern char* __progname;
 namespace GenericToolbox {
 
   template<typename T, typename TT> inline static std::string generateProgressBarStr( const T& iCurrent_, const TT& iTotal_, const std::string &title_ ){
-    return gProgressBar.template generateProgressBarStr(iCurrent_, iTotal_, title_);
+    return ProgressBar::gProgressBar.template generateProgressBarStr(iCurrent_, iTotal_, title_);
   }
   template<typename T, typename TT> inline static bool showProgressBar(const T& iCurrent_, const TT& iTotal_){
-    return gProgressBar.template showProgressBar(iCurrent_, iTotal_);
+    return ProgressBar::gProgressBar.template showProgressBar(iCurrent_, iTotal_);
   }
   template<typename T, typename TT> inline static std::string getProgressBarStr(const T& iCurrent_, const TT& iTotal_, const std::string &title_, bool forcePrint_ ){
-    return gProgressBar.template getProgressBarStr(iCurrent_, iTotal_, title_, forcePrint_);
+    return ProgressBar::gProgressBar.template getProgressBarStr(iCurrent_, iTotal_, title_, forcePrint_);
   }
   template<typename T, typename TT> inline static void displayProgressBar(const T& iCurrent_, const TT& iTotal_, const std::string &title_, bool forcePrint_) {
-    return gProgressBar.template displayProgressBar(iCurrent_, iTotal_, title_, forcePrint_);
+    return ProgressBar::gProgressBar.template displayProgressBar(iCurrent_, iTotal_, title_, forcePrint_);
   }
   inline static void resetLastDisplayedValue(){
-    gProgressBar.resetLastDisplayedValue();
+    ProgressBar::gProgressBar.resetLastDisplayedValue();
   }
 
 }

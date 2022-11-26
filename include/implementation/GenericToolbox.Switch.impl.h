@@ -241,8 +241,8 @@ namespace GenericToolbox::Switch {
       }
     }
     template<typename T, typename TT> inline static void displayProgressBar(const T& iCurrent_, const TT& iTotal_, const std::string &title_, bool forcePrint_){
-      if(forcePrint_ or gProgressBar.template showProgressBar(iCurrent_, iTotal_) ){
-        printLeft(gProgressBar.template generateProgressBarStr(iCurrent_, iTotal_, title_));
+      if(forcePrint_ or ProgressBar::gProgressBar.template showProgressBar(iCurrent_, iTotal_) ){
+        printLeft(ProgressBar::gProgressBar.template generateProgressBarStr(iCurrent_, iTotal_, title_));
         consoleUpdate(nullptr);
       }
     }
