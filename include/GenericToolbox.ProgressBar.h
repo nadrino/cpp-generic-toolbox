@@ -51,11 +51,13 @@ namespace GenericToolbox{
     std::thread::id _selectedThreadId_ = std::this_thread::get_id(); // get the main thread id
 
     //buffers
-    std::chrono::high_resolution_clock::time_point _timePointBuffer_;
-    long _deltaTimeMilliSec_;
-    double _timeIntervalBuffer_;
+    std::chrono::high_resolution_clock::time_point _timePointBuffer_{};
+    long _deltaTimeMilliSec_{};
+    double _timeIntervalBuffer_{};
 
   };
+
+  static ProgressBar gProgressBar;
 
 }
 

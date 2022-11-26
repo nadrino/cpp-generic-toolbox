@@ -42,8 +42,6 @@ extern char* __progname;
 // Displaying Tools
 namespace GenericToolbox {
 
-  static ProgressBar gProgressBar;
-
   template<typename T, typename TT> static inline std::string generateProgressBarStr( const T& iCurrent_, const TT& iTotal_, const std::string &title_ ){
     return gProgressBar.template generateProgressBarStr(iCurrent_, iTotal_, title_);
   }

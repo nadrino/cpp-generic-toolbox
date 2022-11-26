@@ -5,10 +5,14 @@
 #ifndef CPP_GENERIC_TOOLBOX_GENERICTOOLBOX_PROGRESS_BAR_IMPL_H
 #define CPP_GENERIC_TOOLBOX_GENERICTOOLBOX_PROGRESS_BAR_IMPL_H
 
+
+#include "GenericToolbox.h"
+
 #include <chrono>
 #include <sstream>
 #include <string>
 #include <cmath>
+
 
 namespace GenericToolbox{
 
@@ -175,7 +179,7 @@ namespace GenericToolbox{
       for (int iTag = 0; iTag < nbTags; iTag++) {
         padProgressBar += this->_fillTag_[iTag % this->_fillTag_.size()];
       }
-      padProgressBar += repeatString(" ", nbSpaces);
+      padProgressBar += GenericToolbox::repeatString(" ", nbSpaces);
 
       if( _enableRainbowProgressBar_ ){
         padProgressBar = GenericToolbox::makeRainbowString(padProgressBar, false);
