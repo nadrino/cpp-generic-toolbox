@@ -57,7 +57,7 @@ namespace GenericToolbox{
 
   };
 
-  static ProgressBar gProgressBar;
+  inline static ProgressBar gProgressBar;
 
 }
 

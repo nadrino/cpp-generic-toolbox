@@ -36,11 +36,11 @@ namespace GenericToolbox{
 //! Progress bar
 namespace GenericToolbox{
 
-  template<typename T, typename TT> static inline void displayProgressBar( const T& iCurrent_, const TT& iTotal_, const std::string &title_ = "", bool forcePrint_ = false);
-  template<typename T, typename TT> static inline std::string getProgressBarStr(const T& iCurrent_, const TT& iTotal_, const std::string &title_ = "", bool forcePrint_ = false );
-  template<typename T, typename TT> static inline std::string generateProgressBarStr(const T& iCurrent_, const TT& iTotal_, const std::string &title_ = "" );
-  template<typename T, typename TT> static inline bool showProgressBar(const T& iCurrent_, const TT& iTotal_);
-  static inline void resetLastDisplayedValue();
+  template<typename T, typename TT> inline static void displayProgressBar( const T& iCurrent_, const TT& iTotal_, const std::string &title_ = "", bool forcePrint_ = false);
+  template<typename T, typename TT> inline static std::string getProgressBarStr(const T& iCurrent_, const TT& iTotal_, const std::string &title_ = "", bool forcePrint_ = false );
+  template<typename T, typename TT> inline static std::string generateProgressBarStr(const T& iCurrent_, const TT& iTotal_, const std::string &title_ = "" );
+  template<typename T, typename TT> inline static bool showProgressBar(const T& iCurrent_, const TT& iTotal_);
+  inline static void resetLastDisplayedValue();
 
 }
 
@@ -48,7 +48,7 @@ namespace GenericToolbox{
 //! Conversion Tools
 namespace GenericToolbox {
 
-  template<typename T, typename TT> static inline std::string iterableToString(const T& iterable_, const TT& toStrFct_, bool jumpLine_=true, bool indentLine_=true);
+  template<typename T, typename TT> inline static std::string iterableToString(const T& iterable_, const TT& toStrFct_, bool jumpLine_=true, bool indentLine_=true);
 
 }
 
@@ -76,10 +76,10 @@ namespace GenericToolbox {
   }
 
 
-  static inline void waitProgressBar(unsigned int nbMilliSecToWait_, const std::string &progressTitle_ = "Waiting...");
-  static inline std::string parseIntAsString(int intToFormat_);
-  static inline std::string highlightIf(bool condition_, const std::string& text_);
-  static inline std::string makeRainbowString(const std::string& inputStr_, bool stripUnicode_ = true);
+  inline static void waitProgressBar(unsigned int nbMilliSecToWait_, const std::string &progressTitle_ = "Waiting...");
+  inline static std::string parseIntAsString(int intToFormat_);
+  inline static std::string highlightIf(bool condition_, const std::string& text_);
+  inline static std::string makeRainbowString(const std::string& inputStr_, bool stripUnicode_ = true);
 
 }
 
@@ -88,18 +88,18 @@ namespace GenericToolbox {
 namespace GenericToolbox{
 
   // Content management
-  template <typename T> static inline bool doesElementIsInVector( const T& element_, const std::vector<T>& vector_ );
-  static inline bool doesElementIsInVector(const char* element_, const std::vector<std::string>& vector_);
-  template <typename T> static inline int findElementIndex( const T& element_, const std::vector<T>& vector_ );
-  static inline int findElementIndex(const char* element_, const std::vector<std::string>& vector_ );
-  template<typename T> static inline void insertInVector(std::vector<T> &vector_, const std::vector<T> &vectorToInsert_, size_t insertBeforeThisIndex_);
-  template<typename T> static inline void insertInVector(std::vector<T> &vector_, const T &elementToInsert_, size_t insertBeforeThisIndex_);
-  template<typename T> static inline void addIfNotInVector(const T& element_, std::vector<T> &vector_);
-  static inline void addIfNotInVector(const char* element_, std::vector<std::string> &vector_);
+  template <typename T> inline static bool doesElementIsInVector( const T& element_, const std::vector<T>& vector_ );
+  inline static bool doesElementIsInVector(const char* element_, const std::vector<std::string>& vector_);
+  template <typename T> inline static int findElementIndex( const T& element_, const std::vector<T>& vector_ );
+  inline static int findElementIndex(const char* element_, const std::vector<std::string>& vector_ );
+  template<typename T> inline static void insertInVector(std::vector<T> &vector_, const std::vector<T> &vectorToInsert_, size_t insertBeforeThisIndex_);
+  template<typename T> inline static void insertInVector(std::vector<T> &vector_, const T &elementToInsert_, size_t insertBeforeThisIndex_);
+  template<typename T> inline static void addIfNotInVector(const T& element_, std::vector<T> &vector_);
+  inline static void addIfNotInVector(const char* element_, std::vector<std::string> &vector_);
 
   // Generators
-  template<typename T> static inline std::vector<size_t> indices(const std::vector<T> &vector_);
-  template<typename T> static inline std::vector<T> getSubVector( const std::vector<T>& vector_, size_t beginIndex_, int endIndex_ = -1 );
+  template<typename T> inline static std::vector<size_t> indices(const std::vector<T> &vector_);
+  template<typename T> inline static std::vector<T> getSubVector( const std::vector<T>& vector_, size_t beginIndex_, int endIndex_ = -1 );
   template<typename T, typename TT> static inline std::vector<TT> convertVectorType( const std::vector<T>& vector_, std::function<TT(T)>& convertTypeFunction_ );
 
   // Printout / to string conversions

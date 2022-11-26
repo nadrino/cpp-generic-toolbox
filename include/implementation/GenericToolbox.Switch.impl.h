@@ -15,7 +15,7 @@
 namespace GenericToolbox::Switch {
 
   namespace IO{
-    static inline bool copyFile(const std::string& srcFilePath_, const std::string& dstFilePath_, bool force_){
+    inline static bool copyFile(const std::string& srcFilePath_, const std::string& dstFilePath_, bool force_){
       bool isSuccess{false};
 
       if(not doesPathIsFile(srcFilePath_)) return false;
@@ -62,7 +62,7 @@ namespace GenericToolbox::Switch {
       Utils::b.progressMap["copyFile"] = 1.;
       return isSuccess;
     }
-    static inline bool doFilesAreIdentical(const std::string& file1Path_, const std::string& file2Path_){
+    inline static bool doFilesAreIdentical(const std::string& file1Path_, const std::string& file2Path_){
       if( not doesPathIsFile(file2Path_) ) { return false; }
       if( not doesPathIsFile(file1Path_) ) { return false; }
 
@@ -101,14 +101,14 @@ namespace GenericToolbox::Switch {
       }
       return true;
     }
-    static inline void dumpStringInFile(const std::string &outFilePath_, const std::string &stringToWrite_) {
+    inline static void dumpStringInFile(const std::string &outFilePath_, const std::string &stringToWrite_) {
       std::ofstream out(outFilePath_, std::ios::out | std::ios::binary);
       out.write(stringToWrite_.data(), long(stringToWrite_.size()));
     }
   }
 
   namespace Utils{
-    static inline std::string lookForTidInSubFolders(const std::string& folderPath_){
+    inline static std::string lookForTidInSubFolders(const std::string& folderPath_){
       // WARNING : Recursive function
       std::string tidExample = "0100626011656000";
       std::vector<std::string> subFolderList = GenericToolbox::getListOfSubFoldersInFolder(folderPath_);
@@ -127,7 +127,7 @@ namespace GenericToolbox::Switch {
 
       return "";
     }
-    static inline uint8_t* getFolderIconFromTitleId(const std::string& titleId_){
+    inline static uint8_t* getFolderIconFromTitleId(const std::string& titleId_){
       if( titleId_.empty() ) return nullptr;
 
       uint8_t* icon = nullptr;
@@ -147,7 +147,7 @@ namespace GenericToolbox::Switch {
   }
 
   namespace UI{
-    static inline std::string openKeyboardUi(const std::string &defaultStr_) {
+    inline static std::string openKeyboardUi(const std::string &defaultStr_) {
       SwkbdConfig kbd;
       char tmpoutstr[64];
 
@@ -164,7 +164,7 @@ namespace GenericToolbox::Switch {
 
   namespace Terminal {
 
-    static inline void printRight(const std::string& input_, const std::string& color_, bool flush_){
+    inline static void printRight(const std::string& input_, const std::string& color_, bool flush_){
       int nbSpaceLeft{GenericToolbox::Switch::Hardware::getTerminalWidth()};
       nbSpaceLeft -= int(GenericToolbox::getPrintSize(input_));
       if( nbSpaceLeft <= 0 ){
@@ -181,7 +181,7 @@ namespace GenericToolbox::Switch {
       if(flush_) std::cout << "\r";
       else if(int(input_.size()) > GenericToolbox::Switch::Hardware::getTerminalWidth()) std::cout << std::endl;
     }
-    static inline void printLeft(const std::string& input_, const std::string& color_, bool flush_){
+    inline static void printLeft(const std::string& input_, const std::string& color_, bool flush_){
       int nbSpaceLeft{GenericToolbox::Switch::Hardware::getTerminalWidth()};
       nbSpaceLeft -= int(GenericToolbox::getPrintSize(input_));
       if( nbSpaceLeft <= 0 ){
@@ -197,7 +197,7 @@ namespace GenericToolbox::Switch {
       if(flush_) std::cout << "\r";
       else if(int(input_.size()) > GenericToolbox::Switch::Hardware::getTerminalWidth()) std::cout << std::endl;
     }
-    static inline void printLeftRight(const std::string& input_left_, const std::string& input_right_, const std::string& color_){
+    inline static void printLeftRight(const std::string& input_left_, const std::string& input_right_, const std::string& color_){
       int nbSpaceLeft{GenericToolbox::Switch::Hardware::getTerminalWidth()};
       nbSpaceLeft -= int(GenericToolbox::getPrintSize(input_left_));
       nbSpaceLeft -= int(GenericToolbox::getPrintSize(input_right_));
@@ -218,7 +218,7 @@ namespace GenericToolbox::Switch {
       if(GenericToolbox::Switch::Hardware::getTerminalWidth() < int(input_left_.size()) + int(input_right_.size())) std::cout << std::endl;
     }
 
-    static inline void makePause(){
+    inline static void makePause(){
       std::cout << "PRESS A to continue or + to quit now." << std::endl;
       consoleUpdate(nullptr);
 
@@ -240,7 +240,7 @@ namespace GenericToolbox::Switch {
         clock_buffer = std::chrono::high_resolution_clock::now();
       }
     }
-    template<typename T, typename TT> static inline void displayProgressBar(const T& iCurrent_, const TT& iTotal_, const std::string &title_, bool forcePrint_){
+    template<typename T, typename TT> inline static void displayProgressBar(const T& iCurrent_, const TT& iTotal_, const std::string &title_, bool forcePrint_){
       if(forcePrint_ or gProgressBar.template showProgressBar(iCurrent_, iTotal_) ){
         printLeft(gProgressBar.template generateProgressBarStr(iCurrent_, iTotal_, title_));
         consoleUpdate(nullptr);
@@ -250,12 +250,12 @@ namespace GenericToolbox::Switch {
   }
 
   namespace Hardware{
-    static inline u64 getMemoryInfo(PhysicalMemoryType type_, PhysicalMemoryOf of_) {
+    inline static u64 getMemoryInfo(PhysicalMemoryType type_, PhysicalMemoryOf of_) {
       u64 out{0};
       svcGetSystemInfo(&out, type_, INVALID_HANDLE, of_);
       return out;
     }
-    static inline std::string getMemoryUsageStr(PhysicalMemoryOf of_) {
+    inline static std::string getMemoryUsageStr(PhysicalMemoryOf of_) {
       std::stringstream ss;
       ss << PhysicalMemoryOfEnumNamespace::toString(of_) << ": ";
       ss << GenericToolbox::parseSizeUnits(double(getMemoryInfo(UsedPhysicalMemorySize, of_)));
@@ -264,10 +264,10 @@ namespace GenericToolbox::Switch {
       return ss.str();
     }
 
-    static inline int getTerminalWidth(){
+    inline static int getTerminalWidth(){
       return consoleGetDefault()->consoleWidth;
     }
-    static inline int getTerminalHeight(){
+    inline static int getTerminalHeight(){
       return consoleGetDefault()->consoleHeight;
     }
   }
