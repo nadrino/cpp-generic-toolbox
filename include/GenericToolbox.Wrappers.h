@@ -13,6 +13,7 @@ namespace GenericToolbox{
   public:
     NoCopyWrapper() = default;
     NoCopyWrapper(const NoCopyWrapper&){}
+    NoCopyWrapper& operator=(const NoCopyWrapper&){ return *this; }
   };
 
   template<class T> class CopiableAtomic : public std::atomic<T> {
