@@ -30,6 +30,31 @@ namespace GenericToolbox{
     }
   };
 
+  template<class T> class PolymorphicObjectWrapper{
+
+  public:
+    PolymorphicObjectWrapper() = default;
+
+    // Handling copy
+    PolymorphicObjectWrapper(const PolymorphicObjectWrapper& src_): dialPtr{src_.dialPtr->clone()} {  }
+    PolymorphicObjectWrapper& operator=(const PolymorphicObjectWrapper& other) { if (this != &other) { dialPtr = other.dialPtr->clone(); } return *this; }
+    PolymorphicObjectWrapper(PolymorphicObjectWrapper&&)  noexcept = default;
+    PolymorphicObjectWrapper& operator=(PolymorphicObjectWrapper&&)  noexcept = default;
+
+    template<typename DerivedT, std::enable_if_t<std::is_base_of<T, DerivedT>::value, int> = 0>
+    explicit PolymorphicObjectWrapper(const DerivedT& src_): dialPtr{src_.clone()} {  }
+
+    template<typename DerivedT, std::enable_if_t<std::is_base_of<T, DerivedT>::value, int> = 0>
+    explicit PolymorphicObjectWrapper(std::unique_ptr<DerivedT> def): dialPtr{std::move(def)} {};
+
+    T& operator*() const { return *dialPtr; }
+    T* operator->() const { return dialPtr.get(); }
+    [[nodiscard]] T* get() const{ return dialPtr.get(); }
+
+    std::unique_ptr<T> dialPtr;
+
+  };
+
 }
 
 
