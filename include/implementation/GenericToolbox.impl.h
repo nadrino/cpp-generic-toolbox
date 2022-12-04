@@ -35,6 +35,7 @@
 #include <array>
 #include <vector>
 #include "sys/times.h"
+#include "typeindex"
 
 extern char* __progname;
 
@@ -1575,6 +1576,17 @@ namespace GenericToolbox{
 
 }
 
+//! Polymorphism Tools
+namespace GenericToolbox{
+
+  template<class Derived, class ObjClass> static inline bool isDerivedFrom(ObjClass* objPtr_){
+    return dynamic_cast< Derived* >( objPtr_ ) != nullptr;
+  }
+  template<class Derived, class Base> static inline bool isDerivedType(Base* objPtr_){
+    return std::type_index(typeid(*objPtr_)) == std::type_index(typeid(Derived));
+  }
+
+}
 
 // Misc Tools
 namespace GenericToolbox{

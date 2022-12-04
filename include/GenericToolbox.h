@@ -266,6 +266,15 @@ namespace GenericToolbox{
 }
 
 
+//! Polymorphism Tools
+namespace GenericToolbox{
+
+  template<class Derived, class Base> static inline bool isDerivedFrom(Base* objPtr_); // slow...
+  template<class Derived, class Base> static inline bool isDerivedType(Base* objPtr_); // works when Derived is the final type
+
+}
+
+
 //! Misc Tools
 namespace GenericToolbox{
 
