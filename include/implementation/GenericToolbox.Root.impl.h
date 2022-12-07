@@ -24,6 +24,11 @@
 #include <TSpline.h>
 #include <TDecompChol.h>
 #include <TEnv.h>
+#include "TH1D.h"
+#include "TH2D.h"
+#include "TFormula.h"
+#include "TTreeFormula.h"
+#include "TTree.h"
 
 // STD Headers
 #include "string"
@@ -34,7 +39,7 @@
 //! Conversion Tools
 namespace GenericToolbox {
 
-  TH1D* convertTVectorDtoTH1D(const TVectorD* yValuesPtr_, const std::string &histTitle_, const std::string &yTitle_,
+  inline TH1D* convertTVectorDtoTH1D(const TVectorD* yValuesPtr_, const std::string &histTitle_, const std::string &yTitle_,
                               const std::string &xTitle_, TVectorD* yErrorsPtr_){
 
     auto* th1_histogram = new TH1D(histTitle_.c_str(), histTitle_.c_str(),
@@ -54,14 +59,14 @@ namespace GenericToolbox {
 
     return th1_histogram;
   }
-  TH1D* convertTVectorDtoTH1D(const std::vector<double> &Y_values_, const std::string &histTitle_, const std::string &Y_title_, const std::string &X_title_, TVectorD *Y_errors_){
+  inline TH1D* convertTVectorDtoTH1D(const std::vector<double> &Y_values_, const std::string &histTitle_, const std::string &Y_title_, const std::string &X_title_, TVectorD *Y_errors_){
     TH1D* out = nullptr;
     auto* tVectorHandler = new TVectorD(int(Y_values_.size()), &Y_values_[0]);
     out = convertTVectorDtoTH1D(tVectorHandler, histTitle_, Y_title_, X_title_, Y_errors_);
     delete tVectorHandler;
     return out;
   }
-  TH2D* convertTMatrixDtoTH2D(const TMatrixD* XY_values_, std::string graph_title_, const std::string &Z_title_,
+  inline TH2D* convertTMatrixDtoTH2D(const TMatrixD* XY_values_, std::string graph_title_, const std::string &Z_title_,
                               const std::string &Y_title_, const std::string &X_title_){
 
     if(graph_title_.empty()){
@@ -86,11 +91,11 @@ namespace GenericToolbox {
 
     return th2_histogram;
   }
-  TH2D* convertTMatrixDtoTH2D(const TMatrixDSym* XY_values_, std::string graph_title_, const std::string &Z_title_,
+  inline TH2D* convertTMatrixDtoTH2D(const TMatrixDSym* XY_values_, std::string graph_title_, const std::string &Z_title_,
                               const std::string &Y_title_, const std::string &X_title_){
     return convertTMatrixDtoTH2D((TMatrixD*) XY_values_, std::move(graph_title_), Z_title_, Y_title_, X_title_);
   }
-  TVectorD *convertStdVectorToTVectorD(const std::vector<double> &vect_){
+  inline TVectorD *convertStdVectorToTVectorD(const std::vector<double> &vect_){
 
     auto *output = new TVectorD(int(vect_.size()));
     for(int i = 0 ; i < int(vect_.size()) ; i++){
@@ -99,10 +104,7 @@ namespace GenericToolbox {
     return output;
 
   }
-  TMatrixDSym *convertToSymmetricMatrix(TMatrixD *matrix_){
-    return convertToSymmetricMatrix((const TMatrixD*) matrix_);
-  }
-  TMatrixDSym *convertToSymmetricMatrix(const TMatrixD *matrix_) {
+  inline TMatrixDSym *convertToSymmetricMatrix(const TMatrixD *matrix_) {
 
     auto *symmetric_matrix = (TMatrixD *) matrix_->Clone();
     auto *transposed_symmetric_matrix = new TMatrixD(*matrix_);
@@ -122,7 +124,10 @@ namespace GenericToolbox {
 
     return result;
   }
-  TMatrixD* convertToCorrelationMatrix(TMatrixD* covarianceMatrix_){
+  inline TMatrixDSym *convertToSymmetricMatrix(TMatrixD *matrix_){
+    return convertToSymmetricMatrix((const TMatrixD*) matrix_);
+  }
+  inline TMatrixD* convertToCorrelationMatrix(TMatrixD* covarianceMatrix_){
     if(covarianceMatrix_ == nullptr) return nullptr;
     if(covarianceMatrix_->GetNrows() != covarianceMatrix_->GetNcols()) return nullptr;
 
@@ -336,7 +341,7 @@ namespace GenericToolbox {
 //! Files Tools
 namespace GenericToolbox {
 
-  TFile* openExistingTFile(const std::string &inputFilePath_, const std::vector<std::string>& objectListToCheck_){
+  inline TFile* openExistingTFile(const std::string &inputFilePath_, const std::vector<std::string>& objectListToCheck_){
     TFile* outPtr{nullptr};
 
     if( not GenericToolbox::doesPathIsFile(inputFilePath_) ){
@@ -360,7 +365,7 @@ namespace GenericToolbox {
 
     return outPtr;
   }
-  bool doesTFileIsValid(const std::string &inputFilePath_, const std::vector<std::string>& objectListToCheck_){
+  inline bool doesTFileIsValid(const std::string &inputFilePath_, const std::vector<std::string>& objectListToCheck_){
     bool fileIsValid = false;
     gEnv->SetValue("TFile.Recover", 0);
     if(GenericToolbox::doesPathIsFile(inputFilePath_)) {
@@ -382,7 +387,7 @@ namespace GenericToolbox {
     }
     return fileIsValid;
   }
-  bool doesTFileIsValid(TFile* tfileCandidatePtr_, bool check_if_writable_){
+  inline bool doesTFileIsValid(TFile* tfileCandidatePtr_, bool check_if_writable_){
 
     if(tfileCandidatePtr_ == nullptr){
       if(GenericToolbox::Parameters::_verboseLevel_ >= 1)
@@ -426,7 +431,7 @@ namespace GenericToolbox {
 
     return true;
   }
-  template<typename T> std::vector<T*> getObjectList(TDirectory* directory_, bool cloneObj_){
+  template<typename T> inline std::vector<T*> getObjectList(TDirectory* directory_, bool cloneObj_){
     if( directory_ == nullptr ) return {};
 
     TClass* templateClass = TClass::GetClass<T>();
@@ -444,10 +449,10 @@ namespace GenericToolbox {
     delete templateClass;
     return output;
   }
-  std::vector<TObject *> getListOfObjectFromTDirectory(TDirectory *directory_, const std::string &className_, bool cloneObj_) {
+  inline std::vector<TObject *> getListOfObjectFromTDirectory(TDirectory *directory_, const std::string &className_, bool cloneObj_) {
     return GenericToolbox::getObjectList<TObject>(directory_, cloneObj_);
   }
-  std::vector<std::string> lsTDirectory(TDirectory* directory_, const std::string& className_){
+  inline std::vector<std::string> lsTDirectory(TDirectory* directory_, const std::string& className_){
     std::vector<std::string> output{};
     if( directory_ == nullptr ) return output;
 
@@ -460,20 +465,20 @@ namespace GenericToolbox {
 
     return output;
   }
-  std::vector<std::string> lsSubDirTDirectory(TDirectory* directory_){
+  inline std::vector<std::string> lsSubDirTDirectory(TDirectory* directory_){
     return GenericToolbox::lsTDirectory(directory_, "TDirectoryFile");
   }
-  TDirectory* mkdirTFile(TDirectory* baseDir_, const std::string &dirName_){
+  inline TDirectory* mkdirTFile(TDirectory* baseDir_, const std::string &dirName_){
     if( baseDir_ == nullptr ) return nullptr;
     if(baseDir_->GetDirectory(dirName_.c_str()) == nullptr){
       baseDir_->mkdir(dirName_.c_str());
     }
     return baseDir_->GetDirectory(dirName_.c_str());
   }
-  TDirectory* mkdirTFile(TFile* outputFile_, const std::string &dirName_){
+  inline TDirectory* mkdirTFile(TFile* outputFile_, const std::string &dirName_){
     return mkdirTFile(outputFile_->GetDirectory(""), dirName_);
   }
-  std::vector<TFile *> getListOfOpenedTFiles() {
+  inline std::vector<TFile *> getListOfOpenedTFiles() {
     std::vector<TFile *> output;
     // TIter next_iter(gROOT->GetListOfGlobals());
     auto *global_obj_list = (TList *) gROOT->GetListOfGlobals();
@@ -543,7 +548,7 @@ namespace GenericToolbox {
 //! Trees Tools
 namespace GenericToolbox {
 
-  void disableUnhookedBranches(TTree* tree_){
+  inline void disableUnhookedBranches(TTree* tree_){
     if(tree_ == nullptr){
       std::cout << "ERROR in " << __METHOD_NAME__ << ": " << GET_VAR_NAME_VALUE(tree_) << std::endl;
       return;
@@ -556,7 +561,7 @@ namespace GenericToolbox {
       }
     } // iBranch
   }
-  std::vector<TLeaf*> getEnabledLeavesList(TTree* tree_, bool includeArrayLeaves_){
+  inline std::vector<TLeaf*> getEnabledLeavesList(TTree* tree_, bool includeArrayLeaves_){
     std::vector<TLeaf*> leafList;
     for(int iLeaf = 0 ; iLeaf < tree_->GetListOfLeaves()->GetEntries() ; iLeaf++){
       TLeaf* leafBufferPtr = tree_->GetLeaf(tree_->GetListOfLeaves()->At(iLeaf)->GetName());
@@ -575,7 +580,7 @@ namespace GenericToolbox {
     }
     return leafList;
   }
-  TVectorD* generateMeanVectorOfTree(TTree* tree_, bool showProgressBar_){
+  inline TVectorD* generateMeanVectorOfTree(TTree* tree_, bool showProgressBar_){
     TVectorD* outMeanVector;
     std::vector<TLeaf*> leafList = GenericToolbox::getEnabledLeavesList(tree_, false);
 
@@ -596,7 +601,7 @@ namespace GenericToolbox {
 
     return outMeanVector;
   }
-  TMatrixD* generateCovarianceMatrixOfTree(TTree* tree_, bool showProgressBar_){
+  inline TMatrixD* generateCovarianceMatrixOfTree(TTree* tree_, bool showProgressBar_){
 
     TMatrixD* outCovMatrix;
 
@@ -636,7 +641,7 @@ namespace GenericToolbox {
     return outCovMatrix;
 
   }
-  std::string generateCleanBranchName(const std::string& name_){
+  inline std::string generateCleanBranchName(const std::string& name_){
     std::string out{name_};
 
     GenericToolbox::replaceSubstringInsideInputString(out, " ", "_");
@@ -661,7 +666,7 @@ namespace GenericToolbox {
 //! Matrix Tools
 namespace GenericToolbox {
 
-  std::map<std::string, TMatrixD *> invertMatrixSVD(TMatrixD *matrix_, const std::string &outputContent_) {
+  inline std::map<std::string, TMatrixD *> invertMatrixSVD(TMatrixD *matrix_, const std::string &outputContent_) {
     std::map<std::string, TMatrixD *> results_handler;
 
     auto content_names = GenericToolbox::splitString(outputContent_, ":");
@@ -746,7 +751,7 @@ namespace GenericToolbox {
 
     return results_handler;
   }
-  std::vector<double> getEigenValues(TMatrixD *matrix_) {
+  inline std::vector<double> getEigenValues(TMatrixD *matrix_) {
     auto *symmetric_matrix = GenericToolbox::convertToSymmetricMatrix(matrix_);
     auto *Eigen_matrix_decomposer = new TMatrixDSymEigen(*symmetric_matrix);
     auto *Eigen_values = &(Eigen_matrix_decomposer->GetEigenValues());
@@ -758,14 +763,14 @@ namespace GenericToolbox {
     std::sort(output.begin(), output.end(), std::greater<double>());
     return output;
   }
-  TMatrixD* getCholeskyMatrix(TMatrixD* covMatrix_){
+  inline TMatrixD* getCholeskyMatrix(TMatrixD* covMatrix_){
     if(covMatrix_ == nullptr) return nullptr;
     auto* covMatrixSym = GenericToolbox::convertToSymmetricMatrix(covMatrix_);
     auto* out = getCholeskyMatrix(covMatrixSym);
     delete covMatrixSym;
     return out;
   }
-  TMatrixD* getCholeskyMatrix(TMatrixDSym* covMatrix_){
+  inline TMatrixD* getCholeskyMatrix(TMatrixDSym* covMatrix_){
     if(covMatrix_ == nullptr) return nullptr;
     auto* choleskyDecomposer = new TDecompChol((*covMatrix_));
     if( not choleskyDecomposer->Decompose() ){ return nullptr; }
@@ -773,12 +778,12 @@ namespace GenericToolbox {
     delete choleskyDecomposer;
     return output;
   }
-  std::vector<double> throwCorrelatedParameters(TMatrixD* choleskyCovMatrix_){
+  inline std::vector<double> throwCorrelatedParameters(TMatrixD* choleskyCovMatrix_){
     std::vector<double> out;
     throwCorrelatedParameters(choleskyCovMatrix_, out);
     return out;
   }
-  void throwCorrelatedParameters(TMatrixD* choleskyCovMatrix_, std::vector<double>& thrownParListOut_){
+  inline void throwCorrelatedParameters(TMatrixD* choleskyCovMatrix_, std::vector<double>& thrownParListOut_){
     if( choleskyCovMatrix_ == nullptr ) return;
     if( thrownParListOut_.size() != choleskyCovMatrix_->GetNcols() ){
       thrownParListOut_.resize(choleskyCovMatrix_->GetNcols(), 0);
@@ -792,7 +797,7 @@ namespace GenericToolbox {
       thrownParListOut_.at(iPar) = thrownParVec[iPar];
     }
   }
-  TMatrixD* getOuterProduct(TVectorD* v_, TVectorD* w_ ){
+  inline TMatrixD* getOuterProduct(TVectorD* v_, TVectorD* w_ ){
     if( v_ == nullptr ) return nullptr;
     if( w_ == nullptr ) w_ = v_;
     auto* out = new TMatrixD(v_->GetNrows(), w_->GetNrows());
@@ -803,7 +808,7 @@ namespace GenericToolbox {
     }
     return out;
   }
-  template<typename T> void transformMatrix(TMatrixT<T>* m_, std::function<void(TMatrixT<T>*, int, int)> transformFunction_){
+  template<typename T> inline void transformMatrix(TMatrixT<T>* m_, std::function<void(TMatrixT<T>*, int, int)> transformFunction_){
     if( m_ == nullptr ) return;
     for( int iRow = 0 ; iRow < m_->GetNrows() ; iRow++ ){
       for( int iCol = 0 ; iCol < m_->GetNcols() ; iCol++ ){
@@ -811,14 +816,14 @@ namespace GenericToolbox {
       }
     }
   }
-  template<typename T> auto makeIdentityMatrix(int dim_) -> TMatrixT<T>* {
+  template<typename T> inline auto makeIdentityMatrix(int dim_) -> TMatrixT<T>* {
     auto* out = new TMatrixT<T>(dim_, dim_);
     for( int iDiag = 0 ; iDiag < out->GetNrows() ; iDiag++ ){
       (*out)[iDiag][iDiag] = 1;
     }
     return out;
   }
-  template<typename T> TMatrixT<T>* makeDiagonalMatrix(TVectorT<T>* v_){
+  template<typename T> inline TMatrixT<T>* makeDiagonalMatrix(TVectorT<T>* v_){
     if( v_ == nullptr ) return nullptr;
     auto* out = new TMatrixT<T>(v_->GetNrows(), v_->GetNrows());
     for( int iDiag = 0 ; iDiag < out->GetNrows() ; iDiag++ ){
@@ -826,7 +831,7 @@ namespace GenericToolbox {
     }
     return out;
   }
-  template<typename T> TVectorT<T>* getMatrixDiagonal(TMatrixT<T>* m_){
+  template<typename T> inline TVectorT<T>* getMatrixDiagonal(TMatrixT<T>* m_){
     if( m_ == nullptr ) return nullptr;
     auto* out = new TVectorT<T>(std::min(m_->GetNcols(), m_->GetNrows()));
     for( int iDiag = 0 ; iDiag < out->GetNrows() ; iDiag++ ){
@@ -834,7 +839,7 @@ namespace GenericToolbox {
     }
     return out;
   }
-  template<typename T> TVectorT<T>* getMatrixDiagonal(TMatrixTSym<T>* m_){
+  template<typename T> inline TVectorT<T>* getMatrixDiagonal(TMatrixTSym<T>* m_){
     return GenericToolbox::getMatrixDiagonal((TMatrixT<T>*) m_);
   }
   template<typename T> inline TVectorT<T>* getMatrixLine(TMatrixT<T>* m_, int line_){
@@ -885,7 +890,7 @@ namespace GenericToolbox {
       h_->SetBinContent( iBin_,globalScaler_ * h_->GetBinContent(iBin_)/hist_->GetBinWidth(iBin_) );
     }, true);
   }
-  void transformBinContent(TH1D* hist_, const std::function<void(TH1D*, int)>& transformFunction_, bool processOverflowBins_){
+  inline void transformBinContent(TH1D* hist_, const std::function<void(TH1D*, int)>& transformFunction_, bool processOverflowBins_){
     int firstBin = processOverflowBins_ ? 0 : 1;
     int lastBin = processOverflowBins_ ? hist_->GetNbinsX() + 1 : hist_->GetNbinsX();
     for( int iBin = firstBin ; iBin <= lastBin ; iBin++ ){
@@ -920,7 +925,7 @@ namespace GenericToolbox {
     }
     return out;
   }
-  std::vector<double> getLogBinning(int n_bins_, double X_min_, double X_max_) {
+  inline std::vector<double> getLogBinning(int n_bins_, double X_min_, double X_max_) {
     std::vector<double> output(n_bins_ + 1); // add one extra bin for the boundary
     double xlogmin = TMath::Log10(X_min_);
     double xlogmax = TMath::Log10(X_max_);
@@ -931,7 +936,7 @@ namespace GenericToolbox {
     }
     return output;
   }
-  std::vector<double> getLinearBinning(int n_bins_, double X_min_, double X_max_) {
+  inline std::vector<double> getLinearBinning(int n_bins_, double X_min_, double X_max_) {
     std::vector<double> output(n_bins_ + 1); // add one extra bin for the boundary
     double dx = (X_max_ - X_min_) / ((double) n_bins_);
     for (int i_bin = 0; i_bin <= n_bins_; i_bin++) {
@@ -940,7 +945,7 @@ namespace GenericToolbox {
     }
     return output;
   }
-  TH1D *getTH1DlogBinning(const std::string &name_, const std::string &title_, int n_bins_, double X_min_, double X_max_) {
+  inline TH1D *getTH1DlogBinning(const std::string &name_, const std::string &title_, int n_bins_, double X_min_, double X_max_) {
 
     TH1D *output = nullptr;
     std::vector<double> xbins = GenericToolbox::getLogBinning(n_bins_, X_min_, X_max_);
@@ -948,7 +953,7 @@ namespace GenericToolbox {
     return output;
 
   }
-  TH2D *getTH2DlogBinning(const std::string &name_, const std::string &title_, int nb_X_bins_, double X_min_, double X_max_,
+  inline TH2D *getTH2DlogBinning(const std::string &name_, const std::string &title_, int nb_X_bins_, double X_min_, double X_max_,
                           int nb_Y_bins_, double Y_min_, double Y_max_, std::string log_axis_) {
 
     TH2D *output = nullptr;
@@ -1008,6 +1013,7 @@ namespace GenericToolbox {
 }
 
 
+// Misc
 namespace GenericToolbox{
 
   inline bool isFlatAndOne(const TGraph* graph_){
@@ -1034,14 +1040,14 @@ namespace GenericToolbox{
 //! Canvas Tools
 namespace GenericToolbox {
 
-  void setDefaultPalette(){
+  inline void setDefaultPalette(){
     gStyle->SetPalette(kBird);
   }
-  void setBlueRedPalette(){
+  inline void setBlueRedPalette(){
     gStyle->SetPalette(kBlackBody);
     TColor::InvertPalette();
   }
-  void setT2kPalette(){
+  inline void setT2kPalette(){
     int NRGBs = 3;
     int NCont = 255;
 
@@ -1053,10 +1059,10 @@ namespace GenericToolbox {
     TColor::CreateGradientColorTable(NRGBs,&stops[0],&red[0],&green[0],&blue[0],NCont);
     gStyle->SetNumberContours(NCont+1);
   }
-  void setOrangePalette(){
+  inline void setOrangePalette(){
     gStyle->SetPalette(kDarkBodyRadiator);
   }
-  void fixTH2display(TH2 *histogram_){
+  inline void fixTH2display(TH2 *histogram_){
     if( histogram_ == nullptr ) return;
 
     if( gPad != nullptr ) gPad->SetRightMargin(0.15);
@@ -1071,7 +1077,7 @@ namespace GenericToolbox {
     }
 
   }
-  void setXaxisOfAllPads(TCanvas* canvas_, double Xmin_, double Xmax_){
+  inline void setXaxisOfAllPads(TCanvas* canvas_, double Xmin_, double Xmax_){
 
     for( int iPad = 0 ; iPad < canvas_->GetListOfPrimitives()->GetSize() ; iPad++ ){
 
@@ -1108,11 +1114,11 @@ namespace GenericToolbox{
 
   static Int_t oldVerbosity = -1;
 
-  void muteRoot(){
+  inline void muteRoot(){
     oldVerbosity      = gErrorIgnoreLevel;
     gErrorIgnoreLevel = kFatal;
   }
-  void unmuteRoot(){
+  inline void unmuteRoot(){
     gErrorIgnoreLevel = oldVerbosity;
     oldVerbosity      = -1;
   }
