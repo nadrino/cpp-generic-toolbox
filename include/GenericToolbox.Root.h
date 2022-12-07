@@ -19,6 +19,8 @@
 #include <TFormula.h>
 #include "TTreeFormula.h"
 #include "TRandom3.h"
+#include "TGraph.h"
+#include "TSpline.h"
 
 // STD Headers
 #include <map>
@@ -121,6 +123,10 @@ namespace GenericToolbox{
                                  int nb_Y_bins_, double Y_min_, double Y_max_, std::string log_axis_= "XY");
   template <class T> inline double getHistogramFwhm(TH1* hist_, int binMin_ = 1, int binMax_ = -1);
 
+
+  //! Spline / Graph tools
+  bool isFlatAndOne(const TGraph* graph_);
+  bool isFlatAndOne(const TSpline3* spline_);
 
   //! Canvas Tools
   inline void setDefaultPalette();
