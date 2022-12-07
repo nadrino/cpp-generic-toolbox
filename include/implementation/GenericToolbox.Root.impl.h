@@ -1010,11 +1010,11 @@ namespace GenericToolbox {
 
 namespace GenericToolbox{
 
-  bool isFlatAndOne(const TGraph* graph_){
+  inline bool isFlatAndOne(const TGraph* graph_){
     if( graph_->GetN() < 1 ){ return true; }
     return not std::any_of(&(graph_->GetY()[0]), &(graph_->GetY()[graph_->GetN()]), [](Double_t val_){ return val_ != 1.; });
   }
-  bool isFlatAndOne(const TSpline3* spline_){
+  inline bool isFlatAndOne(const TSpline3* spline_){
     if( spline_->GetNp() < 1 ){ return true; }
     bool isFlatOne{true};
     for( int iKnot = 0 ; iKnot < int(spline_->GetNp()) ; iKnot++ ){

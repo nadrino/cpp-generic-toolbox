@@ -125,8 +125,8 @@ namespace GenericToolbox{
 
 
   //! Spline / Graph tools
-  bool isFlatAndOne(const TGraph* graph_);
-  bool isFlatAndOne(const TSpline3* spline_);
+  inline bool isFlatAndOne(const TGraph* graph_);
+  inline bool isFlatAndOne(const TSpline3* spline_);
 
   //! Canvas Tools
   inline void setDefaultPalette();
