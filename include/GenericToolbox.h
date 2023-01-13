@@ -316,5 +316,8 @@ namespace GenericToolbox{
 #define BIND_VAR_NAME(var) var, #var
 #define BIND_VAR_REF_NAME(var) &(var), #var
 
+#define HAS_CPP_17 (__cplusplus >= 201703L)
+#define HAS_CPP_14 (__cplusplus >= 201300L)
+#define HAS_CPP_11 (__cplusplus >= 201103L)
 
 #endif //CPP_GENERIC_TOOLBOX_GENERICTOOLBOX_H
