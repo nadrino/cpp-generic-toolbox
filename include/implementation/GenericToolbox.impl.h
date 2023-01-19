@@ -826,6 +826,7 @@ namespace GenericToolbox{
 //        assert((n+1) < bufferSize_ && "This should have been prevented by the truncation 'strlcat(inp, c, bufferSize_)'");
 //        assert((n+1) < bufferSize_ && "This should have been prevented by the truncation 'strncat(inp, c, bufferSize_)'");
         // There is no overlap here as the buffer is segment in 4 strings of at most bufferSize_
+#pragma GCC diagnostic ignored "-Wrestrict"
 //        (void)strlcpy(charBuffer, c + 1, n + 1); // strlcpy copy 'size-1' characters.
         (void)strncpy(charBuffer, c + 1, n + 1); // strncpy copy 'size-1' characters.
         std::string homeDirStr = getHomeDirectory();
