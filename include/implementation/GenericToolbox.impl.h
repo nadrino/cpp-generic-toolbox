@@ -871,6 +871,7 @@ namespace GenericToolbox{
           else
             for (e = b; isalnum(e[0]) || e[0] == '_'; e++) ;
           charBuffer[0] = 0; strncat(charBuffer, b, e - b);
+          std::string envVar = charBuffer;
           expandedPathCharArray = getEnvironmentVariable(charBuffer);
           if (!expandedPathCharArray) {                      // too bad, try UPPER case
             for (t = charBuffer; (t[0] = static_cast<char>(toupper(t[0]))); t++) ;
@@ -901,7 +902,9 @@ namespace GenericToolbox{
             ier++;
 #endif
             x++[0] = c[0];
-          } else {                       // It is OK, copy result
+            throw std::runtime_error("Could not resolve env variable: $" + std::string(envVar));
+          }
+          else {                       // It is OK, copy result
             int lp = int(strlen(expandedPathCharArray));
             if (lp >= bufferSize_) {
               // make sure lx will be >= bufferSize_ (see below)
