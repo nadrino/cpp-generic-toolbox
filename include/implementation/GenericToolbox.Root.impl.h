@@ -1032,6 +1032,22 @@ namespace GenericToolbox{
     }
     return isFlatOne;
   }
+  inline bool hasUniformlySpacedKnots(const TGraph* graph_, double tolerance_){
+    // Check if the spline has uniformly spaced knots.  There is a flag for
+    // this is TSpline3, but it's not uniformly (or ever) filled correctly.
+    bool uniform{true};
+    for (int i = 1; i < graph_->GetN()-1; ++i) {
+      double d1 = graph_->GetX()[i-1];
+      d1 = graph_->GetX()[i] - d1;
+      double d2 = graph_->GetX()[i];
+      d2 = graph_->GetX()[i+1] - d2;
+      if (std::abs((d1-d2)/(d1+d2)) > tolerance_) {
+        uniform = false;
+        break;
+      }
+    }
+    return uniform;
+  }
 
 }
 

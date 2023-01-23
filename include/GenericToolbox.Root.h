@@ -127,6 +127,7 @@ namespace GenericToolbox{
   //! Spline / Graph tools
   inline bool isFlatAndOne(const TGraph* graph_);
   inline bool isFlatAndOne(const TSpline3* spline_);
+  inline bool hasUniformlySpacedKnots(const TGraph* graph_, double tolerance_ = 1E-6);
 
   //! Canvas Tools
   inline void setDefaultPalette();
