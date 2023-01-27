@@ -43,11 +43,26 @@ namespace GenericToolbox{
     PolymorphicObjectWrapper(PolymorphicObjectWrapper&&)  noexcept = default;
     PolymorphicObjectWrapper& operator=(PolymorphicObjectWrapper&&)  noexcept = default;
 
+#if HAS_CPP_14
     template<typename DerivedT, std::enable_if_t<std::is_base_of<T, DerivedT>::value, int> = 0>
     explicit PolymorphicObjectWrapper(const DerivedT& src_): dialPtr{src_.clone()} {  }
+#else
+    template <typename DerivedT>
+    explicit PolymorphicObjectWrapper(const DerivedT& src_): dialPtr{src_.clone()} {
+      static_assert(std::is_base_of<T, DerivedT>::value, "Class doesn't inherit from Base!");
+    }
+#endif
 
+
+#if HAS_CPP_14
     template<typename DerivedT, std::enable_if_t<std::is_base_of<T, DerivedT>::value, int> = 0>
     explicit PolymorphicObjectWrapper(std::unique_ptr<DerivedT> def): dialPtr{std::move(def)} {};
+#else
+    template <typename DerivedT>
+    explicit PolymorphicObjectWrapper(std::unique_ptr<DerivedT> def): dialPtr{std::move(def)} {
+      static_assert(std::is_base_of<T, DerivedT>::value, "Class doesn't inherit from Base!");
+    }
+#endif
 
     T& operator*() const { return *dialPtr; }
     T* operator->() const { return dialPtr.get(); }
