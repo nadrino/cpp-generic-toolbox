@@ -267,6 +267,18 @@ namespace GenericToolbox {
     const auto a    = (n * s_xy - s_x * s_y) / (n * s_xx - s_x * s_x);
     return a;
   }
+  template <typename T> static inline double getStdDev(const std::vector<T>& vector_, const std::function<double(const T&)>& evalElementFct_){
+    double outVal = 0;
+    double mean = getAverage(vector_, evalElementFct_);
+    for( auto& element : vector_ ){
+      outVal += std::pow(
+        static_cast<double>(evalElementFct_(element)) - mean,
+        2
+      );
+    }
+    return sqrt( outVal / vector_.size() );
+  }
+
 
   // Sorting
   template <typename T> static inline std::vector<size_t> getSortPermutation(const std::vector<T>& vectorToSort_, const std::function<bool(const T&, const T&)>& firstArgGoesFirstFct_ ){

@@ -111,6 +111,7 @@ namespace GenericToolbox{
   template <typename T> static inline double getAverage(const std::vector<T>& vector_, const std::function<double(const T&)>& evalElementFct_ = [](const T& var){return var;});
   template<typename T> static inline double getAveragedSlope(const std::vector<T> &yValues_);
   template<typename T, typename TT> static inline double getAveragedSlope(const std::vector<T> &yValues_, const std::vector<TT> &xValues_);
+  template <typename T> static inline double getStdDev(const std::vector<T>& vector_, const std::function<double(const T&)>& evalElementFct_ = [](const T& var){return var;});
 
   // Sorting
   template <typename T> static inline std::vector<size_t> getSortPermutation(const std::vector<T>& vectorToSort_, const std::function<bool(const T&, const T&)>& firstArgGoesFirstFct_);
