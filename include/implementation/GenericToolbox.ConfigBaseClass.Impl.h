@@ -14,12 +14,12 @@ namespace GenericToolbox{
 
 
   template<class ConfigType> inline void ConfigBaseClass<ConfigType>::setConfig(const ConfigType &config_) {
-    if( _isInitialized_ ) throw std::logic_error("Can't read the config while already initialized.");
+    if( this->isInitialized() ) throw std::logic_error("Can't read the config while already initialized.");
     _config_ = config_;
   }
 
   template<class ConfigType> inline void ConfigBaseClass<ConfigType>::readConfig() {
-    if( _isInitialized_ ) throw std::logic_error("Can't read the config while already initialized.");
+    if( this->isInitialized() ) throw std::logic_error("Can't read the config while already initialized.");
     _isConfigReadDone_ = true;
     this->readConfigImpl();
   }
@@ -29,17 +29,12 @@ namespace GenericToolbox{
   }
 
   template<class ConfigType> inline void ConfigBaseClass<ConfigType>::initialize() {
-    if( _isInitialized_ ) throw std::logic_error("Can't re-initialize while already done. Call unInitialize() before.");
+    if( this->isInitialized() ) throw std::logic_error("Can't re-initialize while already done. Call unInitialize() before.");
     if( not _isConfigReadDone_ ) this->readConfig();
-    this->initializeImpl();
-    _isInitialized_ = true;
-  }
-  template<class ConfigType> inline void ConfigBaseClass<ConfigType>::unInitialize(){
-    _isInitialized_ = false;
+    InitBaseClass::initialize();
   }
 
   template<class ConfigType> inline bool ConfigBaseClass<ConfigType>::isConfigReadDone() const { return _isConfigReadDone_; }
-  template<class ConfigType> inline bool ConfigBaseClass<ConfigType>::isInitialized() const { return _isInitialized_; }
   template<class ConfigType> const ConfigType &ConfigBaseClass<ConfigType>::getConfig() const { return _config_; }
 
 

@@ -5,39 +5,37 @@
 #ifndef GUNDAM_GENERICTOOLBOX_CONFIGBASECLASS_H
 #define GUNDAM_GENERICTOOLBOX_CONFIGBASECLASS_H
 
+#include "GenericToolbox.InitBaseClass.h"
+
 namespace GenericToolbox{
 
   template<class ConfigType>
-  class ConfigBaseClass {
+  class ConfigBaseClass : public InitBaseClass {
 
   public:
     // Common structure
     inline ConfigBaseClass() = default;
-    inline virtual ~ConfigBaseClass() = default;
+    inline ~ConfigBaseClass() override = default;
 
     inline virtual void setConfig(const ConfigType& config_);
 
     inline void readConfig();
     inline void readConfig(const ConfigType& config_);
 
-    inline void initialize();
-    inline void unInitialize();
+    inline void initialize() override;
 
-    inline bool isConfigReadDone() const;
-    inline bool isInitialized() const;
+    [[nodiscard]] inline bool isConfigReadDone() const;
     inline const ConfigType &getConfig() const;
 
   protected:
     // where the derivative classes will specify (although override is optional)
     inline virtual void readConfigImpl(){};
-    inline virtual void initializeImpl(){};
 
     // Can be accessed by derivative classes
     ConfigType _config_{};
 
   private:
     bool _isConfigReadDone_{false};
-    bool _isInitialized_{false};
 
   };
 
