@@ -16,7 +16,7 @@
 
 namespace GenericToolbox {
 
-  class CorrelatedVariablesSampler : InitBaseClass {
+  class CorrelatedVariablesSampler : public InitBaseClass {
 
   public:
     CorrelatedVariablesSampler() = default;
@@ -24,9 +24,10 @@ namespace GenericToolbox {
 
     inline void setCovarianceMatrixPtr(TMatrixDSym *covarianceMatrixPtr_);
 
-    inline void initializeImpl() override;
-
     inline void throwCorrelatedVariables(TVectorD& output_);
+
+  protected:
+    inline void initializeImpl() override;
 
   private:
     // inputs:

@@ -601,7 +601,7 @@ namespace GenericToolbox {
 
     return outMeanVector;
   }
-  inline TMatrixD* generateCovarianceMatrixOfTree(TTree* tree_, bool showProgressBar_){
+  inline TMatrixD* generateCovarianceMatrixOfTree(TTree* tree_, bool showProgressBar_, TVectorD* meanValueLeafList_){
 
     TMatrixD* outCovMatrix;
 
@@ -617,7 +617,9 @@ namespace GenericToolbox {
     }
 
     // Compute mean of every variable
-    auto* meanValueLeafList = GenericToolbox::generateMeanVectorOfTree(tree_, showProgressBar_);
+    if( meanValueLeafList_ == nullptr ){
+      meanValueLeafList_ = GenericToolbox::generateMeanVectorOfTree(tree_, showProgressBar_);
+    }
 
     // Compute covariance
     Long64_t nEntries = tree_->GetEntries();
@@ -627,8 +629,8 @@ namespace GenericToolbox {
       for(int iCol = 0 ; iCol < leafList.size() ; iCol++){
         for(int iRow = 0 ; iRow < leafList.size() ; iRow++){
           (*outCovMatrix)[iCol][iRow] +=
-            (leafList[iCol]->GetValue(0) - (*meanValueLeafList)[iCol])
-            *(leafList[iRow]->GetValue(0) - (*meanValueLeafList)[iRow]);
+            (leafList[iCol]->GetValue(0) - (*meanValueLeafList_)[iCol])
+            *(leafList[iRow]->GetValue(0) - (*meanValueLeafList_)[iRow]);
         } // iRow
       } // iCol
     } // iEntry

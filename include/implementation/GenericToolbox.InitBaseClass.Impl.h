@@ -35,12 +35,12 @@ namespace GenericToolbox{
     }
   }
   inline void InitBaseClass::throwIfNotInitialized( const std::string& functionName_ ) const{
-    if( _isInitialized_ ){
+    if( not _isInitialized_ ){
       if( functionName_.empty() ){
-        throw std::runtime_error(__METHOD_NAME__ + ": Object already initialized.");
+        throw std::runtime_error(__METHOD_NAME__ + ": Object not initialized.");
       }
       else{
-        throw std::runtime_error(__METHOD_NAME__ + "Can't \""+functionName_+"\" while already initialized.");
+        throw std::runtime_error(__METHOD_NAME__ + ": Can't \""+functionName_+"\" while not initialized.");
       }
     }
   }
