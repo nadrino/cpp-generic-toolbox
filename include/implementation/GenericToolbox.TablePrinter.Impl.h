@@ -169,25 +169,50 @@ namespace GenericToolbox{
   }
 
   template<typename T> TablePrinter &TablePrinter::operator<<(const T &data){
-    if(_currentRow_==0){
-      _lineBuffer_.clear();
-      _lineBuffer_.resize(_colTitleList_.size(), "");
-    }
+    // just fills a buffer
 
     std::stringstream ss;
     ss << data;
-    _lineBuffer_[_currentRow_] += ss.str();
+    _currentEntryBuffer_ += ss.str();
 
     return *this;
   }
-  TablePrinter &TablePrinter::operator<<(std::ostream &(*f)(std::ostream &)){
-    _currentRow_++;
+  inline TablePrinter &TablePrinter::operator<<(Action action_){
 
-    if(_currentRow_>=_colTitleList_.size()){
-      this->addTableLine(_lineBuffer_, _colorBuffer_);
+    if(action_ == Action::Reset ){
+      this->reset();
       _currentRow_ = 0;
-      _colorBuffer_ = "";
+      _currentEntryBuffer_ = "";
+      _currentLineBuffer_.clear();
     }
+    if(
+        action_ == Action::NextColumn or
+        action_ == Action::NextLine
+    ){
+      if( _colTitleList_.empty() or _lineBuffer_.size() < _colTitleList_.size() ){
+        // drop the string buffer to the vector buffer
+        if( not _colorBuffer_.empty() ){
+          _lineBuffer_.emplace_back( _colorBuffer_ + _currentEntryBuffer_ + GenericToolbox::ColorCodes::resetColor );
+        }
+        else{
+          _lineBuffer_.emplace_back( _currentEntryBuffer_ );
+        }
+      }
+
+      // clear the buffer
+      _currentEntryBuffer_ = "";
+      _currentRow_++;
+    }
+    if( action_ == Action::NextLine or ( not _colTitleList_.empty() and _lineBuffer_.size() == _colTitleList_.size() ) ){
+      if( _colTitleList_.empty() ){ this->setColTitles(_lineBuffer_); }
+      else                        {
+        this->addTableLine(_lineBuffer_);
+      }
+      _lineBuffer_.clear();
+      _colorBuffer_ = "";
+      _currentRow_ = 0;
+    }
+
     return *this;
   }
 }

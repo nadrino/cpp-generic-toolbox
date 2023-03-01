@@ -1537,7 +1537,7 @@ namespace GenericToolbox{
 
     auto reducedVal = size_t(fabs(nbMicroSec_));
     if     ( (reducedVal = (reducedVal / 1000)) < 9 ){ // print in ms?
-      ss << nbMicroSec_ << "µs";                       // <- no
+      ss << nbMicroSec_ << "us";                       // <- no
     }
     else if( (reducedVal = (reducedVal / 1000)) < 3 ){ // print in s?
       ss << nbMicroSec_/1E3 << "ms";

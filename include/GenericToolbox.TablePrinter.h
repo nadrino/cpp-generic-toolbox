@@ -37,8 +37,6 @@ namespace GenericToolbox{
     inline std::string generateTableString();
     inline void printTable();
 
-    template<typename T> inline TablePrinter &operator<<(const T &data);
-    inline TablePrinter &operator<<(std::ostream &(*f)(std::ostream &));
     inline void setColorBuffer(const std::string& colorBuffer_){ _colorBuffer_ = colorBuffer_; }
 
   private:
@@ -49,6 +47,20 @@ namespace GenericToolbox{
     std::vector<std::string> _lineBuffer_;
     std::string _colorBuffer_;
     size_t _currentRow_{0};
+
+    std::string _currentEntryBuffer_{};
+    std::vector<std::string> _currentLineBuffer_{};
+
+  public:
+    typedef enum {
+      Reset = 0,
+      NextColumn,
+      NextLine
+    }
+    Action;
+
+    template<typename T> inline TablePrinter &operator<<(const T &data);
+    inline TablePrinter &operator<<(Action action_);
 
   };
 
