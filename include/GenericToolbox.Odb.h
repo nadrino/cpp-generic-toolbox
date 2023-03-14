@@ -20,18 +20,18 @@ namespace GenericToolbox {
   namespace Odb{
 
     // Read-only
-    HNDLE getKey(const std::string &path_);
-    DWORD getKeyType(const std::string &path_);
-    template<class T> DWORD getTypeId(const T& object_);
-    bool isKey(const std::string &path_);
-    template<class T> auto read(const std::string &path_, int index_ = 0) -> T;
-    std::vector<std::string> ls(const std::string &path_);
-    template<class T> std::map<std::string, T> fetchMatchingValues(const std::string& regexPath_, const std::string& regexConditionPath_ = "");
+    inline HNDLE getKey(const std::string &path_);
+    inline DWORD getKeyType(const std::string &path_);
+    template<class T> inline DWORD getTypeId(const T& object_);
+    inline bool isKey(const std::string &path_);
+    template<class T> inline auto read(const std::string &path_, int index_ = 0) -> T;
+    inline std::vector<std::string> ls(const std::string &path_);
+    template<class T> inline std::map<std::string, T> fetchMatchingValues(const std::string& regexPath_, const std::string& regexConditionPath_ = "");
 
     // Write
-    bool setKey(const std::string &path_, const DWORD& type_);
-    template<class T> bool write(const std::string &path_, const T &objToWrite_, bool createKeyIsNotPresent_ = false);
-    bool write(const std::string &path_, const std::string &objToWrite_, bool createKeyIsNotPresent_ = false);
+    inline bool setKey(const std::string &path_, const DWORD& type_);
+    template<class T> inline bool write(const std::string &path_, const T &objToWrite_, bool createKeyIsNotPresent_ = false);
+    inline bool write(const std::string &path_, const std::string &objToWrite_, bool createKeyIsNotPresent_ = false);
 
     /* initializeHotLink() make the hotLink definition at the Midas level.
    *
@@ -42,7 +42,7 @@ namespace GenericToolbox {
    * Although it is static, one can call back the reference of the involved class with the last arg "this_"
    */
     template <typename C, typename T>
-    void initializeHotLink(const std::string& odbPath_, C& hotLinkContainer_,
+    inline void initializeHotLink(const std::string& odbPath_, C& hotLinkContainer_,
                            std::vector<const char*>& hotLinkDescriptor_, T& hotLinkStaticDispatcher_,
                            void* this_= nullptr);
 

@@ -199,7 +199,7 @@ namespace GenericToolbox {
     }
 
     template <typename C, typename T>
-    void initializeHotLink(const std::string& odbPath_, C& hotLinkContainer_,
+    inline void initializeHotLink(const std::string& odbPath_, C& hotLinkContainer_,
                            std::vector<const char*>& hotLinkDescriptor_, T& hotLinkStaticDispatcher_,
                            void* this_){
       HNDLE hkey;
