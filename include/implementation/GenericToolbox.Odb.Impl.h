@@ -92,7 +92,7 @@ namespace GenericToolbox {
 
       throw std::runtime_error("Could not fetch ODB key: \"" + path_ + "\" / index: " + std::to_string(index_));
     }
-    template<class T> inline auto readArray(const std::string &path_) -> std::vector<T> {
+    template<class T> inline auto readVector(const std::string &path_) -> std::vector<T> {
       int errorCode;
       HNDLE hKey = getKey(path_);
 
@@ -115,6 +115,31 @@ namespace GenericToolbox {
       }
 
       throw std::runtime_error("Could not fetch ODB key: \"" + path_ + "\"");
+    }
+    template<class T, size_t N> inline void readArray(const std::string &path_, std::array<T, N>& out_){
+      int errorCode;
+      HNDLE hKey = getKey(path_);
+
+      if( hKey == 0 ){
+        throw std::runtime_error("Could not find ODB key: \"" + path_ + "\"");
+      }
+
+      DWORD typeId = getTypeId(T());
+
+      int nbValues = getKeyNbValues(path_);
+      if( nbValues > out_.size() ){
+        throw std::runtime_error("ODB array is [" + std::to_string(nbValues) + "], greater than out array size: " + std::to_string(out_.size()));
+      }
+
+      INT bufferSize = rpc_tid_size(int(typeId))*nbValues;
+
+      errorCode = db_get_data(hDB, hKey, out_.data(), &bufferSize, typeId);
+
+      if( errorCode != SUCCESS ){
+        throw std::runtime_error("Could not fetch ODB key: \"" + path_ + "\"");
+      }
+
+
     }
     inline std::vector<std::string> ls(const std::string &path_){
       std::vector<std::string> subKeyNameList;

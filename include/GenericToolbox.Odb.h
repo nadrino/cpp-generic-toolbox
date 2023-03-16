@@ -11,6 +11,7 @@
 #include "map"
 #include "vector"
 #include "functional"
+#include "array"
 
 
 
@@ -26,7 +27,8 @@ namespace GenericToolbox {
     template<class T> inline DWORD getTypeId(const T& object_);
     inline bool isKey(const std::string &path_);
     template<class T> inline auto read(const std::string &path_, int index_ = 0) -> T;
-    template<class T> inline auto readArray(const std::string &path_) -> std::vector<T>;
+    template<class T> inline auto readVector(const std::string &path_) -> std::vector<T>;
+    template<class T, size_t N> inline void readArray(const std::string &path_, std::array<T, N>& out_);
     inline std::vector<std::string> ls(const std::string &path_);
     template<class T> inline std::map<std::string, T> fetchMatchingValues(const std::string& regexPath_, const std::string& regexConditionPath_ = "");
 
