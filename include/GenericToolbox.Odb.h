@@ -22,9 +22,11 @@ namespace GenericToolbox {
     // Read-only
     inline HNDLE getKey(const std::string &path_);
     inline DWORD getKeyType(const std::string &path_);
+    inline int getKeyNbValues(const std::string &path_);
     template<class T> inline DWORD getTypeId(const T& object_);
     inline bool isKey(const std::string &path_);
     template<class T> inline auto read(const std::string &path_, int index_ = 0) -> T;
+    template<class T> inline auto readArray(const std::string &path_) -> std::vector<T>;
     inline std::vector<std::string> ls(const std::string &path_);
     template<class T> inline std::map<std::string, T> fetchMatchingValues(const std::string& regexPath_, const std::string& regexConditionPath_ = "");
 

@@ -37,6 +37,12 @@ namespace GenericToolbox {
       db_get_key_info(hDB, hKey, (char*) path_.c_str(), int(path_.size()), &type, &num_values, &item_size);
       return type;
     }
+    inline int getKeyNbValues(const std::string &path_){
+      HNDLE hKey = 0;
+      INT type, num_values, item_size;
+      db_get_key_info(hDB, hKey, (char*) path_.c_str(), int(path_.size()), &type, &num_values, &item_size);
+      return num_values;
+    }
     inline bool isKey(const std::string &path_){
       return ( GenericToolbox::Odb::getKey(path_) != 0 );
     }
@@ -85,6 +91,30 @@ namespace GenericToolbox {
       }
 
       throw std::runtime_error("Could not fetch ODB key: \"" + path_ + "\" / index: " + std::to_string(index_));
+    }
+    template<class T> inline auto readArray(const std::string &path_) -> std::vector<T> {
+      int errorCode;
+      HNDLE hKey = getKey(path_);
+
+      if( hKey == 0 ){
+        throw std::runtime_error("Could not find ODB key: \"" + path_ + "\"");
+      }
+
+      DWORD typeId = getTypeId(T());
+
+      int nbValues = getKeyNbValues(path_);
+      INT bufferSize = rpc_tid_size(int(typeId))*nbValues;
+
+      std::vector<T> out;
+      out.resize( nbValues );
+
+      errorCode = db_get_data(hDB, hKey, out.data(), &bufferSize, typeId);
+
+      if( errorCode == SUCCESS ){
+        return out; // Return fetched value
+      }
+
+      throw std::runtime_error("Could not fetch ODB key: \"" + path_ + "\"");
     }
     inline std::vector<std::string> ls(const std::string &path_){
       std::vector<std::string> subKeyNameList;
