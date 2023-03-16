@@ -32,15 +32,13 @@ namespace GenericToolbox {
       }
     }
     inline DWORD getKeyType(const std::string &path_){
-      HNDLE hKey = 0;
       INT type, num_values, item_size;
-      db_get_key_info(hDB, hKey, (char*) path_.c_str(), int(path_.size()), &type, &num_values, &item_size);
+      db_get_key_info(hDB, getKey(path_), (char*) path_.c_str(), int(path_.size()), &type, &num_values, &item_size);
       return type;
     }
     inline int getKeyNbValues(const std::string &path_){
-      HNDLE hKey = 0;
       INT type, num_values, item_size;
-      db_get_key_info(hDB, hKey, (char*) path_.c_str(), int(path_.size()), &type, &num_values, &item_size);
+      db_get_key_info(hDB, getKey(path_), (char*) path_.c_str(), int(path_.size()), &type, &num_values, &item_size);
       return num_values;
     }
     inline bool isKey(const std::string &path_){
@@ -127,6 +125,9 @@ namespace GenericToolbox {
       DWORD typeId = getTypeId(T());
 
       int nbValues = getKeyNbValues(path_);
+
+      if( typeId == TID_BOOL ){ throw std::runtime_error("bool array reader not implemented"); }
+
       if( nbValues > out_.size() ){
         throw std::runtime_error("ODB array is [" + std::to_string(nbValues) + "], greater than out array size: " + std::to_string(out_.size()));
       }
