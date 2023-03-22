@@ -1178,11 +1178,11 @@ namespace GenericToolbox{
     }
     return data;
   }
-  static inline std::vector<std::string> dumpFileAsVectorString(const std::string &filePath_){
+  static inline std::vector<std::string> dumpFileAsVectorString(const std::string &filePath_, bool skipEmptyLines_){
     std::vector<std::string> lines;
     if(doesPathIsFile(filePath_)){
       std::string data = GenericToolbox::dumpFileAsString(filePath_);
-      lines = GenericToolbox::splitString(data, "\n");
+      lines = GenericToolbox::splitString(data, "\n", skipEmptyLines_);
     }
     for(auto& line: lines){
       if(GenericToolbox::doesStringEndsWithSubstring(line, "\r")){
