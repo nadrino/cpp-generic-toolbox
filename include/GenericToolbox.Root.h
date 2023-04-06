@@ -90,6 +90,7 @@ namespace GenericToolbox{
   inline TVectorD* generateMeanVectorOfTree(TTree* tree_, bool showProgressBar_ = false);
   inline TMatrixD* generateCovarianceMatrixOfTree(TTree* tree_, bool showProgressBar_ = false, TVectorD* meanValueLeafList_ = nullptr);
   inline std::string generateCleanBranchName(const std::string& name_);
+  inline void generateCompareTree(TTree* tree1_, TTree* tree2_, TDirectory* outDir_);
 
   //! Matrix Tools
   inline std::map<std::string, TMatrixD*> invertMatrixSVD(TMatrixD *matrix_, const std::string &outputContent_= "inverse_covariance_matrix:regularized_eigen_values");

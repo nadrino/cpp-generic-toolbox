@@ -663,6 +663,23 @@ namespace GenericToolbox {
     return out;
   }
 
+  inline void generateCompareTree(TTree* tree1_, TTree* tree2_, TDirectory* outDir_){
+//    if( tree1_ == nullptr ) throw std::runtime_error("tree1_ is nullptr");
+//    if( tree2_ == nullptr ) throw std::runtime_error("tree2_ is nullptr");
+//    if( outDir_ == nullptr ) throw std::runtime_error("outDir_ is nullptr");
+//
+////    TTree* outCompTree{nullptr};
+//
+//    auto* prevDir = GenericToolbox::getCurrentTDirectory();
+//    outDir_->cd();
+//
+////    outCompTree = new TTree("outCompTree", "outCompTree");
+//
+//    ((TBranch*) tree1_->GetListOfBranches()->At(0))->GetAddress();
+//
+//    prevDir->cd();
+  }
+
 }
 
 //! Matrix Tools
