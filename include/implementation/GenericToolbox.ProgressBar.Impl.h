@@ -103,8 +103,35 @@ namespace GenericToolbox{
       if (_lastDisplayedPercentValue_ > 100) { _lastDisplayedPercentValue_ = 100; }
       else if (_lastDisplayedPercentValue_ < 0) { _lastDisplayedPercentValue_ = 0; }
 
+      int termWidth{0};
+#ifndef CPP_GENERIC_TOOLBOX_BATCH
+      // this returns non-zero value if it measurable
+      termWidth = GenericToolbox::getTerminalWidth();
+#endif
+
       std::stringstream ssPrefix;
-      if (not title_.empty()) ssPrefix << title_ << " ";
+
+      if (not title_.empty()){
+        auto titleLines = GenericToolbox::splitString(title_, "\n");
+
+        for( size_t iLine = 0 ; iLine < titleLines.size()-1 ; iLine++ ){
+          if( termWidth == 0 ){
+            // print the whole line
+            ssPrefix << titleLines[iLine] << std::endl;
+          }
+          else{
+            // print the line in the available space
+            std::string buffer{titleLines[iLine]};
+            while( int(GenericToolbox::getPrintSize(buffer)) >= termWidth ){
+              // removing the last character and test if the printed size fit the terminal window.
+              buffer = buffer.substr(0, buffer.size()-1);
+            }
+            ssPrefix << buffer << std::endl;
+          }
+        }
+
+        ssPrefix << titleLines.back() << " ";
+      }
 
       std::stringstream ssTail;
       ssTail << GenericToolbox::padString(std::to_string(_lastDisplayedPercentValue_), 3, ' ') << "%";
@@ -129,31 +156,28 @@ namespace GenericToolbox{
         ssTail << GenericToolbox::padString(GenericToolbox::parseIntAsString(int(_lastDisplayedSpeed_)), 5, ' ');
         ssTail << " it/s)";
       }
-      _lastDisplayedValue_ = iCurrent_;
+      _lastDisplayedValue_ = int( iCurrent_ );
       _lastDisplayedTimePoint_ = _timePointBuffer_;
 
 
       // test if the bar is too wide wrt the prompt width
       int displayedBarLength = _maxBarLength_;
-      int termWidth = 0;
-#ifndef CPP_GENERIC_TOOLBOX_BATCH
-      termWidth = GenericToolbox::getTerminalWidth();
-#endif
       if (termWidth > 0) { // terminal width is measurable
 
         size_t lastLinePos = ssPrefix.str().find_last_of('\n');
         if (lastLinePos == -1) lastLinePos = 0;
-        size_t totalBarLength = GenericToolbox::getPrintSize(ssPrefix.str().substr(lastLinePos));
+
+        size_t lastLineLength = GenericToolbox::getPrintSize(ssPrefix.str().substr(lastLinePos));
         if (displayedBarLength > 0) {
-          totalBarLength += 2; // []
-          totalBarLength += displayedBarLength;
-          totalBarLength += 1; // space before tail
+          lastLineLength += 2; // []
+          lastLineLength += displayedBarLength;
+          lastLineLength += 1; // space before tail
         }
-        totalBarLength += ssTail.str().size();
-        totalBarLength += 1; // 1 extra space is necessary to std::endl
+        lastLineLength += ssTail.str().size();
+        lastLineLength += 1; // 1 extra space is necessary to std::endl
 
         int remainingSpaces = termWidth;
-        remainingSpaces -= int(totalBarLength);
+        remainingSpaces -= int(lastLineLength);
 
         if (remainingSpaces < 0) {
           if (displayedBarLength >= 0) {
