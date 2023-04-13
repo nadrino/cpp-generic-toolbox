@@ -590,7 +590,7 @@ namespace GenericToolbox {
     if(substr_to_look_for_.size() != substr_to_replace_.size()){
       throw std::runtime_error("vec size mismatch btw substr_to_look_for_(" + std::to_string(substr_to_look_for_.size()) + ") != substr_to_replace_(" + std::to_string(substr_to_replace_.size()) + ")");
     }
-    for( int iSub = 0 ; iSub < substr_to_look_for_.size() ; iSub++ ){
+    for( size_t iSub = 0 ; iSub < substr_to_look_for_.size() ; iSub++ ){
       GenericToolbox::replaceSubstringInsideInputString(stripped_str, substr_to_look_for_[iSub], substr_to_replace_[iSub]);
     }
     return input_str_;
@@ -997,11 +997,11 @@ namespace GenericToolbox{
     return doesStringEndsWithSubstring(filePath_, "." + extension_);
   }
   static inline std::string getFileExtension(const std::string& filePath_){
-    if( filePath_.find_last_of('.') == -1 ) return {};
+    if( filePath_.find_last_of('.') == size_t(-1) ) return {};
     return filePath_.substr(filePath_.find_last_of('.') + 1);
   }
   static inline std::string getFolderPathFromFilePath(const std::string &filePath_){
-    if( filePath_.find_last_of("/\\") == -1 ) return {};
+    if( filePath_.find_last_of("/\\") == size_t(-1) ) return {};
     return filePath_.substr(0,filePath_.find_last_of("/\\"));
   }
   static inline std::string getFileNameFromFilePath(const std::string &filePath_, bool keepExtension_){

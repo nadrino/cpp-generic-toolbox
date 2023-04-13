@@ -165,7 +165,7 @@ namespace GenericToolbox{
       if (termWidth > 0) { // terminal width is measurable
 
         size_t lastLinePos = ssPrefix.str().find_last_of('\n');
-        if (lastLinePos == -1) lastLinePos = 0;
+        if (lastLinePos == size_t(-1)) lastLinePos = 0;
 
         size_t lastLineLength = GenericToolbox::getPrintSize(ssPrefix.str().substr(lastLinePos));
         if (displayedBarLength > 0) {
