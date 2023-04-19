@@ -157,6 +157,7 @@ namespace GenericToolbox{
   static inline std::string stripBracket(const std::string &inputStr_, char bra_, char ket_, bool allowUnclosed_ = true, std::vector<std::string>* argBuffer_ = nullptr);
   static inline std::string repeatString(const std::string &inputStr_, int amount_);
   static inline std::string trimString(const std::string &inputStr_, const std::string &strToTrim_);
+  static inline std::string trimInputString(std::string &inputStr_, const std::string &strToTrim_);
   static inline std::string padString(const std::string& inputStr_, unsigned int padSize_, const char& padChar = ' ');
   static inline std::string indentString(const std::string& inputStr_, unsigned int indentCount_, const std::string& indentChar = " ");
   static inline std::string removeRepeatedCharacters(const std::string& inputStr_, const std::string &repeatedChar_);

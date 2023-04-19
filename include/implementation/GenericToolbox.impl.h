@@ -534,13 +534,16 @@ namespace GenericToolbox {
   }
   static inline std::string trimString(const std::string &inputStr_, const std::string &strToTrim_){
     std::string outputStr(inputStr_);
-    while(GenericToolbox::doesStringStartsWithSubstring(outputStr, strToTrim_)){
-      outputStr = outputStr.substr(strToTrim_.size(), outputStr.size());
-    }
-    while(GenericToolbox::doesStringEndsWithSubstring(outputStr, strToTrim_)){
-      outputStr = outputStr.substr(0, outputStr.size() - strToTrim_.size());
-    }
+    GenericToolbox::trimInputString( outputStr, strToTrim_ );
     return outputStr;
+  }
+  static inline std::string trimInputString(std::string &inputStr_, const std::string &strToTrim_){
+    while( GenericToolbox::doesStringStartsWithSubstring(inputStr_, strToTrim_) ){
+      inputStr_ = inputStr_.substr(strToTrim_.size(), inputStr_.size());
+    }
+    while( GenericToolbox::doesStringEndsWithSubstring(inputStr_, strToTrim_) ){
+      inputStr_ = inputStr_.substr(0, inputStr_.size() - strToTrim_.size());
+    }
   }
   static inline std::string padString(const std::string& inputStr_, unsigned int padSize_, const char& padChar){
     std::string outputString;
@@ -769,6 +772,9 @@ namespace GenericToolbox {
     std::istringstream is(str);
     bool b;
     is >> std::boolalpha >> b;
+    if( is.fail() ){
+      // conversion failed, handle the error here
+    }
     return b;
   }
 
