@@ -281,46 +281,40 @@ namespace GenericToolbox {
 
 
   // Sorting
-  template <typename T> static inline std::vector<size_t> getSortPermutation(const std::vector<T>& vectorToSort_, const std::function<bool(const T&, const T&)>& firstArgGoesFirstFct_ ){
+  template <typename T, typename Lambda> static inline std::vector<size_t> getSortPermutation(const std::vector<T>& vectorToSort_, const Lambda& firstArgGoesFirstFct_ ){
     std::vector<size_t> p(vectorToSort_.size());
     std::iota(p.begin(), p.end(), 0);
     std::sort(p.begin(), p.end(),
               [&](size_t i, size_t j){ return firstArgGoesFirstFct_(vectorToSort_.at(i), vectorToSort_.at(j)); });
     return p;
   }
-  template <typename T> static inline std::vector<size_t> getSortPermutation(const std::vector<T>& vectorToSort_, const std::function<bool(T, T)>& firstArgGoesFirstFct_ ){
-    std::vector<size_t> p(vectorToSort_.size());
-    std::iota(p.begin(), p.end(), 0);
-    std::sort(p.begin(), p.end(),
-              [&](size_t i, size_t j){ return firstArgGoesFirstFct_(vectorToSort_.at(i), vectorToSort_.at(j)); });
-    return p;
+  template <typename T> static inline std::vector<T> getSortedVector(const std::vector<T>& unsortedVector_, const std::vector<std::size_t>& sortPermutation_ ){
+    if(unsortedVector_.empty() or sortPermutation_.size() != unsortedVector_.size()) return {};
+    std::vector<T> sortedVec(unsortedVector_.size(), unsortedVector_[0]);
+    std::transform(sortPermutation_.begin(), sortPermutation_.end(), sortedVec.begin(),
+                   [&](std::size_t i){ return unsortedVector_[i]; });
+    return sortedVec;
   }
-  template <typename T> static inline std::vector<T> applyPermutation(const std::vector<T>& vectorToPermute_, const std::vector<std::size_t>& sortPermutation_ ){
-    if(vectorToPermute_.empty()) return {};
-    std::vector<T> sorted_vec(vectorToPermute_.size(), vectorToPermute_[0]);
-    std::transform(sortPermutation_.begin(), sortPermutation_.end(), sorted_vec.begin(),
-                   [&](std::size_t i){ return vectorToPermute_[i]; });
-    return sorted_vec;
-  }
-  template <typename T> static inline void applySwapPermutation(std::vector<T>& vectorToPermute_, std::vector<std::size_t> sortPermutation_ ){
-    for(size_t index = 0 ; index < vectorToPermute_.size(); index++){
-      // Swap the element at "index" with the one that should be here
-      std::swap(vectorToPermute_[index], vectorToPermute_[sortPermutation_[index]]);
-      // Now make sure the one that was originally at this place gets its index updated in the permutation list
-      for( size_t iPermut = index ; iPermut < sortPermutation_.size() ; iPermut++ ){
-        // Searching for its "index" in the permutation list
-        if( index == sortPermutation_[iPermut] ){
-          // Update with its new index and leave the loop
-          sortPermutation_[iPermut] = sortPermutation_[index]; break;
-        }
+  template <typename T> static inline void applyPermutation(std::vector<T>& vectorToPermute_, const std::vector<std::size_t>& sortPermutation_){
+    std::vector<bool> done(vectorToPermute_.size(), false);
+    for( std::size_t iEntry = 0; iEntry < vectorToPermute_.size(); iEntry++ ){
+      if( done[iEntry] ){ continue; }
+      done[iEntry] = true;
+      std::size_t jPrev = iEntry;
+      std::size_t jEntry = sortPermutation_[iEntry];
+      while( iEntry != jEntry ){
+        std::swap(vectorToPermute_[jPrev], vectorToPermute_[jEntry]);
+        done[jEntry] = true;
+        jPrev = jEntry;
+        jEntry = sortPermutation_[jEntry];
       }
     }
   }
-  template <typename T> static inline void sortVector(std::vector<T>& vectorToSort_, const std::function<bool(const T&, const T&)>& firstArgGoesFirstFct_){
-    GenericToolbox::applySwapPermutation( vectorToSort_, GenericToolbox::getSortPermutation(vectorToSort_, firstArgGoesFirstFct_) );
+  template <typename T, typename Lambda> static inline void sortVector(std::vector<T>& vectorToSort_, const Lambda& firstArgGoesFirstFct_){
+    std::sort(vectorToSort_.begin(), vectorToSort_.end(), firstArgGoesFirstFct_);
   }
-  template <typename T> static inline void sortVector(std::vector<T>& vectorToSort_, const std::function<bool(T, T)>& firstArgGoesFirstFct_){
-    GenericToolbox::applySwapPermutation( vectorToSort_, GenericToolbox::getSortPermutation(vectorToSort_, firstArgGoesFirstFct_) );
+  template <typename T, typename Lambda> static inline void removeEntryIf(std::vector<T>& vector_, const Lambda& removeIfFct_){
+    vector_.erase( std::remove_if(vector_.begin(), vector_.end(), removeIfFct_), vector_.end() );
   }
 
   // Others

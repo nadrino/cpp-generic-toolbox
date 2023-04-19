@@ -63,8 +63,8 @@ namespace GenericToolbox::Switch {
       return isSuccess;
     }
     inline static bool doFilesAreIdentical(const std::string& file1Path_, const std::string& file2Path_){
-      if( not doesPathIsFile(file2Path_) ) { return false; }
       if( not doesPathIsFile(file1Path_) ) { return false; }
+      if( not doesPathIsFile(file2Path_) ) { return false; }
 
       ssize_t file1Size = getFileSize(file1Path_);
       if( file1Size != getFileSize(file2Path_) ) return false;

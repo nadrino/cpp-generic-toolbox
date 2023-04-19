@@ -114,12 +114,11 @@ namespace GenericToolbox{
   template <typename T> static inline double getStdDev(const std::vector<T>& vector_, const std::function<double(const T&)>& evalElementFct_ = [](const T& var){return var;});
 
   // Sorting
-  template <typename T> static inline std::vector<size_t> getSortPermutation(const std::vector<T>& vectorToSort_, const std::function<bool(const T&, const T&)>& firstArgGoesFirstFct_);
-  template <typename T> static inline std::vector<size_t> getSortPermutation(const std::vector<T>& vectorToSort_, const std::function<bool(T, T)>& firstArgGoesFirstFct_);
-  template <typename T> static inline std::vector<T> applyPermutation(const std::vector<T>& vectorToPermute_, const std::vector<std::size_t>& sortPermutation_);
-  template <typename T> static inline void applySwapPermutation(std::vector<T>& vectorToPermute_, std::vector<std::size_t> sortPermutation_); // needs a copy
-  template <typename T> static inline void sortVector(std::vector<T>& vectorToSort_, const std::function<bool(const T&, const T&)>& firstArgGoesFirstFct_);
-  template <typename T> static inline void sortVector(std::vector<T>& vectorToSort_, const std::function<bool(T, T)>& firstArgGoesFirstFct_);
+  template <typename T, typename Lambda> static inline std::vector<size_t> getSortPermutation(const std::vector<T>& vectorToSort_, const Lambda& firstArgGoesFirstFct_ );
+  template <typename T> static inline std::vector<T> getSortedVector(const std::vector<T>& unsortedVector_, const std::vector<std::size_t>& sortPermutation_);
+  template <typename T> static inline void applyPermutation(std::vector<T>& vectorToPermute_, const std::vector<std::size_t>& sortPermutation_);
+  template <typename T, typename Lambda> static inline void sortVector(std::vector<T>& vectorToSort_, const Lambda& firstArgGoesFirstFct_);
+  template <typename T, typename Lambda> static inline void removeEntryIf(std::vector<T>& vector_, const Lambda& removeIfFct_);
 
   // Others
   template<typename T, typename TT> static inline T& getListEntry(std::list<T>& list_, TT index_);
