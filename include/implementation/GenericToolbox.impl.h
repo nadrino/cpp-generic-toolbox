@@ -537,14 +537,6 @@ namespace GenericToolbox {
     GenericToolbox::trimInputString( outputStr, strToTrim_ );
     return outputStr;
   }
-  static inline std::string trimInputString(std::string &inputStr_, const std::string &strToTrim_){
-    while( GenericToolbox::doesStringStartsWithSubstring(inputStr_, strToTrim_) ){
-      inputStr_ = inputStr_.substr(strToTrim_.size(), inputStr_.size());
-    }
-    while( GenericToolbox::doesStringEndsWithSubstring(inputStr_, strToTrim_) ){
-      inputStr_ = inputStr_.substr(0, inputStr_.size() - strToTrim_.size());
-    }
-  }
   static inline std::string padString(const std::string& inputStr_, unsigned int padSize_, const char& padChar){
     std::string outputString;
 //    int padDelta = int(inputStr_.size()) - int(padSize_);
@@ -724,6 +716,14 @@ namespace GenericToolbox {
           inputStr_.insert(iChar+offSet, indentChar);
         }
       }
+    }
+  }
+  static inline void trimInputString(std::string &inputStr_, const std::string &strToTrim_){
+    while( GenericToolbox::doesStringStartsWithSubstring(inputStr_, strToTrim_) ){
+      inputStr_ = inputStr_.substr(strToTrim_.size(), inputStr_.size());
+    }
+    while( GenericToolbox::doesStringEndsWithSubstring(inputStr_, strToTrim_) ){
+      inputStr_ = inputStr_.substr(0, inputStr_.size() - strToTrim_.size());
     }
   }
 
