@@ -197,25 +197,23 @@ namespace GenericToolbox::Switch {
       if(flush_) std::cout << "\r";
       else if(int(input_.size()) > GenericToolbox::Switch::Hardware::getTerminalWidth()) std::cout << std::endl;
     }
-    inline static void printLeftRight(const std::string& input_left_, const std::string& input_right_, const std::string& color_){
-      int nbSpaceLeft{GenericToolbox::Switch::Hardware::getTerminalWidth()};
-      nbSpaceLeft -= int(GenericToolbox::getPrintSize(input_left_));
-      nbSpaceLeft -= int(GenericToolbox::getPrintSize(input_right_));
+    inline static void printLeftRight(const std::string& inputLeft_, const std::string& inputRight_, const std::string& color_){
+      int nbSpaceLeft{ GenericToolbox::Switch::Hardware::getTerminalWidth() };
+      nbSpaceLeft -= int( GenericToolbox::getPrintSize(inputLeft_) );
+      nbSpaceLeft -= int( GenericToolbox::getPrintSize(inputRight_) );
 
-      if(nbSpaceLeft <= 0){
-        GenericToolbox::Switch::Terminal::printLeftRight(
-            input_left_.substr(0, input_left_.size() + nbSpaceLeft),
-            input_right_,
-            color_
-        );
-        return;
+      std::stringstream ss;
+
+      if(nbSpaceLeft <= 0){ ss << inputLeft_.substr(0, inputLeft_.size() + nbSpaceLeft); }
+      else{ ss << inputLeft_; }
+
+      ss << GenericToolbox::repeatString(" ", nbSpaceLeft);
+      ss << inputRight_;
+
+      std::cout << color_ << ss.str() << GenericToolbox::ColorCodes::resetColor;
+      if( GenericToolbox::Switch::Hardware::getTerminalWidth() < int(inputLeft_.size()) + int(inputRight_.size())) {
+        std::cout << std::endl;
       }
-
-      std::cout << color_ << input_left_;
-      std::cout << GenericToolbox::repeatString(" ", nbSpaceLeft);
-      std::cout << input_right_;
-      std::cout << GenericToolbox::ColorCodes::resetColor;
-      if(GenericToolbox::Switch::Hardware::getTerminalWidth() < int(input_left_.size()) + int(input_right_.size())) std::cout << std::endl;
     }
 
     inline static void makePause(){
