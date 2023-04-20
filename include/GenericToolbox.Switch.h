@@ -55,7 +55,7 @@ namespace GenericToolbox::Switch{
     inline static void printLeft(const std::string& input_, const std::string& color_ = "", bool flush_ = false);
     inline static void printLeftRight(const std::string& inputLeft_, const std::string& inputRight_, const std::string& color_ = "");
 
-    inline static void makePause();
+    inline static void makePause(const std::string& message_ = "");
     template<typename T, typename TT> inline static void displayProgressBar( const T& iCurrent_, const TT& iTotal_, const std::string &title_ = "", bool forcePrint_ = false);
 
   }

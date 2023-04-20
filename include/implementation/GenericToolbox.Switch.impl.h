@@ -216,7 +216,8 @@ namespace GenericToolbox::Switch {
       }
     }
 
-    inline static void makePause(){
+    inline static void makePause(const std::string& message_){
+      if( not message_.empty() ) std::cout << message_ << std::endl;
       std::cout << "PRESS A to continue or + to quit now." << std::endl;
       consoleUpdate(nullptr);
 
