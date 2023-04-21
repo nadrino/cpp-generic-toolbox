@@ -66,18 +66,22 @@ namespace GenericToolbox{
 
   template<typename T, typename TT> inline static std::string iterableToString(const T& iterable_, const TT& toStrFct_, bool jumpLine_, bool indentLine_){
     std::stringstream ss;
-    for(const auto& element: iterable_){
-      if( ss.str().empty() ){ ss << "{ "; }
-      else{ ss << ", "; }
-      if(jumpLine_){
-        ss << std::endl;
-        if( indentLine_ ) ss << "  ";
+    ss << "{ ";
+    if( not iterable_.empty() ){
+      ss.str().reserve(256); // Reserve initial space
+      auto elementIterator = iterable_.begin();
+      ss << toStrFct_(*elementIterator);
+      for( ++elementIterator; elementIterator != iterable_.end(); ++elementIterator ){
+        ss << ", ";
+        if( jumpLine_ ){
+          ss << std::endl;
+          if( indentLine_ ){ ss << "  "; }
+        }
+        ss << toStrFct_(*elementIterator);
       }
-      ss << toStrFct_(element);
     }
-    if( ss.str().empty() ) return {"{}"};
-    if(jumpLine_) ss << std::endl << "}";
-    else ss << " }";
+    if( jumpLine_ ){ ss << std::endl; }
+    ss << "}";
     return ss.str();
   }
 
