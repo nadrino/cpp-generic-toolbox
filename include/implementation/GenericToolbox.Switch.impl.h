@@ -185,8 +185,14 @@ namespace GenericToolbox::Switch {
     inline static void printLeft(const std::string& input_, const std::string& color_, bool flush_){
       int nbSpaceLeft{ GenericToolbox::Switch::Hardware::getTerminalWidth() };
       nbSpaceLeft -= int(GenericToolbox::getPrintSize(input_));
-      if( nbSpaceLeft <= 0 ){
-        if( nbSpaceLeft == 0 ) nbSpaceLeft-=1;
+
+      if( flush_ ){
+        // can only flush if the terminal is not filled up
+        nbSpaceLeft--;
+        std::cout << "\r";
+      }
+
+      if( nbSpaceLeft < 0 ){
         GenericToolbox::Switch::Terminal::printLeft(
             input_.substr(0, input_.size() + nbSpaceLeft - int(flush_)), // remove extra char if flush
             color_,
@@ -194,10 +200,9 @@ namespace GenericToolbox::Switch {
         );
         return;
       }
-      if(flush_){ nbSpaceLeft-=1; std::cout << "\r"; }
+
       std::cout << color_ << input_ << GenericToolbox::repeatString(" ", nbSpaceLeft) << GenericToolbox::ColorCodes::resetColor;
       if(flush_) std::cout << "\r";
-      else if(int(input_.size()) > GenericToolbox::Switch::Hardware::getTerminalWidth()) std::cout << std::endl;
     }
     inline static void printLeftRight(const std::string& inputLeft_, const std::string& inputRight_, const std::string& color_){
       int nbSpaceLeft{ GenericToolbox::Switch::Hardware::getTerminalWidth() };
@@ -224,7 +229,10 @@ namespace GenericToolbox::Switch {
       consoleUpdate(nullptr);
 
       PadState pad;
-      padInitializeDefault(&pad);
+      padInitializeAny(&pad);
+
+      // clear buttons?
+      std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
       while(appletMainLoop()){
 
