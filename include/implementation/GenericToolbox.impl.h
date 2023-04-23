@@ -8,6 +8,10 @@
 
 #include "../GenericToolbox.ProgressBar.h"
 
+#ifdef __SWITCH__
+#include "switch.h"
+#endif
+
 #include <utility>
 #include <cmath>
 #include <sys/stat.h>
@@ -1470,6 +1474,8 @@ namespace GenericToolbox{
     ioctl(fileno(stdout), TIOCGWINSZ, &winSize);
     outWith = (int)(winSize.ws_col);
 //    outWith = (int)(winSize.ws_row);
+#elif defined(__SWITCH__)
+    outWith = consoleGetDefault()->consoleWidth;
 #endif // Windows/Linux
     return outWith;
   }
@@ -1487,6 +1493,8 @@ namespace GenericToolbox{
     ioctl(fileno(stdout), TIOCGWINSZ, &w);
 //    outWith = (int)(w.ws_col);
     outWith = (int)(w.ws_row);
+#elif defined(__SWITCH__)
+    outWith = consoleGetDefault()->consoleHeight;
 #endif // Windows/Linux
     return outWith;
   }

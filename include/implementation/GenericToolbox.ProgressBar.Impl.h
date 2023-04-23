@@ -224,18 +224,21 @@ namespace GenericToolbox{
 
       ssProgressBar << ssTail.str();
 
-      ssProgressBar << std::endl; // always jump line to force flush on screen
-      auto nLines = GenericToolbox::getNLines(ssProgressBar.str());
+      if( not _disableVt100Cmd_ ){
+        ssProgressBar << std::endl; // always jump line to force flush on screen
 #ifndef CPP_GENERIC_TOOLBOX_BATCH
-      if (_lastDisplayedPercentValue_ != 100) {
-        // those commands won't be flushed until a new print is called:
-        // pull back to cursor on the line of the progress bar
-        ssProgressBar << static_cast<char>(27) << "[" << nLines - 1 << "F";
-        // Clear the line and add "\r" since a logger (in charge of printing this string)
-        // might intercept it to trigger a print of a line header
-        ssProgressBar << static_cast<char>(27) << "[1K" << "\r"; // trick to clear
-      }
+        auto nLines = GenericToolbox::getNLines(ssProgressBar.str());
+        if (_lastDisplayedPercentValue_ != 100) {
+          // those commands won't be flushed until a new print is called:
+          // pull back to cursor on the line of the progress bar
+          ssProgressBar << static_cast<char>(27) << "[" << nLines - 1 << "F";
+          // Clear the line and add "\r" since a logger (in charge of printing this string)
+          // might intercept it to trigger a print of a line header
+          ssProgressBar << static_cast<char>(27) << "[1K" << "\r"; // trick to clear
+        }
 #endif
+      }
+
 
       if (this->_debugMode_) {
         std::cout << "New timestamp: " << this->_lastDisplayedTimePoint_.time_since_epoch().count() << std::endl;
@@ -249,9 +252,11 @@ namespace GenericToolbox{
     void ProgressBar::setEnableRainbowProgressBar(bool enableRainbowProgressBar) {
       _enableRainbowProgressBar_ = enableRainbowProgressBar;
     }
-
     void ProgressBar::setMaxBarLength(int maxBarLength) {
       _maxBarLength_ = maxBarLength;
+    }
+    void ProgressBar::setDisableVt100Cmd(bool disableVt100Cmd_){
+      _disableVt100Cmd_ = disableVt100Cmd_;
     }
 
   }

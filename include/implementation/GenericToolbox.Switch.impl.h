@@ -204,7 +204,7 @@ namespace GenericToolbox::Switch {
       std::cout << color_ << input_ << GenericToolbox::repeatString(" ", nbSpaceLeft) << GenericToolbox::ColorCodes::resetColor;
       if(flush_) std::cout << "\r";
     }
-    inline static void printLeftRight(const std::string& inputLeft_, const std::string& inputRight_, const std::string& color_){
+    inline static void printLeftRight(const std::string& inputLeft_, const std::string& inputRight_, const std::string& color_, bool flush_){
       int nbSpaceLeft{ GenericToolbox::Switch::Hardware::getTerminalWidth() };
       nbSpaceLeft -= int( GenericToolbox::getPrintSize(inputLeft_) );
       nbSpaceLeft -= int( GenericToolbox::getPrintSize(inputRight_) );
@@ -218,8 +218,11 @@ namespace GenericToolbox::Switch {
       ss << inputRight_;
 
       std::cout << color_ << ss.str() << GenericToolbox::ColorCodes::resetColor;
-      if( GenericToolbox::Switch::Hardware::getTerminalWidth() < int(inputLeft_.size()) + int(inputRight_.size())) {
-        std::cout << std::endl;
+      if(flush_) std::cout << "\r";
+      else{
+        if( GenericToolbox::Switch::Hardware::getTerminalWidth() < int(inputLeft_.size()) + int(inputRight_.size())) {
+          std::cout << std::endl;
+        }
       }
     }
 
@@ -252,9 +255,11 @@ namespace GenericToolbox::Switch {
       std::this_thread::sleep_for(std::chrono::milliseconds(100));
       consoleUpdate(nullptr);
     }
-    template<typename T, typename TT> inline static void displayProgressBar(const T& iCurrent_, const TT& iTotal_, const std::string &title_, bool forcePrint_){
+    template<typename T, typename TT> inline static void displayProgressBar(const T& iCurrent_, const TT& iTotal_,
+        const std::string &title_, bool forcePrint_, const std::string& color_){
       if(forcePrint_ or ProgressBar::gProgressBar.template showProgressBar(iCurrent_, iTotal_) ){
-        printLeft(ProgressBar::gProgressBar.template generateProgressBarStr(iCurrent_, iTotal_, title_));
+        ProgressBar::gProgressBar.setDisableVt100Cmd( true );
+        printRight(ProgressBar::gProgressBar.template generateProgressBarStr(iCurrent_, iTotal_, GenericToolbox::padString(title_, 40)), color_, true);
         consoleUpdate(nullptr);
       }
     }

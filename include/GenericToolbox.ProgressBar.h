@@ -31,12 +31,14 @@ namespace GenericToolbox{
 
       inline void setEnableRainbowProgressBar(bool enableRainbowProgressBar);
       inline void setMaxBarLength(int maxBarLength);
+      inline void setDisableVt100Cmd(bool disableVt100Cmd_);
 
     protected:
       inline std::string _generateProgressBarStr(double iCurrent_, double iTotal_, const std::string &title_);
 
     private:
       bool _debugMode_{false};
+      bool _disableVt100Cmd_{false};
       bool _enableRainbowProgressBar_{PROGRESS_BAR_ENABLE_RAINBOW};
       bool _displaySpeed_{PROGRESS_BAR_SHOW_SPEED};
       int _maxBarLength_{PROGRESS_BAR_LENGTH};
