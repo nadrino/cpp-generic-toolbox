@@ -220,10 +220,8 @@ namespace GenericToolbox::Switch {
 
     inline static void makePause(const std::string& message_){
       if( not message_.empty() ) std::cout << message_ << std::endl;
-      std::cout << "PRESS A to continue or + to quit now." << std::endl;
+      std::cout << "+ to quit now or PRESS any button to continue." << std::endl;
       consoleUpdate(nullptr);
-
-      std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
       PadState pad;
       padInitializeDefault(&pad);
@@ -233,15 +231,17 @@ namespace GenericToolbox::Switch {
         padUpdate( &pad );
         u64 kDown = padGetButtonsDown( &pad );
 
-        if( kDown & HidNpadButton_A ) {
-          consoleUpdate(nullptr);
-          break; // break in order to return to hbmenu
-        }
-        if( kDown & HidNpadButton_Plus ) {
+        if     ( kDown & HidNpadButton_Plus ) {
           consoleExit(nullptr);
           exit(EXIT_SUCCESS);
         }
+        else if( kDown != 0 ) {
+          consoleUpdate(nullptr);
+          break; // break in order to return to hbmenu
+        }
       }
+
+      std::this_thread::sleep_for(std::chrono::milliseconds(100));
       consoleUpdate(nullptr);
     }
     template<typename T, typename TT> inline static void displayProgressBar(const T& iCurrent_, const TT& iTotal_, const std::string &title_, bool forcePrint_){
