@@ -165,43 +165,31 @@ namespace GenericToolbox {
 
   // Content management
   template <typename T> inline static bool doesElementIsInVector(const T& element_, const std::vector<T>& vector_){
-    return std::find(vector_.begin(), vector_.end(), element_) != vector_.end();
+    return std::find(vector_.cbegin(), vector_.cend(), element_) != vector_.cend();
   }
   inline static bool doesElementIsInVector(const char* element_, const std::vector<std::string>& vector_){
-    return std::find(vector_.begin(), vector_.end(), element_) != vector_.end();
+    return std::find(vector_.cbegin(), vector_.cend(), element_) != vector_.cend();
   }
   template <typename T> inline static int findElementIndex(const T& element_, const std::vector<T>& vector_ ){ // test
-    int outIndex = -1;
-    auto it = std::find(vector_.begin(), vector_.end(), element_);
-    if (it != vector_.end()){ outIndex = std::distance(vector_.begin(), it); }
-    return outIndex;
+    auto it = std::find(vector_.cbegin(), vector_.cend(), element_);
+    if( it == vector_.cend() ){ return -1; }
+    return static_cast<int>( std::distance(vector_.cbegin(), it) );
   }
   inline static int findElementIndex(const char* element_, const std::vector<std::string>& vector_ ){
-    int outIndex = -1;
-    auto it = std::find(vector_.begin(), vector_.end(), element_);
-    if (it != vector_.end()){ outIndex = int(std::distance(vector_.begin(), it)); }
-    return outIndex;
+    auto it = std::find(vector_.cbegin(), vector_.cend(), element_);
+    if( it == vector_.cend() ){ return -1; }
+    return static_cast<int>( std::distance(vector_.cbegin(), it) );
   }
   template<typename T> inline static void insertInVector(std::vector<T> &vector_, const std::vector<T> &vectorToInsert_, size_t insertBeforeThisIndex_){
     if( insertBeforeThisIndex_ > vector_.size() ){
       throw std::runtime_error("GenericToolBox::insertInVector error: insertBeforeThisIndex_ >= vector_.size()");
     }
-    if( vectorToInsert_.empty() ){
-      return;
-    }
-    if( vector_.empty() ){
-      vector_ = vectorToInsert_;
-      return;
-    }
-
-    int nElementToInsert = int(vectorToInsert_.size());
-    for( int iElementToInsert = nElementToInsert-1 ; iElementToInsert >= 0 ; iElementToInsert-- ){
-      vector_.insert(vector_.begin() + insertBeforeThisIndex_, vectorToInsert_[iElementToInsert]);
-    }
+    if( vector_.empty() ){ vector_ = vectorToInsert_; return; }
+    if( vectorToInsert_.empty() ){ return; }
+    vector_.insert( vector_.cbegin() + insertBeforeThisIndex_, vectorToInsert_.crbegin(), vectorToInsert_.crend() );
   }
   template<typename T> inline static void insertInVector(std::vector<T> &vector_, const T &elementToInsert_, size_t insertBeforeThisIndex_){
-    std::vector<T> vectorToInsert(1, elementToInsert_);
-    insertInVector(vector_, vectorToInsert, insertBeforeThisIndex_);
+    insertInVector(vector_, {elementToInsert_}, insertBeforeThisIndex_);
   }
   template<typename T> static inline void addIfNotInVector(const T& element_, std::vector<T> &vector_){
     if( not GenericToolbox::doesElementIsInVector(element_, vector_) ){
@@ -212,6 +200,11 @@ namespace GenericToolbox {
     if( not GenericToolbox::doesElementIsInVector(element_, vector_) ){
       vector_.emplace_back(element_);
     }
+  }
+  template <typename Elm, typename Val, typename Lambda> inline static int findElementIndex(const Val& value_, const std::vector<Elm>& vector_, const Lambda& fetchElmValueFct_){
+    auto it = std::find_if( vector_.begin(), vector_.end(), [&](const Elm& t){ return fetchElmValueFct_(t) == value_; });
+    if( it == vector_.end() ){ return -1; }
+    else{ return std::distance( vector_.begin(), it ); }
   }
 
   // Generators
