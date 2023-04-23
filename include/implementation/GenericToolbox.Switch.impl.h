@@ -168,6 +168,7 @@ namespace GenericToolbox::Switch {
       int nbSpaceLeft{GenericToolbox::Switch::Hardware::getTerminalWidth()};
       nbSpaceLeft -= int(GenericToolbox::getPrintSize(input_));
       if( nbSpaceLeft <= 0 ){
+        if( nbSpaceLeft == 0 ) nbSpaceLeft-=1;
         GenericToolbox::Switch::Terminal::printRight(
             input_.substr(0, input_.size() + nbSpaceLeft - int(flush_)), // remove extra char if flush
             color_,
@@ -182,9 +183,10 @@ namespace GenericToolbox::Switch {
       else if(int(input_.size()) > GenericToolbox::Switch::Hardware::getTerminalWidth()) std::cout << std::endl;
     }
     inline static void printLeft(const std::string& input_, const std::string& color_, bool flush_){
-      int nbSpaceLeft{GenericToolbox::Switch::Hardware::getTerminalWidth()};
+      int nbSpaceLeft{ GenericToolbox::Switch::Hardware::getTerminalWidth() };
       nbSpaceLeft -= int(GenericToolbox::getPrintSize(input_));
       if( nbSpaceLeft <= 0 ){
+        if( nbSpaceLeft == 0 ) nbSpaceLeft-=1;
         GenericToolbox::Switch::Terminal::printLeft(
             input_.substr(0, input_.size() + nbSpaceLeft - int(flush_)), // remove extra char if flush
             color_,
@@ -221,23 +223,26 @@ namespace GenericToolbox::Switch {
       std::cout << "PRESS A to continue or + to quit now." << std::endl;
       consoleUpdate(nullptr);
 
-      std::chrono::high_resolution_clock::time_point clock_buffer = std::chrono::high_resolution_clock::now();
-      std::chrono::duration<double, std::milli> time_span = clock_buffer - clock_buffer;
+      std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
       PadState pad;
+      padInitializeDefault(&pad);
+
       while(appletMainLoop()){
-        padUpdate(&pad);;
-        u64 kDown = padGetButtonsDown(&pad);
-        u64 kHeld = padGetButtons(&pad);
-        if (kDown & HidNpadButton_A or (kHeld & HidNpadButton_A and time_span.count() > 100)) {
+
+        padUpdate( &pad );
+        u64 kDown = padGetButtonsDown( &pad );
+
+        if( kDown & HidNpadButton_A ) {
+          consoleUpdate(nullptr);
           break; // break in order to return to hbmenu
         }
-        if (kDown & HidNpadButton_Plus) {
+        if( kDown & HidNpadButton_Plus ) {
           consoleExit(nullptr);
           exit(EXIT_SUCCESS);
         }
-        time_span += std::chrono::high_resolution_clock::now() - clock_buffer;
-        clock_buffer = std::chrono::high_resolution_clock::now();
       }
+      consoleUpdate(nullptr);
     }
     template<typename T, typename TT> inline static void displayProgressBar(const T& iCurrent_, const TT& iTotal_, const std::string &title_, bool forcePrint_){
       if(forcePrint_ or ProgressBar::gProgressBar.template showProgressBar(iCurrent_, iTotal_) ){
