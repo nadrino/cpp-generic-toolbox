@@ -83,6 +83,7 @@ namespace GenericToolbox{
         }
         ss << toStrFct_(*elementIterator);
       }
+      if( not jumpLine_ ){ ss << " "; }
     }
     if( jumpLine_ ){ ss << std::endl; }
     ss << "}";
