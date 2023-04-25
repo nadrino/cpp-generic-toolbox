@@ -766,15 +766,25 @@ namespace GenericToolbox {
     ss << " }";
     return ss.str();
   }
-  static inline bool toBool(std::string str) {
-    std::transform(str.begin(), str.end(), str.begin(), ::tolower);
+  static inline bool toBool(const std::string& str) {
+    auto result = false;    // failure to assert is false
+
     std::istringstream is(str);
-    bool b;
-    is >> std::boolalpha >> b;
-    if( is.fail() ){
-      // conversion failed, handle the error here
+    // first try simple integer conversion
+    is >> result;
+
+    if (is.fail()) {
+      // simple integer failed; try boolean
+      is.clear();
+      is >> std::boolalpha >> result;
     }
-    return b;
+
+    if( is.fail() ){
+      throw std::invalid_argument( str + " is not convertable to bool" );
+      return false;
+    }
+
+    return result;
   }
 
 }
