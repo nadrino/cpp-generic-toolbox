@@ -90,6 +90,7 @@ namespace GenericToolbox{
   // Content management
   template <typename T> inline static bool doesElementIsInVector( const T& element_, const std::vector<T>& vector_ );
   inline static bool doesElementIsInVector(const char* element_, const std::vector<std::string>& vector_);
+  template <typename Elm, typename Val, typename Lambda> inline static int doesElementIsInVector(const Val& value_, const std::vector<Elm>& vector_, const Lambda& fetchElmValueFct_);
   template <typename T> inline static int findElementIndex( const T& element_, const std::vector<T>& vector_ );
   inline static int findElementIndex(const char* element_, const std::vector<std::string>& vector_ );
   template<typename T> inline static void insertInVector(std::vector<T> &vector_, const std::vector<T> &vectorToInsert_, size_t insertBeforeThisIndex_);

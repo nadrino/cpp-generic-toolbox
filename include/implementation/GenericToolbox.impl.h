@@ -174,6 +174,9 @@ namespace GenericToolbox {
   inline static bool doesElementIsInVector(const char* element_, const std::vector<std::string>& vector_){
     return std::find(vector_.cbegin(), vector_.cend(), element_) != vector_.cend();
   }
+  template <typename Elm, typename Val, typename Lambda> inline static int doesElementIsInVector(const Val& value_, const std::vector<Elm>& vector_, const Lambda& fetchElmValueFct_){
+    return std::find_if( vector_.begin(), vector_.end(), [&](const Elm& t){ return fetchElmValueFct_(t) == value_; }) != vector_.end();
+  }
   template <typename T> inline static int findElementIndex(const T& element_, const std::vector<T>& vector_ ){ // test
     auto it = std::find(vector_.cbegin(), vector_.cend(), element_);
     if( it == vector_.cend() ){ return -1; }
