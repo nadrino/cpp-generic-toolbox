@@ -26,6 +26,7 @@
 #include <numeric>
 #include <regex>
 #include <sys/types.h>
+#include <sys/statvfs.h>
 #include <unistd.h>
 #include <pwd.h>
 #include <iomanip>
@@ -40,6 +41,8 @@
 #include <vector>
 #include "sys/times.h"
 #include "typeindex"
+
+
 
 extern char* __progname;
 
@@ -1473,6 +1476,14 @@ namespace GenericToolbox{
     long outVal = static_cast<long>(currentProcessMemoryUsage) - static_cast<long>(Hardware::lastProcessMemoryUsage);
     Hardware::lastProcessMemoryUsage = currentProcessMemoryUsage;
     return outVal;
+  }
+  static inline unsigned long long getFreeDiskSpace( const std::string& path_ ){
+    struct statvfs stat{};
+    if (statvfs(path_.c_str(), &stat) != 0) {
+      return 0;
+    } else {
+      return stat.f_bsize * static_cast<unsigned long long>(stat.f_bfree);
+    }
   }
   static inline int getTerminalWidth(){
     int outWith = 0;
