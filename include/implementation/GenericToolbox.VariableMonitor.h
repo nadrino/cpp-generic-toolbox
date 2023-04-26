@@ -31,13 +31,13 @@ namespace GenericToolbox{
 
 
   private:
-    const std::string _name_;
+    std::string _name_;
 
     double _totalAccumulated_{0};
     double _lastTotalAccumulated_{0};
     std::chrono::high_resolution_clock::time_point _lastTotalRateEval_;
 
-    size_t _currentHistorySize_;
+    size_t _currentHistorySize_{0};
     std::vector<double> _addToAccumulatorHistory_;
     std::vector<std::chrono::high_resolution_clock::time_point> _addToAccumulatorTimeHistory_;
     size_t _currentSlotIndex_{0};
