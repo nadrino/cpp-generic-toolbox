@@ -246,7 +246,9 @@ namespace GenericToolbox{
   static inline size_t getProcessMaxMemoryUsage();
   static inline double getCpuUsageByProcess();
   static inline long getProcessMemoryUsageDiffSinceLastCall();
+  static inline double getFreeDiskSpacePercent( const std::string& path_ );
   static inline unsigned long long getFreeDiskSpace( const std::string& path_ );
+  static inline unsigned long long getTotalDiskSpace( const std::string& path_ );
   static inline int getTerminalWidth();
   static inline int getTerminalHeight();
   static inline std::vector<std::string> getOutputOfShellCommand(const std::string& cmd_);

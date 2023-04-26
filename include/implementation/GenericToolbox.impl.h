@@ -1477,13 +1477,18 @@ namespace GenericToolbox{
     Hardware::lastProcessMemoryUsage = currentProcessMemoryUsage;
     return outVal;
   }
+  static inline double getFreeDiskSpacePercent( const std::string& path_ ){
+    return double( getFreeDiskSpace(path_) )/double( getTotalDiskSpace(path_) );
+  }
   static inline unsigned long long getFreeDiskSpace( const std::string& path_ ){
     struct statvfs stat{};
-    if (statvfs(path_.c_str(), &stat) != 0) {
-      return 0;
-    } else {
-      return stat.f_bsize * static_cast<unsigned long long>(stat.f_bfree);
-    }
+    if( statvfs(path_.c_str(), &stat) != 0 ){ return 0; }
+    return stat.f_bsize * static_cast<unsigned long long>(stat.f_bfree);
+  }
+  static inline unsigned long long getTotalDiskSpace( const std::string& path_ ){
+    struct statvfs stat{};
+    if( statvfs(path_.c_str(), &stat) != 0 ){ return 0; }
+    return stat.f_bsize * static_cast<unsigned long long>(stat.f_blocks);
   }
   static inline int getTerminalWidth(){
     int outWith = 0;
