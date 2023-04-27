@@ -56,7 +56,7 @@ namespace GenericToolbox {
         if( size_ == 0 or subSize_ == 0 ) return;
 
         unsigned char* dataPtr{nullptr}; // 1 byte buffer
-        auto buff = getData_(array_[0]);
+        auto buff = getData_(grabSubarray_(array_[0])[0]);
         size_t returnSize{ sizeof( buff ) };
 
         bk_create(pevent, name_.c_str(), getTid( buff ), (void **) &dataPtr );
