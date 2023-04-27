@@ -35,26 +35,36 @@ namespace GenericToolbox {
         for( auto& entry : list_ ){ *dataPtr++ = entry; }
         bk_close( pevent, dataPtr );
       }
-      template<typename T, typename L> inline void writeInBank(char* pevent, const std::string& name_, const T& array_,
-          int size_, const L& getData_){
+      template<typename T, typename L> inline void writeInBank(char* pevent, const std::string& name_, const T& array_, int size_, const L& getData_){
         if( size_ == 0 ) return;
-        unsigned char* dataPtr{nullptr}; // 1 byte
-        bk_create(pevent, name_.c_str(), getTid(getData_(array_[0])), (void **) &dataPtr );
+
+        unsigned char* dataPtr{nullptr}; // 1 byte buffer
+        auto buff = getData_(array_[0]);
+        size_t returnSize{ sizeof( buff ) };
+
+        bk_create(pevent, name_.c_str(), getTid( buff ), (void **) &dataPtr );
         for( int iElm = 0 ; iElm < size_ ; iElm++ ){
-          *dataPtr = getData_(array_[iElm]);
-          dataPtr += sizeof( decltype(getData_) ); // multiple of 1 byte
+          buff = getData_(array_[iElm]);
+          memcpy( dataPtr, &buff, returnSize );
+          dataPtr += returnSize; // multiple of 1 byte
         }
         bk_close( pevent, dataPtr );
       }
       template<typename T, typename L, typename LL> inline void writeInBank(char* pevent, const std::string& name_,
           const T& array_, int size_, const LL& grabSubarray_, int subSize_, const L& getData_){
+
         if( size_ == 0 or subSize_ == 0 ) return;
-        unsigned char* dataPtr{nullptr}; // 1 byte
-        bk_create(pevent, name_.c_str(), getTid(getData_(grabSubarray_(array_[0])[0])), (void **) &dataPtr );
+
+        unsigned char* dataPtr{nullptr}; // 1 byte buffer
+        auto buff = getData_(array_[0]);
+        size_t returnSize{ sizeof( buff ) };
+
+        bk_create(pevent, name_.c_str(), getTid( buff ), (void **) &dataPtr );
         for( int iElm = 0 ; iElm < size_ ; iElm++ ){
           for( int iSubElm = 0 ; iSubElm < subSize_ ; iSubElm++ ){
-            *dataPtr = getData_(grabSubarray_(array_[iElm])[iSubElm]);
-            dataPtr += sizeof( decltype(getData_) ); // multiple of 1 byte
+            buff = getData_(grabSubarray_(array_[iElm])[iSubElm]);
+            memcpy(dataPtr, &buff, returnSize);
+            dataPtr += returnSize; // multiple of 1 byte
           }
         }
         bk_close( pevent, dataPtr );
