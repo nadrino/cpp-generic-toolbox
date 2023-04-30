@@ -561,21 +561,21 @@ namespace GenericToolbox {
     GenericToolbox::removeRepeatedCharInsideInputStr(outStr, repeatedChar_);
     return outStr;
   }
-  std::string joinVectorString(const std::vector<std::string> &string_list_, const std::string &delimiter_, int begin_index_, int end_index_) {
-
-    std::string joined_string;
-    if (end_index_ == 0) end_index_ = int(string_list_.size());
+  template<typename T> std::string joinVectorString(const std::vector<T> &stringList_, const std::string &delimiter_, int beginIndex_, int endIndex_) {
+    std::stringstream ss;
+    if( endIndex_ == 0 ) endIndex_ = int(stringList_.size());
 
     // circular permutation -> python style : tab[-1] = tab[tab.size - 1]
-    if (end_index_ < 0 and int(string_list_.size()) > std::abs(end_index_))
-      end_index_ = int(string_list_.size()) + end_index_;
-
-    for (int i_list = begin_index_; i_list < end_index_; i_list++) {
-      if (not joined_string.empty()) joined_string += delimiter_;
-      joined_string += string_list_[i_list];
+    if( endIndex_ < 0 and int(stringList_.size()) > std::abs(endIndex_) ) {
+      endIndex_ = int(stringList_.size()) + endIndex_;
     }
 
-    return joined_string;
+    for(int iElm = beginIndex_ ; iElm < endIndex_; iElm++ ) {
+      if( iElm > beginIndex_ ) ss << delimiter_;
+      ss << stringList_[iElm];
+    }
+
+    return ss.str();
   }
   std::string replaceSubstringInString(const std::string &input_str_, const std::string &substr_to_look_for_, const std::string &substr_to_replace_) {
     std::string stripped_str = input_str_;
