@@ -173,6 +173,7 @@ namespace GenericToolbox{
   static inline std::string indentString(const std::string& inputStr_, unsigned int indentCount_, const std::string& indentChar = " ");
   static inline std::string removeRepeatedCharacters(const std::string& inputStr_, const std::string &repeatedChar_);
   template<typename T> static inline std::string joinVectorString(const std::vector<T> &stringList_, const std::string &delimiter_, int beginIndex_ = 0, int endIndex_ = 0);
+  template<typename... Args> static inline std::string joinAsString(const std::string &delimiter_, const Args&... args);
   static inline std::string replaceSubstringInString(const std::string &input_str_, const std::string &substr_to_look_for_, const std::string &substr_to_replace_);
   static inline std::string replaceSubstringInString(const std::string &input_str_, const std::vector<std::string> &substr_to_look_for_, const std::vector<std::string> &substr_to_replace_);
   static inline std::vector<std::string> splitString(const std::string& inputString_, const std::string &delimiter_, bool removeEmpty_ = false);
@@ -221,6 +222,7 @@ namespace GenericToolbox{
   static inline std::string getFolderPathFromFilePath(const std::string &filePath_);
   static inline std::string getFileNameFromFilePath(const std::string &filePath_, bool keepExtension_ = true);
   static inline std::string replaceFileExtension(const std::string& filePath_, const std::string& newExtension_);
+  template<typename... Args> static inline std::string joinPath(const Args&... args);
 #if HAS_CPP_17
   static inline std::filesystem::file_type fileTypeFromDt(int dt_);
 #endif

@@ -585,6 +585,15 @@ namespace GenericToolbox {
 
     return ss.str();
   }
+  template<typename... Args> static inline std::string joinAsString(const std::string& delimiter, const Args&... args) {
+    std::stringstream ss;
+    int dummy[] = {0, ((void)(ss << args << delimiter), 0)...};
+    (void)dummy;  // Avoid unused variable warning
+    std::string result = ss.str();
+    if( not result.empty() ) { result.resize(result.size() - delimiter.size()); } // remove the last delimiter
+    return result;
+  }
+
   std::string replaceSubstringInString(const std::string &input_str_, const std::string &substr_to_look_for_, const std::string &substr_to_replace_) {
     std::string stripped_str = input_str_;
     GenericToolbox::replaceSubstringInsideInputString(stripped_str, substr_to_look_for_, substr_to_replace_);
@@ -1059,6 +1068,9 @@ namespace GenericToolbox{
   static inline std::string replaceFileExtension(const std::string& filePath_, const std::string& newExtension_){
     if( newExtension_.empty() ) return filePath_.substr(0, filePath_.find_last_of('.'));
     return filePath_.substr(0, filePath_.find_last_of('.')) + "." + newExtension_;
+  }
+  template<typename... Args> static inline std::string joinPath(const Args&... args){
+    return joinAsString("/", args...);
   }
   static inline std::filesystem::file_type fileTypeFromDt(int dt_){
     switch (dt_) {
