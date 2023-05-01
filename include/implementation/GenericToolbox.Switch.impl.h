@@ -104,22 +104,31 @@ namespace GenericToolbox::Switch {
   }
 
   namespace Utils{
-    inline static std::string lookForTidInSubFolders(const std::string& folderPath_){
+    inline static bool isTidLike(const std::string& name_){
+      // std::string tidExample = "010062601165E000";
+      // 16 hex string that starts with '0'
+      std::regex hexRegex("0[0-9a-fA-F]{15}");
+      return std::regex_match(name_, hexRegex);
+    }
+    inline static std::string lookForTidInSubFolders(const std::string& folderPath_, int maxDepth_){
       // WARNING : Recursive function
-      std::string tidExample = "0100626011656000";
+      maxDepth_--;
       std::vector<std::string> subFolderList = GenericToolbox::getListOfSubFoldersInFolder(folderPath_);
 
       for(auto &subFolder : subFolderList){
-        if(subFolder.size() == tidExample.size() and subFolder[0] == tidExample[0] ){ return subFolder; }
+        if( isTidLike(subFolder) ) return subFolder;
       }
 
-      // if not found
-      std::string tidCandidate;
-      std::string path;
-      for(auto &subFolder : subFolderList){
-        tidCandidate = GenericToolbox::Switch::Utils::lookForTidInSubFolders(folderPath_ + "/" + subFolder);
-        if(not tidCandidate.empty()){ return tidCandidate; }
+      if( maxDepth_ > 0 ){
+        // if not found
+        std::string tidCandidate;
+        std::string path;
+        for(auto &subFolder : subFolderList){
+          tidCandidate = GenericToolbox::Switch::Utils::lookForTidInSubFolders( GenericToolbox::joinPath(folderPath_, subFolder), maxDepth_-1 );
+          if(not tidCandidate.empty()){ return tidCandidate; }
+        }
       }
+
 
       return "";
     }
