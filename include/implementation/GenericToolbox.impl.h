@@ -417,23 +417,27 @@ namespace GenericToolbox {
   }
 
   static inline bool doesStringContainsSubstring(const std::string& str_, const std::string& subStr_, bool ignoreCase_) {
-    if (subStr_.empty()) return true;
-    if (subStr_.size() > str_.size()) return false;
-    if (ignoreCase_) { return doesStringContainsSubstring(toLowerCase(str_), toLowerCase(subStr_)); }
-    if (str_.find(subStr_) != std::string::npos) return true;
-    else return false;
+    if( subStr_.empty() ){ return true; }
+    if( ignoreCase_ ){ return toLowerCase(str_).find( toLowerCase( subStr_ ) ) != std::string::npos; }
+    return str_.find( subStr_ ) != std::string::npos;
   }
   static inline bool doesStringStartsWithSubstring(const std::string& str_, const std::string& subStr_, bool ignoreCase_) {
-    if (subStr_.empty()) return true;
-    if (subStr_.size() > str_.size()) return false;
-    if (ignoreCase_) { return doesStringStartsWithSubstring(toLowerCase(str_), toLowerCase(subStr_)); }
-    return (not str_.compare(0, subStr_.size(), subStr_));
+    if( subStr_.empty() ){ return true; }
+    if( subStr_.size() > str_.size() ){ return false; }
+    if( ignoreCase_ ){
+      std::string subStrLower{toLowerCase(subStr_)};
+      return std::equal( subStrLower.begin(), subStrLower.end(), toLowerCase(str_).begin() );
+    }
+    return std::equal( subStr_.begin(), subStr_.end(), str_.begin() );
   }
   static inline bool doesStringEndsWithSubstring(const std::string& str_, const std::string& subStr_, bool ignoreCase_) {
-    if (subStr_.empty()) return true;
-    if (subStr_.size() > str_.size()) return false;
-    if (ignoreCase_) { return doesStringEndsWithSubstring(toLowerCase(str_), toLowerCase(subStr_)); }
-    return (not str_.compare(str_.size() - subStr_.size(), subStr_.size(), subStr_));
+    if( subStr_.empty() ){ return true; }
+    if( subStr_.size() > str_.size() ){ return false; }
+    if( ignoreCase_ ){
+      std::string subStrLower{toLowerCase(subStr_)};
+      return std::equal( subStrLower.begin(), subStrLower.end(), toLowerCase(str_).end() - long(subStrLower.size()) );
+    }
+    return std::equal( subStr_.begin(), subStr_.end(), str_.end() - long(subStr_.size()) );
   }
   static inline std::string toLowerCase(const std::string &inputStr_) {
     std::string output_str(inputStr_);
