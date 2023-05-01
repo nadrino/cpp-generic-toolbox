@@ -992,12 +992,28 @@ namespace GenericToolbox{
     return output_cwd;
   }
   static inline std::string expandEnvironmentVariables(const std::string &filePath_){
+//#define USE_BASH_TO_EXPAND // VERY SLOW IN FACT...
+#ifdef USE_BASH_TO_EXPAND
+    std::array<char, PATH_MAX> buffer{};
+    std::string result;
 
-//    char outputName[PATH_MAX];
+    std::string command = "echo " + filePath_;
+    std::unique_ptr<FILE, decltype(&pclose)> pipe(popen(command.c_str(), "r"), pclose);
+    if( pipe == nullptr ){ return filePath_; }
+
+    std::FILE* pipe_ptr = pipe.get();
+    while (std::size_t n = std::fread(buffer.data(), sizeof(char), buffer.size(), pipe_ptr)) {
+      result.append(buffer.data(), n-1);
+    }
+
+    return result;
+#else
+    //    char outputName[PATH_MAX];
     char outputName[8192];
     Internals::expandEnvironmentVariables(filePath_.c_str(), outputName);
 
     return {outputName};
+#endif
   }
   static inline std::string getExecutableName(){
     std::string outStr;
@@ -1262,7 +1278,7 @@ namespace GenericToolbox{
 
     struct dirent* entry;
     std::vector<std::string> subFoldersList;
-    while ( (entry = readdir(directory)) ) {
+    while ( ( entry = readdir(directory) ) ) {
       if( type_ != -1 and entry->d_type != type_ ){ continue; }
       if( strcmp(entry->d_name, ".") == 0 or strcmp(entry->d_name, "..") == 0 ){ continue; }
 
@@ -1322,12 +1338,16 @@ namespace GenericToolbox{
     std::vector<std::string> outputFilePaths = GenericToolbox::getListOfFilesInFolder(folderPath_);
 
     // then walk in sub-folders
-    for(auto &subFolder : GenericToolbox::getListOfSubFoldersInFolder(folderPath_)){
-      for(auto &subFile : GenericToolbox::getListOfFilesInSubFolders(folderPath_ + "/" + subFolder)){ // recursive
+    auto subFolderList = GenericToolbox::getListOfSubFoldersInFolder(folderPath_);
+    for(auto &subFolder : subFolderList ){
+      auto subFileList = GenericToolbox::getListOfFilesInSubFolders(folderPath_ + "/" + subFolder);
+      outputFilePaths.reserve(outputFilePaths.size() + subFileList.size());
+      for(auto &subFile : subFileList ){ // recursive
         std::string relativeSubFilePath{subFolder};
         relativeSubFilePath += "/";
         relativeSubFilePath += subFile;
-        outputFilePaths.emplace_back(GenericToolbox::removeRepeatedCharacters(relativeSubFilePath, "/"));
+        GenericToolbox::removeRepeatedCharInsideInputStr(relativeSubFilePath, "/");
+        outputFilePaths.emplace_back( relativeSubFilePath );
       }
     }
 
