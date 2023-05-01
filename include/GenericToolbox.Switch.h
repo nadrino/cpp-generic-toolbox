@@ -42,7 +42,7 @@ namespace GenericToolbox::Switch{
 
     inline static bool isTidLike(const std::string& name_);
     inline static std::string lookForTidInSubFolders(const std::string& folderPath_, int maxDepth_ = 1);
-    inline static uint8_t* getFolderIconFromTitleId(const std::string& titleId_);
+    inline static uint8_t* getIconFromTitleId(const std::string& titleId_);
   }
 
   namespace UI{

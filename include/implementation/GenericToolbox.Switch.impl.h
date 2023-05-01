@@ -132,7 +132,7 @@ namespace GenericToolbox::Switch {
 
       return "";
     }
-    inline static uint8_t* getFolderIconFromTitleId(const std::string& titleId_){
+    inline static uint8_t* getIconFromTitleId(const std::string& titleId_){
       if( titleId_.empty() ) return nullptr;
 
       uint8_t* icon = nullptr;
