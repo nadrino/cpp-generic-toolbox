@@ -250,7 +250,9 @@ namespace GenericToolbox{
 
   // -- with indirect IO dependencies
   static inline bool doesFolderIsEmpty(const std::string &folderPath_);
+  static inline std::vector<std::string> getListOfEntriesInSubFolders(const std::string &folderPath_, int type_ = -1);
   static inline std::vector<std::string> getListOfFilesInSubFolders(const std::string &folderPath_);
+  static inline std::vector<std::string> getListOfFoldersInSubFolders(const std::string &folderPath_);
 
 }
 

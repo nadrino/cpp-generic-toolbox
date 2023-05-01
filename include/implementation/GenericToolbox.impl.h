@@ -1347,27 +1347,35 @@ namespace GenericToolbox{
     if(not doesPathIsFolder(folderPath_)) return false;
     return getListOfEntriesInFolder(folderPath_, std::string()).empty();
   }
-  static inline std::vector<std::string> getListOfFilesInSubFolders(const std::string &folderPath_) {
+  static inline std::vector<std::string> getListOfEntriesInSubFolders(const std::string &folderPath_, int type_){
     // WARNING : Recursive function
 
     // first, get the files in this folder
-    std::vector<std::string> outputFilePaths = GenericToolbox::getListOfFilesInFolder(folderPath_);
+    std::vector<std::string> out;
 
     // then walk in sub-folders
     auto subFolderList = GenericToolbox::getListOfSubFoldersInFolder(folderPath_);
     for(auto &subFolder : subFolderList ){
-      auto subFileList = GenericToolbox::getListOfFilesInSubFolders(folderPath_ + "/" + subFolder);
-      outputFilePaths.reserve(outputFilePaths.size() + subFileList.size());
+      auto subFileList = GenericToolbox::getListOfEntriesInFolder( GenericToolbox::joinPath(folderPath_, subFolder), "", type_ );
+      out.reserve( out.size() + subFileList.size() );
       for(auto &subFile : subFileList ){ // recursive
         std::string relativeSubFilePath{subFolder};
         relativeSubFilePath += "/";
         relativeSubFilePath += subFile;
         GenericToolbox::removeRepeatedCharInsideInputStr(relativeSubFilePath, "/");
-        outputFilePaths.emplace_back( relativeSubFilePath );
+        out.emplace_back(relativeSubFilePath );
       }
     }
 
-    return outputFilePaths;
+    GenericToolbox::insertInVector( out, GenericToolbox::getListOfEntriesInFolder(folderPath_, "", type_), out.size() );
+
+    return out;
+  }
+  static inline std::vector<std::string> getListOfFilesInSubFolders(const std::string &folderPath_) {
+    return getListOfEntriesInSubFolders(folderPath_, DT_REG);
+  }
+  static inline std::vector<std::string> getListOfFoldersInSubFolders(const std::string &folderPath_){
+    return getListOfEntriesInSubFolders(folderPath_, DT_DIR);
   }
 
 }
