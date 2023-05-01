@@ -1037,18 +1037,17 @@ namespace GenericToolbox{
 
   // -- with direct IO dependencies
   static inline bool doesPathIsValid(const std::string &filePath_){
-    struct stat info{};
-    return ( stat(filePath_.c_str(), &info) == 0 );
+    return ( access( filePath_.c_str(), F_OK ) == 0 );
   }
   static inline bool doesPathIsFile(const std::string &filePath_){
     struct stat info{};
-    stat(filePath_.c_str(), &info);
+    if( lstat(filePath_.c_str(), &info) != 0 ){ return false; /* Error occurred */ }
     return S_ISREG(info.st_mode);
   }
   static inline bool doesPathIsFolder(const std::string &folderPath_){
     struct stat info{};
-    stat( folderPath_.c_str(), &info );
-    return bool(S_ISDIR(info.st_mode));
+    if( lstat(folderPath_.c_str(), &info) != 0 ){ return false; /* Error occurred */ }
+    return S_ISDIR(info.st_mode);
   }
   static inline bool doFilesAreTheSame(const std::string &filePath1_, const std::string &filePath2_){
 
@@ -1215,8 +1214,9 @@ namespace GenericToolbox{
     return lines;
   }
   static inline std::vector<std::string> getListOfEntriesInFolder(const std::string &folderPath_, const std::string &entryNameRegex_, int type_) {
+    if( not doesPathIsFolder( folderPath_ ) ) return {};
+
     std::vector<std::string> subFoldersList;
-    if(not doesPathIsFolder(folderPath_)) return subFoldersList;
     DIR* directory;
     directory = opendir(folderPath_.c_str()); //Open current-working-directory.
     if( directory == nullptr ) { std::cout << "Failed to open directory : " << folderPath_ << std::endl; return {}; }
