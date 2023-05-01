@@ -14,6 +14,12 @@
 // Pre-proc parameters
 #include "implementation/GenericToolbox.param.h"
 
+
+#define HAS_CPP_17 (__cplusplus >= 201703L)
+#define HAS_CPP_14 (__cplusplus >= 201300L)
+#define HAS_CPP_11 (__cplusplus >= 201103L)
+
+
 #include <string>
 #include <vector>
 #include <thread>
@@ -22,6 +28,11 @@
 #include <chrono>
 #include <map>
 #include "list"
+
+#if HAS_CPP_17
+#include "filesystem"
+#endif
+
 
 
 //! User Parameters
@@ -210,6 +221,9 @@ namespace GenericToolbox{
   static inline std::string getFolderPathFromFilePath(const std::string &filePath_);
   static inline std::string getFileNameFromFilePath(const std::string &filePath_, bool keepExtension_ = true);
   static inline std::string replaceFileExtension(const std::string& filePath_, const std::string& newExtension_);
+#if HAS_CPP_17
+  static inline std::filesystem::file_type fileTypeFromDt(int dt_);
+#endif
 
   // -- with direct IO dependencies
   static inline bool doesPathIsValid(const std::string &filePath_);
@@ -322,8 +336,6 @@ namespace GenericToolbox{
 #define BIND_VAR_NAME(var) var, #var
 #define BIND_VAR_REF_NAME(var) &(var), #var
 
-#define HAS_CPP_17 (__cplusplus >= 201703L)
-#define HAS_CPP_14 (__cplusplus >= 201300L)
-#define HAS_CPP_11 (__cplusplus >= 201103L)
+
 
 #endif //CPP_GENERIC_TOOLBOX_GENERICTOOLBOX_H

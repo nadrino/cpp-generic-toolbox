@@ -42,6 +42,10 @@
 #include "sys/times.h"
 #include "typeindex"
 
+#if HAS_CPP_17
+#include "filesystem"
+#endif
+
 
 
 extern char* __progname;
@@ -1027,12 +1031,38 @@ namespace GenericToolbox{
     return filePath_.substr(0,filePath_.find_last_of("/\\"));
   }
   static inline std::string getFileNameFromFilePath(const std::string &filePath_, bool keepExtension_){
-    if( keepExtension_ ) return filePath_.substr(filePath_.find_last_of("/\\")+1);
-    else{ return GenericToolbox::replaceFileExtension(filePath_.substr(filePath_.find_last_of("/\\")+1), ""); }
+#if HAS_CPP_17
+    std::filesystem::path pathObj(filePath_);
+    return ( keepExtension_ ? pathObj.filename().string() : pathObj.stem().string());
+#else
+    const size_t pos = filePath_.find_last_of("/\\");
+    const std::string filename = ( pos != std::string::npos ) ? filePath_.substr(pos + 1) : filePath_;
+    return ( keepExtension_ or filename.find('.') == std::string::npos ) ? filename : filename.substr(0, filename.find_last_of('.'));
+#endif
   }
   static inline std::string replaceFileExtension(const std::string& filePath_, const std::string& newExtension_){
     if( newExtension_.empty() ) return filePath_.substr(0, filePath_.find_last_of('.'));
     return filePath_.substr(0, filePath_.find_last_of('.')) + "." + newExtension_;
+  }
+  static inline std::filesystem::file_type fileTypeFromDt(int dt_){
+    switch (dt_) {
+      case DT_REG:
+        return std::filesystem::file_type::regular;
+      case DT_DIR:
+        return std::filesystem::file_type::directory;
+      case DT_LNK:
+        return std::filesystem::file_type::symlink;
+      case DT_BLK:
+        return std::filesystem::file_type::block;
+      case DT_CHR:
+        return std::filesystem::file_type::character;
+      case DT_FIFO:
+        return std::filesystem::file_type::fifo;
+      case DT_SOCK:
+        return std::filesystem::file_type::socket;
+      default:
+        return std::filesystem::file_type::none;
+    }
   }
 
   // -- with direct IO dependencies
@@ -1167,9 +1197,16 @@ namespace GenericToolbox{
     return hashString(dumpFileAsString(filePath_));
   }
   static inline ssize_t getFileSize(const std::string& path_){
+#if HAS_CPP_17
+    namespace fs = std::filesystem;
+    const fs::file_status status{fs::status(path_)};
+    if( not fs::is_regular_file(status) ) return 0;
+    return ssize_t( fs::file_size(path_) );
+#else
     struct stat st{};
     stat(path_.c_str(), &st);
     return ssize_t(st.st_size);
+#endif
   }
   static inline long int getFileSizeInBytes(const std::string &filePath_){
     long int output_size = 0;
@@ -1216,7 +1253,6 @@ namespace GenericToolbox{
   static inline std::vector<std::string> getListOfEntriesInFolder(const std::string &folderPath_, const std::string &entryNameRegex_, int type_) {
     if( not doesPathIsFolder( folderPath_ ) ) return {};
 
-    std::vector<std::string> subFoldersList;
     DIR* directory;
     directory = opendir(folderPath_.c_str()); //Open current-working-directory.
     if( directory == nullptr ) { std::cout << "Failed to open directory : " << folderPath_ << std::endl; return {}; }
@@ -1225,6 +1261,7 @@ namespace GenericToolbox{
     if(not entryNameRegex_.empty()){ nameElements = GenericToolbox::splitString(entryNameRegex_, "*"); }
 
     struct dirent* entry;
+    std::vector<std::string> subFoldersList;
     while ( (entry = readdir(directory)) ) {
       if( type_ != -1 and entry->d_type != type_ ){ continue; }
       if( strcmp(entry->d_name, ".") == 0 or strcmp(entry->d_name, "..") == 0 ){ continue; }

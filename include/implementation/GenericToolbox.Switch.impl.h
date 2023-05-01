@@ -101,10 +101,6 @@ namespace GenericToolbox::Switch {
       }
       return true;
     }
-    inline static void dumpStringInFile(const std::string &outFilePath_, const std::string &stringToWrite_) {
-      std::ofstream out(outFilePath_, std::ios::out | std::ios::binary);
-      out.write(stringToWrite_.data(), long(stringToWrite_.size()));
-    }
   }
 
   namespace Utils{

@@ -30,7 +30,6 @@ namespace GenericToolbox::Switch{
     // Read/Write
     inline static bool copyFile(const std::string& srcFilePath_, const std::string& dstFilePath_, bool force_=true);
     inline static bool doFilesAreIdentical(const std::string& file1Path_, const std::string& file2Path_);
-    inline static void dumpStringInFile(const std::string &outFilePath_, const std::string &stringToWrite_);
   }
 
   // Utils
