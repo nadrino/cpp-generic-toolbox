@@ -244,9 +244,9 @@ namespace GenericToolbox{
   static inline void dumpStringInFile(const std::string &outFilePath_, const std::string &stringToWrite_);
   static inline std::string dumpFileAsString(const std::string &filePath_);
   static inline std::vector<std::string> dumpFileAsVectorString(const std::string &filePath_, bool skipEmptyLines_=false);
-  static inline std::vector<std::string> getListOfEntriesInFolder(const std::string &folderPath_, const std::string &entryNameRegex_ = "", int type_=-1);
-  static inline std::vector<std::string> getListOfSubFoldersInFolder(const std::string &folderPath_, const std::string &entryNameRegex_ = "");
-  static inline std::vector<std::string> getListOfFilesInFolder(const std::string &folderPath_, const std::string &entryNameRegex_ = "");
+  static inline std::vector<std::string> getListOfEntriesInFolder(const std::string &folderPath_, const std::string &entryNameRegex_ = "", int type_=-1, size_t maxEntries_ = 0);
+  static inline std::vector<std::string> getListOfSubFoldersInFolder(const std::string &folderPath_, const std::string &entryNameRegex_ = "", size_t maxEntries_ = 0);
+  static inline std::vector<std::string> getListOfFilesInFolder(const std::string &folderPath_, const std::string &entryNameRegex_ = "", size_t maxEntries_ = 0);
 
   // -- with indirect IO dependencies
   static inline bool doesFolderIsEmpty(const std::string &folderPath_);

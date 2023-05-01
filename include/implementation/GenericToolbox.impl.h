@@ -1278,7 +1278,7 @@ namespace GenericToolbox{
 
     return lines;
   }
-  static inline std::vector<std::string> getListOfEntriesInFolder(const std::string &folderPath_, const std::string &entryNameRegex_, int type_) {
+  static inline std::vector<std::string> getListOfEntriesInFolder(const std::string &folderPath_, const std::string &entryNameRegex_, int type_, size_t maxEntries_) {
     if( not doesPathIsFolder( folderPath_ ) ) return {};
 
     DIR* directory;
@@ -1327,15 +1327,19 @@ namespace GenericToolbox{
         if( not isValid ) continue;
       }
       subFoldersList.emplace_back(entry->d_name);
+      if( maxEntries_ != 0 and subFoldersList.size() >= maxEntries_ ){
+        std::cout << "WARNING: max # of entries reached." << std::endl;
+        break;
+      }
     }
     closedir(directory);
     return subFoldersList;
   }
-  static inline std::vector<std::string> getListOfSubFoldersInFolder(const std::string &folderPath_, const std::string &entryNameRegex_) {
-    return GenericToolbox::getListOfEntriesInFolder(folderPath_, entryNameRegex_, DT_DIR);
+  static inline std::vector<std::string> getListOfSubFoldersInFolder(const std::string &folderPath_, const std::string &entryNameRegex_, size_t maxEntries_) {
+    return GenericToolbox::getListOfEntriesInFolder(folderPath_, entryNameRegex_, DT_DIR, maxEntries_);
   }
-  static inline std::vector<std::string> getListOfFilesInFolder(const std::string &folderPath_, const std::string &entryNameRegex_){
-    return GenericToolbox::getListOfEntriesInFolder(folderPath_, entryNameRegex_, DT_REG);
+  static inline std::vector<std::string> getListOfFilesInFolder(const std::string &folderPath_, const std::string &entryNameRegex_, size_t maxEntries_){
+    return GenericToolbox::getListOfEntriesInFolder(folderPath_, entryNameRegex_, DT_REG, maxEntries_);
   }
 
   // -- with direct IO dependencies
