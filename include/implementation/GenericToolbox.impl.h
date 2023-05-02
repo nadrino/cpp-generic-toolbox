@@ -1175,7 +1175,12 @@ namespace GenericToolbox{
 
   }
   static inline bool deleteFile(const std::string &filePath_){
-    return (::remove(filePath_.c_str()) == 0);
+    // not using ::delete as if the specified file path is a symbolic link,
+    // it deletes the link and the file or directory that the link refers to
+
+    // ::unlink: If the specified file path is a symbolic link,
+    // only the link itself is deleted, not the file or directory that the link refers to
+    return ( ::unlink(filePath_.c_str()) == 0 );
   }
   static inline bool isFolderEmpty(const std::string &dirPath_){
     if(not doesPathIsFolder(dirPath_)) return false;
