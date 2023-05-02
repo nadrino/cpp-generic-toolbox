@@ -1070,7 +1070,9 @@ namespace GenericToolbox{
     return filePath_.substr(0, filePath_.find_last_of('.')) + "." + newExtension_;
   }
   template<typename... Args> static inline std::string joinPath(const Args&... args){
-    return joinAsString("/", args...);
+    auto out{GenericToolbox::joinAsString("/", args...)};
+    GenericToolbox::removeRepeatedCharInsideInputStr( out, "/" );
+    return out;
   }
   static inline std::filesystem::file_type fileTypeFromDt(int dt_){
     switch (dt_) {
@@ -1230,16 +1232,9 @@ namespace GenericToolbox{
     return hashString(dumpFileAsString(filePath_));
   }
   static inline ssize_t getFileSize(const std::string& path_){
-#if HAS_CPP_17
-    namespace fs = std::filesystem;
-    const fs::file_status status{fs::status(path_)};
-    if( not fs::is_regular_file(status) ) return 0;
-    return ssize_t( fs::file_size(path_) );
-#else
     struct stat st{};
     stat(path_.c_str(), &st);
     return ssize_t(st.st_size);
-#endif
   }
   static inline long int getFileSizeInBytes(const std::string &filePath_){
     long int output_size = 0;
