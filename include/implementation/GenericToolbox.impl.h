@@ -42,7 +42,7 @@
 #include "sys/times.h"
 #include "typeindex"
 
-#if HAS_CPP_17
+#if HAS_CPP_17 && USE_FILESYSTEM
 #include "filesystem"
 #endif
 
@@ -1056,7 +1056,7 @@ namespace GenericToolbox{
     return filePath_.substr(0,filePath_.find_last_of("/\\"));
   }
   static inline std::string getFileNameFromFilePath(const std::string &filePath_, bool keepExtension_){
-#if HAS_CPP_17
+#if HAS_CPP_17 && USE_FILESYSTEM
     std::filesystem::path pathObj(filePath_);
     return ( keepExtension_ ? pathObj.filename().string() : pathObj.stem().string());
 #else
@@ -1074,6 +1074,7 @@ namespace GenericToolbox{
     GenericToolbox::removeRepeatedCharInsideInputStr( out, "/" );
     return out;
   }
+#if HAS_CPP_17 && USE_FILESYSTEM
   static inline std::filesystem::file_type fileTypeFromDt(int dt_){
     switch (dt_) {
       case DT_REG:
@@ -1094,6 +1095,7 @@ namespace GenericToolbox{
         return std::filesystem::file_type::none;
     }
   }
+#endif
 
   // -- with direct IO dependencies
   static inline bool doesPathIsValid(const std::string &filePath_){
