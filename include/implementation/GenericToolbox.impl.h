@@ -1187,8 +1187,7 @@ namespace GenericToolbox{
     return ( ::unlink(filePath_.c_str()) == 0 );
   }
   static inline bool isFolderEmpty(const std::string &dirPath_){
-    if(not doesPathIsFolder(dirPath_)) return false;
-    return getListOfEntriesInFolder(dirPath_).empty();
+    return getListOfEntriesInFolder( dirPath_ ).empty();
   }
   static inline bool deleteEmptyDirectory(const std::string &dirPath_){
     return (::rmdir(dirPath_.c_str()) == 0);
@@ -1347,7 +1346,7 @@ namespace GenericToolbox{
   // -- with direct IO dependencies
   static inline bool doesFolderIsEmpty(const std::string &folderPath_){
     if(not doesPathIsFolder(folderPath_)) return false;
-    return getListOfEntriesInFolder(folderPath_, std::string()).empty();
+    return getListOfEntriesInSubFolders(folderPath_).empty();
   }
   static inline std::vector<std::string> getListOfEntriesInSubFolders(const std::string &folderPath_, int type_){
     // WARNING : Recursive function
@@ -1356,16 +1355,16 @@ namespace GenericToolbox{
     std::vector<std::string> out;
 
     // then walk in sub-folders
-    auto subFolderList = GenericToolbox::getListOfSubFoldersInFolder(folderPath_);
+    auto subFolderList = GenericToolbox::getListOfSubFoldersInFolder( folderPath_ );
     for(auto &subFolder : subFolderList ){
-      auto subFileList = GenericToolbox::getListOfEntriesInFolder( GenericToolbox::joinPath(folderPath_, subFolder), "", type_ );
+
+      // recursive ////////
+      auto subFileList = GenericToolbox::getListOfEntriesInSubFolders( GenericToolbox::joinPath(folderPath_, subFolder), type_ );
+      /////////////////////
+
       out.reserve( out.size() + subFileList.size() );
-      for(auto &subFile : subFileList ){ // recursive
-        std::string relativeSubFilePath{subFolder};
-        relativeSubFilePath += "/";
-        relativeSubFilePath += subFile;
-        GenericToolbox::removeRepeatedCharInsideInputStr(relativeSubFilePath, "/");
-        out.emplace_back(relativeSubFilePath );
+      for(auto &subFile : subFileList ){
+        out.emplace_back( GenericToolbox::joinPath(subFolder, subFile) );
       }
     }
 
