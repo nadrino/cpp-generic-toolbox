@@ -133,7 +133,7 @@ namespace GenericToolbox::Switch::Borealis{
     _loadingBox_ = new brls::Dialog(_monitorView_ );
 
     // make sure the user don't cancel while unfinished
-    _loadingBox_->setCancelable( false );
+    _loadingBox_->setCancelable( true );
 
     while( brls::Application::hasViewDisappearing() ){
       // wait for one extra frame before push
