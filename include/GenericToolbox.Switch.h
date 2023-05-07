@@ -15,6 +15,7 @@
 #include "map"
 #include "string"
 
+
 namespace GenericToolbox::Switch{
 
   // IO
