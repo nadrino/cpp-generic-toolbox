@@ -18,6 +18,8 @@ namespace GenericToolbox::Switch::Borealis{
   const NVGcolor redNvgColor{nvgRGB(0xff, 0x64, 0x64)};
   const NVGcolor greenNvgColor{nvgRGB(0x00, 0xff, 0xc8)};
   const NVGcolor blueNvgColor{nvgRGB(0x00, 0xc8, 0xff)};
+  const NVGcolor grayNvgColor{nvgRGB(80, 80, 80)};
+  const NVGcolor orangeNvgColor{nvgRGB(208, 168, 50)};// (unsigned char) (245*0.85), (unsigned char) (198*0.85), (unsigned char) (59*0.85)
 
 
   class ProgressBarMonitorView : public brls::View {
