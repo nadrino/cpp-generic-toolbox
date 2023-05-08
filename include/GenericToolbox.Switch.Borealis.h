@@ -68,9 +68,11 @@ namespace GenericToolbox::Switch::Borealis{
     inline PopupLoadingBox() = default;
 
     [[nodiscard]] inline ProgressBarMonitorView *getMonitorView() const;
+    [[nodiscard]] inline brls::Dialog *getLoadingBox() const;
 
     inline void pushView();
     inline void popView();
+    inline bool isOnTopView() const;
 
 
   private:

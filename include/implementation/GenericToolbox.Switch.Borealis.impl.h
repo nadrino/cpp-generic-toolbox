@@ -155,9 +155,15 @@ namespace GenericToolbox::Switch::Borealis{
       brls::Application::popView( brls::ViewAnimation::FADE );
     }
   }
+  bool PopupLoadingBox::isOnTopView() const{
+    return ( _loadingBox_ == brls::Application::getTopStackView() );
+  }
 
   ProgressBarMonitorView *PopupLoadingBox::getMonitorView() const {
     return _monitorView_;
+  }
+  brls::Dialog *PopupLoadingBox::getLoadingBox() const {
+    return _loadingBox_;
   }
 
 
