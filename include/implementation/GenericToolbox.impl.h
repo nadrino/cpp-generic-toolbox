@@ -79,6 +79,7 @@ namespace GenericToolbox{
     std::stringstream ss;
     ss << "{ ";
     if( not iterable_.empty() ){
+      if( jumpLine_ ){ ss << std::endl; }
       ss.str().reserve(256); // Reserve initial space
       auto elementIterator = iterable_.begin();
       ss << toStrFct_(*elementIterator);
