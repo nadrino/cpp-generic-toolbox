@@ -828,62 +828,48 @@ namespace GenericToolbox{
       return getenv(envVarName_);
 #endif
     }
-    static inline bool expandEnvironmentVariables(const char *inputFilePath_, char *extendedFilePath_) {
-      int ier, iter, lx, ncopy;
-      char *inp, *out, *x, *t, *charBuffer;
+    static inline bool expandEnvironmentVariables(const char *fname, char *xname) {
+      int n, ier, iter, lx, ncopy;
+      char *inp, *out, *x, *t, *buff;
       const char *b, *c, *e;
-      const char *expandedPathCharArray;
-      int bufferSize_ = 8192; // max path length
-      charBuffer = new char[bufferSize_ * 4];
+      const char *p;
+      int kBufSize{8196};
+      buff = new char[kBufSize * 4];
 
-      iter = 0;
-      extendedFilePath_[0] = 0;
-      inp = charBuffer + bufferSize_;
-      out = inp + bufferSize_;
-      inp[-1] = ' ';
-      inp[0] = 0;
-      out[-1] = ' ';
-      c = inputFilePath_ + strspn(inputFilePath_, " \t\f\r");
+      iter = 0; xname[0] = 0; inp = buff + kBufSize; out = inp + kBufSize;
+      inp[-1] = ' '; inp[0] = 0; out[-1] = ' ';
+      c = fname + strspn(fname, " \t\f\r");
       //VP  if (isalnum(c[0])) { strcpy(inp, WorkingDirectory()); strcat(inp, "/"); } // add $cwd
 
-//      strlcat(inp, c, bufferSize_);
-      strncat(inp, c, bufferSize_);
+      strlcat(inp, c, kBufSize);
 
       again:
       iter++; c = inp; ier = 0;
       x = out; x[0] = 0;
 
-      expandedPathCharArray = nullptr;
-      e = nullptr;
+      p = nullptr; e = nullptr;
       if (c[0] == '~' && c[1] == '/') { // ~/ case
-        std::string homeDirStr = getHomeDirectory();
-        expandedPathCharArray = homeDirStr.c_str();
+        std::string hd = GenericToolbox::getHomeDirectory();
+        p = hd.c_str();
         e = c + 1;
-        if (expandedPathCharArray) {                         // we have smth to copy
-//          strlcpy(x, expandedPathCharArray, bufferSize_);
-          strncpy(x, expandedPathCharArray, bufferSize_);
-          x += strlen(expandedPathCharArray);
+        if (p) {                         // we have smth to copy
+          strlcpy(x, p, kBufSize);
+          x += strlen(p);
           c = e;
         } else {
           ++ier;
           ++c;
         }
-      }
-      else if (c[0] == '~' && c[1] != '/') { // ~user case
-        int n = int(strcspn(c+1, "/ "));
-//        assert((n+1) < bufferSize_ && "This should have been prevented by the truncation 'strlcat(inp, c, bufferSize_)'");
-//        assert((n+1) < bufferSize_ && "This should have been prevented by the truncation 'strncat(inp, c, bufferSize_)'");
-        // There is no overlap here as the buffer is segment in 4 strings of at most bufferSize_
-//#pragma GCC diagnostic ignored "-Wrestrict"
-//        (void)strlcpy(charBuffer, c + 1, n + 1); // strlcpy copy 'size-1' characters.
-        (void)strncpy(charBuffer, c + 1, n + 1); // strncpy copy 'size-1' characters.
-        std::string homeDirStr = getHomeDirectory();
+      } else if (c[0] == '~' && c[1] != '/') { // ~user case
+        n = int(strcspn(c+1, "/ "));
+        // There is no overlap here as the buffer is segment in 4 strings of at most kBufSize
+        (void)strlcpy(buff, c+1, n+1); // strlcpy copy 'size-1' characters.
+        std::string hd = GenericToolbox::getHomeDirectory(); // TO FIX this?
         e = c+1+n;
-        if (!homeDirStr.empty()) {                   // we have smth to copy
-          expandedPathCharArray = homeDirStr.c_str();
-//          strlcpy(x, expandedPathCharArray, bufferSize_);
-          strncpy(x, expandedPathCharArray, bufferSize_);
-          x += strlen(expandedPathCharArray);
+        if (!hd.empty()) {                   // we have smth to copy
+          p = hd.c_str();
+          strlcpy(x, p, kBufSize);
+          x += strlen(p);
           c = e;
         } else {
           x++[0] = c[0];
@@ -894,18 +880,16 @@ namespace GenericToolbox{
 
       for ( ; c[0]; c++) {
 
-        expandedPathCharArray = nullptr; e = nullptr;
+        p = nullptr; e = nullptr;
 
         if (c[0] == '.' && c[1] == '/' && c[-1] == ' ') { // $cwd
-          std::string workDirStr = getCurrentWorkingDirectory();
-//          strlcpy(charBuffer, workDirStr.c_str(), bufferSize_);
-          strncpy(charBuffer, workDirStr.c_str(), bufferSize_);
-          expandedPathCharArray = charBuffer;
+          std::string wd = GenericToolbox::getCurrentWorkingDirectory();
+          strlcpy(buff, wd.c_str(), kBufSize);
+          p = buff;
           e = c + 1;
         }
-        if (expandedPathCharArray) {                          // we have smth to copy */
-//          strlcpy(x, expandedPathCharArray, bufferSize_); x += strlen(expandedPathCharArray); c = e - 1; continue;
-          strncpy(x, expandedPathCharArray, bufferSize_); x += strlen(expandedPathCharArray); c = e - 1; continue;
+        if (p) {                          // we have smth to copy */
+          strlcpy(x, p, kBufSize); x += strlen(p); c = e-1; continue;
         }
 
         if (c[0] != '$') {                // not $, simple copy
@@ -918,68 +902,61 @@ namespace GenericToolbox{
             e = b+1;
           else
             for (e = b; isalnum(e[0]) || e[0] == '_'; e++) ;
-          charBuffer[0] = 0; strncat(charBuffer, b, e - b);
-          std::string envVar = charBuffer;
-          expandedPathCharArray = getEnvironmentVariable(charBuffer);
-          if (!expandedPathCharArray) {                      // too bad, try UPPER case
-            for (t = charBuffer; (t[0] = static_cast<char>(toupper(t[0]))); t++) ;
-            expandedPathCharArray = getEnvironmentVariable(charBuffer);
+          buff[0] = 0; strncat(buff, b, e-b);
+          p = GenericToolbox::Internals::getEnvironmentVariable(buff);
+          if (!p) {                      // too bad, try UPPER case
+            for (t = buff; (t[0] = toupper(t[0])); t++) ;
+            p = GenericToolbox::Internals::getEnvironmentVariable(buff);
           }
-          if (!expandedPathCharArray) {                      // too bad, try Lower case
-            for (t = charBuffer; (t[0] = static_cast<char>(tolower(t[0]))); t++) ;
-            expandedPathCharArray = getEnvironmentVariable(charBuffer);
+          if (!p) {                      // too bad, try Lower case
+            for (t = buff; (t[0] = tolower(t[0])); t++) ;
+            p = GenericToolbox::Internals::getEnvironmentVariable(buff);
           }
-          if (!expandedPathCharArray && !strcmp(charBuffer, "cwd")) { // it is $cwd
-            std::string wd = getCurrentWorkingDirectory();
-//            strlcpy(charBuffer, wd.c_str(), bufferSize_);
-            strncpy(charBuffer, wd.c_str(), bufferSize_);
-            expandedPathCharArray = charBuffer;
+          if (!p && !strcmp(buff, "cwd")) { // it is $cwd
+            std::string wd = GenericToolbox::getCurrentWorkingDirectory();
+            strlcpy(buff, wd.c_str(), kBufSize);
+            p = buff;
           }
-          if (!expandedPathCharArray && !strcmp(charBuffer, "$")) { // it is $$ (replace by GetPid())
-            snprintf(charBuffer, bufferSize_ * 4, "%d", getpid());
-            expandedPathCharArray = charBuffer;
+          if (!p && !strcmp(buff, "$")) { // it is $$ (replace by GetPid())
+            snprintf(buff,kBufSize*4, "%d", getpid());
+            p = buff;
           }
-          if (!expandedPathCharArray) {                      // too bad, nothing can help
+          if (!p) {                      // too bad, nothing can help
 #ifdef WIN32
             // if we're on windows, we can have \\SomeMachine\C$ - don't
-             // complain about that, if '$' is followed by nothing or a
-             // path delimiter.
-             if (c[1] && c[1]!='\\' && c[1]!=';' && c[1]!='/')
-                ier++;
+            // complain about that, if '$' is followed by nothing or a
+            // path delimiter.
+            if (c[1] && c[1]!='\\' && c[1]!=';' && c[1]!='/')
+               ier++;
 #else
             ier++;
 #endif
             x++[0] = c[0];
-            throw std::runtime_error("Could not resolve env variable: $" + std::string(envVar));
-          }
-          else {                       // It is OK, copy result
-            int lp = int(strlen(expandedPathCharArray));
-            if (lp >= bufferSize_) {
-              // make sure lx will be >= bufferSize_ (see below)
-//              strlcpy(x, expandedPathCharArray, bufferSize_);
-              strncpy(x, expandedPathCharArray, bufferSize_);
-              x += bufferSize_;
+          } else {                       // It is OK, copy result
+            int lp = int(strlen(p));
+            if (lp >= kBufSize) {
+              // make sure lx will be >= kBufSize (see below)
+              strlcpy(x, p, kBufSize);
+              x += kBufSize;
               break;
             }
-            strcpy(x, expandedPathCharArray);
+            strcpy(x,p);
             x += lp;
             c = (b==c+1) ? e-1 : e;
           }
         }
       }
 
-      x[0] = 0; lx = int(x - out);
-//      if (ier && iter < 3) { strlcpy(inp, out, bufferSize_); goto again; }
-      if (ier && iter < 3) { strncpy(inp, out, bufferSize_); goto again; }
-      ncopy = (lx >= bufferSize_) ? bufferSize_ - 1 : lx;
-      extendedFilePath_[0] = 0; strncat(extendedFilePath_, out, ncopy);
+      x[0] = 0; lx = x - out;
+      if (ier && iter < 3) { strlcpy(inp, out, kBufSize); goto again; }
+      ncopy = (lx >= kBufSize) ? kBufSize-1 : lx;
+      xname[0] = 0; strncat(xname, out, ncopy);
 
-      delete[] charBuffer;
+      delete[] buff;
 
-//    if (ier || ncopy != lx) {
-//      ::Error("TSystem::expandEnvironmentVariables", "input: %s, output: %s", inputFilePath_, extendedFilePath_);
-//      return true;
-//    }
+      if (ier || ncopy != lx) {
+        return true;
+      }
 
       return false;
     }
