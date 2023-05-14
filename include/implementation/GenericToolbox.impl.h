@@ -841,7 +841,7 @@ namespace GenericToolbox{
       c = fname + strspn(fname, " \t\f\r");
       //VP  if (isalnum(c[0])) { strcpy(inp, WorkingDirectory()); strcat(inp, "/"); } // add $cwd
 
-      strlcat(inp, c, kBufSize);
+      strncat(inp, c, kBufSize);
 
       again:
       iter++; c = inp; ier = 0;
