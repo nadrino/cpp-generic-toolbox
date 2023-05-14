@@ -853,7 +853,7 @@ namespace GenericToolbox{
         p = hd.c_str();
         e = c + 1;
         if (p) {                         // we have smth to copy
-          strlcpy(x, p, kBufSize);
+          strncpy(x, p, kBufSize);
           x += strlen(p);
           c = e;
         } else {
@@ -863,12 +863,12 @@ namespace GenericToolbox{
       } else if (c[0] == '~' && c[1] != '/') { // ~user case
         n = int(strcspn(c+1, "/ "));
         // There is no overlap here as the buffer is segment in 4 strings of at most kBufSize
-        (void)strlcpy(buff, c+1, n+1); // strlcpy copy 'size-1' characters.
+        strncpy(buff, c+1, n+1); // strncpy copy 'size-1' characters.
         std::string hd = GenericToolbox::getHomeDirectory(); // TO FIX this?
         e = c+1+n;
         if (!hd.empty()) {                   // we have smth to copy
           p = hd.c_str();
-          strlcpy(x, p, kBufSize);
+          strncpy(x, p, kBufSize);
           x += strlen(p);
           c = e;
         } else {
@@ -884,12 +884,12 @@ namespace GenericToolbox{
 
         if (c[0] == '.' && c[1] == '/' && c[-1] == ' ') { // $cwd
           std::string wd = GenericToolbox::getCurrentWorkingDirectory();
-          strlcpy(buff, wd.c_str(), kBufSize);
+          strncpy(buff, wd.c_str(), kBufSize);
           p = buff;
           e = c + 1;
         }
         if (p) {                          // we have smth to copy */
-          strlcpy(x, p, kBufSize); x += strlen(p); c = e-1; continue;
+          strncpy(x, p, kBufSize); x += strlen(p); c = e-1; continue;
         }
 
         if (c[0] != '$') {                // not $, simple copy
@@ -914,7 +914,7 @@ namespace GenericToolbox{
           }
           if (!p && !strcmp(buff, "cwd")) { // it is $cwd
             std::string wd = GenericToolbox::getCurrentWorkingDirectory();
-            strlcpy(buff, wd.c_str(), kBufSize);
+            strncpy(buff, wd.c_str(), kBufSize);
             p = buff;
           }
           if (!p && !strcmp(buff, "$")) { // it is $$ (replace by GetPid())
@@ -936,7 +936,7 @@ namespace GenericToolbox{
             int lp = int(strlen(p));
             if (lp >= kBufSize) {
               // make sure lx will be >= kBufSize (see below)
-              strlcpy(x, p, kBufSize);
+              strncpy(x, p, kBufSize);
               x += kBufSize;
               break;
             }
@@ -948,7 +948,7 @@ namespace GenericToolbox{
       }
 
       x[0] = 0; lx = x - out;
-      if (ier && iter < 3) { strlcpy(inp, out, kBufSize); goto again; }
+      if (ier && iter < 3) { strncpy(inp, out, kBufSize); goto again; }
       ncopy = (lx >= kBufSize) ? kBufSize-1 : lx;
       xname[0] = 0; strncat(xname, out, ncopy);
 
