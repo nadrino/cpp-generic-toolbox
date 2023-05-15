@@ -19,8 +19,21 @@ namespace GenericToolbox{
       if( onCreate_ ){ onCreate_(); }
     }
     ~ScopedGuard() {
-      if( _onDelete_ ){ _onDelete_(); }
+      fireOnDelete();
     }
+
+    void fireOnDelete(){
+      if( _onDelete_ ){ _onDelete_(); }
+      this->dismiss();
+    }
+    void dismiss(){ _onDelete_ = []{}; }
+
+    // non-copiable
+    ScopedGuard() = default;
+    ScopedGuard( ScopedGuard const& ) = delete;
+    ScopedGuard( ScopedGuard&& ) = default;
+    auto operator=( ScopedGuard&& ) -> ScopedGuard& = default;
+    auto operator=( ScopedGuard const& ) -> ScopedGuard& = delete;
 
   private:
     Action _onDelete_{};
