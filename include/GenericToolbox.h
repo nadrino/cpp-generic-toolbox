@@ -224,6 +224,7 @@ namespace GenericToolbox{
   static inline std::string getFileNameFromFilePath(const std::string &filePath_, bool keepExtension_ = true);
   static inline std::string replaceFileExtension(const std::string& filePath_, const std::string& newExtension_);
   template<typename... Args> static inline std::string joinPath(const Args&... args);
+  static inline std::string joinPath(const std::vector<std::string>& args);
 #if HAS_CPP_17 && USE_FILESYSTEM
   static inline std::filesystem::file_type fileTypeFromDt(int dt_);
 #endif

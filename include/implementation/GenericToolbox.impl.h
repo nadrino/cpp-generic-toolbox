@@ -1052,6 +1052,11 @@ namespace GenericToolbox{
     GenericToolbox::removeRepeatedCharInsideInputStr( out, "/" );
     return out;
   }
+  static inline std::string joinPath(const std::vector<std::string>& args){
+    auto out{GenericToolbox::joinVectorString(args, "/")};
+    GenericToolbox::removeRepeatedCharInsideInputStr( out, "/" );
+    return out;
+  }
 #if HAS_CPP_17 && USE_FILESYSTEM
   static inline std::filesystem::file_type fileTypeFromDt(int dt_){
     switch (dt_) {
