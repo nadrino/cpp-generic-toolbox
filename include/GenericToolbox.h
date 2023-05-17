@@ -69,22 +69,68 @@ namespace GenericToolbox {
 
   namespace ColorCodes{
 #ifndef CPP_GENERIC_TOOLBOX_NOCOLOR
-    static const char* redBackground = "\x1b[41m";
-    static const char* greenBackground = "\x1b[42m";
-    static const char* yellowBackground = "\x1b[43m";
-    static const char* blueBackground = "\x1b[44m";
-    static const char* magentaBackground = "\x1b[45m";
-    static const char* greyBackground = "\x1b[47m";
-    static const char* greyText = "\x1b[90m";
-    static const char* resetColor = "\x1b[0m";
-    static const std::array<const char*, 6> rainbowColorList{"\x1b[1;31m", "\x1b[1;32m", "\x1b[1;33m", "\x1b[1;34m", "\x1b[1;35m", "\x1b[1;36m"};
+    // reset
+    static const char* resetColor{"\x1b[0m"};
+
+    // background color
+    static const char* redBackground{"\x1b[41m"};
+    static const char* greenBackground{"\x1b[42m"};
+    static const char* yellowBackground{"\x1b[43m"};
+    static const char* blueBackground{"\x1b[44m"};
+    static const char* magentaBackground{"\x1b[45m"};
+    static const char* cyanBackground{"\x1b[46m"};
+    static const char* greyBackground{"\x1b[47m"};
+
+    // text color
+    static const char* redText{"\x1b[1;31m"};
+    static const char* greenText{"\x1b[1;32m"};
+    static const char* yellowText{"\x1b[1;33m"};
+    static const char* blueText{"\x1b[1;34m"};
+    static const char* magentaText{"\x1b[1;35m"};
+    static const char* cyanText{"\x1b[1;36m"};
+    static const char* whiteText{"\x1b[1;37m"};
+
+    // lighter text color
+    static const char* redLightText{"\x1b[1;91m"};
+    static const char* greenLightText{"\x1b[1;92m"};
+    static const char* yellowLightText{"\x1b[1;93m"};
+    static const char* blueLightText{"\x1b[1;94m"};
+    static const char* magentaLightText{"\x1b[1;95m"};
+    static const char* cyanLightText{"\x1b[1;96m"};
+    static const char* whiteLightText{"\x1b[1;97m"};
+    static const char* greyText{"\x1b[1;90m"};
 #else
-    static const char* redBackground = "";
-    static const char* yellowBackground = "";
-    static const char* greyText = "";
-    static const char* resetColor = "";
-    static const std::array<const char*, 6> rainbowColorList{};
+    // reset
+    static const char* resetColor{};
+
+    // background color
+    static const char* redBackground{};
+    static const char* greenBackground{};
+    static const char* yellowBackground{};
+    static const char* blueBackground{};
+    static const char* magentaBackground{};
+    static const char* cyanBackground{};
+    static const char* greyBackground{};
+
+    // text color
+    static const char* redText{};
+    static const char* greenText{};
+    static const char* yellowText{};
+    static const char* blueText{};
+    static const char* magentaText{};
+    static const char* cyanText{};
+    static const char* whiteText{};
+
+    static const char* redLightText{};
+    static const char* greenLightText{};
+    static const char* yellowLightText{};
+    static const char* blueLightText{};
+    static const char* magentaLightText{};
+    static const char* cyanLightText{};
+    static const char* whiteLightText{};
+    static const char* greyText{};
 #endif
+    static const std::array<const char*, 6> rainbowColorList{redText, greenText, yellowText, blueText, magentaText, cyanText};
   }
 
 
@@ -322,6 +368,10 @@ namespace GenericToolbox{
  * */
 #include "implementation/GenericToolbox.impl.h"
 
+
+#ifndef __FILENAME__
+#define __FILENAME__ (strrchr(__FILE__, '/') ? strrchr(__FILE__, '/') + 1 : __FILE__)
+#endif
 
 //! MACROS Tools
 #define __CLASS_NAME__ GenericToolbox::getClassName(__PRETTY_FUNCTION__)
