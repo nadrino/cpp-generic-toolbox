@@ -77,6 +77,7 @@ namespace GenericToolbox{
   inline TDirectory* mkdirTFile(TFile* outputFile_, const std::string &dirName_);
   inline TDirectory* getCurrentTDirectory();
   inline void writeInTFile(TDirectory* dir_, const TObject* objToSave_, std::string saveName_ = "", bool forceWriteFile_=false);
+  inline void writeInTFile(TDirectory* dir_, const TObject& objToSave_, std::string saveName_ = "", bool forceWriteFile_=false);
   inline void triggerTFileWrite(TDirectory* dir_);
 
   inline std::vector<std::string> lsTDirectory(TDirectory* directory_, const std::string& className_ = "");

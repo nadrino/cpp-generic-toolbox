@@ -538,6 +538,9 @@ namespace GenericToolbox {
     // Force TFile Write?
     if( forceWriteFile_ ) GenericToolbox::triggerTFileWrite(dir_);
   }
+  inline void writeInTFile(TDirectory* dir_, const TObject& objToSave_, std::string saveName_, bool forceWriteFile_){
+    writeInTFile(dir_, &objToSave_, std::move(saveName_), forceWriteFile_);
+  }
   inline void triggerTFileWrite(TDirectory* dir_){
     if( dir_->GetFile() != nullptr ) dir_->GetFile()->Write();
   }
