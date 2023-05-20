@@ -39,6 +39,7 @@ namespace GenericToolbox::Json {
   template<std::size_t N> inline auto fetchValue(const nlohmann::json& jsonConfig_, const std::vector<std::string>& keyName_, const char (&defaultValue_)[N]) -> std::string;
   template<std::size_t N> inline nlohmann::json fetchMatchingEntry(const nlohmann::json& jsonConfig_, const std::string& keyName_, const char (&keyValue_)[N]);
 
+
 };
 
 

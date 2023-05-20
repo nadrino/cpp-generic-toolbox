@@ -1047,15 +1047,18 @@ namespace GenericToolbox{
     if( newExtension_.empty() ) return filePath_.substr(0, filePath_.find_last_of('.'));
     return filePath_.substr(0, filePath_.find_last_of('.')) + "." + newExtension_;
   }
-  template<typename... Args> static inline std::string joinPath(const Args&... args){
-    auto out{GenericToolbox::joinAsString("/", args...)};
+  static inline std::string joinPath(const std::vector<std::string>& vec_){
+    auto out{GenericToolbox::joinVectorString(vec_, "/")};
     GenericToolbox::removeRepeatedCharInsideInputStr( out, "/" );
     return out;
   }
-  static inline std::string joinPath(const std::vector<std::string>& args){
-    auto out{GenericToolbox::joinVectorString(args, "/")};
+  template<typename... Args> static inline std::string joinPath(const Args&... args_){
+    auto out{GenericToolbox::joinAsString("/", args_...)};
     GenericToolbox::removeRepeatedCharInsideInputStr( out, "/" );
     return out;
+  }
+  template<typename... Args> static inline std::string joinPath(const std::vector<std::string>& vec_, const Args&... args_){
+    return {joinPath(joinPath(vec_), args_...)};
   }
 #if HAS_CPP_17 && USE_FILESYSTEM
   static inline std::filesystem::file_type fileTypeFromDt(int dt_){

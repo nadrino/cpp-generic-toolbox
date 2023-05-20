@@ -257,6 +257,8 @@ namespace GenericToolbox::Json {
   inline std::string buildFormula(const nlohmann::json& jsonConfig_, const std::string& keyName_, const std::string& joinStr_);
   inline std::string buildFormula(const nlohmann::json& jsonConfig_, const std::string& keyName_, const std::string& joinStr_, const std::string& defaultFormula_);
 
+
+
 };
 
 
