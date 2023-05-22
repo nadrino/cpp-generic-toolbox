@@ -234,6 +234,7 @@ namespace GenericToolbox{
   // -- Parsing
   static inline size_t getPrintSize(const std::string& str_);
   static inline size_t getNLines(const std::string& str_);
+  static inline std::string parseDecimalValue(double val_, const std::string& format_="%s%s", bool allowSubOne_ = true);
   static inline std::string parseUnitPrefix(double val_, int maxPadSize_=-1);
   static inline std::string parseSizeUnits(double sizeInBytes_);
   static inline std::string formatString( const std::string& strToFormat_ ); // overrider: make sure this is the one used when no extra args are provided.

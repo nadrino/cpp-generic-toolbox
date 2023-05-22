@@ -610,6 +610,20 @@ namespace GenericToolbox {
     }
     return input_str_;
   }
+  static inline std::string parseDecimalValue(double val_, const std::string& format_, bool allowSubOne_){
+    std::stringstream ss;
+
+    // flip the sign
+    if( val_ < 0 ){ ss << "-"; val_ = -val_; }
+
+//    auto f = [](double val, const std::vector<>){
+//
+//    };
+//
+//    ss << formatString(format_, );
+
+    return ss.str();
+  }
   std::string parseUnitPrefix(double val_, int maxPadSize_){
     std::stringstream ss;
 
