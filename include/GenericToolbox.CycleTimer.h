@@ -38,6 +38,7 @@ namespace GenericToolbox{
 
     // getters
     long long int getCounts() const { return _counts_; }
+    double* getCountSpeedPtr(){ return &_countSpeed_; }
 
     // measure
     void start(){ _startTime_ = std::chrono::high_resolution_clock::now(); _hasStarted_ = true; }
