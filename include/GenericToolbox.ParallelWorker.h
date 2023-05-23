@@ -9,10 +9,10 @@
 #include "GenericToolbox.Wrappers.h"
 
 #include <map>
-#include "future"
-#include "mutex"
-#include "vector"
-#include "string"
+#include <mutex>
+#include <future>
+#include <vector>
+#include <string>
 
 
 // Classes : ParallelWorker

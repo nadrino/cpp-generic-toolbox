@@ -6,7 +6,7 @@
 #define GUNDAM_GENERICTOOLBOX_SCOPEDGUARD_H
 
 
-#include "functional"
+#include <functional>
 
 
 namespace GenericToolbox{

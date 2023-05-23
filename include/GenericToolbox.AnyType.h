@@ -8,11 +8,10 @@
 
 #include "GenericToolbox.Wrappers.h"
 
+#include <cmath>
+#include <memory>
 #include <utility>
-#include "memory"
-#include "iostream"
-//#include "any"
-#include "cmath"
+#include <iostream>
 
 namespace GenericToolbox{
 

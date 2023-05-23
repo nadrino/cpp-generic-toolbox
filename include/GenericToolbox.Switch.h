@@ -12,8 +12,8 @@
 #include "switch.h"
 #include "zlib.h"
 
-#include "map"
-#include "string"
+#include <map>
+#include <string>
 
 
 namespace GenericToolbox::Switch{

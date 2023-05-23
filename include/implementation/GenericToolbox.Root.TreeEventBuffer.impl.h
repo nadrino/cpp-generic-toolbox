@@ -5,7 +5,8 @@
 #ifndef GUNDAM_GENERICTOOLBOX_ROOT_TREEEVENTBUFFER_IMPL_H
 #define GUNDAM_GENERICTOOLBOX_ROOT_TREEEVENTBUFFER_IMPL_H
 
-#include "sstream"
+#include <sstream>
+
 
 namespace GenericToolbox{
 

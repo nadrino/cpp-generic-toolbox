@@ -7,11 +7,11 @@
 
 #include "GenericToolbox.h"
 
-#include <utility>
-#include "string"
-#include "vector"
-#include "sstream"
+#include <string>
+#include <vector>
 #include <chrono>
+#include <utility>
+#include <sstream>
 
 
 // Classes : VariablesMonitor

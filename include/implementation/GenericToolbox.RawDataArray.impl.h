@@ -7,9 +7,9 @@
 
 #include "GenericToolbox.h"
 
+#include <string>
+#include <vector>
 #include <utility>
-#include "string"
-#include "vector"
 
 
 namespace GenericToolbox{

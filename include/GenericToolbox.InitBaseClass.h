@@ -5,7 +5,8 @@
 #ifndef GUNDAM_GENERICTOOLBOX_INITBASECLASS_H
 #define GUNDAM_GENERICTOOLBOX_INITBASECLASS_H
 
-#include "string"
+#include <string>
+
 
 namespace GenericToolbox{
 

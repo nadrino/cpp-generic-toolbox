@@ -9,8 +9,8 @@
 
 #include "borealis.hpp"
 
-#include "string"
-#include "functional"
+#include <string>
+#include <functional>
 
 
 namespace GenericToolbox::Switch::Borealis{

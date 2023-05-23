@@ -9,8 +9,9 @@
 
 #include "TTree.h"
 
-#include "vector"
-#include "string"
+#include <vector>
+#include <string>
+
 
 namespace GenericToolbox{
   class TreeEntryBuffer {

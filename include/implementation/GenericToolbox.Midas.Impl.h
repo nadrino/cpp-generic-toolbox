@@ -9,10 +9,10 @@
 
 #include "midas.h"
 
-#include "string"
-#include "map"
-#include "vector"
-#include "iostream"
+#include <map>
+#include <vector>
+#include <string>
+#include <iostream>
 
 
 extern HNDLE hDB; // defined with Midas

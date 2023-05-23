@@ -8,8 +8,8 @@
 // dependency
 #include "yaml-cpp/yaml.h"
 
-#include "string"
-#include "iostream"
+#include <string>
+#include <iostream>
 
 
 namespace GenericToolbox::Yaml {

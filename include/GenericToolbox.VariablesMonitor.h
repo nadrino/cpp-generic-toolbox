@@ -8,9 +8,9 @@
 #include "GenericToolbox.TablePrinter.h"
 #include "implementation/GenericToolbox.VariableMonitor.h" // tools
 
+#include <string>
+#include <vector>
 #include <utility>
-#include "string"
-#include "vector"
 
 
 // Classes : VariablesMonitor
