@@ -852,7 +852,7 @@ namespace GenericToolbox{
       char *inp, *out, *x, *t, *buff;
       const char *b, *c, *e;
       const char *p;
-      int kBufSize{8196};
+      int kBufSize{32784};
       buff = new char[kBufSize * 4];
 
       iter = 0; xname[0] = 0; inp = buff + kBufSize; out = inp + kBufSize;
