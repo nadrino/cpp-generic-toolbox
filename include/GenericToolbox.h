@@ -229,6 +229,7 @@ namespace GenericToolbox{
   // -- Transformations (Fast)
   static inline void replaceSubstringInsideInputString(std::string &input_str_, const std::string &substr_to_look_for_, const std::string &substr_to_replace_);
   static inline void removeRepeatedCharInsideInputStr(std::string &inputStr_, const std::string &doubledChar_);
+  static inline void removeTrailingCharInsideInputStr(std::string &inputStr_, const std::string &trailingChar_);
   static inline void indentInputString(std::string& inputStr_, unsigned int indentCount_, const std::string& indentChar = " ");
   static inline void trimInputString(std::string &inputStr_, const std::string &strToTrim_);
 
@@ -271,9 +272,19 @@ namespace GenericToolbox{
   static inline std::string getFolderPathFromFilePath(const std::string &filePath_);
   static inline std::string getFileNameFromFilePath(const std::string &filePath_, bool keepExtension_ = true);
   static inline std::string replaceFileExtension(const std::string& filePath_, const std::string& newExtension_);
-  static inline std::string joinPath(const std::vector<std::string>& vec_);
-  template<typename... Args> static inline std::string joinPath(const Args&... args_);
-  template<typename... Args> static inline std::string joinPath(const std::vector<std::string>& vec_, const Args&... args_);
+
+  // primary join path
+  template<typename T1, typename T2> static inline std::string joinPath(const T1& str1_, const T2& str2_);
+
+  // specialization
+  template<typename T1, typename T2> static inline std::string joinPath(const std::vector<T1>& vec1_, const std::vector<T2>& vec2_);
+  template<typename T, typename T2> static inline std::string joinPath(const std::vector<T>& vec_, const T2& str_);
+  template<typename T1, typename T> static inline std::string joinPath(const T1& str_, const std::vector<T>& vec_);
+
+  // generalization
+  template<typename T> static inline std::string joinPath(const std::vector<T>& vec_);
+  template<typename First, typename Second, typename... Args> static inline std::string joinPath(const First& first_, const Second& second_, const Args&... args_);
+
 #if HAS_CPP_17 && USE_FILESYSTEM
   static inline std::filesystem::file_type fileTypeFromDt(int dt_);
 #endif

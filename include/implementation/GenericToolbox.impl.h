@@ -740,6 +740,11 @@ namespace GenericToolbox {
       GenericToolbox::replaceSubstringInsideInputString(inputStr_, doubledCharStr, doubledChar_);
     } while( lastStr != inputStr_ );
   }
+  static inline void removeTrailingCharInsideInputStr(std::string &inputStr_, const std::string &trailingChar_){
+    if( GenericToolbox::doesStringEndsWithSubstring(inputStr_, trailingChar_) ){
+      inputStr_.erase(inputStr_.size() - trailingChar_.size());
+    }
+  }
   static inline void indentInputString(std::string& inputStr_, unsigned int indentCount_, const std::string& indentChar){
     int originalSize = int(inputStr_.size());
     for( int iChar = originalSize-1 ; iChar >= 0 ; iChar-- ){
@@ -1061,18 +1066,37 @@ namespace GenericToolbox{
     if( newExtension_.empty() ) return filePath_.substr(0, filePath_.find_last_of('.'));
     return filePath_.substr(0, filePath_.find_last_of('.')) + "." + newExtension_;
   }
-  static inline std::string joinPath(const std::vector<std::string>& vec_){
-    auto out{GenericToolbox::joinVectorString(vec_, "/")};
+
+
+  template<typename T1, typename T2> static inline std::string joinPath(const T1& str1_, const T2& str2_){
+    std::stringstream ss;
+    ss << str1_;
+    if( not ss.str().empty() ){ ss << "/"; }
+    ss << str2_;
+    auto out{ss.str()};
     GenericToolbox::removeRepeatedCharInsideInputStr( out, "/" );
+    GenericToolbox::removeTrailingCharInsideInputStr( out, "/" );
     return out;
   }
-  template<typename... Args> static inline std::string joinPath(const Args&... args_){
-    auto out{GenericToolbox::joinAsString("/", args_...)};
-    GenericToolbox::removeRepeatedCharInsideInputStr( out, "/" );
+  template<typename T1, typename T2> static inline std::string joinPath(const std::vector<T1>& vec1_, const std::vector<T2>& vec2_){
+    return GenericToolbox::joinPath(GenericToolbox::joinPath(vec1_), GenericToolbox::joinPath(vec2_));
+  }
+  template<typename T, typename T2> static inline std::string joinPath(const std::vector<T>& vec_, const T2& str_){
+    return GenericToolbox::joinPath(GenericToolbox::joinPath(vec_), str_);
+  }
+  template<typename T1, typename T> static inline std::string joinPath(const T1& str_, const std::vector<T>& vec_){
+    return GenericToolbox::joinPath(str_, GenericToolbox::joinPath(vec_));
+  }
+
+  template<typename T> static inline std::string joinPath(const std::vector<T>& vec_){
+    std::string out;
+    for( auto& elm : vec_ ){ out = GenericToolbox::joinPath(out, elm); }
     return out;
   }
-  template<typename... Args> static inline std::string joinPath(const std::vector<std::string>& vec_, const Args&... args_){
-    return {joinPath(joinPath(vec_), args_...)};
+  template<typename First, typename Second, typename... Args> static inline std::string joinPath(const First& first_, const Second& second_, const Args&... args_){
+    // unfold to binary expression
+    auto out{joinPath(first_, joinPath(second_, args_...))};
+    return out;
   }
 #if HAS_CPP_17 && USE_FILESYSTEM
   static inline std::filesystem::file_type fileTypeFromDt(int dt_){
