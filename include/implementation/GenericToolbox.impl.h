@@ -852,7 +852,7 @@ namespace GenericToolbox{
       char *inp, *out, *x, *t, *buff;
       const char *b, *c, *e;
       const char *p;
-      int kBufSize{32784};
+      int kBufSize{8196};
       buff = new char[kBufSize * 4];
 
       iter = 0; xname[0] = 0; inp = buff + kBufSize; out = inp + kBufSize;
@@ -879,23 +879,24 @@ namespace GenericToolbox{
           ++ier;
           ++c;
         }
-      } else if (c[0] == '~' && c[1] != '/') { // ~user case
-        n = int(strcspn(c+1, "/ "));
-        // There is no overlap here as the buffer is segment in 4 strings of at most kBufSize
-        strncpy(buff, c+1, n+1); // strncpy copy 'size-1' characters.
-        std::string hd = GenericToolbox::getHomeDirectory(); // TO FIX this?
-        e = c+1+n;
-        if (!hd.empty()) {                   // we have smth to copy
-          p = hd.c_str();
-          strncpy(x, p, kBufSize);
-          x += strlen(p);
-          c = e;
-        } else {
-          x++[0] = c[0];
-          //++ier;
-          ++c;
-        }
       }
+//      else if (c[0] == '~' && c[1] != '/') { // ~user case
+//        n = int(strcspn(c+1, "/ "));
+//        // There is no overlap here as the buffer is segment in 4 strings of at most kBufSize
+//        strncpy(buff, c+1, n+1); // strncpy copy 'size-1' characters.
+//        std::string hd = GenericToolbox::getHomeDirectory(); // TO FIX this?
+//        e = c+1+n;
+//        if (!hd.empty()) {                   // we have smth to copy
+//          p = hd.c_str();
+//          strncpy(x, p, kBufSize);
+//          x += strlen(p);
+//          c = e;
+//        } else {
+//          x++[0] = c[0];
+//          //++ier;
+//          ++c;
+//        }
+//      }
 
       for ( ; c[0]; c++) {
 
