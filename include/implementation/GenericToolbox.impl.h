@@ -211,7 +211,7 @@ namespace GenericToolbox {
 #endif
   }
   template<typename T> inline static void insertInVector(std::vector<T> &vector_, const T &elementToInsert_, size_t insertBeforeThisIndex_){
-    insertInVector(vector_, {elementToInsert_}, insertBeforeThisIndex_);
+    insertInVector(vector_, std::vector<T>{elementToInsert_}, insertBeforeThisIndex_);
   }
   template<typename T> static inline void addIfNotInVector(const T& element_, std::vector<T> &vector_){
     if( not GenericToolbox::doesElementIsInVector(element_, vector_) ){
