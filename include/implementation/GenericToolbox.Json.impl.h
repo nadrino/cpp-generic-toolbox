@@ -14,7 +14,7 @@
 #include <iostream>
 
 
-namespace GenericToolbox::Json {
+namespace GenericToolbox { namespace Json {
 
   inline nlohmann::json readConfigJsonStr(const std::string& configJsonStr_){
     std::stringstream ss;
@@ -260,7 +260,7 @@ namespace GenericToolbox::Json {
 
 
 
-};
+}};
 
 
 #endif //GENERICTOOLBOX_JSONUTILS_IMPL_H
