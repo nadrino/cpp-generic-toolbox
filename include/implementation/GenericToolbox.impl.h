@@ -1732,7 +1732,7 @@ namespace GenericToolbox{
   }
   static inline std::string getNowDateString(const std::string& dateFormat_){
     std::stringstream ss;
-#if defined(__GNUC__) && (__GNUC__ < 4)
+#if defined(__GNUC__) && (__GNUC__ <= 4)
     std::time_t now = std::time(nullptr);
     std::tm* timeinfo = std::localtime(&now);
 
