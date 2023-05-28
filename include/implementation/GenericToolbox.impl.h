@@ -16,6 +16,7 @@
 #include <cmath>
 #include <regex>
 #include <array>
+#include <ctime>
 #include <vector>
 #include <cstdio>
 #include <string>
@@ -1075,6 +1076,7 @@ namespace GenericToolbox{
     ss << str1_;
     if( not ss.str().empty() ){ ss << "/"; }
     ss << str2_;
+    // explicit type specification as `auto` is not converted into a std::string for GCC 4.8.5
     std::string out{ss.str()};
     GenericToolbox::removeRepeatedCharInsideInputStr( out, "/" );
     GenericToolbox::removeTrailingCharInsideInputStr( out, "/" );
@@ -1729,11 +1731,21 @@ namespace GenericToolbox{
     return microseconds.count();
   }
   static inline std::string getNowDateString(const std::string& dateFormat_){
+    std::stringstream ss;
+#if defined(__GNUC__) && (__GNUC__ < 4)
+    std::time_t now = std::time(nullptr);
+    std::tm* timeinfo = std::localtime(&now);
+
+    char buffer[128];
+    std::strftime(buffer, sizeof(buffer), dateFormat_.c_str(), timeinfo);
+
+    ss << buffer;
+#else
     auto now = std::chrono::system_clock::now();
     auto in_time_t = std::chrono::system_clock::to_time_t(now);
 
-    std::stringstream ss;
     ss << std::put_time(std::localtime(&in_time_t), dateFormat_.c_str());
+#endif
     return ss.str();
   }
 
