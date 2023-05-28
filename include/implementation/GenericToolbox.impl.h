@@ -1075,7 +1075,7 @@ namespace GenericToolbox{
     ss << str1_;
     if( not ss.str().empty() ){ ss << "/"; }
     ss << str2_;
-    auto out{ss.str()};
+    std::string out{ss.str()};
     GenericToolbox::removeRepeatedCharInsideInputStr( out, "/" );
     GenericToolbox::removeTrailingCharInsideInputStr( out, "/" );
     return out;
