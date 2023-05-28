@@ -204,7 +204,7 @@ namespace GenericToolbox {
     }
     if( vector_.empty() ){ vector_ = vectorToInsert_; return; }
     if( vectorToInsert_.empty() ){ return; }
-    vector_.insert( vector_.cbegin() + insertBeforeThisIndex_, vectorToInsert_.crbegin(), vectorToInsert_.crend() );
+    vector_.insert( vector_.cbegin() + insertBeforeThisIndex_, vectorToInsert_.cbegin(), vectorToInsert_.cend() );
   }
   template<typename T> inline static void insertInVector(std::vector<T> &vector_, const T &elementToInsert_, size_t insertBeforeThisIndex_){
     insertInVector(vector_, {elementToInsert_}, insertBeforeThisIndex_);
