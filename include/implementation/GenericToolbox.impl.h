@@ -12,35 +12,36 @@
 #include "switch.h"
 #endif
 
-#include <utility>
+// STD headers
 #include <cmath>
-#include <sys/stat.h>
-#include <sstream>
-#include <unistd.h>
-#include <fstream>
-#include <dirent.h>
-#include <iostream>
-#include <algorithm>
-#include <cstring>
-#include <thread>
-#include <numeric>
 #include <regex>
-#include <sys/types.h>
-#include <sys/statvfs.h>
-#include <unistd.h>
-#include <pwd.h>
-#include <iomanip>
-#include <cstdio>
-#include <cstdlib>
-#include <cstdio>
-#include <iostream>
-#include <memory>
-#include <stdexcept>
-#include <string>
 #include <array>
 #include <vector>
-#include "sys/times.h"
-#include "typeindex"
+#include <cstdio>
+#include <string>
+#include <memory>
+#include <thread>
+#include <cstdlib>
+#include <iomanip>
+#include <fstream>
+#include <sstream>
+#include <utility>
+#include <cstring>
+#include <numeric>
+#include <iostream>
+#include <typeindex>
+#include <stdexcept>
+#include <algorithm>
+
+// C headers
+#include <pwd.h>
+#include <dirent.h>
+#include <unistd.h>
+#include <sys/stat.h>
+#include <sys/times.h>
+#include <sys/types.h>
+#include <sys/statvfs.h>
+
 
 #if HAS_CPP_17 && USE_FILESYSTEM
 #include "filesystem"
