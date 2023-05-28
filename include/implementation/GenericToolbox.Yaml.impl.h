@@ -15,7 +15,7 @@
 
 // https://github.com/jbeder/yaml-cpp/wiki/Tutorial
 
-namespace GenericToolbox::Yaml {
+namespace GenericToolbox { namespace Yaml {
 
   inline YAML::Node readConfigFile(const std::string &configFilePath_) {
     if( not GenericToolbox::doesPathIsFile(configFilePath_) ){
@@ -76,6 +76,6 @@ namespace GenericToolbox::Yaml {
     return fetchMatchingEntry(yamlConfig_, keyName_, std::string(keyValue_));
   }
 
-};
+}};
 
 #endif //GENERICTOOLBOX_YAMLUTILS_IMPL_H

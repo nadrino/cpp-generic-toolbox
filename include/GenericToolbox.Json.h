@@ -13,7 +13,7 @@
 #include <iostream>
 
 
-namespace GenericToolbox::Json {
+namespace GenericToolbox { namespace Json {
 
   inline nlohmann::json readConfigJsonStr(const std::string& configJsonStr_);
   inline nlohmann::json readConfigFile(const std::string& configFilePath_);
@@ -40,7 +40,7 @@ namespace GenericToolbox::Json {
   template<std::size_t N> inline nlohmann::json fetchMatchingEntry(const nlohmann::json& jsonConfig_, const std::string& keyName_, const char (&keyValue_)[N]);
 
 
-};
+}};
 
 
 #include "implementation/GenericToolbox.Json.impl.h"

@@ -12,7 +12,7 @@
 #include <iostream>
 
 
-namespace GenericToolbox::Yaml {
+namespace GenericToolbox { namespace Yaml {
 
   inline YAML::Node readConfigFile(const std::string& configFilePath_);
   inline std::string toJsonString(const YAML::Node& yamlConfig_);
@@ -25,7 +25,7 @@ namespace GenericToolbox::Yaml {
   template<std::size_t N> inline auto fetchValue(const YAML::Node& yamlConfig_, const std::string& keyName_, const char (&defaultValue_)[N]) -> std::string;
   template<std::size_t N> inline YAML::Node fetchMatchingEntry(const YAML::Node& yamlConfig_, const std::string& keyName_, const char (&keyValue_)[N]);
 
-};
+}};
 
 #include "implementation/GenericToolbox.Yaml.impl.h"
 
