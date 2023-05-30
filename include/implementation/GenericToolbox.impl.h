@@ -12,35 +12,37 @@
 #include "switch.h"
 #endif
 
-#include <utility>
+// STD headers
 #include <cmath>
-#include <sys/stat.h>
-#include <sstream>
-#include <unistd.h>
-#include <fstream>
-#include <dirent.h>
-#include <iostream>
-#include <algorithm>
-#include <cstring>
-#include <thread>
-#include <numeric>
 #include <regex>
+#include <array>
+#include <ctime>
+#include <vector>
+#include <cstdio>
+#include <string>
+#include <memory>
+#include <thread>
+#include <cstdlib>
+#include <iomanip>
+#include <fstream>
+#include <sstream>
+#include <utility>
+#include <cstring>
+#include <numeric>
+#include <iostream>
+#include <typeindex>
+#include <stdexcept>
+#include <algorithm>
+
+// C headers
+#include <pwd.h>
+#include <dirent.h>
+#include <unistd.h>
+#include <sys/stat.h>
+#include <sys/times.h>
 #include <sys/types.h>
 #include <sys/statvfs.h>
-#include <unistd.h>
-#include <pwd.h>
-#include <iomanip>
-#include <cstdio>
-#include <cstdlib>
-#include <cstdio>
-#include <iostream>
-#include <memory>
-#include <stdexcept>
-#include <string>
-#include <array>
-#include <vector>
-#include "sys/times.h"
-#include "typeindex"
+
 
 #if HAS_CPP_17 && USE_FILESYSTEM
 #include "filesystem"
@@ -202,10 +204,14 @@ namespace GenericToolbox {
     }
     if( vector_.empty() ){ vector_ = vectorToInsert_; return; }
     if( vectorToInsert_.empty() ){ return; }
-    vector_.insert( vector_.cbegin() + insertBeforeThisIndex_, vectorToInsert_.crbegin(), vectorToInsert_.crend() );
+#if defined(__GNUC__) && !defined(__clang__) && (__GNUC__ <= 4)
+    vector_.insert( vector_.begin() + insertBeforeThisIndex_, vectorToInsert_.begin(), vectorToInsert_.end() );
+#else
+    vector_.insert( vector_.cbegin() + insertBeforeThisIndex_, vectorToInsert_.cbegin(), vectorToInsert_.cend() );
+#endif
   }
   template<typename T> inline static void insertInVector(std::vector<T> &vector_, const T &elementToInsert_, size_t insertBeforeThisIndex_){
-    insertInVector(vector_, {elementToInsert_}, insertBeforeThisIndex_);
+    insertInVector(vector_, std::vector<T>{elementToInsert_}, insertBeforeThisIndex_);
   }
   template<typename T> static inline void addIfNotInVector(const T& element_, std::vector<T> &vector_){
     if( not GenericToolbox::doesElementIsInVector(element_, vector_) ){
@@ -1074,7 +1080,8 @@ namespace GenericToolbox{
     ss << str1_;
     if( not ss.str().empty() ){ ss << "/"; }
     ss << str2_;
-    auto out{ss.str()};
+    // explicit type specification as `auto` is not converted into a std::string for GCC 4.8.5
+    std::string out{ss.str()};
     GenericToolbox::removeRepeatedCharInsideInputStr( out, "/" );
     GenericToolbox::removeTrailingCharInsideInputStr( out, "/" );
     return out;
@@ -1728,11 +1735,21 @@ namespace GenericToolbox{
     return microseconds.count();
   }
   static inline std::string getNowDateString(const std::string& dateFormat_){
+    std::stringstream ss;
+#if defined(__GNUC__) && !defined(__clang__) && (__GNUC__ <= 4)
+    std::time_t now = std::time(nullptr);
+    std::tm* timeinfo = std::localtime(&now);
+
+    char buffer[128];
+    std::strftime(buffer, sizeof(buffer), dateFormat_.c_str(), timeinfo);
+
+    ss << buffer;
+#else
     auto now = std::chrono::system_clock::now();
     auto in_time_t = std::chrono::system_clock::to_time_t(now);
 
-    std::stringstream ss;
     ss << std::put_time(std::localtime(&in_time_t), dateFormat_.c_str());
+#endif
     return ss.str();
   }
 
