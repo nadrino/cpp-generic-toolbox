@@ -29,6 +29,7 @@
 #include "TFormula.h"
 #include "TTreeFormula.h"
 #include "TTree.h"
+#include "TBranch.h"
 
 // STD Headers
 #include <string>
@@ -566,11 +567,20 @@ namespace GenericToolbox {
   }
   inline std::vector<TLeaf*> getEnabledLeavesList(TTree* tree_, bool includeArrayLeaves_){
     std::vector<TLeaf*> leafList;
-    for(int iLeaf = 0 ; iLeaf < tree_->GetListOfLeaves()->GetEntries() ; iLeaf++){
-      TLeaf* leafBufferPtr = tree_->GetLeaf(tree_->GetListOfLeaves()->At(iLeaf)->GetName());
-      if(tree_->GetBranchStatus(leafBufferPtr->GetBranch()->GetName()) == 1){ // check if this branch is active
-        if( includeArrayLeaves_ or leafBufferPtr->GetNdata() == 1){
-          leafList.emplace_back(leafBufferPtr);
+
+    leafList.reserve( tree_->GetListOfLeaves()->GetEntries() );
+    for( int iBranch = 0 ; iBranch < tree_->GetListOfBranches()->GetEntries() ; iBranch++ ){
+
+      auto* br{dynamic_cast<TBranch*>(tree_->GetListOfBranches()->At(iBranch))};
+      if( br == nullptr or tree_->GetBranchStatus( br->GetName() ) != 1 ){ continue; }
+
+      for( int iLeaf = 0 ; iLeaf < br->GetListOfLeaves()->GetEntries() ; iLeaf++ ){
+
+        auto* lf{dynamic_cast<TLeaf*>( br->GetListOfLeaves()->At(iLeaf) )};
+        if( lf == nullptr or lf->GetNdata() == 0 ){ continue; }
+
+        if( includeArrayLeaves_ or lf->GetNdata() == 1 ){
+          leafList.emplace_back( lf );
         }
         else{
           // DON'T SUPPORT ARRAYS AT THE MOMENT
@@ -578,9 +588,9 @@ namespace GenericToolbox {
                     << ": " << tree_->GetListOfLeaves()->At(iLeaf)->GetName()
                     << " -> array leaves are not supported yet." << std::endl;
         }
-      }
+      } // iLeaf
+    } // iBranch
 
-    }
     return leafList;
   }
   inline TVectorD* generateMeanVectorOfTree(TTree* tree_, bool showProgressBar_){
