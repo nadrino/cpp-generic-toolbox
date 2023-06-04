@@ -116,6 +116,7 @@ namespace GenericToolbox{
   inline void resetHistogram(TH1D* hist_);
   inline void rescalePerBinWidth(TH1D* hist_, double globalScaler_ = 1);
   inline void transformBinContent(TH1D* hist_, const std::function<void(TH1D*, int)>& transformFunction_, bool processOverflowBins_ = false);
+  inline std::pair<double, double> fetchYRange(TH1* h_, bool withError_ = true, const std::pair<double, double>& caps_ = {0., std::nan("unset")});
   inline std::pair<double, double> getYBounds(TH1* h_, const std::pair<double, double>& margins_ = {0.1, 0.25});
   inline std::pair<double, double> getYBounds(const std::vector<TH1*>& h_, const std::pair<double, double>& margins_ = {0.1, 0.25});
   inline std::vector<double> getLogBinning(int n_bins_, double X_min_, double X_max_);
