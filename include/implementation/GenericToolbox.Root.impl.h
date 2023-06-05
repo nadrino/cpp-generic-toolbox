@@ -501,7 +501,9 @@ namespace GenericToolbox {
     return output;
   }
   inline TDirectory* getCurrentTDirectory(){
-#if ROOT_VERSION_CODE >= ROOT_VERSION(6,23,02)
+#if ROOT_VERSION_CODE >= ROOT_VERSION(6,28,04)
+    return gDirectory.fValue->load();
+#elif ROOT_VERSION_CODE >= ROOT_VERSION(6,23,02)
     return gDirectory.fValue.load();
 #else
     // Prior releases of ROOT, gDirectory was returning a TDirectory*
