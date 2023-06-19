@@ -209,6 +209,9 @@ namespace GenericToolbox { namespace Json {
   template<class T> inline auto fetchValuePath(const nlohmann::json& jsonConfig_, const std::string& keyNamePath_) -> T{
     auto keyPathElements = GenericToolbox::splitString(keyNamePath_, "/", true);
     nlohmann::json elm{jsonConfig_};
+
+    if( elm.is_array() and elm.size() == 1 ){ elm = elm[0]; }
+
     for( auto& keyPathElement : keyPathElements ){
       elm = GenericToolbox::Json::fetchValue<nlohmann::json>(elm, keyPathElement);
     }

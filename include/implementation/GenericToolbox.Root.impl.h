@@ -501,7 +501,9 @@ namespace GenericToolbox {
     return output;
   }
   inline TDirectory* getCurrentTDirectory(){
-#if ROOT_VERSION_CODE >= ROOT_VERSION(6,23,02)
+#if ROOT_VERSION_CODE >= ROOT_VERSION(6,28,04)
+    return gDirectory.fValue->load();
+#elif ROOT_VERSION_CODE >= ROOT_VERSION(6,23,02)
     return gDirectory.fValue.load();
 #else
     // Prior releases of ROOT, gDirectory was returning a TDirectory*
@@ -929,16 +931,38 @@ namespace GenericToolbox {
       transformFunction_(hist_, iBin);
     }
   }
+  inline std::pair<double, double> fetchYRange(TH1* h_, bool withError_, const std::pair<double, double>& caps_){
+    std::pair<double, double> out{std::nan(""), std::nan("")};
+    if( h_ == nullptr ) return out;
+    for( int iBin = 1 ; iBin <= h_->GetNbinsX() ; iBin++ ){
+      double minValCandidate = h_->GetBinContent(iBin);
+      double maxValCandidate = h_->GetBinContent(iBin);
+
+      if( withError_ ){
+        minValCandidate -= h_->GetBinError(iBin);
+        maxValCandidate += h_->GetBinError(iBin);
+      }
+
+      if( std::isnan(caps_.first) or minValCandidate > caps_.first ){
+        out.first = std::min(minValCandidate, out.first); // std::nan on right
+      }
+      if( std::isnan(caps_.second) or maxValCandidate < caps_.second ){
+        out.second = std::max(maxValCandidate, out.second);
+      }
+    }
+    // try to avoid returning nan:
+    if( std::isnan(out.first) ) out.first = caps_.first;
+    if( std::isnan(out.second) ) out.second = caps_.second;
+    return out;
+  }
   inline std::pair<double, double> getYBounds(TH1* h_, const std::pair<double, double>& margins_){
     std::pair<double, double> out{std::nan("unset"), std::nan("unset")};
     if( h_ == nullptr ) return out;
     for( int iBin = 1 ; iBin <= h_->GetNbinsX() ; iBin++ ){
       double minValCandidate = h_->GetBinContent(iBin) - h_->GetBinError(iBin);
       double maxValCandidate = h_->GetBinContent(iBin) + h_->GetBinError(iBin);
-      if( out.first != out.first ) out.first = minValCandidate;
-      if( out.second != out.second ) out.second = maxValCandidate;
-      out.first = std::min(out.first, minValCandidate);
-      out.second = std::max(out.second, maxValCandidate);
+      out.first = std::min(minValCandidate, out.first); // std::nan on right
+      out.second = std::max(maxValCandidate, out.second);
     }
     double yRange = (out.second-out.first);
     out.first -= margins_.first * yRange;
