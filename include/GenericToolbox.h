@@ -63,6 +63,7 @@ namespace GenericToolbox{
 namespace GenericToolbox {
 
   template<typename T, typename TT> inline static std::string iterableToString(const T& iterable_, const TT& toStrFct_, bool jumpLine_=true, bool indentLine_=true);
+  template<typename T> inline auto getTypedArray(size_t nBytes_, char* byteArray_) -> std::vector<T>;
 
 }
 

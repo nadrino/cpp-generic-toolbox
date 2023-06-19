@@ -99,6 +99,23 @@ namespace GenericToolbox{
     ss << "}";
     return ss.str();
   }
+  template<typename T> inline auto getTypedArray(size_t nBytes_, char* byteArray_) -> std::vector<T>{
+    std::vector<T> out;
+    if( nBytes_ % sizeof(T) != 0 ){
+      throw std::runtime_error(std::to_string(nBytes_) + " not a multiple of typed data of size: " + std::to_string(sizeof(T)));
+    }
+
+    size_t size{nBytes_ / sizeof(T)};
+
+    out.reserve( size );
+    for( size_t iEntry = 0 ; iEntry < size ; iEntry++ ){
+      out.emplace_back();
+      std::memcpy( &out.back(), byteArray_, sizeof(T) );
+      byteArray_ += sizeof(T);
+    }
+
+    return out;
+  }
 
 }
 
