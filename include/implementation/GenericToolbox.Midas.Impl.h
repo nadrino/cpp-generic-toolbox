@@ -8,6 +8,7 @@
 #include "GenericToolbox.h"
 
 #include "midas.h"
+#include "mvodb.h"
 
 #include <map>
 #include <vector>
@@ -15,7 +16,11 @@
 #include <iostream>
 
 
-extern HNDLE hDB; // defined with Midas
+//#ifdef _MFE_H_
+//extern HNDLE hDB; // defined with Midas
+//#endif
+
+
 
 namespace GenericToolbox {
   namespace Midas{
@@ -70,11 +75,11 @@ namespace GenericToolbox {
         bk_close( pevent, dataPtr );
       }
       template<typename T> WORD getTid(const T& data_){
-        if     ( std::is_same<T, bool>::value )         return TID_BOOL;
-        if     ( std::is_same<T, char>::value )         return TID_INT8;
-        if     ( std::is_same<T, short>::value )        return TID_INT16;
-        if     ( std::is_same<T, int>::value )          return TID_INT32;
-        if     ( std::is_same<T, long>::value )         return TID_INT64;
+        if     ( std::is_same<T, bool>::value )           return TID_BOOL;
+        if     ( std::is_same<T, char>::value )           return TID_INT8;
+        if     ( std::is_same<T, short>::value )          return TID_INT16;
+        if     ( std::is_same<T, int>::value )            return TID_INT32;
+        if     ( std::is_same<T, long>::value )           return TID_INT64;
         else if( std::is_same<T, unsigned char>::value )  return TID_UINT8;
         else if( std::is_same<T, unsigned short>::value ) return TID_UINT16;
         else if( std::is_same<T, unsigned int>::value )   return TID_UINT32;
@@ -86,6 +91,9 @@ namespace GenericToolbox {
     }
 
     namespace Odb {
+
+      inline HNDLE hDB{__LINE__};
+//      MVOdb* mvOdb{nullptr};
 
       inline HNDLE getKey(const std::string &path_) {
         HNDLE hDir = 0;
