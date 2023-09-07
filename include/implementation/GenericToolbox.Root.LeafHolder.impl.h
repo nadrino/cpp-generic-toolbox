@@ -17,43 +17,42 @@
 
 namespace GenericToolbox{
 
-  inline LeafHolder::LeafHolder() { this->reset(); }
-  inline LeafHolder::~LeafHolder() { this->reset(); }
 
-  inline void LeafHolder::reset(){
-    _leafTypeSize_=0;
-    _leafTypeName_="";
-    _byteBuffer_.clear();
-  }
-  inline void LeafHolder::hook(TTree *tree_, const std::string& leafName_){
-    TLeaf* leaf = tree_->GetLeaf(leafName_.c_str());
-    if(leaf == nullptr){
-      std::cerr << "Could not find leaf \"" << leafName_ << "\"" << std::endl;
-      throw std::runtime_error("_leaf_ is nullptr.");
-    }
-
-    _leafTypeName_ = leaf->GetTypeName();
-    _leafFullName_ = leaf->GetFullName();
+  inline void LeafHolder::hook(TTree *tree_, TLeaf* leaf_){
+    _leafTypeName_ = leaf_->GetTypeName();
+    _leafFullName_ = leaf_->GetFullName();
 
     // Setup buffer
     _byteBuffer_.clear();
-    if(leaf->GetNdata() != 0){
-      _leafTypeSize_ = leaf->GetLenType();
-      _byteBuffer_.resize(leaf->GetNdata() * _leafTypeSize_, 0);
+    if(leaf_->GetNdata() != 0){
+      _leafTypeSize_ = leaf_->GetLenType();
+      _byteBuffer_.resize(leaf_->GetNdata() * _leafTypeSize_, 0);
     }
     else{
       // pointer-like obj
-      _leafTypeSize_ = 2 * leaf->GetLenType(); // pointer-like obj: ROOT didn't update the ptr size from 32 to 64 bits??
+      _leafTypeSize_ = 2 * leaf_->GetLenType(); // pointer-like obj: ROOT didn't update the ptr size from 32 to 64 bits??
       _byteBuffer_.resize(_leafTypeSize_, 0);
     }
     if( _byteBuffer_.empty() ){ throw std::runtime_error("empty byte buffer"); }
 
-    tree_->SetBranchStatus(leaf->GetBranch()->GetName(), true);
-    tree_->SetBranchAddress(leaf->GetBranch()->GetName(), (void*) &_byteBuffer_[0]);
+    if( leaf_->GetBranch()->GetAddress() != nullptr ){
+      throw std::runtime_error(leaf_->GetBranch()->GetName() + std::string(": branch address already set."));
+    }
+
+    tree_->SetBranchStatus(leaf_->GetBranch()->GetName(), true);
+    tree_->SetBranchAddress(leaf_->GetBranch()->GetName(), (void*) &_byteBuffer_[0]);
 
     // THIS IS NOT WORKING WITH TCHAINS!!
-//    _leaf_->GetBranch()->SetAddress(&_byteBuffer_[0]);
-//    _leaf_->SetAddress(&_byteBuffer_[0]);
+//    leaf_->GetBranch()->SetAddress(&_byteBuffer_[0]);
+//    leaf_->SetAddress(&_byteBuffer_[0]);
+
+    std::cout << getSummary() << std::endl;
+  }
+  inline void LeafHolder::hook(TTree *tree_, const std::string& leafName_){
+    TLeaf* leafPtr = tree_->GetLeaf(leafName_.c_str());
+    if(leafPtr == nullptr){ throw std::runtime_error("Could not get TLeaf: " + leafName_); }
+
+    this->hook(tree_, leafPtr);
   }
   inline void LeafHolder::hookDummyDouble(const std::string& leafName_){
     _leafTypeName_ = "Double_t";
@@ -71,6 +70,9 @@ namespace GenericToolbox{
     memcpy(&_byteBuffer_[0], &nanValue, 8);
   }
 
+  inline size_t LeafHolder::getArraySize() const{
+    return _byteBuffer_.size()/_leafTypeSize_;
+  }
   inline size_t LeafHolder::getLeafTypeSize() const {
     return _leafTypeSize_;
   }
@@ -80,7 +82,10 @@ namespace GenericToolbox{
   inline const std::string &LeafHolder::getLeafFullName() const {
     return _leafFullName_;
   }
-  inline const std::string LeafHolder::getSummary() const {
+  inline const std::vector<unsigned char> &LeafHolder::getByteBuffer() const {
+    return _byteBuffer_;
+  }
+  inline std::string LeafHolder::getSummary() const {
     std::stringstream o;
     o << _leafFullName_ << "/" << _leafTypeName_ << " = ";
     if( not _byteBuffer_.empty() ){
@@ -99,9 +104,6 @@ namespace GenericToolbox{
       o << "{ EMPTY }";
     }
     return o.str();
-  }
-  inline const std::vector<unsigned char> &LeafHolder::getByteBuffer() const {
-    return _byteBuffer_;
   }
 
   inline std::vector<unsigned char> &LeafHolder::getByteBuffer(){
@@ -122,9 +124,6 @@ namespace GenericToolbox{
   inline void LeafHolder::dropToAny(AnyType& any_, size_t slot_) const{
     memcpy(any_.getPlaceHolderPtr()->getVariableAddress(), &_byteBuffer_[slot_ * _leafTypeSize_], _leafTypeSize_);
   }
-  inline size_t LeafHolder::getArraySize() const{
-    return _byteBuffer_.size()/_leafTypeSize_;
-  }
 
   inline std::ostream& operator <<( std::ostream& o, const LeafHolder& v ){
     if( not v._byteBuffer_.empty() ){
@@ -132,6 +131,7 @@ namespace GenericToolbox{
     }
     return o;
   }
+
 
 }
 
