@@ -497,23 +497,47 @@ namespace GenericToolbox {
   }
   static inline std::string stripBracket(const std::string &inputStr_, char bra_, char ket_, bool allowUnclosed_, std::vector<std::string>* argBuffer_){
     size_t iChar{0}; std::string out;
+    char currentChar;
     while( iChar < inputStr_.size() ){
-      if ( inputStr_[iChar] == bra_ ){
-        iChar++;
+
+      // buffering
+      currentChar = inputStr_[iChar++];
+
+      // opening bracket?
+      if ( currentChar == bra_ ){
         if(argBuffer_!= nullptr){ argBuffer_->emplace_back(); }
-        while(iChar < inputStr_.size()){
-          if(inputStr_[iChar] == ket_ ) { iChar++; break; }
-          if(argBuffer_!= nullptr){ argBuffer_->back() += inputStr_[iChar]; }
-          iChar++;
-          if(iChar == inputStr_.size()){
-            if( not allowUnclosed_ ){
-              throw std::runtime_error("unclosed bracket.");
-            }
+
+        int nestedLevel{0};
+        while( iChar < inputStr_.size() ){
+
+          // buffering
+          currentChar = inputStr_[iChar++];
+
+          // opening a nested bracket?
+          if( currentChar == bra_ ) { nestedLevel++; }
+
+          // closing a bracket?
+          if( currentChar == ket_ ) {
+            if( nestedLevel == 0 ){ break; } // closing the bracket -> safely leave the loop
+            else                  { nestedLevel--; } // closing a nested bracket
+          }
+
+          // buffering bracket content
+          if(argBuffer_!= nullptr){ argBuffer_->back() += currentChar; }
+
+          // sanity check -> this loop is supposed to be left with "break;"
+          if( iChar == inputStr_.size() and not allowUnclosed_ ){
+            throw std::runtime_error("unclosed bracket: " + inputStr_);
           }
         }
       }
-      if(iChar < inputStr_.size()) out += inputStr_[iChar++];
+      else{ out += currentChar; }
     }
+
+//    std::cout << inputStr_ << " -> " << out;
+//    if(argBuffer_!= nullptr) std::cout << " args:" << GenericToolbox::parseVectorAsString(*argBuffer_);
+//    std::cout << std::endl;
+
     return out;
   }
   static inline size_t getPrintSize(const std::string& str_){
