@@ -9,7 +9,10 @@
 
 #include "TTree.h"
 #include "TBranch.h"
+#include "TTreeFormula.h"
+#include "TTreeFormulaManager.h"
 
+#include <sstream>
 #include <string>
 #include <vector>
 
@@ -57,14 +60,17 @@ namespace GenericToolbox{
     }
     inline void hookBuffer(){
       if( _byteBuffer_.empty() ){ throw std::runtime_error("empty byte buffer, can't " + __METHOD_NAME__); }
-      std::cout << _branchPtr_->GetFullName() << " -> ptr = " << GenericToolbox::toHex(_byteBuffer_.data()) << " / " << &_byteBuffer_ << " / " << this << std::endl;
+//      std::cout << _branchPtr_->GetFullName() << " -> ptr = 0x" << GenericToolbox::toHex(_byteBuffer_.data()) << " / " << &_byteBuffer_ << " / " << this << std::endl;
       _branchPtr_->SetAddress( (void*) &_byteBuffer_[0] );
     }
 
     [[nodiscard]] inline std::string getSummary() const {
       std::stringstream ss;
       if( _branchPtr_ != nullptr ){
-        ss << _branchPtr_->GetName() << ": addr{0x" << GenericToolbox::toHex(_branchPtr_->GetAddress()) << "}, size{" << _byteBuffer_.size() << "}";
+        ss << _branchPtr_->GetName() << ": addr{0x" << (void*) _branchPtr_->GetAddress() << "}, size{" << _byteBuffer_.size() << "}";
+      }
+      else{
+        ss << "branch not set";
       }
       return ss.str();
     }
@@ -81,42 +87,43 @@ namespace GenericToolbox{
     inline LeafForm() = default;
     inline virtual ~LeafForm() = default;
 
-    inline void addIndex(int index_){ _arrayIndices_.emplace_back( index_ ); }
+    inline void addIndex(int index_){
+      if( _arrayIndices_.size() == 1 ){
+        throw std::runtime_error(__METHOD_NAME__ + "multi-dim arrays not supported -> " + this->getSummary());
+      }
+      _arrayIndices_.emplace_back( index_ );
+    }
     inline void addNestedLeafFormPtr(LeafForm* nestedLeafForm_){ _nestedLeafFormPtrList_.emplace_back( nestedLeafForm_ ); }
     inline void setPrimaryExprStr(const std::string &primaryExprStr) { _primaryExprStr_ = primaryExprStr; }
     inline void setPrimaryLeafPtr(TLeaf* primaryLeafPtr_) { _primaryLeafPtr_ = primaryLeafPtr_; }
-    inline void setTreeFormulaPtr(const std::shared_ptr<TTreeFormula> &treeFormulaPtr) { _treeFormulaPtr_ = treeFormulaPtr; }
+    inline void setTreeFormulaPtr(std::shared_ptr<TTreeFormula> treeFormulaPtr) { _treeFormulaPtr_ = treeFormulaPtr; }
 
     inline std::vector<LeafForm*>& getNestedLeafFormPtrList(){ return _nestedLeafFormPtrList_; }
 
+    TLeaf *getPrimaryLeafPtr() const{ return _primaryLeafPtr_; }
     [[nodiscard]] inline const std::string &getPrimaryExprStr() const { return _primaryExprStr_; }
+    [[nodiscard]] inline const std::shared_ptr<TTreeFormula> &getTreeFormulaPtr() const { return _treeFormulaPtr_; }
 
-    [[nodiscard]] inline std::string getSummary() const{
-      std::stringstream ss;
-      if( _primaryLeafPtr_ != nullptr ){
-        ss << _primaryExprStr_ << ": br{ " << _primaryLeafPtr_->GetBranch()->GetFullName() << " }";
-        if( not _arrayIndices_.empty() ){
-          ss << " indices{ ";
-          for( size_t iDim = 0 ; iDim < _arrayIndices_.size() ; iDim++ ){
-            if( _arrayIndices_[iDim] != -1 ){ ss << _arrayIndices_[iDim]; }
-            else{ ss << _nestedLeafFormPtrList_[iDim]->getPrimaryExprStr(); }
-            if( iDim+1 != _arrayIndices_.size() ){ ss << ", "; }
-          }
-          ss << " }";
-        }
-      }
-      else if( _treeFormulaPtr_ != nullptr ){
-        ss << _treeFormulaPtr_->GetExpFormula();
-      }
-      return ss.str();
-    }
+    inline void initialize();
+
+    inline void fillLocalBuffer() const;
+    template<typename T> inline const T& eval() const;
+    inline void dropToAny(GenericToolbox::AnyType& any_) const;
+    inline void* getDataAddress() const;
+    inline size_t getDataSize() const;
+    [[nodiscard]] inline std::string getSummary() const;
 
   private:
     std::string _primaryExprStr_{}; // keep track of the expression it handles
     TLeaf* _primaryLeafPtr_{nullptr}; //
-    std::vector<int> _arrayIndices_{}; // index of the buffer or instance of the formula
+    std::vector<long> _arrayIndices_{}; // index of the buffer or instance of the formula
     std::vector<LeafForm*> _nestedLeafFormPtrList_{}; // replacing indices
     std::shared_ptr<TTreeFormula> _treeFormulaPtr_{nullptr};
+
+    // buffers
+    size_t _dataSize_{0};
+    void* _dataAddress_{nullptr};
+    mutable double _localBuffer_{}; // for TTreeFormula
 
   };
 
@@ -145,7 +152,7 @@ namespace GenericToolbox{
     // internals
     std::vector<BranchBuffer> _branchBufferList_{};
     std::vector<LeafForm> _leafFormList_{}; // handle the evaluation of each expression using the shared leaf buffers
-
+    TTreeFormulaManager _formulaManager_;
 
   };
 
