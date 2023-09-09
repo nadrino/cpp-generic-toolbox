@@ -77,6 +77,11 @@ namespace GenericToolbox{
     return _dataAddress_;
   }
   inline size_t LeafForm::getDataSize() const{ return _dataSize_; }
+  inline std::string LeafForm::getLeafTypeName() const{
+    if     ( _primaryLeafPtr_ != nullptr ){ return _primaryLeafPtr_->GetTypeName(); }
+    else if( _treeFormulaPtr_ != nullptr ){ return "Double_t"; }
+    return {};
+  }
   inline std::string LeafForm::getSummary() const{
     std::stringstream ss;
     if     ( _primaryLeafPtr_ != nullptr ){
@@ -109,11 +114,19 @@ namespace GenericToolbox{
   }
 
 
-  inline size_t LeafCollection::addLeafExpression(const std::string& leafExpStr_){
-    auto iExp{GenericToolbox::findElementIndex( leafExpStr_, _leafExpressionList_ )};
-    if( iExp  != -1 ){ return iExp; }
+
+  inline LeafCollection::~LeafCollection(){
+    if( _treePtr_ != nullptr and _notifyList_ != nullptr ){
+      // TTree will conflict the ownership as the notifyList is handled bu
+      _treePtr_->SetNotify(nullptr);
+    }
+  }
+
+  inline int LeafCollection::addLeafExpression(const std::string& leafExpStr_){
+    auto iExp{this->getLeafExpIndex(leafExpStr_)};
+    if( iExp != -1 ){ return iExp; }
     _leafExpressionList_.emplace_back( leafExpStr_ );
-    return _leafExpressionList_.size()-1;
+    return int(_leafExpressionList_.size())-1;
   }
 
   inline void LeafCollection::initialize() {
@@ -160,6 +173,14 @@ namespace GenericToolbox{
     ss << std::endl << "leafForm" << GenericToolbox::iterableToString(_leafFormList_, [](const LeafForm& l){ return l.getSummary(); } );
     return ss.str();
   }
+  inline int LeafCollection::getLeafExpIndex(const std::string& leafExpression_) const {
+    return GenericToolbox::findElementIndex( leafExpression_, _leafExpressionList_ );
+  }
+  inline const LeafForm* LeafCollection::getLeafFormPtr(const std::string& leafExpression_) const {
+    auto idx{getLeafExpIndex(leafExpression_)};
+    if( not _leafFormList_.empty() and idx != -1 ){ return &_leafFormList_[idx]; }
+    return nullptr;
+  }
 
   inline void LeafCollection::parseExpressions() {
 
@@ -197,7 +218,7 @@ namespace GenericToolbox{
           }
           catch(...){
             // nested? -> try
-            auto idx = this->addLeafExpression( arg ); // will be processed later
+            size_t idx = this->addLeafExpression( arg ); // will be processed later
             _leafFormList_.back().addIndex( -1 );
             _leafFormList_.back().addNestedLeafFormPtr( (LeafForm*) idx ); // tweaking types...
           }
@@ -218,7 +239,13 @@ namespace GenericToolbox{
           throw std::runtime_error(__METHOD_NAME__+": \"" + _leafExpressionList_[iExp] + "\" could not be parsed by the TTree");
         }
 
-        _formulaManager_.Add( _leafFormList_.back().getTreeFormulaPtr().get() );
+        if( _notifyList_ == nullptr ){
+          _notifyList_ = std::make_shared<TList>();
+          _treePtr_->SetNotify(_notifyList_.get());
+        }
+
+        _notifyList_->Add( _leafFormList_.back().getTreeFormulaPtr().get() );
+
       }
     }
 
@@ -230,7 +257,6 @@ namespace GenericToolbox{
       }
     }
 
-    _treePtr_->SetNotify(&_formulaManager_);
   }
   inline void LeafCollection::setupBranchBuffer(TLeaf* leaf_){
     auto* brPtr = leaf_->GetBranch();

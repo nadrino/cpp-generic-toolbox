@@ -96,7 +96,7 @@ namespace GenericToolbox{
     inline void addNestedLeafFormPtr(LeafForm* nestedLeafForm_){ _nestedLeafFormPtrList_.emplace_back( nestedLeafForm_ ); }
     inline void setPrimaryExprStr(const std::string &primaryExprStr) { _primaryExprStr_ = primaryExprStr; }
     inline void setPrimaryLeafPtr(TLeaf* primaryLeafPtr_) { _primaryLeafPtr_ = primaryLeafPtr_; }
-    inline void setTreeFormulaPtr(std::shared_ptr<TTreeFormula> treeFormulaPtr) { _treeFormulaPtr_ = treeFormulaPtr; }
+    inline void setTreeFormulaPtr(const std::shared_ptr<TTreeFormula>& treeFormulaPtr) { _treeFormulaPtr_ = treeFormulaPtr; }
 
     inline std::vector<LeafForm*>& getNestedLeafFormPtrList(){ return _nestedLeafFormPtrList_; }
 
@@ -111,6 +111,7 @@ namespace GenericToolbox{
     inline void dropToAny(GenericToolbox::AnyType& any_) const;
     inline void* getDataAddress() const;
     inline size_t getDataSize() const;
+    inline std::string getLeafTypeName() const;
     [[nodiscard]] inline std::string getSummary() const;
 
   private:
@@ -131,14 +132,21 @@ namespace GenericToolbox{
 
   public:
     inline LeafCollection() = default;
-    inline virtual ~LeafCollection() = default;
+    inline virtual ~LeafCollection();
 
+    // setters
     inline void setTreePtr(TTree* treePtr_){ _treePtr_ = treePtr_; }
-    inline size_t addLeafExpression(const std::string& leafExpStr_);
+    inline int addLeafExpression(const std::string& leafExpStr_);
 
     inline void initialize();
 
+    // getters
+    [[nodiscard]] inline const std::vector<LeafForm>& getLeafFormList() const{ return _leafFormList_; }
+
+    // non-trivial
     [[nodiscard]] inline std::string getSummary() const;
+    [[nodiscard]] inline int getLeafExpIndex(const std::string& leafExpression_) const;
+    [[nodiscard]] inline const LeafForm* getLeafFormPtr(const std::string& leafExpression_) const;
 
   protected:
     inline void parseExpressions();
@@ -152,7 +160,7 @@ namespace GenericToolbox{
     // internals
     std::vector<BranchBuffer> _branchBufferList_{};
     std::vector<LeafForm> _leafFormList_{}; // handle the evaluation of each expression using the shared leaf buffers
-    TTreeFormulaManager _formulaManager_;
+    std::shared_ptr<TList> _notifyList_{nullptr}; // use for the ttree ptr to notify branch change of addresses
 
   };
 
