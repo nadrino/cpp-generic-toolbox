@@ -15,8 +15,69 @@
 
 namespace GenericToolbox{
 
-  inline void LeafForm::initialize(){
+  inline void BranchBuffer::buildBuffer(){
+    if( not _byteBuffer_.empty() ){ throw std::logic_error(__METHOD_NAME__ + ": buffer already set."); }
+    if( _branchPtr_ == nullptr ){ throw std::runtime_error(__METHOD_NAME__ + ": branch not set."); }
 
+    // Calculating the requested buffer size
+    size_t bufferSize{0};
+    auto* leavesList = _branchPtr_->GetListOfLeaves();
+    int nLeaves = leavesList->GetEntries();
+    for( int iLeaf = 0 ; iLeaf < nLeaves ; iLeaf++ ){
+      auto* l = (TLeaf*) leavesList->At(iLeaf);
+      if( l->GetNdata() != 0 ){
+        // primary type leaf (int, double, long, etc...)
+        bufferSize += l->GetNdata() * l->GetLenType();
+      }
+      else{
+        // pointer-like obj (TGraph, TClonesArray...)
+        bufferSize += 2 * l->GetLenType(); // pointer-like obj: ROOT didn't update the ptr size from 32 to 64 bits??
+      }
+    }
+
+    if( bufferSize == 0 ){
+      throw std::runtime_error(__METHOD_NAME__ + ": empty buffer size for branch: " + _branchPtr_->GetName());
+    }
+
+    _byteBuffer_.resize( bufferSize, 0 );
+    if( _byteBuffer_.empty() ){ throw std::runtime_error(__METHOD_NAME__ + ": empty byte buffer"); }
+  }
+  inline void BranchBuffer::hookBuffer(){
+    if( _byteBuffer_.empty() ){ throw std::runtime_error(__METHOD_NAME__ + ": empty byte buffer"); }
+    _branchPtr_->SetStatus( true ); // on notify, ttree might have started back to all disabled state
+    _branchPtr_->SetAddress( (void*) &_byteBuffer_[0] );
+  }
+  inline std::string BranchBuffer::getSummary() const {
+    std::stringstream ss;
+    if( _branchPtr_ != nullptr ){
+      ss << _branchPtr_->GetName() << ": addr{" << (void*) _branchPtr_->GetAddress() << "}, size{" << _byteBuffer_.size() << "}";
+    }
+    else{
+      ss << "branch not set";
+    }
+    return ss.str();
+  }
+
+  inline void LeafForm::initialize(){
+    this->cacheDataSize();
+    this->cacheDataAddr();
+  }
+
+  inline void LeafForm::fillLocalBuffer() const {
+    if( _treeFormulaPtr_ == nullptr ){
+      memcpy(&_localBuffer_, this->getDataAddress(), std::min(this->getDataSize(), sizeof(double)));
+    }
+    else{
+      _localBuffer_ = _treeFormulaPtr_->EvalInstance(0);
+    }
+  }
+  template<typename T> const T& LeafForm::eval() const {
+    if( _treeFormulaPtr_ != nullptr ){ this->fillLocalBuffer(); }
+    auto* addr{(T*) this->getDataAddress()};
+    if( addr == nullptr ){ throw std::runtime_error(__METHOD_NAME__ + ": invalid address: " + this->getSummary()); }
+    return *addr;
+  }
+  inline void LeafForm::cacheDataSize(){
     // buffer data size
     _dataSize_ = 0; // reset
     if     ( _primaryLeafPtr_ != nullptr ){
@@ -35,35 +96,19 @@ namespace GenericToolbox{
     else{
       throw std::runtime_error(__METHOD_NAME__ + ": no data defined -> " + this->getSummary());
     }
-
-
+  }
+  inline void LeafForm::cacheDataAddr(){
     // buffer data address
     _dataAddress_ = nullptr;
     if     ( _primaryLeafPtr_ != nullptr ){
       _dataAddress_ = _primaryLeafPtr_->GetBranch()->GetAddress() + _primaryLeafPtr_->GetOffset();
-      if( not _arrayIndices_.empty() ){
-        _dataAddress_ = (char*) _dataAddress_ + _arrayIndices_[0];
+      if( _index_ != 0 ){
+        _dataAddress_ = (char*) _dataAddress_ + _index_ * _primaryLeafPtr_->GetLenType();
       }
-//      else if( not _nestedLeafFormPtrList_.empty() ){
-//        // will be done while eval, only caching the base address
-//      }
     }
     else if( _treeFormulaPtr_ != nullptr ){
       _dataAddress_ = (void*) &_localBuffer_;
     }
-  }
-
-  inline void LeafForm::fillLocalBuffer() const {
-    if( _treeFormulaPtr_ == nullptr ){
-      memcpy(&_localBuffer_, this->getDataAddress(), std::min(this->getDataSize(), sizeof(double)));
-    }
-    else{
-      _localBuffer_ = _treeFormulaPtr_->EvalInstance(0);
-    }
-  }
-  template<typename T> const T& LeafForm::eval() const {
-    if( _treeFormulaPtr_ != nullptr ){ this->fillLocalBuffer(); }
-    return *((T*) this->getDataAddress());
   }
   inline void LeafForm::dropToAny(GenericToolbox::AnyType& any_) const{
     if( _treeFormulaPtr_ != nullptr ){ this->fillLocalBuffer(); }
@@ -71,8 +116,8 @@ namespace GenericToolbox{
   }
 
   inline void* LeafForm::getDataAddress() const{
-    if( _primaryLeafPtr_ != nullptr and not _nestedLeafFormPtrList_.empty() ){
-      return ((char*) _dataAddress_) + _nestedLeafFormPtrList_[0]->eval<int>(); // offset
+    if( _primaryLeafPtr_ != nullptr and _nestedLeafFormPtr_ != nullptr ){
+      return ((char*) _dataAddress_) + _nestedLeafFormPtr_->eval<int>(); // offset
     }
     return _dataAddress_;
   }
@@ -85,16 +130,9 @@ namespace GenericToolbox{
   inline std::string LeafForm::getSummary() const{
     std::stringstream ss;
     if     ( _primaryLeafPtr_ != nullptr ){
-      ss << _primaryExprStr_ << ": br{ " << _primaryLeafPtr_->GetBranch()->GetFullName() << " }";
-      if( not _arrayIndices_.empty() ){
-        ss << " indices{ ";
-        for( size_t iDim = 0 ; iDim < _arrayIndices_.size() ; iDim++ ){
-          if( _arrayIndices_[iDim] != -1 ){ ss << _arrayIndices_[iDim]; }
-          else{ ss << _nestedLeafFormPtrList_[iDim]->getPrimaryExprStr(); }
-          if( iDim+1 != _arrayIndices_.size() ){ ss << ", "; }
-        }
-        ss << " }";
-      }
+      ss << _primaryExprStr_ << ": br{ " << _primaryLeafFullName_ << " }";
+      if     ( _index_ != 0 )                  { ss << "[" << _index_ << "]"; }
+      else if( _nestedLeafFormPtr_ != nullptr ){ ss << "[" << _nestedLeafFormPtr_->getPrimaryExprStr() << "]"; }
     }
     else if( _treeFormulaPtr_ != nullptr ){
       ss << "formula{ \"" << this->getTreeFormulaPtr()->GetName() << "\" }";
@@ -116,8 +154,8 @@ namespace GenericToolbox{
 
 
   inline LeafCollection::~LeafCollection(){
-    if( _treePtr_ != nullptr and _notifyList_ != nullptr ){
-      // TTree will conflict the ownership as the notifyList is handled bu
+    if( _treePtr_ != nullptr and _treePtr_->GetNotify() == &_objNotifier_ ){
+      // TTree will conflict the ownership as the _objNotifier_ is handled by us
       _treePtr_->SetNotify(nullptr);
     }
   }
@@ -158,12 +196,30 @@ namespace GenericToolbox{
       }
     }
 
-//    GenericToolbox::disableUnhookedBranches( _treePtr_ );
+    // make sure the branch & leaf addr get updated
+    _objNotifier_.setOnNotifyFct( [this](){ this->doNotify(); } );
+    _treePtr_->SetNotify( &_objNotifier_ );
+  }
 
-//    auto nBranches = _treePtr_->GetListOfBranches()->GetEntries();
-//    for( int iBr = 0 ; iBr < nBranches ; iBr++ ){
-//      auto* br = (TBranch*) _treePtr_->GetListOfBranches()->At(iBr);
-//    }
+  void LeafCollection::doNotify(){
+    // use for updating branches and leaves addresses
+    // should be auto triggered by the TTree
+//    std::cout << __METHOD_NAME__ << std::endl;
+
+    for( auto& br : _branchBufferList_ ){
+      br.setBranchPtr( _treePtr_->GetBranch( br.getBranchName().c_str() ) );
+      br.hookBuffer();
+    }
+
+    for( auto& lf : _leafFormList_ ){
+      if( lf.getPrimaryLeafPtr() != nullptr ){
+        lf.setPrimaryLeafPtr( _treePtr_->GetLeaf( lf.getPrimaryLeafFullName().c_str() ) );
+      }
+      if( lf.getTreeFormulaPtr() != nullptr ){
+        lf.getTreeFormulaPtr()->Notify();
+      }
+      lf.cacheDataAddr();
+    }
   }
   inline std::string LeafCollection::getSummary() const{
     std::stringstream ss;
@@ -183,49 +239,23 @@ namespace GenericToolbox{
   }
 
   inline void LeafCollection::parseExpressions() {
-
     // avoid moving memory around
     _leafFormList_.reserve(_leafExpressionList_.size());
 
-    // loop over the expressions. _leafExpressionList_ size might change within the loop
+    // loop over the expressions. _leafExpressionList_ size might change within the loop -> USE INDICES (iExp) loop based
     for( size_t iExp = 0 ; iExp < _leafExpressionList_.size() ; iExp++ ){
       _leafFormList_.emplace_back();
       _leafFormList_.back().setPrimaryExprStr( _leafExpressionList_[iExp] );
 
       std::vector<std::string> argBuffer;
       auto strippedLeafExpr = GenericToolbox::stripBracket(_leafExpressionList_[iExp], '[', ']', false, &argBuffer);
-
-      if( strippedLeafExpr.empty() ){
-        throw std::runtime_error("Bad leaf form expression: " + _leafExpressionList_[iExp]);
-      }
+      if( strippedLeafExpr.empty() ){ throw std::runtime_error(__METHOD_NAME__ + " Bad leaf form expression: " + _leafExpressionList_[iExp]); }
 
       // first, check if the remaining expr is a leaf
       auto* leafPtr = _treePtr_->GetLeaf(strippedLeafExpr.c_str());
+      if( leafPtr == nullptr or argBuffer.size() > 1 ){
+        // no leaf or multi-dim array -> use a complete TTreeFormula to eval the obj
 
-      if( leafPtr != nullptr ){
-        // leaf exists, create the associated branch buffer if not already set
-        this->setupBranchBuffer( leafPtr );
-
-        // set the leaf data will be extracted
-        _leafFormList_.back().setPrimaryLeafPtr( leafPtr );
-
-        // check if all args in between [] are 'int'. Otherwise, create an extra leaf dependency
-        for( auto& arg : argBuffer ){
-          try{
-            int index = std::stoi(arg);
-            _leafFormList_.back().addIndex( index );
-            _leafFormList_.back().addNestedLeafFormPtr( nullptr );
-          }
-          catch(...){
-            // nested? -> try
-            size_t idx = this->addLeafExpression( arg ); // will be processed later
-            _leafFormList_.back().addIndex( -1 );
-            _leafFormList_.back().addNestedLeafFormPtr( (LeafForm*) idx ); // tweaking types...
-          }
-        }
-      }
-      else{
-        // use a complete TTreeFormula to eval the obj
         _leafFormList_.back().setTreeFormulaPtr( std::make_shared<TTreeFormula>(
             _leafExpressionList_[iExp].c_str(),
             _leafExpressionList_[iExp].c_str(),
@@ -238,22 +268,33 @@ namespace GenericToolbox{
         if( _leafFormList_.back().getTreeFormulaPtr()->GetNdim() == 0 ){
           throw std::runtime_error(__METHOD_NAME__+": \"" + _leafExpressionList_[iExp] + "\" could not be parsed by the TTree");
         }
+      }
+      else{
+        // leaf exists, create the associated branch buffer if not already set
+        this->setupBranchBuffer( leafPtr );
 
-        if( _notifyList_ == nullptr ){
-          _notifyList_ = std::make_shared<TList>();
-          _treePtr_->SetNotify(_notifyList_.get());
+        // set the leaf data will be extracted
+        _leafFormList_.back().setPrimaryLeafPtr( leafPtr );
+
+        // array-like
+        if( not argBuffer.empty() ){
+          try{
+            int index = std::stoi(argBuffer[0]);
+            _leafFormList_.back().setIndex( index );
+          }
+          catch(...){
+            // nested? -> try
+            size_t idx = this->addLeafExpression( argBuffer[0] ); // will be processed later
+            _leafFormList_.back().setNestedFormPtr( (LeafForm*) idx ); // tweaking types while not all ptr are settled
+          }
         }
-
-        _notifyList_->Add( _leafFormList_.back().getTreeFormulaPtr().get() );
-
       }
     }
 
-    // refill up with the proper ptr addresses
+    // refill up with the proper ptr addresses now _leafFormList_ size won't change
     for( auto& leafForm: _leafFormList_ ){
-      for( auto& nestedForm : leafForm.getNestedLeafFormPtrList() ){
-        auto iForm = (size_t) nestedForm;
-        nestedForm = &(_leafFormList_[iForm]);
+      if( leafForm.getNestedFormPtr() != nullptr ){
+        leafForm.setNestedFormPtr( &_leafFormList_[(size_t) leafForm.getNestedFormPtr()] );
       }
     }
 
