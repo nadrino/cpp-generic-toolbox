@@ -185,26 +185,18 @@ namespace GenericToolbox{
     // init
     for( auto& leafForm : _leafFormList_ ){ leafForm.initialize(); }
 
-    // only enable selected branches
-    _treePtr_->SetBranchStatus("*", false);
-    for( auto& leafForm : _leafFormList_ ){
-      if( leafForm.getTreeFormulaPtr() != nullptr ){
-        GenericToolbox::enableSelectedBranches(_treePtr_, leafForm.getTreeFormulaPtr().get());
-      }
-      else{
-        leafForm.getPrimaryLeafPtr()->GetBranch()->SetStatus(true);
-      }
-    }
-
     // make sure the branch & leaf addr get updated
     _objNotifier_.setOnNotifyFct( [this](){ this->doNotify(); } );
     _treePtr_->SetNotify( &_objNotifier_ );
+    this->doNotify();
   }
 
   void LeafCollection::doNotify(){
     // use for updating branches and leaves addresses
     // should be auto triggered by the TTree
-//    std::cout << __METHOD_NAME__ << std::endl;
+
+    // reset all branch status to 0
+    _treePtr_->SetBranchStatus("*", false);
 
     for( auto& br : _branchBufferList_ ){
       br.setBranchPtr( _treePtr_->GetBranch( br.getBranchName().c_str() ) );
@@ -217,6 +209,7 @@ namespace GenericToolbox{
       }
       if( lf.getTreeFormulaPtr() != nullptr ){
         lf.getTreeFormulaPtr()->Notify();
+        GenericToolbox::enableSelectedBranches(_treePtr_, lf.getTreeFormulaPtr().get());
       }
       lf.cacheDataAddr();
     }
