@@ -28,7 +28,7 @@ namespace GenericToolbox{
   }
   inline void TreeEntryBuffer::setIsDummyLeaf(const std::string& leafName_, bool isDummy_){
     int index = GenericToolbox::findElementIndex( leafName_, _leafNameList_ );
-    if( index == -1 ) {
+    if( index == -1 ){
       throw std::runtime_error(
           "TreeEntryBuffer::setIsDummyLeaf: \"" + leafName_ + "\" not found in leaf list: "
           + GenericToolbox::parseVectorAsString(_leafNameList_)
@@ -46,7 +46,7 @@ namespace GenericToolbox{
   }
   inline const GenericToolbox::LeafHolder& TreeEntryBuffer::getLeafContent(const std::string& leafName_) const{
     int i = this->fetchLeafIndex(leafName_);
-    if(i==-1){ throw std::runtime_error(leafName_ + ": not found."); }
+    if(i==-1){ throw std::runtime_error(leafName_ + ": not found -> " + GenericToolbox::parseVectorAsString(_leafNameList_)); }
     return _leafContentList_[i];
   }
   inline std::string TreeEntryBuffer::getSummary() const{
