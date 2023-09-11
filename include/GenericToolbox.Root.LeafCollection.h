@@ -21,7 +21,7 @@ namespace GenericToolbox{
 
   public:
     inline TObjNotifier() = default;
-    inline virtual ~TObjNotifier() = default;
+    inline ~TObjNotifier() override = default;
 
     inline void setOnNotifyFct(const std::function<void()>& onNotifyFct_){ _onNotifyFct_ = onNotifyFct_; }
 
