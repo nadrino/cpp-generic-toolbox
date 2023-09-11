@@ -8,7 +8,6 @@
 #include "GenericToolbox.h"
 #include "GenericToolbox.Root.LeafCollection.h"
 
-
 #include <stdexcept>
 #include <iostream>
 #include <sstream>
@@ -58,9 +57,23 @@ namespace GenericToolbox{
     return ss.str();
   }
 
+
   inline void LeafForm::initialize(){
     this->cacheDataSize();
     this->cacheDataAddr();
+  }
+
+  inline void* LeafForm::getDataAddress() const{
+    if( _nestedLeafFormPtr_ != nullptr ){
+      return ((char*) _dataAddress_) + int(_nestedLeafFormPtr_->evalAsDouble()) * this->getDataSize(); // offset
+    }
+    return _dataAddress_;
+  }
+  inline size_t LeafForm::getDataSize() const{ return _dataSize_; }
+  inline std::string LeafForm::getLeafTypeName() const{
+    if     ( _primaryLeafPtr_ != nullptr ){ return _primaryLeafPtr_->GetTypeName(); }
+    else if( _treeFormulaPtr_ != nullptr ){ return "Double_t"; }
+    return {};
   }
 
   inline void LeafForm::fillLocalBuffer() const {
@@ -71,12 +84,52 @@ namespace GenericToolbox{
       _localBuffer_ = _treeFormulaPtr_->EvalInstance(0);
     }
   }
-  template<typename T> const T& LeafForm::eval() const {
-    if( _treeFormulaPtr_ != nullptr ){ this->fillLocalBuffer(); }
-    auto* addr{(T*) this->getDataAddress()};
-    if( addr == nullptr ){ throw std::runtime_error(__METHOD_NAME__ + ": invalid address: " + this->getSummary()); }
-    return *addr;
+  inline double LeafForm::evalAsDouble() const {
+    if( _treeFormulaPtr_ != nullptr ){
+      this->fillLocalBuffer();
+      return _localBuffer_; // double by default
+    }
+    else if( this->getLeafTypeName() == "Double_t" ){
+      return this->eval<double>();
+    }
+    else{
+      if( _anyTypeContainer_ == nullptr ){
+        _anyTypeContainer_ = std::make_shared<AnyType>( GenericToolbox::leafToAnyType( this->getLeafTypeName() ) );
+      }
+      this->dropToAny(*_anyTypeContainer_);
+      return _anyTypeContainer_->getValueAsDouble();
+    }
   }
+  inline void LeafForm::dropToAny(GenericToolbox::AnyType& any_) const{
+    if( _treeFormulaPtr_ != nullptr ){ this->fillLocalBuffer(); }
+    memcpy(any_.getPlaceHolderPtr()->getVariableAddress(), this->getDataAddress(), this->getDataSize());
+  }
+  inline std::string LeafForm::getSummary() const{
+    std::stringstream ss;
+    if     ( _primaryLeafPtr_ != nullptr ){
+      ss << _primaryExprStr_ << ": br{ " << _primaryLeafFullName_ << " }";
+      if     ( _index_ != 0 )                  { ss << "[" << _index_ << "]"; }
+      else if( _nestedLeafFormPtr_ != nullptr ){
+        ss << "[" << _nestedLeafFormPtr_->getPrimaryExprStr() << " -> " << int(_nestedLeafFormPtr_->evalAsDouble()) << "]";
+      }
+    }
+    else if( _treeFormulaPtr_ != nullptr ){
+      ss << "formula{ \"" << this->getTreeFormulaPtr()->GetName() << "\" }";
+    }
+    ss << ", addr{ " << this->getDataAddress() << " }, size{ " << this->getDataSize() << " }";
+    if( this->getDataAddress() != nullptr and this->getDataSize() != 0 ){
+      if( _treeFormulaPtr_ == nullptr ){
+        ss << ", data{ 0x" << GenericToolbox::toHex(this->getDataAddress(), this->getDataSize()) << " }";
+      }
+      else{
+        this->fillLocalBuffer();
+        ss << ", eval{ " << _localBuffer_ << " }";
+      }
+
+    }
+    return ss.str();
+  }
+
   inline void LeafForm::cacheDataSize(){
     // buffer data size
     _dataSize_ = 0; // reset
@@ -103,55 +156,21 @@ namespace GenericToolbox{
     if     ( _primaryLeafPtr_ != nullptr ){
       _dataAddress_ = _primaryLeafPtr_->GetBranch()->GetAddress() + _primaryLeafPtr_->GetOffset();
       if( _index_ != 0 ){
-        _dataAddress_ = (char*) _dataAddress_ + _index_ * _primaryLeafPtr_->GetLenType();
+        _dataAddress_ = (char*) _dataAddress_ + _index_ * this->getDataSize();
       }
     }
     else if( _treeFormulaPtr_ != nullptr ){
       _dataAddress_ = (void*) &_localBuffer_;
     }
   }
-  inline void LeafForm::dropToAny(GenericToolbox::AnyType& any_) const{
+
+  template<typename T> inline const T& LeafForm::eval() const {
+    // Use ONLY if the type is known
     if( _treeFormulaPtr_ != nullptr ){ this->fillLocalBuffer(); }
-    memcpy(any_.getPlaceHolderPtr()->getVariableAddress(), this->getDataAddress(), this->getDataSize());
+    auto* addr{(T*) this->getDataAddress()};
+    if( addr == nullptr ){ throw std::runtime_error(__METHOD_NAME__ + ": invalid address: " + this->getSummary()); }
+    return *addr;
   }
-
-  inline void* LeafForm::getDataAddress() const{
-    if( _primaryLeafPtr_ != nullptr and _nestedLeafFormPtr_ != nullptr ){
-      return ((char*) _dataAddress_) + _nestedLeafFormPtr_->eval<int>(); // offset
-    }
-    return _dataAddress_;
-  }
-  inline size_t LeafForm::getDataSize() const{ return _dataSize_; }
-  inline std::string LeafForm::getLeafTypeName() const{
-    if     ( _primaryLeafPtr_ != nullptr ){ return _primaryLeafPtr_->GetTypeName(); }
-    else if( _treeFormulaPtr_ != nullptr ){ return "Double_t"; }
-    return {};
-  }
-  inline std::string LeafForm::getSummary() const{
-    std::stringstream ss;
-    if     ( _primaryLeafPtr_ != nullptr ){
-      ss << _primaryExprStr_ << ": br{ " << _primaryLeafFullName_ << " }";
-      if     ( _index_ != 0 )                  { ss << "[" << _index_ << "]"; }
-      else if( _nestedLeafFormPtr_ != nullptr ){ ss << "[" << _nestedLeafFormPtr_->getPrimaryExprStr() << "]"; }
-    }
-    else if( _treeFormulaPtr_ != nullptr ){
-      ss << "formula{ \"" << this->getTreeFormulaPtr()->GetName() << "\" }";
-    }
-    ss << ", addr{ " << this->getDataAddress() << " }, size{ " << this->getDataSize() << " }";
-    if( this->getDataAddress() != nullptr and this->getDataSize() != 0 ){
-      if( _treeFormulaPtr_ == nullptr ){
-        ss << ", data{ 0x" << GenericToolbox::toHex(this->getDataAddress(), this->getDataSize()) << " }";
-      }
-      else{
-        this->fillLocalBuffer();
-        ss << ", eval{ " << _localBuffer_ << " }";
-      }
-
-    }
-    return ss.str();
-  }
-
-
 
   inline LeafCollection::~LeafCollection(){
     if( _treePtr_ != nullptr and _treePtr_->GetNotify() == &_objNotifier_ ){
@@ -159,14 +178,12 @@ namespace GenericToolbox{
       _treePtr_->SetNotify(nullptr);
     }
   }
-
   inline int LeafCollection::addLeafExpression(const std::string& leafExpStr_){
     auto iExp{this->getLeafExpIndex(leafExpStr_)};
     if( iExp != -1 ){ return iExp; }
     _leafExpressionList_.emplace_back( leafExpStr_ );
     return int(_leafExpressionList_.size())-1;
   }
-
   inline void LeafCollection::initialize() {
     if( _treePtr_ == nullptr ){ throw std::logic_error("_treePtr_ not set. Can't" + __METHOD_NAME__); }
 
@@ -190,7 +207,6 @@ namespace GenericToolbox{
     _treePtr_->SetNotify( &_objNotifier_ );
     this->doNotify();
   }
-
   void LeafCollection::doNotify(){
     // use for updating branches and leaves addresses
     // should be auto triggered by the TTree

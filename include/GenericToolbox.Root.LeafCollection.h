@@ -5,8 +5,6 @@
 #ifndef CPP_GENERIC_TOOLBOX_GENERICTOOLBOX_ROOT_LEAFCOLLECTION_H
 #define CPP_GENERIC_TOOLBOX_GENERICTOOLBOX_ROOT_LEAFCOLLECTION_H
 
-#include "GenericToolbox.Root.LeafHolder.h"
-
 #include "TTree.h"
 #include "TBranch.h"
 #include "TObjArray.h"
@@ -86,13 +84,16 @@ namespace GenericToolbox{
     [[nodiscard]] inline size_t getDataSize() const;
     [[nodiscard]] inline std::string getLeafTypeName() const;
 
+    inline double evalAsDouble() const;
     inline void fillLocalBuffer() const;
     inline void dropToAny(GenericToolbox::AnyType& any_) const;
     [[nodiscard]] inline std::string getSummary() const;
-    template<typename T> inline const T& eval() const;
 
     inline void cacheDataSize();
     inline void cacheDataAddr();
+
+  protected:
+    template<typename T> inline const T& eval() const; // Use ONLY if the type is known
 
   private:
     TLeaf* _primaryLeafPtr_{nullptr};     // volatile ptr for TChains
@@ -107,6 +108,7 @@ namespace GenericToolbox{
     size_t _dataSize_{0};
     void* _dataAddress_{nullptr};
     mutable double _localBuffer_{}; // for TTreeFormula
+    mutable std::shared_ptr<GenericToolbox::AnyType> _anyTypeContainer_{nullptr};
 
   };
 
