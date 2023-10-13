@@ -15,27 +15,21 @@
 #include <vector>
 #include <string>
 #include <memory>
+#include <chrono>
+#include <condition_variable>
 
 
 // Classes : ParallelWorker
 namespace GenericToolbox{
 
-  ENUM_EXPANDER(
-      WorkerState, 0,
-      Unset,
-      Set
-  );
-
-  ENUM_EXPANDER(
-      ThreadStatus, 0,
-      Stopped,
-      Idle,
-      Running
-  );
-
-  struct ThreadEntry{
+  struct WorkerEntry{
+    int index{-1};
     std::shared_ptr<std::future<void>> thread{nullptr};
-    ThreadStatus threadStatus{ThreadStatus::Stopped};
+
+    // signal handler
+    std::function<void(int)>* fctToRunPtr{nullptr};
+    GenericToolbox::Atomic<bool> isEngaged{false};
+    GenericToolbox::Atomic<bool> isRunning{false};
   };
 
   struct JobEntry{
@@ -43,7 +37,6 @@ namespace GenericToolbox{
     std::function<void(int)> function{};
     std::function<void()> functionPreParallel{};
     std::function<void()> functionPostParallel{};
-    std::vector<bool> jobRequestedThreadList{false};
 
     JobEntry() = delete;
     explicit JobEntry(std::string  name_) : name(std::move(name_)) {}
@@ -52,18 +45,20 @@ namespace GenericToolbox{
   class ParallelWorker {
 
   public:
-    inline ParallelWorker() = default;
-    inline virtual ~ParallelWorker(){ if( _workerState_ == WorkerState::Set ){ this->stopThreads(); } };
+    template<typename T> inline static std::pair<T, T> getThreadBoundIndices(int iThread_, int nThreads_, T nTotal_);
 
-    inline void setIsVerbose(bool isVerbose){ _isVerbose_ = isVerbose; }
-    inline void setCheckHardwareCurrency(bool checkHardwareCurrency){ _checkHardwareCurrency_ = checkHardwareCurrency; }
-    inline void setNThreads(int nThreads){ _nThreads_ = nThreads; }
-    inline void setCpuTimeSaverIsEnabled(bool cpuTimeSaverIsEnabled){ _cpuTimeSaverIsEnabled_ = cpuTimeSaverIsEnabled; }
+  public:
+    inline ParallelWorker() = default;
+    inline virtual ~ParallelWorker(){ if( not _workerList_.empty() ){ this->stopThreads(); } };
+
+    inline void setIsVerbose(bool isVerbose_){ _isVerbose_ = isVerbose_; }
+    inline void setNThreads(int nThreads_);
+    inline void setCpuTimeSaverIsEnabled(bool cpuTimeSaverIsEnabled_);
 
     // const getters
-    inline int getNThreads() const{ return _nThreads_; }
-    inline int getJobIdx(const std::string& name_) const;
-    inline const JobEntry* getJobPtr(const std::string& name_) const;
+    [[nodiscard]] inline int getNbThreads() const{ return _nbThreads_; }
+    [[nodiscard]] inline int getJobIdx(const std::string& name_) const;
+    [[nodiscard]] inline const JobEntry* getJobPtr(const std::string& name_) const;
 
     // getters
     inline JobEntry* getJobPtr(const std::string& name_);
@@ -75,11 +70,7 @@ namespace GenericToolbox{
     inline void runJob(const std::string& jobName_);
     inline void removeJob(const std::string& jobName_);
 
-    inline void pauseParallelThreads();
-    inline void unPauseParallelThreads(){ _pauseThreads_ = false; }
-
   protected:
-    inline void reStartThreads();
     inline void startThreads();
     inline void stopThreads();
 
@@ -87,17 +78,14 @@ namespace GenericToolbox{
 
   private:
     // Parameters
-    bool _isVerbose_{true};
-    bool _checkHardwareCurrency_{true};
+    bool _isVerbose_{false};
     bool _cpuTimeSaverIsEnabled_{false};
-    int _nThreads_{1};
+    int _nbThreads_{1};
 
     // Internals
     bool _stopThreads_{false};
-    bool _pauseThreads_{false};
 
-    WorkerState _workerState_{WorkerState::Unset};
-    std::vector<ThreadEntry> _threadsList_{};
+    std::vector<WorkerEntry> _workerList_{};
     std::vector<JobEntry> _jobEntryList_{};
 
   };

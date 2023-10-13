@@ -77,11 +77,8 @@ int main(){
   GenericToolbox::ParallelWorker p;
   p.setNThreads(4); // 3 parallel threads + 1 main
   p.setIsVerbose(true);
-  p.initialize();
   p.addJob("exampleJob", [&p](int iThread_){
-    p.getThreadMutexPtr()->lock();
     std::cout << "Executing in thread: " << iThread_ << std::endl;
-    p.getThreadMutexPtr()->unlock();
   });
   p.runJob("exampleJob");
   p.removeJob("exampleJob"); // not necessary, but stop the parallel threads if the worker is no longer waiting for jobs (for CPU time saving)
