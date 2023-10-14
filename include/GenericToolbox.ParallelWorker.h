@@ -11,70 +11,82 @@
 #include <map>
 #include <mutex>
 #include <future>
+#include <utility>
 #include <vector>
 #include <string>
+#include <memory>
+#include <chrono>
+#include <condition_variable>
 
 
 // Classes : ParallelWorker
 namespace GenericToolbox{
 
-  ENUM_EXPANDER(
-      ThreadStatus, 0,
-      Stopped,
-      Idle,
-      Running
-  )
+  struct WorkerEntry{
+    int index{-1};
+    std::shared_ptr<std::future<void>> thread{nullptr};
+
+    // signal handler
+    std::function<void(int)>* fctToRunPtr{nullptr};
+    GenericToolbox::Atomic<bool> isEngaged{false};
+    GenericToolbox::Atomic<bool> isRunning{false};
+  };
+
+  struct JobEntry{
+    std::string name{};
+    std::function<void(int)> function{};
+    std::function<void()> functionPreParallel{};
+    std::function<void()> functionPostParallel{};
+
+    JobEntry() = delete;
+    explicit JobEntry(std::string  name_) : name(std::move(name_)) {}
+  };
 
   class ParallelWorker {
 
   public:
-    inline ParallelWorker();
-    inline virtual ~ParallelWorker();
+    template<typename T> inline static std::pair<T, T> getThreadBoundIndices(int iThread_, int nThreads_, T nTotal_);
 
-    inline void reset();
+  public:
+    inline ParallelWorker() = default;
+    inline virtual ~ParallelWorker(){ if( not _workerList_.empty() ){ this->stopThreads(); } };
 
-    inline void setIsVerbose(bool isVerbose);
-    inline void setCheckHardwareCurrency(bool checkHardwareCurrency);
-    inline void setNThreads(int nThreads);
-    inline void setCpuTimeSaverIsEnabled(bool cpuTimeSaverIsEnabled);
+    inline void setIsVerbose(bool isVerbose_){ _isVerbose_ = isVerbose_; }
+    inline void setNThreads(int nThreads_);
+    inline void setCpuTimeSaverIsEnabled(bool cpuTimeSaverIsEnabled_);
 
-    inline void initialize();
+    // const getters
+    [[nodiscard]] inline int getNbThreads() const{ return _nbThreads_; }
+    [[nodiscard]] inline int getJobIdx(const std::string& name_) const;
+    [[nodiscard]] inline const JobEntry* getJobPtr(const std::string& name_) const;
 
-    inline const std::vector<std::string> &getJobNameList() const;
-    inline int getNThreads() const;
+    // getters
+    inline JobEntry* getJobPtr(const std::string& name_);
 
+    // core
     inline void addJob(const std::string& jobName_, const std::function<void(int)>& function_); // int arg is supposed to be the thread id
     inline void setPostParallelJob(const std::string& jobName_, const std::function<void()>& function_);
     inline void setPreParallelJob(const std::string& jobName_, const std::function<void()>& function_);
     inline void runJob(const std::string& jobName_);
     inline void removeJob(const std::string& jobName_);
 
-    inline void pauseParallelThreads();
-    inline void unPauseParallelThreads();
-
   protected:
-    inline void reStartThreads();
     inline void startThreads();
     inline void stopThreads();
 
+    inline void threadWorker(int iThread_);
+
   private:
     // Parameters
-    bool _isVerbose_{true};
-    bool _checkHardwareCurrency_{true};
+    bool _isVerbose_{false};
     bool _cpuTimeSaverIsEnabled_{false};
-    int _nThreads_{-1};
+    int _nbThreads_{1};
 
     // Internals
-    bool _isInitialized_{false};
     bool _stopThreads_{false};
-    bool _pauseThreads_{false};
-    std::vector<std::future<void>> _threadsList_;
-    std::vector<ThreadStatus> _threadStatusList_;
-    std::vector<std::function<void(int)>> _jobFunctionList_;
-    std::vector<std::function<void()>> _jobFunctionPostParallelList_;
-    std::vector<std::function<void()>> _jobFunctionPreParallelList_;
-    std::vector<std::string> _jobNameList_;
-    std::vector<std::vector<bool>> _jobTriggerList_;
+
+    std::vector<WorkerEntry> _workerList_{};
+    std::vector<JobEntry> _jobEntryList_{};
 
   };
 
