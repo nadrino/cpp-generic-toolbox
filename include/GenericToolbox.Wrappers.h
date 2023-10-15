@@ -5,10 +5,12 @@
 #ifndef CPP_GENERIC_TOOLBOX_GENERICTOOLBOX_WRAPPERS_H
 #define CPP_GENERIC_TOOLBOX_GENERICTOOLBOX_WRAPPERS_H
 
-#include <mutex>
+
+#include <condition_variable>
+#include <type_traits>
 #include <atomic>
 #include <memory>
-#include <condition_variable>
+#include <mutex>
 
 namespace GenericToolbox{
 
@@ -24,14 +26,8 @@ namespace GenericToolbox{
     CopiableAtomic() = default;
     constexpr explicit CopiableAtomic(T desired) : std::atomic<T>(desired) {}
     constexpr CopiableAtomic(const CopiableAtomic<T>& other) : CopiableAtomic(other.load(std::memory_order_relaxed)){}
-    CopiableAtomic& operator=(const CopiableAtomic<T>& other) {
-      this->store(other.load(std::memory_order_acquire), std::memory_order_release);
-      return *this;
-    }
-    CopiableAtomic& operator=(const T& other) {
-      this->store(other, std::memory_order_release);
-      return *this;
-    }
+    CopiableAtomic& operator=(const CopiableAtomic<T>& other);
+    CopiableAtomic& operator=(const T& other);
   };
 
   template<typename T> class PolymorphicObjectWrapper{
@@ -41,7 +37,7 @@ namespace GenericToolbox{
 
     // Handling copy
     PolymorphicObjectWrapper(const PolymorphicObjectWrapper& src_): dialPtr{src_.dialPtr->clone()} {  }
-    PolymorphicObjectWrapper& operator=(const PolymorphicObjectWrapper& other) { if (this != &other) { dialPtr = other.dialPtr->clone(); } return *this; }
+    PolymorphicObjectWrapper& operator=(const PolymorphicObjectWrapper& other);
     PolymorphicObjectWrapper(PolymorphicObjectWrapper&&)  noexcept = default;
     PolymorphicObjectWrapper& operator=(PolymorphicObjectWrapper&&)  noexcept = default;
 
@@ -78,30 +74,21 @@ namespace GenericToolbox{
 
   public:
     Atomic() = default;
-    Atomic(const T& val_): _variable_(val_) {}
+    explicit Atomic(const T& val_): _variable_(val_) {}
 
-    void setValue(const T& val_){
-      // meant to be executed in the main thread
-      {
-        // scope lock
-        std::unique_lock<std::mutex> lock(_mutex_);
-        _variable_ = val_;
-      }
-      // tell the parallel thread to check the "engageThread" variable
-      _notifier_.notify_one();
-    }
+    // setter
+    void setValue(const T& val_);
 
-    const T& getValue() const {
-      // scope lock
-      std::unique_lock<std::mutex> lock(_mutex_);
-      return _variable_;
-    }
+    // getter
+    const T& getValue() const;
 
-    void waitUntilEqual(const T& val_) const {
-      std::unique_lock<std::mutex> lock(_mutex_);
-      _notifier_.wait(lock, [&]{ return _variable_ == val_; });
-    }
+    // core
+    void waitUntilEqual(const T& val_) const;
 
+    // Define operator++ (post-increment) using SFINAE
+    // Using operator++(int) and not operator++(T) to stay consistent with C++ conventions */
+    template<typename U = T>
+    typename std::enable_if<std::is_integral<U>::value, T>::type operator++(int);
 
   private:
     T _variable_{};
@@ -111,5 +98,6 @@ namespace GenericToolbox{
 
 }
 
+#include "implementation/GenericToolbox.Wrappers.impl.h"
 
 #endif //CPP_GENERIC_TOOLBOX_GENERICTOOLBOX_WRAPPERS_H
