@@ -39,33 +39,18 @@ namespace GenericToolbox{
 /***************************
 // return a subset of a tuple
 ***************************/
-//  template <size_t... indices, typename Tuple>
-//  auto tuple_subset(const Tuple& tpl, ct_integers_list<indices...>)
-//  -> decltype(std::make_tuple(std::get<indices>(tpl)...))
-//  {
-//    return std::make_tuple(std::get<indices>(tpl)...);
-//    // this means:
-//    //   make_tuple(get<indices[0]>(tpl), get<indices[1]>(tpl), ...)
-//  }
-
   template <size_t... indices, typename Tuple>
   auto tuple_subset(Tuple&& tpl, ct_integers_list<indices...>)
-  -> decltype(std::make_tuple(std::get<indices>(std::forward<Tuple>(tpl))...))
-  {
+  -> decltype(std::make_tuple(std::get<indices>(std::forward<Tuple>(tpl))...)) {
     return std::make_tuple(std::get<indices>(std::forward<Tuple>(tpl))...);
-    // this means:
-    //   make_tuple(get<indices[0]>(tpl), get<indices[1]>(tpl), ...)
   }
 
 /***************************
 // return the tail of a tuple
 ***************************/
   template <typename Head, typename... Tail>
-  inline std::tuple<Tail...> tuple_tail(const std::tuple<Head, Tail...>& tpl)
-  {
+  inline std::tuple<Tail...> tuple_tail(const std::tuple<Head, Tail...>& tpl){
     return tuple_subset(tpl, typename ct_iota_1<sizeof...(Tail)>::type());
-    // this means:
-    //   tuple_subset<1, 2, 3, ..., sizeof...(Tail)-1>(tpl, ..)
   }
 
 /***************************
@@ -123,8 +108,8 @@ namespace GenericToolbox{
 
 
   template< typename T1, typename... Ts >
-  class zipper
-  {
+  class Zipper {
+
   public:
 
     class ZipIterator {
@@ -166,46 +151,46 @@ namespace GenericToolbox{
     };
 
 
-    explicit zipper( T1& a, Ts&... b):
+    explicit Zipper(T1& a, Ts&... b):
         begin_( a.begin(), (b.begin())...),
         end_( a.end(), (b.end())...) {};
 
-    zipper(const zipper<T1, Ts...>& a) :
+    Zipper(const Zipper<T1, Ts...>& a) :
         begin_(  a.begin_ ),
         end_( a.end_ ) {};
 
     template<typename U1, typename... Us>
-    zipper<U1, Us...>& operator=( zipper<U1, Us...>& rhs) {
+    Zipper<U1, Us...>& operator=(Zipper<U1, Us...>& rhs) {
       begin_ = rhs.begin_;
       end_ = rhs.end_;
       return *this;
     }
 
-    zipper<T1, Ts...>::ZipIterator& begin() {
+    Zipper<T1, Ts...>::ZipIterator& begin() {
       return begin_;
     }
 
-    zipper<T1, Ts...>::ZipIterator& end() {
+    Zipper<T1, Ts...>::ZipIterator& end() {
       return end_;
     }
 
-    const zipper<T1, Ts...>::ZipIterator& begin() const {
+    const Zipper<T1, Ts...>::ZipIterator& begin() const {
       return begin_;
     }
 
-    const zipper<T1, Ts...>::ZipIterator& end() const {
+    const Zipper<T1, Ts...>::ZipIterator& end() const {
       return end_;
     }
-    const zipper<T1, Ts...>::ZipIterator& cbegin() const {
+    const Zipper<T1, Ts...>::ZipIterator& cbegin() const {
       return begin_;
     }
 
-    const zipper<T1, Ts...>::ZipIterator& cend() const {
+    const Zipper<T1, Ts...>::ZipIterator& cend() const {
       return end_;
     }
 
-    zipper<T1, Ts...>::ZipIterator begin_;
-    zipper<T1, Ts...>::ZipIterator end_;
+    Zipper<T1, Ts...>::ZipIterator begin_;
+    Zipper<T1, Ts...>::ZipIterator end_;
   };
 
 
@@ -229,9 +214,9 @@ namespace GenericToolbox{
 
 //allows template type deduction for zipper:
   template <class... Types>
-  zipper<special_decay_t<Types>...> zip(Types&&... args)
+  Zipper<special_decay_t<Types>...> zip(Types&&... args)
   {
-    return zipper<special_decay_t<Types>...>(std::forward<Types>(args)...);
+    return Zipper<special_decay_t<Types>...>(std::forward<Types>(args)...);
   }
 
 }
