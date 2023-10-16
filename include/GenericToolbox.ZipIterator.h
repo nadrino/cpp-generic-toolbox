@@ -13,82 +13,6 @@
 
 namespace GenericToolbox{
 
-//  // Define a zip iterator
-//  template <typename... Containers>
-//  class ZipIterator {
-//  public:
-//
-//    using value_type = std::tuple<typename std::iterator_traits<typename Containers::iterator>::value_type...>;
-//    using reference = value_type;
-////    using value_type = std::tuple<typename std::iterator_traits<typename Containers::iterator>::value_type...>;
-////    using reference = std::tuple<typename std::add_lvalue_reference<typename Containers::value_type>::type...>;
-//
-//    explicit ZipIterator(Containers&... containers_)
-//      : _iterators_( std::make_tuple(containers_.begin()...) ),
-//        _begin_( std::make_tuple(containers_.begin()...) ),
-//        _end_( std::make_tuple(containers_.end()...) )
-//      {}
-//
-//    ZipIterator& operator++() {
-//      increment(std::index_sequence_for<Containers...>());
-//      return *this;
-//    }
-//
-//    ZipIterator operator++(int) {
-//      ZipIterator temp{ *this };
-//      increment(std::index_sequence_for<Containers...>());
-//      return temp;
-//    }
-//
-//    reference operator*() {
-//      return dereference(std::index_sequence_for<Containers...>());
-//    }
-//
-//    reference begin() {
-//      return dereferenceBegin(std::index_sequence_for<Containers...>());
-//    }
-//    reference end() {
-//      return dereferenceEnd(std::index_sequence_for<Containers...>());
-//    }
-//
-////    bool operator==(const ZipIterator& other) const {
-////      return std::get<0>(_iterators_) == std::get<0>(other._iterators_);
-////    }
-////
-////    bool operator!=(const ZipIterator& other) const {
-////      return !(*this == other);
-////    }
-//
-//  private:
-//    template <std::size_t... Index>
-//    void increment(std::index_sequence<Index...>) {
-//      (..., void(++std::get<Index>(_iterators_)));
-//    }
-//
-//    template <std::size_t... Index>
-//    reference dereference(std::index_sequence<Index...>) {
-//      return std::make_tuple(std::ref(*std::get<Index>(_iterators_))...);
-//    }
-//    template <std::size_t... Index>
-//    reference dereferenceBegin(std::index_sequence<Index...>) {
-//      return std::make_tuple(std::ref(*std::get<Index>(_begin_))...);
-//    }
-//    template <std::size_t... Index>
-//    reference dereferenceEnd(std::index_sequence<Index...>) {
-//      return std::make_tuple(std::ref(*std::get<Index>(_end_))...);
-//    }
-//
-//    std::tuple<typename Containers::iterator...> _iterators_;
-//    std::tuple<typename Containers::iterator...> _begin_;
-//    std::tuple<typename Containers::iterator...> _end_;
-//  };
-//
-//  // Define a zip function
-//  template <typename... Containers>
-//  ZipIterator<Containers...> zip(Containers&... containers_) {
-//    return ZipIterator<Containers...>(containers_...);
-//  }
-
   /***************************
 // helper for tuple_subset and tuple_tail (from http://stackoverflow.com/questions/8569567/get-part-of-stdtuple)
 ***************************/
@@ -102,8 +26,7 @@ namespace GenericToolbox{
   };
 
   template <size_t max>
-  struct ct_iota_1
-  {
+  struct ct_iota_1 {
     typedef typename ct_iota_1<max-1>::type::template push_back<max>::type type;
   };
 
@@ -164,16 +87,20 @@ namespace GenericToolbox{
 /****************************
 // check equality of a tuple
 ****************************/
-  template<typename T1>
-  inline bool not_equal_tuples( const std::tuple<T1>& t1,  const std::tuple<T1>& t2 )
+  template <typename T1, typename... Ts>
+  inline bool not_equal_tuples(const std::tuple<T1, Ts...>& t1, const std::tuple<T1, Ts...>& t2)
   {
-    return (std::get<0>(t1) != std::get<0>(t2));
-  }
+    if (std::get<0>(t1) != std::get<0>(t2)) {
+      return true; // If the first elements aren't equal, return true.
+    }
 
-  template<typename T1, typename... Ts>
-  inline bool not_equal_tuples( const std::tuple<T1, Ts...>& t1,  const std::tuple<T1, Ts...>& t2 )
-  {
-    return (std::get<0>(t1) != std::get<0>(t2)) && not_equal_tuples( tuple_tail(t1), tuple_tail(t2) );
+    if constexpr (sizeof...(Ts) > 0) {
+      // If there are more elements, compare the remaining elements.
+      return not_equal_tuples(tuple_tail(t1), tuple_tail(t2));
+    } else {
+      // If no more elements, return false (they are all equal).
+      return false;
+    }
   }
 
 /****************************
@@ -181,19 +108,17 @@ namespace GenericToolbox{
 ****************************/
   template <size_t... indices, typename Tuple>
   auto dereference_subset(const Tuple& tpl, ct_integers_list<indices...>)
-  -> decltype(std::tie(*std::get<indices - 1>(tpl)...))
-  {
+  -> decltype(std::tie(*std::get<indices - 1>(tpl)...)) {
     return std::tie(*std::get<indices - 1>(tpl)...);
   }
 
 /****************************
 // dereference every element of a tuple (applying operator* to each element, and returning the tuple)
 ****************************/
-  template<typename... Ts>
-  inline auto
-  dereference_tuple(std::tuple<Ts...>& t1) -> decltype( dereference_subset( std::tuple<Ts...>(), typename ct_iota_1<sizeof...(Ts)>::type()))
+  template <typename... Ts>
+  inline auto dereference_tuple(std::tuple<Ts...>& t1) -> decltype(dereference_subset(std::tuple<Ts...>(), typename ct_iota_1<sizeof...(Ts)>::type()))
   {
-    return dereference_subset( t1, typename ct_iota_1<sizeof...(Ts)>::type());
+    return dereference_subset(t1, typename ct_iota_1<sizeof...(Ts)>::type());
   }
 
 
@@ -202,33 +127,40 @@ namespace GenericToolbox{
   {
   public:
 
-    class iterator : std::iterator<std::forward_iterator_tag, std::tuple<typename T1::value_type, typename Ts::value_type...> >
-    {
+    class ZipIterator {
+
+    public:
+      using iterator_category = std::forward_iterator_tag;
+      using value_type = std::tuple<typename T1::value_type, typename Ts::value_type...>;
+      using difference_type = std::ptrdiff_t;
+      using reference = value_type;
+      using pointer = value_type*;
+
     protected:
       std::tuple<typename T1::iterator, typename Ts::iterator...> current;
     public:
 
-      explicit iterator(  typename T1::iterator s1, typename Ts::iterator... s2 ) :
+      explicit ZipIterator(  typename T1::iterator s1, typename Ts::iterator... s2 ) :
           current(s1, s2...) {};
 
-      iterator( const iterator& rhs ) :  current(rhs.current) {};
+      ZipIterator( const ZipIterator& rhs ) :  current(rhs.current) {};
 
-      iterator& operator++() {
+      ZipIterator& operator++() {
         increment(current);
         return *this;
       }
 
-      iterator operator++(int) {
-        auto a = *this;
+      ZipIterator operator++(int) {
+        auto out{*this};
         increment(current);
-        return a;
+        return out;
       }
 
-      bool operator!=( const iterator& rhs ) {
+      bool operator!=( const ZipIterator& rhs ) {
         return not_equal_tuples(current, rhs.current);
       }
 
-      typename iterator::value_type operator*() {
+      typename ZipIterator::value_type operator*() {
         return dereference_tuple(current);
       }
     };
@@ -249,31 +181,31 @@ namespace GenericToolbox{
       return *this;
     }
 
-    zipper<T1, Ts...>::iterator& begin() {
+    zipper<T1, Ts...>::ZipIterator& begin() {
       return begin_;
     }
 
-    zipper<T1, Ts...>::iterator& end() {
+    zipper<T1, Ts...>::ZipIterator& end() {
       return end_;
     }
 
-    const zipper<T1, Ts...>::iterator& begin() const {
+    const zipper<T1, Ts...>::ZipIterator& begin() const {
       return begin_;
     }
 
-    const zipper<T1, Ts...>::iterator& end() const {
+    const zipper<T1, Ts...>::ZipIterator& end() const {
       return end_;
     }
-    const zipper<T1, Ts...>::iterator& cbegin() const {
+    const zipper<T1, Ts...>::ZipIterator& cbegin() const {
       return begin_;
     }
 
-    const zipper<T1, Ts...>::iterator& cend() const {
+    const zipper<T1, Ts...>::ZipIterator& cend() const {
       return end_;
     }
 
-    zipper<T1, Ts...>::iterator begin_;
-    zipper<T1, Ts...>::iterator end_;
+    zipper<T1, Ts...>::ZipIterator begin_;
+    zipper<T1, Ts...>::ZipIterator end_;
   };
 
 
