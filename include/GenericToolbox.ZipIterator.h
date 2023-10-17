@@ -19,20 +19,14 @@ namespace GenericToolbox{
   template <size_t... n>
   struct ct_integers_list {
     template <size_t m>
-    struct push_back
-    {
-      typedef ct_integers_list<n..., m> type;
-    };
+    struct push_back { typedef ct_integers_list<n..., m> type; };
   };
 
-  template <size_t max>
-  struct ct_iota_1 {
+  template <size_t max> struct ct_iota_1 {
     typedef typename ct_iota_1<max-1>::type::template push_back<max>::type type;
   };
 
-  template <>
-  struct ct_iota_1<0>
-  {
+  template <> struct ct_iota_1<0> {
     typedef ct_integers_list<> type;
   };
 
@@ -53,20 +47,19 @@ namespace GenericToolbox{
     return tuple_subset(tpl, typename ct_iota_1<sizeof...(Tail)>::type());
   }
 
-/***************************
-// increment every element in a tuple (that is referenced)
-***************************/
-  template<std::size_t I = 0, typename... Tp>
-  inline typename std::enable_if<I == sizeof...(Tp), void>::type
-  increment(std::tuple<Tp...>& t)
-  { }
+  template <class... Ts, std::size_t... Is>
+  void increment(std::tuple<Ts...>& tpl, std::index_sequence<Is...> ) {
+    using expander = int[];
+    expander{0,
+             (void(
+                 ++std::get<Is>(tpl)
+             ), 0)...
+    };
+  }
 
-  template<std::size_t I = 0, typename... Tp,
-      typename = typename std::enable_if<I < sizeof...(Tp), void>::type>
-  inline void increment(std::tuple<Tp...>& t)
-  {
-    std::get<I>(t)++ ;
-    increment<I + 1, Tp...>(t);
+  template <class... Ts>
+  void increment(std::tuple<Ts...>& tpl) {
+    increment(tpl, std::index_sequence_for<Ts...>{});
   }
 
 /****************************
@@ -97,12 +90,9 @@ namespace GenericToolbox{
     return std::tie(*std::get<indices - 1>(tpl)...);
   }
 
-/****************************
-// dereference every element of a tuple (applying operator* to each element, and returning the tuple)
-****************************/
   template <typename... Ts>
-  inline auto dereference_tuple(std::tuple<Ts...>& t1) -> decltype(dereference_subset(std::tuple<Ts...>(), typename ct_iota_1<sizeof...(Ts)>::type()))
-  {
+  inline auto dereference_tuple(std::tuple<Ts...>& t1) -> decltype(dereference_subset(std::tuple<Ts...>(), typename ct_iota_1<sizeof...(Ts)>::type())) {
+    // dereference every element of a tuple (applying operator* to each element, and returning the tuple)
     return dereference_subset(t1, typename ct_iota_1<sizeof...(Ts)>::type());
   }
 
@@ -116,19 +106,18 @@ namespace GenericToolbox{
 
     public:
       using iterator_category = std::forward_iterator_tag;
-      using value_type = std::tuple<typename T1::value_type, typename Ts::value_type...>;
+      using value_type = std::tuple<typename T1::value_type&, typename Ts::value_type&...>;
       using difference_type = std::ptrdiff_t;
       using reference = value_type;
       using pointer = value_type*;
 
     protected:
       std::tuple<typename T1::iterator, typename Ts::iterator...> current;
+
     public:
 
       explicit ZipIterator(  typename T1::iterator s1, typename Ts::iterator... s2 ) :
-          current(s1, s2...) {};
-
-      ZipIterator( const ZipIterator& rhs ) :  current(rhs.current) {};
+          current(s1, s2...) {}
 
       ZipIterator& operator++() {
         increment(current);
@@ -141,13 +130,8 @@ namespace GenericToolbox{
         return out;
       }
 
-      bool operator!=( const ZipIterator& rhs ) {
-        return not_equal_tuples(current, rhs.current);
-      }
-
-      typename ZipIterator::value_type operator*() {
-        return dereference_tuple(current);
-      }
+      bool operator!=( const ZipIterator& rhs ) { return not_equal_tuples(current, rhs.current); }
+      reference operator*() { return dereference_tuple(current); }
     };
 
 
@@ -166,28 +150,14 @@ namespace GenericToolbox{
       return *this;
     }
 
-    Zipper<T1, Ts...>::ZipIterator& begin() {
-      return begin_;
-    }
+    Zipper<T1, Ts...>::ZipIterator& begin() { return begin_; }
+    Zipper<T1, Ts...>::ZipIterator& end() { return end_; }
 
-    Zipper<T1, Ts...>::ZipIterator& end() {
-      return end_;
-    }
+    const Zipper<T1, Ts...>::ZipIterator& begin() const { return begin_; }
+    const Zipper<T1, Ts...>::ZipIterator& end() const { return end_; }
 
-    const Zipper<T1, Ts...>::ZipIterator& begin() const {
-      return begin_;
-    }
-
-    const Zipper<T1, Ts...>::ZipIterator& end() const {
-      return end_;
-    }
-    const Zipper<T1, Ts...>::ZipIterator& cbegin() const {
-      return begin_;
-    }
-
-    const Zipper<T1, Ts...>::ZipIterator& cend() const {
-      return end_;
-    }
+    const Zipper<T1, Ts...>::ZipIterator& cbegin() const { return begin_; }
+    const Zipper<T1, Ts...>::ZipIterator& cend() const { return end_; }
 
     Zipper<T1, Ts...>::ZipIterator begin_;
     Zipper<T1, Ts...>::ZipIterator end_;
@@ -195,28 +165,21 @@ namespace GenericToolbox{
 
 
 
-//from cppreference.com:
+  // from cppreference.com:
   template <class T>
-  struct special_decay
-  {
-    using type = typename std::decay<T>::type;
-  };
+  struct special_decay { using type = typename std::decay<T>::type; };
 
-//allows the use of references:
+  // allows the use of references:
   template <class T>
-  struct special_decay<std::reference_wrapper<T>>
-  {
-    using type = T&;
-  };
+  struct special_decay<std::reference_wrapper<T>> { using type = T&; };
 
   template <class T>
   using special_decay_t = typename special_decay<T>::type;
 
-//allows template type deduction for zipper:
-  template <class... Types>
-  Zipper<special_decay_t<Types>...> zip(Types&&... args)
-  {
-    return Zipper<special_decay_t<Types>...>(std::forward<Types>(args)...);
+  // allows template type deduction for zipper:
+  template<class... Containers>
+  Zipper<special_decay_t<Containers>...> zip(Containers&&... containers_) {
+    return Zipper<special_decay_t<Containers>...>(std::forward<Containers>(containers_)...);
   }
 
 }
