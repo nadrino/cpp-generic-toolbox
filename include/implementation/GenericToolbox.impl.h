@@ -230,6 +230,14 @@ namespace GenericToolbox {
   template<typename T> inline static void insertInVector(std::vector<T> &vector_, const T &elementToInsert_, size_t insertBeforeThisIndex_){
     insertInVector(vector_, std::vector<T>{elementToInsert_}, insertBeforeThisIndex_);
   }
+  template<typename T> inline static void mergeInVector( std::vector<T> &vector_, const std::vector<T> &other_, bool allowDuplicates_ ){
+    if( allowDuplicates_ ){ GenericToolbox::insertInVector(vector_, other_, vector_.size()); }
+    else{
+      vector_.reserve( vector_.size() + other_.size() );
+      for( auto& element : other_ ){ GenericToolbox::addIfNotInVector(element, vector_); }
+      vector_.shrink_to_fit();
+    }
+  }
   template<typename T> static inline void addIfNotInVector(const T& element_, std::vector<T> &vector_){
     if( not GenericToolbox::doesElementIsInVector(element_, vector_) ){
       vector_.template emplace_back(element_);

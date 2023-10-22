@@ -156,6 +156,7 @@ namespace GenericToolbox{
   inline static int findElementIndex(const char* element_, const std::vector<std::string>& vector_ );
   template<typename T> inline static void insertInVector(std::vector<T> &vector_, const std::vector<T> &vectorToInsert_, size_t insertBeforeThisIndex_);
   template<typename T> inline static void insertInVector(std::vector<T> &vector_, const T &elementToInsert_, size_t insertBeforeThisIndex_);
+  template<typename T> inline static void mergeInVector(std::vector<T> &vector_, const std::vector<T> &other_, bool allowDuplicates_ = true);
   template<typename T> inline static void addIfNotInVector(const T& element_, std::vector<T> &vector_);
   inline static void addIfNotInVector(const char* element_, std::vector<std::string> &vector_);
   template <typename Elm, typename Val, typename Lambda> inline static int findElementIndex(const Val& value_, const std::vector<Elm>& vector_, const Lambda& fetchElmValueFct_);
