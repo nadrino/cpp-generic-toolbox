@@ -285,6 +285,12 @@ namespace GenericToolbox {
   static inline std::string parseVectorAsString(const std::vector<std::string> &vector_, bool jumpLine_, bool indentLine_){
     return GenericToolbox::iterableToString(vector_, [&](const std::string& elm_){ return std::string{"\""+elm_+"\""}; }, jumpLine_, indentLine_);
   }
+  static inline std::string parseVectorAsString(const std::vector<unsigned char> &vector_, bool jumpLine_, bool indentLine_){
+    return GenericToolbox::iterableToString(vector_, [&](const unsigned char& elm_){ return std::string{"0x"+GenericToolbox::toHex(elm_)}; }, jumpLine_, indentLine_);
+  }
+  static inline std::string parseVectorAsString(const std::vector<char> &vector_, bool jumpLine_, bool indentLine_){
+    return GenericToolbox::iterableToString(vector_, [&](const unsigned char& elm_){ return std::string{"0x"+GenericToolbox::toHex(elm_)}; }, jumpLine_, indentLine_);
+  }
 
   // Stats
   template <typename T> static inline double getAverage(const std::vector<T>& vector_, const std::function<double(const T&)>& evalElementFct_){

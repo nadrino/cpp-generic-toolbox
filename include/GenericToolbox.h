@@ -170,6 +170,8 @@ namespace GenericToolbox{
   template<typename T> static inline void printVector(const std::vector<T> &vector_, bool jumpLine_ = false, bool indentLine_=true);
   template<typename T> static inline std::string parseVectorAsString(const std::vector<T> &vector_, bool jumpLine_ = false, bool indentLine_=true);
   static inline std::string parseVectorAsString(const std::vector<std::string> &vector_, bool jumpLine_ = false, bool indentLine_=true);
+  static inline std::string parseVectorAsString(const std::vector<unsigned char> &vector_, bool jumpLine_ = false, bool indentLine_=true); // usually chars are 1 byte containers, not actual chars...
+  static inline std::string parseVectorAsString(const std::vector<char> &vector_, bool jumpLine_ = false, bool indentLine_=true);
 
   // Stats
   template <typename T> static inline double getAverage(const std::vector<T>& vector_, const std::function<double(const T&)>& evalElementFct_ = [](const T& var){return var;});
