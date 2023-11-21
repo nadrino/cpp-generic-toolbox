@@ -156,6 +156,7 @@ namespace GenericToolbox{
   inline static int findElementIndex(const char* element_, const std::vector<std::string>& vector_ );
   template<typename T> inline static void insertInVector(std::vector<T> &vector_, const std::vector<T> &vectorToInsert_, size_t insertBeforeThisIndex_);
   template<typename T> inline static void insertInVector(std::vector<T> &vector_, const T &elementToInsert_, size_t insertBeforeThisIndex_);
+  template<typename T> inline static void mergeInVector(std::vector<T> &vector_, const std::vector<T> &other_, bool allowDuplicates_ = true);
   template<typename T> inline static void addIfNotInVector(const T& element_, std::vector<T> &vector_);
   inline static void addIfNotInVector(const char* element_, std::vector<std::string> &vector_);
   template <typename Elm, typename Val, typename Lambda> inline static int findElementIndex(const Val& value_, const std::vector<Elm>& vector_, const Lambda& fetchElmValueFct_);
@@ -169,6 +170,8 @@ namespace GenericToolbox{
   template<typename T> static inline void printVector(const std::vector<T> &vector_, bool jumpLine_ = false, bool indentLine_=true);
   template<typename T> static inline std::string parseVectorAsString(const std::vector<T> &vector_, bool jumpLine_ = false, bool indentLine_=true);
   static inline std::string parseVectorAsString(const std::vector<std::string> &vector_, bool jumpLine_ = false, bool indentLine_=true);
+  static inline std::string parseVectorAsString(const std::vector<unsigned char> &vector_, bool jumpLine_ = false, bool indentLine_=true); // usually chars are 1 byte containers, not actual chars...
+  static inline std::string parseVectorAsString(const std::vector<char> &vector_, bool jumpLine_ = false, bool indentLine_=true);
 
   // Stats
   template <typename T> static inline double getAverage(const std::vector<T>& vector_, const std::function<double(const T&)>& evalElementFct_ = [](const T& var){return var;});
