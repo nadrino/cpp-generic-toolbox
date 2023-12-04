@@ -30,7 +30,7 @@ namespace GenericToolbox { namespace Yaml {
     std::string out{emitter.c_str() + 1};
 
     // workaround for old version of YAML: !<!> was used to identify strings
-    GenericToolbox::replaceSubstringInsideInputString(out, ": !<!> ", ": ");
+    GenericToolbox::replaceSubstringInsideInputString(out, " !<!> ", " ");
     return out;
   }
 
