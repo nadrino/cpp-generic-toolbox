@@ -1466,6 +1466,15 @@ namespace GenericToolbox{
     return getListOfEntriesInSubFolders(folderPath_, DT_DIR);
   }
 
+  template<typename T> static inline void fillData( std::ifstream& file_, T& buffer_ ){
+    file_.read( reinterpret_cast<char*>(&buffer_), sizeof(T) );
+  }
+  static inline void fillData( std::ifstream& file_, std::string& buffer_, size_t size_ ){
+    buffer_.clear();
+    buffer_.resize(size_);
+    file_.read( buffer_.data(), long(size_) );
+  }
+
 }
 
 

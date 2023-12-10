@@ -321,6 +321,10 @@ namespace GenericToolbox{
   static inline std::vector<std::string> getListOfFilesInSubFolders(const std::string &folderPath_);
   static inline std::vector<std::string> getListOfFoldersInSubFolders(const std::string &folderPath_);
 
+  // -- binary reader
+  template<typename T> static inline void fillData( std::ifstream& file_, T& buffer_ );
+  static inline void fillData( std::ifstream& file_, std::string& buffer_, size_t size_ );
+
 }
 
 
