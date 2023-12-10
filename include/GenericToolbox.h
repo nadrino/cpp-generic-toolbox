@@ -325,6 +325,9 @@ namespace GenericToolbox{
   template<typename T> static inline void fillData( std::ifstream& file_, T& buffer_ );
   static inline void fillData( std::ifstream& file_, std::string& buffer_, size_t size_ );
 
+  template<typename T> static inline void writeData( std::ofstream& file_, const T& buffer_ );
+  template<> inline void writeData( std::ofstream& file_, const std::string& buffer_ );
+
 }
 
 

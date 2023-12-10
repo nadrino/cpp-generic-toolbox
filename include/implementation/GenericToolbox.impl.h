@@ -1475,6 +1475,13 @@ namespace GenericToolbox{
     file_.read( buffer_.data(), long(size_) );
   }
 
+  template<typename T> static inline void writeData( std::ofstream& file_, const T& buffer_ ){
+    file_.write( reinterpret_cast<const char*>(&buffer_), sizeof(T) );
+  }
+  template<> inline void writeData( std::ofstream& file_, const std::string& buffer_ ){
+    file_.write( buffer_.data(), long(buffer_.size()) );
+  }
+
 }
 
 
