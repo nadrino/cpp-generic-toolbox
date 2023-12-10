@@ -27,7 +27,11 @@ namespace GenericToolbox { namespace Yaml {
   inline std::string toJsonString(const YAML::Node& yamlConfig_){
     YAML::Emitter emitter;
     emitter << YAML::DoubleQuoted << YAML::Flow << YAML::BeginSeq << yamlConfig_;
-    return std::string(emitter.c_str() + 1);
+    std::string out{emitter.c_str() + 1};
+
+    // workaround for old version of YAML: !<!> was used to identify strings
+    GenericToolbox::replaceSubstringInsideInputString(out, "!<!> ", " ");
+    return out;
   }
 
   template<class T> inline auto fetchValue(const YAML::Node& yamlConfig_, const std::string& keyName_) -> T{
