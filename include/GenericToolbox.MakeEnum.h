@@ -22,6 +22,8 @@
 #define TEMP_ENUM_ENTRY2(entry_, val_) entry_ = val_,
 #define TEMP_ENUM_ENTRY1(entry_) entry_,
 
+#define TEMP_MERGE(X, Y) X##Y
+
 #define TEMP_EXPAND(x) x
 #define TEMP_ARGS_DUMMY(...) dummy,##__VA_ARGS__
 #define TEMP_SELECT_FROM5(_1,_2,_3,_4,_5,num,...) num
@@ -36,7 +38,9 @@
 #define ENUM_NAME(name_) name_
 #undef ENUM_ENTRY
 #define ENUM_ENTRY(...)  // do nothing
-namespace MAKE_ENUM {
+struct MAKE_ENUM {
+
+  typedef MAKE_ENUM StructType;
 
 #undef ENUM_TYPE
 #define ENUM_TYPE(type_) type_
@@ -52,7 +56,9 @@ namespace MAKE_ENUM {
 #define ENUM_TYPE(type_) // nothing
 #undef ENUM_NAME
 #define ENUM_NAME(name_) name_
-  enum MAKE_ENUM : EnumType {
+#undef ENUM_ENTRY
+#define ENUM_ENTRY(...)  // do nothing
+  enum TEMP_MERGE(MAKE_ENUM, EnumType) : EnumType {
 
 // MAKE_ENUM -> return only enum entries
 #undef ENUM_TYPE
@@ -68,42 +74,72 @@ namespace MAKE_ENUM {
 #define ENUM_NAME(name_) name_
 #undef ENUM_ENTRY
 #define ENUM_ENTRY(...)  // do nothing
-  typedef MAKE_ENUM EnumTypeName;
+  typedef TEMP_MERGE(MAKE_ENUM, EnumType) EnumTypeName;
 
+  // store the actual value
+  EnumTypeName value{};
+
+  // can't use "StructType" for CTors
+  MAKE_ENUM() = default;
+  MAKE_ENUM(EnumTypeName value_) : value(value_) {}
+  MAKE_ENUM(EnumType value_) : value(static_cast<EnumTypeName>(value_)) {}
+
+  StructType& operator=(EnumTypeName value_){ this->value = value_; return *this; }
+  StructType& operator=(EnumType value_){ this->value = static_cast<EnumTypeName>(value_); return *this; }
+
+
+  static int getEnumSize(){
+    // MAKE_ENUM -> return only enum entries
+#undef ENUM_NAME
+#define ENUM_NAME(name_) // nothing
+#undef ENUM_ENTRY
+#define ENUM_ENTRY(...) TEMP_FIRST_ARG(__VA_ARGS__),
+    static const EnumType indices[] = { MAKE_ENUM };
+    return sizeof(indices)/sizeof(EnumType);
+  }
+  static EnumType getEnumVal(int index_){
+    static const EnumType indices[] = { MAKE_ENUM };
+    if( index_ < 0 or index_ > sizeof(indices)/sizeof(EnumType) ){ return ENUM_OVERFLOW; }
+    return indices[index_];
+  }
+
+  static std::string getEnumEntryToStr(int index_){
+    if( index_ < 0 or index_ > getEnumSize() ){ return {"UNNAMED_ENUM"}; }
 // MAKE_ENUM -> return only enum entry names
 #undef ENUM_NAME
 #define ENUM_NAME(name_) // nothing
 #undef ENUM_ENTRY
 #define ENUM_ENTRY(...) TEMP_FIRST_ARG_TO_STR(__VA_ARGS__),
-  static const char *names[] = { MAKE_ENUM };
-
-// MAKE_ENUM -> return only enum entries
-#undef ENUM_ENTRY
-#define ENUM_ENTRY(...) TEMP_FIRST_ARG(__VA_ARGS__),
-  static const EnumType indices[] = { MAKE_ENUM };
-
-  static inline std::string toString( EnumType enumVal_ ){
-    std::string out{};
-    int nEntries{sizeof(indices)/sizeof(EnumType)};
-    for( int iEntry = 0 ; iEntry < nEntries ; iEntry++ ){
-      if( enumVal_ == indices[iEntry] ){
-        return names[iEntry];
-      }
-    }
-    return {"UNNAMED_ENUM"};
+    static const char *names[] = { MAKE_ENUM };
+    return names[index_];
   }
-
-  static inline EnumTypeName toEnum( const std::string& name_ ){
-    int nEntries{sizeof(indices)/sizeof(EnumType)};
+  static inline StructType toEnum( const std::string& name_ ){
+    int nEntries{getEnumSize()};
     for( int iEntry = 0 ; iEntry < nEntries ; iEntry++ ){
-      if( name_ == names[iEntry] ){
-        return static_cast<EnumTypeName>(indices[iEntry]);
+      if( name_ == getEnumEntryToStr(iEntry) ){
+        return getEnumVal(iEntry);
       }
     }
     return ENUM_OVERFLOW;
   }
 
-}
+//// MAKE_ENUM -> return only enum entries
+//#undef ENUM_ENTRY
+//#define ENUM_ENTRY(...) TEMP_FIRST_ARG(__VA_ARGS__),
+//  static const EnumType indices[] = { MAKE_ENUM };
+
+  [[nodiscard]] inline std::string toString() const {
+    std::string out{};
+    int nEntries{getEnumSize()};
+    for( int iEntry = 0 ; iEntry < nEntries ; iEntry++ ){
+      if( value == getEnumVal(iEntry) ){
+        return getEnumEntryToStr(iEntry);
+      }
+    }
+    return {"UNNAMED_ENUM"};
+  }
+
+};
 
 // clean up temp macros
 #undef TEMP_EXPAND
@@ -111,6 +147,8 @@ namespace MAKE_ENUM {
 #undef TEMP_SELECT_FROM5
 #undef TEMP_IS_EMPTY_IMPL
 #undef TEMP_IS_EMPTY
+
+#undef TEMP_MERGE
 
 #undef TEMP_ENUM_ENTRY1
 #undef TEMP_ENUM_ENTRY2

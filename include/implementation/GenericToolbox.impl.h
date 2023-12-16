@@ -833,6 +833,9 @@ namespace GenericToolbox {
 // Conversion Tools
 namespace GenericToolbox {
 
+  template<typename T, size_t N> static inline std::string toString(const std::array<T, N>& array_){
+    return std::string(std::begin(array_), std::end(array_));
+  }
   static inline std::string toHex(const void* address_, size_t nBytes_){
     std::stringstream ss(std::string(2*nBytes_, 0));
     unsigned char* address{(unsigned char*)(address_) + nBytes_-1};
@@ -1469,8 +1472,11 @@ namespace GenericToolbox{
   template<typename T> static inline void fillData( std::ifstream& file_, T& buffer_ ){
     file_.read( reinterpret_cast<char*>(&buffer_), sizeof(T) );
   }
+  template<typename T> static inline void fillData( std::ifstream& file_, T* buffer_, size_t size_ ){
+    file_.read( reinterpret_cast<char*>(buffer_), sizeof(T)*size_ );
+  }
   template<typename T, size_t N> static inline void fillData( std::ifstream& file_, std::array<T, N>& buffer_ ){
-    file_.read( reinterpret_cast<char*>(&buffer_[0]), sizeof(T)*N );
+    file_.read( reinterpret_cast<char*>(buffer_.data()), sizeof(T)*N );
   }
   static inline void fillData( std::ifstream& file_, std::string& buffer_, size_t size_ ){
     buffer_.clear();
