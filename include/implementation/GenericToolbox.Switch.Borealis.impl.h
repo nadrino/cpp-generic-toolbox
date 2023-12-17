@@ -1,5 +1,5 @@
 //
-// Created by Adrien Blanchet on 07/05/2023.
+// Created by Nadrino on 07/05/2023.
 //
 
 #ifndef SIMPLEMODMANAGER_GENERICTOOLBOX_SWITCH_BOREALIS_IMPL_H

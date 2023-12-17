@@ -1,5 +1,5 @@
 //
-// Created by Adrien BLANCHET on 25/10/2022.
+// Created by Nadrino on 25/10/2022.
 //
 
 #ifndef GUNDAM_GENERICTOOLBOX_CONFIGBASECLASS_IMPL_H

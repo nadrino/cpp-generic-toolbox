@@ -1,5 +1,5 @@
 //
-// Created by Adrien BLANCHET on 22/05/2022.
+// Created by Nadrino on 22/05/2022.
 //
 
 #ifndef GUNDAM_GENERICTOOLBOX_ROOT_TREEEVENTBUFFER_IMPL_H

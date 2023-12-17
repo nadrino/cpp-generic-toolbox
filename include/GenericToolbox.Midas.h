@@ -1,5 +1,5 @@
 //
-// Created by Adrien BLANCHET on 31/10/2022.
+// Created by Nadrino on 31/10/2022.
 //
 
 #ifndef HATMIDASFRONTEND_GENERICTOOLBOX_ODB_H
