@@ -103,6 +103,8 @@ struct MAKE_ENUM {
   StructType& operator=(EnumTypeName value_){ this->value = value_; return *this; }
   StructType& operator=(EnumType value_){ this->value = static_cast<EnumTypeName>(value_); return *this; }
 
+  friend bool operator==(const StructType& lhs, const StructType& rhs){ return lhs.value == rhs.value; }
+
 
   static int getEnumSize(){
     // MAKE_ENUM -> return only enum entries
