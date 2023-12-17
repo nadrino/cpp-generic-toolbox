@@ -196,6 +196,9 @@ namespace GenericToolbox{
 namespace GenericToolbox {
 
   // Content management
+  template<typename T, typename U> inline static bool isIn( const T& element_, const std::vector<U>& vector_ ){
+    return std::find(vector_.cbegin(), vector_.cend(), element_) != vector_.cend();
+  }
   template <typename T> inline static bool doesElementIsInVector(const T& element_, const std::vector<T>& vector_){
     return std::find(vector_.cbegin(), vector_.cend(), element_) != vector_.cend();
   }
