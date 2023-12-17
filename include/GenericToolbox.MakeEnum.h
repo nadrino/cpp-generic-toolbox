@@ -15,6 +15,9 @@
 // std::string s = MyEnum::toString(i);
 
 
+// only do it if an enum has been created
+#ifdef MAKE_ENUM
+
 // define temp macros
 #define TEMP_GET_OVERLOADED_MACRO2(_1,_2,NAME,...) NAME
 #define TEMP_FIRST_ARG_TO_STR(entry_, ...) #entry_
@@ -141,16 +144,18 @@ struct MAKE_ENUM {
     return StructType::overflowValue;
   }
 
-  [[nodiscard]] inline std::string toString() const {
-    std::string out{};
+  static inline std::string toString( EnumTypeName value_ ){
     int nEntries{getEnumSize()};
     for( int iEntry = 0 ; iEntry < nEntries ; iEntry++ ){
-      if( value == getEnumVal(iEntry) ){
+      if( value_ == getEnumVal(iEntry) ){
         return getEnumEntryToStr(iEntry);
       }
     }
-    return {"UNNAMED_ENUM"};
+    return {};
   }
+  static inline std::string toString( EnumType value_ ){ return toString( static_cast<EnumTypeName>(value_) ); }
+  static inline std::string toString( StructType enum_ ){ return toString( enum_.value ); }
+  [[nodiscard]] inline std::string toString() const { return toString( this->value ); }
 
 };
 
@@ -176,3 +181,4 @@ struct MAKE_ENUM {
 #undef TEMP_FIRST_ARG_TO_STR
 #undef TEMP_GET_OVERLOADED_MACRO2
 
+#endif // #ifdef MAKE_ENUM
