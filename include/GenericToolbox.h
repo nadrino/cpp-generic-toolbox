@@ -149,11 +149,10 @@ namespace GenericToolbox {
 namespace GenericToolbox{
 
   // Content management
-  template<typename T, typename U> inline static bool isIn( const T& element_, const std::vector<U>& vector_ );
-  template <typename T> inline static bool doesElementIsInVector( const T& element_, const std::vector<T>& vector_ );
-  inline static bool doesElementIsInVector(const char* element_, const std::vector<std::string>& vector_);
-  template <typename Elm, typename Val, typename Lambda> inline static int doesElementIsInVector(const Val& value_, const std::vector<Elm>& vector_, const Lambda& fetchElmValueFct_);
-  template <typename T> inline static int findElementIndex( const T& element_, const std::vector<T>& vector_ );
+  template<typename Elem, typename Cont> inline static bool isIn( const Elem& element_, const Cont& container_ );
+  template<typename Elem, typename Cont, typename Lambda> inline static bool isIn( const Elem& element_, const Cont& container_, const Lambda& fetchElem_ );
+
+  template<typename T> inline static int findElementIndex( const T& element_, const std::vector<T>& vector_ );
   inline static int findElementIndex(const char* element_, const std::vector<std::string>& vector_ );
   template<typename T> inline static void insertInVector(std::vector<T> &vector_, const std::vector<T> &vectorToInsert_, size_t insertBeforeThisIndex_);
   template<typename T> inline static void insertInVector(std::vector<T> &vector_, const T &elementToInsert_, size_t insertBeforeThisIndex_);
@@ -190,6 +189,11 @@ namespace GenericToolbox{
   // Others
   template<typename T, typename TT> static inline T& getListEntry(std::list<T>& list_, TT index_);
   template<typename T, typename TT> static inline const T& getListEntry(const std::list<T>& list_, TT index_);
+
+  // deprecated
+  template <typename T> inline static bool doesElementIsInVector( const T& element_, const std::vector<T>& vector_ );
+  inline static bool doesElementIsInVector(const char* element_, const std::vector<std::string>& vector_);
+  template <typename Elm, typename Val, typename Lambda> inline static int doesElementIsInVector(const Val& value_, const std::vector<Elm>& vector_, const Lambda& fetchElmValueFct_);
 
 }
 
@@ -325,8 +329,9 @@ namespace GenericToolbox{
   static inline std::vector<std::string> getListOfFoldersInSubFolders(const std::string &folderPath_);
 
   // -- binary reader
-  template<typename T> static inline void fillData( std::ifstream& file_, T& buffer_ );
-  static inline void fillData( std::ifstream& file_, std::string& buffer_, size_t size_ );
+  template<typename T> static inline void fillData( std::istream& file_, T& buffer_ );
+  static inline void fillData( std::istream& file_, std::string& buffer_, size_t size_ );
+  template<typename T> static inline void fillData( std::istream& file_, std::any& buffer_ );
 
   template<typename T> static inline void writeData( std::ofstream& file_, const T& buffer_ );
   template<> inline void writeData( std::ofstream& file_, const std::string& buffer_ );
