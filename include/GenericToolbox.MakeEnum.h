@@ -156,6 +156,7 @@ struct MAKE_ENUM {
   static inline std::string toString( EnumType value_ ){ return toString( static_cast<EnumTypeName>(value_) ); }
   static inline std::string toString( StructType enum_ ){ return toString( enum_.value ); }
   [[nodiscard]] inline std::string toString() const { return toString( this->value ); }
+  friend std::ostream& operator<< (std::ostream& stream, const StructType& this_){ stream << this_.toString(); return stream; }
 
 };
 
