@@ -52,7 +52,7 @@ namespace GenericToolbox {
       return out;
     }
     template<typename J> inline auto getForwardedConfig(const J& config_, const std::string& keyName_) -> J{
-      return GenericToolbox::Json::getForwardedConfig<J>(GenericToolbox::Json::fetchValue<nlohmann::json>(config_, keyName_));
+      return GenericToolbox::Json::getForwardedConfig<J>(GenericToolbox::Json::fetchValue<J>(config_, keyName_));
     }
     template<typename J> inline void forwardConfig(J& config_, const std::string& className_){
       while( config_.is_string() ){
