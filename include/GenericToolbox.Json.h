@@ -36,8 +36,8 @@ namespace GenericToolbox {
     template<typename J, typename F> inline void deprecatedAction(const J& jsonConfig_, const std::string& keyName_, const F& action_);
 
     // template specialization when a string literal is passed:
-    template<std::size_t N> inline auto fetchValue(const nlohmann::json& jsonConfig_, const std::string& keyName_, const char (&defaultValue_)[N]) -> std::string { return fetchValue(jsonConfig_, keyName_, std::string(defaultValue_)); }
-    template<std::size_t N> inline auto fetchValue(const nlohmann::json& jsonConfig_, const std::vector<std::string>& keyName_, const char (&defaultValue_)[N]) -> std::string { return fetchValue(jsonConfig_, keyName_, std::string(defaultValue_)); }
+    template<std::size_t N, typename J> inline auto fetchValue(const J& jsonConfig_, const std::string& keyName_, const char (&defaultValue_)[N]) -> std::string { return fetchValue(jsonConfig_, keyName_, std::string(defaultValue_)); }
+    template<std::size_t N, typename J> inline auto fetchValue(const J& jsonConfig_, const std::vector<std::string>& keyName_, const char (&defaultValue_)[N]) -> std::string { return fetchValue(jsonConfig_, keyName_, std::string(defaultValue_)); }
     template<std::size_t N> inline auto fetchMatchingEntry(const nlohmann::json& jsonConfig_, const std::string& keyName_, const char (&keyValue_)[N]) -> nlohmann::json{ return fetchMatchingEntry(jsonConfig_, keyName_, std::string(keyValue_)); }
 
     // GUNDAM/ROOT specific
