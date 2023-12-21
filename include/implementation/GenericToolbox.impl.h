@@ -1482,11 +1482,6 @@ namespace GenericToolbox{
   template<typename T> static inline void fillData( std::istream& file_, T* buffer_, size_t size_ ){
     file_.read( reinterpret_cast<char*>(buffer_), sizeof(T)*size_ );
   }
-  template<typename T> static inline void fillData( std::istream& file_, std::any& buffer_ ){
-    T buffer{};
-    fillData(file_, buffer);
-    buffer_ = buffer;
-  }
   template<typename T, size_t N> static inline void fillData( std::istream& file_, std::array<T, N>& buffer_ ){
     file_.read( reinterpret_cast<char*>(buffer_.data()), sizeof(T)*N );
   }

@@ -126,7 +126,8 @@ namespace GenericToolbox {
     }
     template<typename J> inline std::vector<std::string> ls(const J& jsonConfig_){
       std::vector<std::string> out{};
-      for( const auto& entry : jsonConfig_.template get<J::object_t>() ){ out.emplace_back(entry.first); }
+      out.reserve( jsonConfig_.size() );
+      for (auto& entry : jsonConfig_.items()){ out.emplace_back( entry.key() ); }
       return out;
     }
     template<typename J> inline auto fetchSubEntry(const J& jsonConfig_, const std::vector<std::string>& keyPath_) -> J {
@@ -151,7 +152,8 @@ namespace GenericToolbox {
       }
 
       std::vector<std::string> conditionsList;
-      for( auto& condEntry : GenericToolbox::Json::fetchValue<std::vector<J>>(jsonConfig_, keyName_) ){
+      auto jsonList{ GenericToolbox::Json::fetchValue<J>(jsonConfig_, keyName_) };
+      for( auto& condEntry : jsonList ){
         if( condEntry.is_string() ){
           conditionsList.emplace_back(condEntry.template get<std::string>());
         }
@@ -218,7 +220,7 @@ namespace GenericToolbox {
       }
       return elm.template get<T>();
     }
-    template<typename J, typename T> inline J fetchMatchingEntry(const J& jsonConfig_, const std::string& keyName_, const T& keyValue_){
+    template<typename J, typename T> inline auto fetchMatchingEntry(const J& jsonConfig_, const std::string& keyName_, const T& keyValue_) -> J{
 
       if( not jsonConfig_.is_array() ){
         std::cout << "key: " << keyName_ << std::endl;
@@ -245,17 +247,6 @@ namespace GenericToolbox {
         std::cout << "DEPRECATED option: \"" << keyName_ << "\". Running defined action..." << std::endl;
         action_();
       }
-    }
-
-    // specialization
-    template<typename J, std::size_t N> inline auto fetchValue(const J& jsonConfig_, const std::string& keyName_, const char (&defaultValue_)[N]) -> std::string{
-      return fetchValue(jsonConfig_, keyName_, std::string(defaultValue_));
-    }
-    template<typename J, std::size_t N> inline auto fetchValue(const J& jsonConfig_, const std::vector<std::string>& keyName_, const char (&defaultValue_)[N]) -> std::string{
-      return fetchValue(jsonConfig_, keyName_, std::string(defaultValue_));
-    }
-    template<typename J, std::size_t N> inline auto fetchMatchingEntry(const J& jsonConfig_, const std::string& keyName_, const char (&keyValue_)[N]) -> J {
-      return fetchMatchingEntry(jsonConfig_, keyName_, std::string(keyValue_));
     }
 
   }

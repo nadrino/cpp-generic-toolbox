@@ -331,7 +331,6 @@ namespace GenericToolbox{
   // -- binary reader
   template<typename T> static inline void fillData( std::istream& file_, T& buffer_ );
   static inline void fillData( std::istream& file_, std::string& buffer_, size_t size_ );
-  template<typename T> static inline void fillData( std::istream& file_, std::any& buffer_ );
 
   template<typename T> static inline void writeData( std::ofstream& file_, const T& buffer_ );
   template<> inline void writeData( std::ofstream& file_, const std::string& buffer_ );
