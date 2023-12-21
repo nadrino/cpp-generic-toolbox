@@ -13,34 +13,43 @@
 #include <iostream>
 
 
-namespace GenericToolbox { namespace Json {
+namespace GenericToolbox {
+  namespace Json {
 
-  inline nlohmann::json readConfigJsonStr(const std::string& configJsonStr_);
-  inline nlohmann::json readConfigFile(const std::string& configFilePath_);
-  inline nlohmann::json getForwardedConfig(const nlohmann::json& config_);
-  inline nlohmann::json getForwardedConfig(const nlohmann::json& config_, const std::string& keyName_);
-  inline void forwardConfig(nlohmann::json& config_, const std::string& className_ = "");
-  inline void unfoldConfig(nlohmann::json& config_);
-  inline std::string toReadableString(const nlohmann::json& config_);
+    template<typename J> inline auto readConfigJsonStr(const std::string& configJsonStr_) -> J;
+    template<typename J> inline auto readConfigFile(const std::string& configFilePath_) -> J;
+    template<typename J> inline auto getForwardedConfig(const J& config_);
+    template<typename J> inline auto getForwardedConfig(const J& config_, const std::string& keyName_);
+    template<typename J> inline void forwardConfig(J& config_, const std::string& className_ = "");
+    template<typename J> inline void unfoldConfig(J& config_);
+    template<typename J> inline std::string toReadableString(const J& config_);
 
-  inline std::vector<std::string> ls(const nlohmann::json& jsonConfig_);
-  inline bool doKeyExist(const nlohmann::json& jsonConfig_, const std::string& keyName_);
-  inline nlohmann::json fetchSubEntry(const nlohmann::json& jsonConfig_, const std::vector<std::string>& keyPath_);
-  template<class T> inline auto fetchValue(const nlohmann::json& jsonConfig_, const std::string& keyName_) -> T;
-  template<class T> inline auto fetchValue(const nlohmann::json& jsonConfig_, const std::vector<std::string>& keyNames_) -> T;
-  template<class T> inline auto fetchValue(const nlohmann::json& jsonConfig_, const std::string& keyName_, const T& defaultValue_) -> T;
-  template<class T> inline auto fetchValue(const nlohmann::json& jsonConfig_, const std::vector<std::string>& keyName_, const T& defaultValue_) -> T;
-  template<class T> inline auto fetchValuePath(const nlohmann::json& jsonConfig_, const std::string& keyNamePath_) -> T;
-  template<class T> inline nlohmann::json fetchMatchingEntry(const nlohmann::json& jsonConfig_, const std::string& keyName_, const T& keyValue_);
-  template<typename F> inline void deprecatedAction(const nlohmann::json& jsonConfig_, const std::string& keyName_, const F& action_);
+    template<typename J> inline std::vector<std::string> ls(const J& jsonConfig_);
+    template<typename J> inline bool doKeyExist(const J& jsonConfig_, const std::string& keyName_);
+    template<typename J> inline auto fetchSubEntry(const J& jsonConfig_, const std::vector<std::string>& keyPath_);
+    template<typename J, typename T> inline auto fetchValue(const J& jsonConfig_, const std::string& keyName_) -> T;
+    template<typename T, typename J> inline auto fetchValue(const J& jsonConfig_, const std::vector<std::string>& keyNames_) -> T;
+    template<typename T, typename J> inline auto fetchValue(const J& jsonConfig_, const std::string& keyName_, const T& defaultValue_) -> T;
+    template<typename T, typename J> inline auto fetchValue(const J& jsonConfig_, const std::vector<std::string>& keyName_, const T& defaultValue_) -> T;
+    template<typename T, typename J> inline auto fetchValuePath(const J& jsonConfig_, const std::string& keyNamePath_) -> T;
+    template<typename T, typename J> inline auto fetchMatchingEntry(const J& jsonConfig_, const std::string& keyName_, const T& keyValue_) -> J;
+    template<typename J, typename F> inline void deprecatedAction(const J& jsonConfig_, const std::string& keyName_, const F& action_);
 
-  // template specialization when a string literal is passed:
-  template<std::size_t N> inline auto fetchValue(const nlohmann::json& jsonConfig_, const std::string& keyName_, const char (&defaultValue_)[N]) -> std::string;
-  template<std::size_t N> inline auto fetchValue(const nlohmann::json& jsonConfig_, const std::vector<std::string>& keyName_, const char (&defaultValue_)[N]) -> std::string;
-  template<std::size_t N> inline nlohmann::json fetchMatchingEntry(const nlohmann::json& jsonConfig_, const std::string& keyName_, const char (&keyValue_)[N]);
+    // template specialization when a string literal is passed:
+    template<typename J, std::size_t N> inline auto fetchValue(const J& jsonConfig_, const std::string& keyName_, const char (&defaultValue_)[N]) -> std::string;
+    template<typename J, std::size_t N> inline auto fetchValue(const J& jsonConfig_, const std::vector<std::string>& keyName_, const char (&defaultValue_)[N]) -> std::string;
+    template<typename J, std::size_t N> inline auto fetchMatchingEntry(const J& jsonConfig_, const std::string& keyName_, const char (&keyValue_)[N]) -> J;
 
+    // GUNDAM/ROOT specific
+    template<typename J> inline std::string buildFormula(const J& jsonConfig_, const std::string& keyName_, const std::string& joinStr_);
+    template<typename J> inline std::string buildFormula(const J& jsonConfig_, const std::string& keyName_, const std::string& joinStr_, const std::string& defaultFormula_);
 
-}};
+    // defaults
+    inline nlohmann::json readConfigJsonStr(const std::string& configJsonStr_) { return readConfigJsonStr<nlohmann::json>(configJsonStr_); }
+    inline nlohmann::json readConfigFile(const std::string& configJsonStr_) { return readConfigFile<nlohmann::json>(configJsonStr_); }
+
+  }
+};
 
 
 #include "implementation/GenericToolbox.Json.impl.h"

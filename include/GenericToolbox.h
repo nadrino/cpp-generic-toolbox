@@ -149,10 +149,10 @@ namespace GenericToolbox {
 namespace GenericToolbox{
 
   // Content management
-  template <typename T> inline static bool doesElementIsInVector( const T& element_, const std::vector<T>& vector_ );
-  inline static bool doesElementIsInVector(const char* element_, const std::vector<std::string>& vector_);
-  template <typename Elm, typename Val, typename Lambda> inline static int doesElementIsInVector(const Val& value_, const std::vector<Elm>& vector_, const Lambda& fetchElmValueFct_);
-  template <typename T> inline static int findElementIndex( const T& element_, const std::vector<T>& vector_ );
+  template<typename Elem, typename Cont> inline static bool isIn( const Elem& element_, const Cont& container_ );
+  template<typename Elem, typename Cont, typename Lambda> inline static bool isIn( const Elem& element_, const Cont& container_, const Lambda& fetchElem_ );
+
+  template<typename T> inline static int findElementIndex( const T& element_, const std::vector<T>& vector_ );
   inline static int findElementIndex(const char* element_, const std::vector<std::string>& vector_ );
   template<typename T> inline static void insertInVector(std::vector<T> &vector_, const std::vector<T> &vectorToInsert_, size_t insertBeforeThisIndex_);
   template<typename T> inline static void insertInVector(std::vector<T> &vector_, const T &elementToInsert_, size_t insertBeforeThisIndex_);
@@ -189,6 +189,11 @@ namespace GenericToolbox{
   // Others
   template<typename T, typename TT> static inline T& getListEntry(std::list<T>& list_, TT index_);
   template<typename T, typename TT> static inline const T& getListEntry(const std::list<T>& list_, TT index_);
+
+  // deprecated
+  template <typename T> inline static bool doesElementIsInVector( const T& element_, const std::vector<T>& vector_ );
+  inline static bool doesElementIsInVector(const char* element_, const std::vector<std::string>& vector_);
+  template <typename Elm, typename Val, typename Lambda> inline static int doesElementIsInVector(const Val& value_, const std::vector<Elm>& vector_, const Lambda& fetchElmValueFct_);
 
 }
 
@@ -248,11 +253,13 @@ namespace GenericToolbox{
   template<typename ... Args> static inline std::string formatString(const std::string& strToFormat_, Args ... args );
 
   // -- Conversion Tools
+  template<typename T, size_t N> static inline std::string toString(const std::array<T, N>& array_);
   static inline std::string toHex(const void* address_, size_t nBytes_);
   template<typename T> static inline std::string toHex(const T& val_);
   template<typename T> static inline std::string toHexString(T integerVal_, size_t nbDigit_ = 0);
   template<typename T> static inline std::string stackToHex(const std::vector<T> &rawData_, size_t stackSize_);
   static inline bool toBool(const std::string& str);
+
 
 }
 
@@ -320,6 +327,14 @@ namespace GenericToolbox{
   static inline std::vector<std::string> getListOfEntriesInSubFolders(const std::string &folderPath_, int type_ = -1);
   static inline std::vector<std::string> getListOfFilesInSubFolders(const std::string &folderPath_);
   static inline std::vector<std::string> getListOfFoldersInSubFolders(const std::string &folderPath_);
+
+  // -- binary reader
+  template<typename T> static inline void fillData( std::istream& file_, T& buffer_ );
+  static inline void fillData( std::istream& file_, std::string& buffer_, size_t size_ );
+  template<typename T> static inline void fillData( std::istream& file_, std::any& buffer_ );
+
+  template<typename T> static inline void writeData( std::ofstream& file_, const T& buffer_ );
+  template<> inline void writeData( std::ofstream& file_, const std::string& buffer_ );
 
 }
 

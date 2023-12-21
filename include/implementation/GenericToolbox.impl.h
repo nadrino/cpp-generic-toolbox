@@ -196,6 +196,13 @@ namespace GenericToolbox{
 namespace GenericToolbox {
 
   // Content management
+  template<typename Elem, typename Cont> inline static bool isIn( const Elem& element_, const Cont& container_ ){
+    return std::find(container_.cbegin(), container_.cend(), element_) != container_.cend();
+  }
+  template<typename Elem, typename Cont, typename Lambda> inline static bool isIn( const Elem& element_, const Cont& container_, const Lambda& fetchElem_ ){
+    return std::find_if( container_.begin(), container_.end(), [&](const Elem& t){ return fetchElem_(t) == element_; }) != container_.end();
+  }
+
   template <typename T> inline static bool doesElementIsInVector(const T& element_, const std::vector<T>& vector_){
     return std::find(vector_.cbegin(), vector_.cend(), element_) != vector_.cend();
   }
@@ -833,6 +840,9 @@ namespace GenericToolbox {
 // Conversion Tools
 namespace GenericToolbox {
 
+  template<typename T, size_t N> static inline std::string toString(const std::array<T, N>& array_){
+    return std::string(std::begin(array_), std::end(array_));
+  }
   static inline std::string toHex(const void* address_, size_t nBytes_){
     std::stringstream ss(std::string(2*nBytes_, 0));
     unsigned char* address{(unsigned char*)(address_) + nBytes_-1};
@@ -1464,6 +1474,33 @@ namespace GenericToolbox{
   }
   static inline std::vector<std::string> getListOfFoldersInSubFolders(const std::string &folderPath_){
     return getListOfEntriesInSubFolders(folderPath_, DT_DIR);
+  }
+
+  template<typename T> static inline void fillData( std::istream& file_, T& buffer_ ){
+    file_.read( reinterpret_cast<char*>(&buffer_), sizeof(T) );
+  }
+  template<typename T> static inline void fillData( std::istream& file_, T* buffer_, size_t size_ ){
+    file_.read( reinterpret_cast<char*>(buffer_), sizeof(T)*size_ );
+  }
+  template<typename T> static inline void fillData( std::istream& file_, std::any& buffer_ ){
+    T buffer{};
+    fillData(file_, buffer);
+    buffer_ = buffer;
+  }
+  template<typename T, size_t N> static inline void fillData( std::istream& file_, std::array<T, N>& buffer_ ){
+    file_.read( reinterpret_cast<char*>(buffer_.data()), sizeof(T)*N );
+  }
+  static inline void fillData( std::istream& file_, std::string& buffer_, size_t size_ ){
+    buffer_.clear();
+    buffer_.resize(size_);
+    file_.read( buffer_.data(), long(size_) );
+  }
+
+  template<typename T> static inline void writeData( std::ofstream& file_, const T& buffer_ ){
+    file_.write( reinterpret_cast<const char*>(&buffer_), sizeof(T) );
+  }
+  template<> inline void writeData( std::ofstream& file_, const std::string& buffer_ ){
+    file_.write( buffer_.data(), long(buffer_.size()) );
   }
 
 }

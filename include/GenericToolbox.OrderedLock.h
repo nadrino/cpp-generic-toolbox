@@ -1,5 +1,5 @@
 //
-// Created by Adrien BLANCHET on 01/02/2022.
+// Created by Nadrino on 01/02/2022.
 //
 
 #ifndef CPP_GENERIC_TOOLBOX_GENERICTOOLBOX_ORDEREDLOCK_H

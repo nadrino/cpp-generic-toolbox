@@ -1,5 +1,5 @@
 //
-// Created by Adrien Blanchet on 15/10/2023.
+// Created by Nadrino on 15/10/2023.
 //
 
 #ifndef GENERIC_TOOLBOX_ZIP_ITERATOR_H

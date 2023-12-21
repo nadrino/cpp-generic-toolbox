@@ -1,5 +1,5 @@
 //
-// Created by Adrien Blanchet on 23/02/2023.
+// Created by Nadrino on 23/02/2023.
 //
 
 #ifndef GUNDAM_GENERICTOOLBOX_CORRELATEDVARIABLESSAMPLER_H
