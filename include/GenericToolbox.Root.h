@@ -26,7 +26,13 @@
 #include <map>
 #include <string>
 
-
+//! User Parameters
+//! (CAVEAT: only set for a given source file)
+namespace GenericToolbox{
+  namespace Parameters{
+    static int _verboseLevel_ = 0;
+  }
+}
 
 namespace GenericToolbox{
 
