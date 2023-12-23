@@ -2,8 +2,8 @@
 // Created by Nadrino on 01/09/2020.
 //
 
-#ifndef CPP_GENERIC_TOOLBOX_GENERICTOOLBOX_ROOT_H
-#define CPP_GENERIC_TOOLBOX_GENERICTOOLBOX_ROOT_H
+#ifndef CPP_GENERIC_TOOLBOX_ROOT_H
+#define CPP_GENERIC_TOOLBOX_ROOT_H
 
 // GenericToolbox
 #include "GenericToolbox.AnyType.h"
@@ -23,10 +23,16 @@
 #include "TSpline.h"
 
 // STD Headers
-#include <map>
 #include <string>
+#include <map>
 
-
+//! User Parameters
+//! (CAVEAT: only set for a given source file)
+namespace GenericToolbox{
+  namespace Parameters{
+    static int _verboseLevel_ = 0;
+  }
+}
 
 namespace GenericToolbox{
 
@@ -162,4 +168,4 @@ namespace GenericToolbox{
 
 #include "implementation/GenericToolbox.Root.impl.h"
 
-#endif //CPP_GENERIC_TOOLBOX_GENERICTOOLBOX_ROOT_H
+#endif // CPP_GENERIC_TOOLBOX_ROOT_H

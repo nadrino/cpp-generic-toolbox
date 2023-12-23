@@ -5,11 +5,18 @@
 #ifndef CPP_GENERIC_TOOLBOX_TIME_H
 #define CPP_GENERIC_TOOLBOX_TIME_H
 
-#include <string>
-
 // ***************************
 //! Time related tools
 // ***************************
+
+#include <sstream>
+#include <iomanip>
+#include <string>
+#include <map>
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-function"
+#pragma GCC diagnostic ignored "-Wunused-variable"
 
 
 // Declaration section
@@ -25,10 +32,7 @@ namespace GenericToolbox{
 }
 
 
-#include <sstream>
-#include <map>
-
-
+// Implementation section
 namespace GenericToolbox{
 
   namespace Time{
