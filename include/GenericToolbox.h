@@ -3,38 +3,42 @@
 //
 
 #pragma once
-#ifndef CPP_GENERIC_TOOLBOX_GENERICTOOLBOX_H
-#define CPP_GENERIC_TOOLBOX_GENERICTOOLBOX_H
+#ifndef CPP_GENERIC_TOOLBOX_H
+#define CPP_GENERIC_TOOLBOX_H
+
+#include "GenericToolbox.Time.h"
+#include "GenericToolbox.Os.h"
+
+
+// Pre-proc parameters
+#include "implementation/GenericToolbox.param.h"
+
+#include <functional>
+#include <sstream>
+#include <thread>
+#include <string>
+#include <vector>
+#include <chrono>
+#include <array>
+#include <list>
+#include <map>
 
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-function"
 #pragma GCC diagnostic ignored "-Wunused-variable"
 
-// Pre-proc parameters
-#include "implementation/GenericToolbox.param.h"
-
-
 #define HAS_CPP_17 (__cplusplus >= 201703L)
 #define HAS_CPP_14 (__cplusplus >= 201300L)
 #define HAS_CPP_11 (__cplusplus >= 201103L)
 
-
-#include <map>
-#include <list>
-#include <array>
-#include <string>
-#include <vector>
-#include <chrono>
-#include <thread>
-#include <sstream>
-#include <functional>
-
-
-#define USE_FILESYSTEM 0
+#define USE_FILESYSTEM 0 // experimental
 #if HAS_CPP_17 && USE_FILESYSTEM
 #include "filesystem"
 #endif
+
+
+
 
 
 
@@ -264,15 +268,6 @@ namespace GenericToolbox{
 }
 
 
-//! Operating System Tools
-namespace GenericToolbox{
-
-  static inline std::string getHomeDirectory();
-  static inline std::string getCurrentWorkingDirectory();
-  static inline std::string expandEnvironmentVariables(const std::string &filePath_);
-  static inline std::string getExecutableName(); // untested on windows platform
-
-}
 
 
 //! File System Tools
@@ -338,37 +333,7 @@ namespace GenericToolbox{
 }
 
 
-//! Hardware Tools
-namespace GenericToolbox{
 
-  static inline size_t getProcessMemoryUsage();
-  static inline size_t getProcessMaxMemoryUsage();
-  static inline double getCpuUsageByProcess();
-  static inline long getProcessMemoryUsageDiffSinceLastCall();
-  static inline double getFreeDiskSpacePercent( const std::string& path_ );
-  static inline unsigned long long getFreeDiskSpace( const std::string& path_ );
-  static inline unsigned long long getTotalDiskSpace( const std::string& path_ );
-  static inline int getTerminalWidth();
-  static inline int getTerminalHeight();
-  static inline std::vector<std::string> getOutputOfShellCommand(const std::string& cmd_);
-
-  namespace Hardware{
-      static size_t lastProcessMemoryUsage = 0;
-  }
-}
-
-
-//! Time Tools
-namespace GenericToolbox{
-
-  static inline std::string parseTimeUnit(double nbMicroSec_, int maxPadSize_=-1);
-  static inline std::string getElapsedTimeSinceLastCallStr(const std::string& key_);
-  static inline std::string getElapsedTimeSinceLastCallStr(int instance_ = -1);
-  static inline long long getElapsedTimeSinceLastCallInMicroSeconds(const std::string& key_);
-  static inline long long getElapsedTimeSinceLastCallInMicroSeconds(int instance = -1);
-  static inline std::string getNowDateString(const std::string& dateFormat_="%Y_%m_%d-%H_%M_%S");
-
-}
 
 
 //! Polymorphism Tools
@@ -386,12 +351,6 @@ namespace GenericToolbox{
   //! Misc Tools
   static inline std::string getClassName(const std::string& PRETTY_FUNCTION_); // When calling this functions, provide __PRETTY_FUNCTION__ macro
   static inline std::string getMethodName(const std::string& PRETTY_FUNCTION_);
-
-  // Not intended to be managed by the user
-  namespace Internals{
-    static std::map<int, std::chrono::high_resolution_clock::time_point> _lastTimePointMap_;
-    static std::map<std::string, std::chrono::high_resolution_clock::time_point> _lastTimePointMapStr_;
-  }
 
 }
 
@@ -427,4 +386,4 @@ namespace GenericToolbox{
 
 
 
-#endif //CPP_GENERIC_TOOLBOX_GENERICTOOLBOX_H
+#endif // CPP_GENERIC_TOOLBOX_H
