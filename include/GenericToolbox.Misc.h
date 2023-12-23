@@ -5,14 +5,12 @@
 #ifndef CPP_GENERIC_TOOLBOX_MISC_H
 #define CPP_GENERIC_TOOLBOX_MISC_H
 
-#include <GenericToolbox.Macro.h>
 #include <typeindex>
 #include <string>
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-function"
 #pragma GCC diagnostic ignored "-Wunused-variable"
-
 
 // Declaration section
 namespace GenericToolbox{
@@ -76,6 +74,10 @@ namespace GenericToolbox{
 
 }
 
+//! MACROS Tools
+#define __CLASS_NAME__ GenericToolbox::getClassName(__PRETTY_FUNCTION__)
+//#define __CLASS_NAME__ ( this != nullptr ? typeid(*this).name() )
+#define __METHOD_NAME__ GenericToolbox::getMethodName(__PRETTY_FUNCTION__)
 
 
 #endif // CPP_GENERIC_TOOLBOX_MISC_H

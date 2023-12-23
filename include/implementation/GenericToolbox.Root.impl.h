@@ -2,11 +2,16 @@
 // Created by Nadrino on 01/09/2020.
 //
 
-#ifndef CPP_GENERIC_TOOLBOX_GENERICTOOLBOX_ROOT_IMPL_H
-#define CPP_GENERIC_TOOLBOX_GENERICTOOLBOX_ROOT_IMPL_H
+#ifndef CPP_GENERIC_TOOLBOX_ROOT_IMPL_H
+#define CPP_GENERIC_TOOLBOX_ROOT_IMPL_H
 
 // This Project
-#include <GenericToolbox.h>
+#include "GenericToolbox.ProgressBar.h"
+#include "GenericToolbox.Misc.h"
+#include "GenericToolbox.Vector.h"
+#include "GenericToolbox.Os.h"
+#include "GenericToolbox.Fs.h"
+#include "GenericToolbox.Macro.h"
 
 // ROOT Headers
 #include <TMatrixDSymEigen.h>
@@ -1263,4 +1268,4 @@ namespace GenericToolbox{
 }
 
 
-#endif //CPP_GENERIC_TOOLBOX_GENERICTOOLBOX_ROOT_IMPL_H
+#endif //CPP_GENERIC_TOOLBOX_ROOT_IMPL_H

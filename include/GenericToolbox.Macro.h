@@ -5,6 +5,8 @@
 #ifndef CPP_GENERIC_TOOLBOX_MACRO_H
 #define CPP_GENERIC_TOOLBOX_MACRO_H
 
+#include <sstream>
+
 #define HAS_CPP_17 (__cplusplus >= 201703L)
 #define HAS_CPP_14 (__cplusplus >= 201300L)
 #define HAS_CPP_11 (__cplusplus >= 201103L)
@@ -13,11 +15,6 @@
 #ifndef __FILENAME__
 #define __FILENAME__ (strrchr(__FILE__, '/') ? strrchr(__FILE__, '/') + 1 : __FILE__)
 #endif
-
-//! MACROS Tools
-#define __CLASS_NAME__ GenericToolbox::getClassName(__PRETTY_FUNCTION__)
-//#define __CLASS_NAME__ ( this != nullptr ? typeid(*this).name() )
-#define __METHOD_NAME__ GenericToolbox::getMethodName(__PRETTY_FUNCTION__)
 
 #define GET_VAR_NAME_VALUE(var) ( ((std::stringstream&) (std::stringstream() << #var << " = " << (var)) ).str() )
 #define GET_VAR_NAME_VALUE_STREAM(var) #var << " = " << var
