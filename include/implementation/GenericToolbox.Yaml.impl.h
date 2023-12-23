@@ -18,7 +18,7 @@
 namespace GenericToolbox { namespace Yaml {
 
   inline YAML::Node readConfigFile(const std::string &configFilePath_) {
-    if( not GenericToolbox::doesPathIsFile(configFilePath_) ){
+    if( not GenericToolbox::isFile(configFilePath_) ){
       std::cout << "\"" << configFilePath_ << "\" could not be found." << std::endl;
       throw std::runtime_error("file not found.");
     }

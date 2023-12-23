@@ -31,12 +31,12 @@
 // Declaration section
 namespace GenericToolbox{
 
-  // -- without IO dependencies (string parsing)
-  static bool doesFilePathHasExtension(const std::string &filePath_, const std::string &extension_);
-  static std::string getFileExtension(const std::string& filePath_);
-  static std::string getFolderPathFromFilePath(const std::string &filePath_);
-  static std::string getFileNameFromFilePath(const std::string &filePath_, bool keepExtension_ = true);
-  static std::string replaceFileExtension(const std::string& filePath_, const std::string& newExtension_);
+  // -- no IO dependencies (string parsing)
+  static bool hasExtension(const std::string &filePath_, const std::string &extension_);
+  static std::string getExtension(const std::string& filePath_);
+  static std::string getFolderPath(const std::string &filePath_);
+  static std::string getFileName(const std::string &filePath_, bool withExtension_ = true);
+  static std::string replaceExtension(const std::string& filePath_, const std::string& newExtension_);
 
   // primary join path
   template<typename T1, typename T2> static std::string joinPath(const T1& str1_, const T2& str2_);
@@ -55,31 +55,33 @@ namespace GenericToolbox{
 #endif
 
   // -- with direct IO dependencies
-  static bool doesPathIsValid(const std::string &filePath_);
-  static bool doesPathIsFile(const std::string &filePath_);
-  static bool doesPathIsFolder(const std::string &folderPath_);
-  static bool doFilesAreTheSame(const std::string &filePath1_, const std::string &filePath2_);
-  static bool mkdirPath(const std::string &newFolderPath_);
-  static bool deleteFile(const std::string &filePath_);
-  static bool isFolderEmpty(const std::string &dirPath_);
-  static bool deleteEmptyDirectory(const std::string &dirPath_);
-  static bool copyFile(const std::string &source_file_path_, const std::string &destination_file_path_, bool force_ = false);
-  static bool mvFile(const std::string &sourceFilePath_, const std::string &destinationFilePath_, bool force_ = false);
+  static bool isPathValid(const std::string &filePath_);
+  static bool isFile(const std::string &filePath_);
+  static bool isDir(const std::string &dirPath_);
+  static bool areSameFiles(const std::string &filePath1_, const std::string &filePath2_);
+
+  // unix-like commands
+  static bool mkdir(const std::string &dirPath_);
+  static bool rm(const std::string &filePath_);
+  static bool mv(const std::string &src_, const std::string &destination_, bool force_ = false);
+  static bool cp(const std::string &src_, const std::string &destination_, bool force_ = false);
+  static bool rmDir(const std::string &dirPath_); // works for empty dirs
+
   static size_t getHashFile(const std::string &filePath_);
   static ssize_t getFileSize(const std::string& path_);
   static long int getFileSizeInBytes(const std::string &filePath_);
   static void dumpStringInFile(const std::string &outFilePath_, const std::string &stringToWrite_);
   static std::string dumpFileAsString(const std::string &filePath_);
   static std::vector<std::string> dumpFileAsVectorString(const std::string &filePath_, bool skipEmptyLines_=false);
-  static std::vector<std::string> getListOfEntriesInFolder(const std::string &folderPath_, const std::string &entryNameRegex_ = "", int type_=-1, size_t maxEntries_ = 0);
-  static std::vector<std::string> getListOfSubFoldersInFolder(const std::string &folderPath_, const std::string &entryNameRegex_ = "", size_t maxEntries_ = 0);
-  static std::vector<std::string> getListOfFilesInFolder(const std::string &folderPath_, const std::string &entryNameRegex_ = "", size_t maxEntries_ = 0);
+  static std::vector<std::string> getListOfEntriesInFolder(const std::string &dirPath_, const std::string &entryNameRegex_ = "", int type_=-1, size_t maxEntries_ = 0);
+  static std::vector<std::string> getListOfSubFoldersInFolder(const std::string &dirPath_, const std::string &entryNameRegex_ = "", size_t maxEntries_ = 0);
+  static std::vector<std::string> getListOfFilesInFolder(const std::string &dirPath_, const std::string &entryNameRegex_ = "", size_t maxEntries_ = 0);
 
   // -- with indirect IO dependencies
-  static bool doesFolderIsEmpty(const std::string &folderPath_);
-  static std::vector<std::string> getListOfEntriesInSubFolders(const std::string &folderPath_, int type_ = -1);
-  static std::vector<std::string> getListOfFilesInSubFolders(const std::string &folderPath_);
-  static std::vector<std::string> getListOfFoldersInSubFolders(const std::string &folderPath_);
+  static bool isDirEmpty(const std::string &dirPath_);
+  static std::vector<std::string> getListOfEntriesInSubFolders(const std::string &dirPath_, int type_ = -1);
+  static std::vector<std::string> getListOfFilesInSubFolders(const std::string &dirPath_);
+  static std::vector<std::string> getListOfFoldersInSubFolders(const std::string &dirPath_);
 
   // -- binary reader
   template<typename T> static void fillData( std::istream& file_, T& buffer_ );
@@ -95,28 +97,28 @@ namespace GenericToolbox{
 namespace GenericToolbox{
 
   // -- without IO dependencies (string parsing)
-  static bool doesFilePathHasExtension(const std::string &filePath_, const std::string &extension_){
+  static bool hasExtension(const std::string &filePath_, const std::string &extension_){
     return endsWith(filePath_, "." + extension_);
   }
-  static std::string getFileExtension(const std::string& filePath_){
+  static std::string getExtension(const std::string& filePath_){
     if( filePath_.find_last_of('.') == size_t(-1) ) return {};
     return filePath_.substr(filePath_.find_last_of('.') + 1);
   }
-  static std::string getFolderPathFromFilePath(const std::string &filePath_){
+  static std::string getFolderPath(const std::string &filePath_){
     if( filePath_.find_last_of("/\\") == size_t(-1) ) return {};
     return filePath_.substr(0,filePath_.find_last_of("/\\"));
   }
-  static std::string getFileNameFromFilePath(const std::string &filePath_, bool keepExtension_){
+  static std::string getFileName(const std::string &filePath_, bool withExtension_){
 #if HAS_CPP_17 && USE_FILESYSTEM
     std::filesystem::path pathObj(filePath_);
     return ( keepExtension_ ? pathObj.filename().string() : pathObj.stem().string());
 #else
     const size_t pos = filePath_.find_last_of("/\\");
     const std::string filename = ( pos != std::string::npos ) ? filePath_.substr(pos + 1) : filePath_;
-    return ( keepExtension_ or filename.find('.') == std::string::npos ) ? filename : filename.substr(0, filename.find_last_of('.'));
+    return ( withExtension_ or filename.find('.') == std::string::npos ) ? filename : filename.substr(0, filename.find_last_of('.'));
 #endif
   }
-  static std::string replaceFileExtension(const std::string& filePath_, const std::string& newExtension_){
+  static std::string replaceExtension(const std::string& filePath_, const std::string& newExtension_){
     if( newExtension_.empty() ) return filePath_.substr(0, filePath_.find_last_of('.'));
     return filePath_.substr(0, filePath_.find_last_of('.')) + "." + newExtension_;
   }
@@ -177,23 +179,23 @@ namespace GenericToolbox{
 #endif
 
   // -- with direct IO dependencies
-  static inline bool doesPathIsValid(const std::string &filePath_){
+  static inline bool isPathValid(const std::string &filePath_){
     return ( access( filePath_.c_str(), F_OK ) == 0 );
   }
-  static inline bool doesPathIsFile(const std::string &filePath_){
+  static inline bool isFile(const std::string &filePath_){
     struct stat info{};
     if( lstat(filePath_.c_str(), &info) != 0 ){ return false; /* Error occurred */ }
     return S_ISREG(info.st_mode);
   }
-  static inline bool doesPathIsFolder(const std::string &folderPath_){
+  static inline bool isDir(const std::string &dirPath_){
     struct stat info{};
-    if( lstat(folderPath_.c_str(), &info) != 0 ){ return false; /* Error occurred */ }
+    if( lstat(dirPath_.c_str(), &info) != 0 ){ return false; /* Error occurred */ }
     return S_ISDIR(info.st_mode);
   }
-  static inline bool doFilesAreTheSame(const std::string &filePath1_, const std::string &filePath2_){
+  static inline bool areSameFiles(const std::string &filePath1_, const std::string &filePath2_){
 
-    if( not doesPathIsFile(filePath1_) ) return false;
-    if( not doesPathIsFile(filePath2_) ) return false;
+    if( not isFile(filePath1_) ) return false;
+    if( not isFile(filePath2_) ) return false;
 
     std::ifstream fileStream1(filePath1_);
     std::ifstream fileStream2(filePath2_);
@@ -233,13 +235,15 @@ namespace GenericToolbox{
 
     return true;
   }
-  static inline bool mkdirPath(const std::string &newFolderPath_){
+
+  // unix-like commands
+  static inline bool mkdir(const std::string &dirPath_){
     bool result = false;
-    if(doesPathIsFolder(newFolderPath_)) return true;
+    if( isDir(dirPath_) ){ return true; }
 
     std::string current_level;
     std::string level;
-    std::stringstream ss(newFolderPath_);
+    std::stringstream ss(dirPath_);
 
     // split path using slash as a separator
     while (std::getline(ss, level, '/')){
@@ -247,7 +251,7 @@ namespace GenericToolbox{
       if(current_level.empty()) current_level = "/";
       current_level = removeRepeatedCharacters(current_level, "/");
       // create current level
-      if(not doesPathIsFolder(current_level)){
+      if( not isDir(current_level) ){
         ::mkdir(current_level.c_str(), 0777);
         result = true;
       }
@@ -255,9 +259,8 @@ namespace GenericToolbox{
     }
 
     return result;
-
   }
-  static inline bool deleteFile(const std::string &filePath_){
+  static inline bool rm(const std::string &filePath_){
     // not using ::delete as if the specified file path is a symbolic link,
     // it deletes the link and the file or directory that the link refers to
 
@@ -265,48 +268,38 @@ namespace GenericToolbox{
     // only the link itself is deleted, not the file or directory that the link refers to
     return ( ::unlink(filePath_.c_str()) == 0 );
   }
-  static inline bool isFolderEmpty(const std::string &dirPath_){
-    return getListOfEntriesInFolder( dirPath_ ).empty();
-  }
-  static inline bool deleteEmptyDirectory(const std::string &dirPath_){
-    return (::rmdir(dirPath_.c_str()) == 0);
-  }
-  static inline bool copyFile(const std::string &source_file_path_, const std::string &destination_file_path_, bool force_){
+  static inline bool mv(const std::string &src_, const std::string &destination_, bool force_){
+    if( not isPathValid(src_) ){ return false; }
 
-    if( not doesPathIsFile(source_file_path_) ){
-      return false;
+    if( isFile(destination_) ){
+      if(force_){ rm(destination_); }
+      else{ return false; }
+    }
+    else{
+      std::string destination_folder_path = getFolderPath(destination_);
+      if(not isFile(destination_folder_path)){ mkdir(destination_folder_path); }
     }
 
-    if( doesPathIsFile(destination_file_path_) ){
-      if( force_ ){
-        deleteFile(destination_file_path_);
-      }
-      else{
-        return false;
-      }
+    return (std::rename(src_.c_str(), destination_.c_str()) == 0);
+  }
+  static inline bool cp(const std::string &src_, const std::string &destination_, bool force_){
+    if( not isFile(src_) ){ return false; }
+    if( isFile(destination_) ){
+      if( force_ ){ rm(destination_); }
+      else{ return false; }
     }
 
-    std::ifstream  src(source_file_path_, std::ios::binary);
-    std::ofstream  dst(destination_file_path_,   std::ios::binary);
+    std::ifstream  src(src_, std::ios::binary);
+    std::ofstream  dst(destination_, std::ios::binary);
 
     dst << src.rdbuf();
 
     return true;
   }
-  static inline bool mvFile(const std::string &sourceFilePath_, const std::string &destinationFilePath_, bool force_) {
-    if( not doesPathIsFile(sourceFilePath_) ){ return false; }
-
-    if( doesPathIsFile(destinationFilePath_) ){
-      if(force_){ deleteFile(destinationFilePath_); }
-      else{ return false; }
-    }
-    else{
-      std::string destination_folder_path = getFolderPathFromFilePath(destinationFilePath_);
-      if(not doesPathIsFile(destination_folder_path)){ mkdirPath(destination_folder_path); }
-    }
-
-    return (std::rename(sourceFilePath_.c_str(), destinationFilePath_.c_str()) == 0);
+  static inline bool rmDir(const std::string &dirPath_){
+    return (::rmdir(dirPath_.c_str()) == 0);
   }
+
   static inline size_t getHashFile(const std::string &filePath_) {
     std::hash<std::string> hashString;
     return hashString(dumpFileAsString(filePath_));
@@ -318,7 +311,7 @@ namespace GenericToolbox{
   }
   static inline long int getFileSizeInBytes(const std::string &filePath_){
     long int output_size = 0;
-    if(doesPathIsFile(filePath_)){
+    if(isFile(filePath_)){
       std::ifstream testFile(filePath_.c_str(), std::ios::binary);
       const auto begin = testFile.tellg();
       testFile.seekg (0, std::ios::end);
@@ -335,7 +328,7 @@ namespace GenericToolbox{
   }
   static inline std::string dumpFileAsString(const std::string &filePath_){
     std::string data;
-    if(doesPathIsFile(filePath_)){
+    if(isFile(filePath_)){
       std::ifstream input_file(filePath_.c_str(), std::ios::binary | std::ios::in );
       std::ostringstream ss;
       ss << input_file.rdbuf();
@@ -346,7 +339,7 @@ namespace GenericToolbox{
   }
   static inline std::vector<std::string> dumpFileAsVectorString(const std::string &filePath_, bool skipEmptyLines_){
     std::vector<std::string> lines;
-    if(doesPathIsFile(filePath_)){
+    if(isFile(filePath_)){
       std::string data = GenericToolbox::dumpFileAsString(filePath_);
       lines = GenericToolbox::splitString(data, "\n", skipEmptyLines_);
     }
@@ -358,11 +351,11 @@ namespace GenericToolbox{
 
     return lines;
   }
-  static inline std::vector<std::string> getListOfEntriesInFolder(const std::string &folderPath_, const std::string &entryNameRegex_, int type_, size_t maxEntries_) {
-    if( not doesPathIsFolder( folderPath_ ) ) return {};
+  static inline std::vector<std::string> getListOfEntriesInFolder(const std::string &dirPath_, const std::string &entryNameRegex_, int type_, size_t maxEntries_) {
+    if( not isDir( dirPath_ ) ) return {};
 
     DIR* directory;
-    directory = opendir(folderPath_.c_str()); //Open current-working-directory.
+    directory = opendir(dirPath_.c_str()); //Open current-working-directory.
     if( directory == nullptr ){ return {}; }
 
     std::vector<std::string> nameElements;
@@ -412,30 +405,30 @@ namespace GenericToolbox{
     closedir(directory);
     return subFoldersList;
   }
-  static inline std::vector<std::string> getListOfSubFoldersInFolder(const std::string &folderPath_, const std::string &entryNameRegex_, size_t maxEntries_) {
-    return GenericToolbox::getListOfEntriesInFolder(folderPath_, entryNameRegex_, DT_DIR, maxEntries_);
+  static inline std::vector<std::string> getListOfSubFoldersInFolder(const std::string &dirPath_, const std::string &entryNameRegex_, size_t maxEntries_) {
+    return GenericToolbox::getListOfEntriesInFolder(dirPath_, entryNameRegex_, DT_DIR, maxEntries_);
   }
-  static inline std::vector<std::string> getListOfFilesInFolder(const std::string &folderPath_, const std::string &entryNameRegex_, size_t maxEntries_){
-    return GenericToolbox::getListOfEntriesInFolder(folderPath_, entryNameRegex_, DT_REG, maxEntries_);
+  static inline std::vector<std::string> getListOfFilesInFolder(const std::string &dirPath_, const std::string &entryNameRegex_, size_t maxEntries_){
+    return GenericToolbox::getListOfEntriesInFolder(dirPath_, entryNameRegex_, DT_REG, maxEntries_);
   }
 
   // -- with direct IO dependencies
-  static inline bool doesFolderIsEmpty(const std::string &folderPath_){
-    if(not doesPathIsFolder(folderPath_)) return false;
-    return getListOfEntriesInSubFolders(folderPath_).empty();
+  static inline bool isDirEmpty(const std::string &dirPath_){
+    if( not isDir(dirPath_) ){ return false; }
+    return getListOfEntriesInSubFolders(dirPath_).empty();
   }
-  static inline std::vector<std::string> getListOfEntriesInSubFolders(const std::string &folderPath_, int type_){
+  static inline std::vector<std::string> getListOfEntriesInSubFolders(const std::string &dirPath_, int type_){
     // WARNING : Recursive function
 
     // first, get the files in this folder
     std::vector<std::string> out;
 
     // then walk in sub-folders
-    auto subFolderList = GenericToolbox::getListOfSubFoldersInFolder( folderPath_ );
+    auto subFolderList = GenericToolbox::getListOfSubFoldersInFolder( dirPath_ );
     for(auto &subFolder : subFolderList ){
 
       // recursive ////////
-      auto subFileList = GenericToolbox::getListOfEntriesInSubFolders( GenericToolbox::joinPath(folderPath_, subFolder), type_ );
+      auto subFileList = GenericToolbox::getListOfEntriesInSubFolders( GenericToolbox::joinPath(dirPath_, subFolder), type_ );
       /////////////////////
 
       out.reserve( out.size() + subFileList.size() );
@@ -444,17 +437,17 @@ namespace GenericToolbox{
       }
     }
 
-    auto entries = GenericToolbox::getListOfEntriesInFolder(folderPath_, "", type_);
+    auto entries = GenericToolbox::getListOfEntriesInFolder(dirPath_, "", type_);
     out.reserve( out.size() + entries.size() );
     for( auto& entry : entries ){ out.emplace_back( entry ); }
 
     return out;
   }
-  static inline std::vector<std::string> getListOfFilesInSubFolders(const std::string &folderPath_) {
-    return getListOfEntriesInSubFolders(folderPath_, DT_REG);
+  static inline std::vector<std::string> getListOfFilesInSubFolders(const std::string &dirPath_) {
+    return getListOfEntriesInSubFolders(dirPath_, DT_REG);
   }
-  static inline std::vector<std::string> getListOfFoldersInSubFolders(const std::string &folderPath_){
-    return getListOfEntriesInSubFolders(folderPath_, DT_DIR);
+  static inline std::vector<std::string> getListOfFoldersInSubFolders(const std::string &dirPath_){
+    return getListOfEntriesInSubFolders(dirPath_, DT_DIR);
   }
 
   template<typename T> static inline void fillData( std::istream& file_, T& buffer_ ){
@@ -477,6 +470,57 @@ namespace GenericToolbox{
   }
   template<> inline void writeData( std::ofstream& file_, const std::string& buffer_ ){
     file_.write( buffer_.data(), long(buffer_.size()) );
+  }
+
+
+  // Deprecated
+  GT_DEPRECATED("renamed: isPathValid") static bool doesPathIsValid(const std::string &filePath_){
+    return isPathValid(filePath_);
+  }
+  GT_DEPRECATED("renamed: isFile") static bool doesPathIsFile(const std::string &filePath_){
+    return isFile(filePath_);
+  }
+  GT_DEPRECATED("renamed: isDir") static bool doesPathIsFolder(const std::string &dirPath_){
+    return isDir(dirPath_);
+  }
+  GT_DEPRECATED("renamed: areSameFiles") static bool doFilesAreTheSame(const std::string &filePath1_, const std::string &filePath2_){
+    return areSameFiles(filePath1_, filePath2_);
+  }
+
+  GT_DEPRECATED("renamed: mkdir") static bool mkdirPath(const std::string &dirPath_){
+    return mkdir(dirPath_);
+  }
+  GT_DEPRECATED("renamed: rm") static bool deleteFile(const std::string &filePath_){
+    return rm(filePath_);
+  }
+  GT_DEPRECATED("renamed: mv") static bool mvFile(const std::string &src_, const std::string &destination_, bool force_ = false){
+    return mv(src_, destination_, force_);
+  }
+  GT_DEPRECATED("renamed: cp") static bool copyFile(const std::string &src_, const std::string &destination_, bool force_ = false){
+    return cp(src_, destination_, force_);
+  }
+  GT_DEPRECATED("renamed: rmDir") static bool deleteEmptyDirectory(const std::string &dirPath_){
+    return rmDir(dirPath_);
+  }
+
+  GT_DEPRECATED("renamed: isDirEmpty") static bool doesFolderIsEmpty(const std::string &dirPath_){
+    return isDirEmpty(dirPath_);
+  }
+
+  GT_DEPRECATED("renamed: hasExtension") static bool doesFilePathHasExtension(const std::string &filePath_, const std::string &extension_){
+    return hasExtension(filePath_, extension_);
+  }
+  GT_DEPRECATED("renamed: getExtension") static std::string getFileExtension(const std::string& filePath_){
+    return getExtension(filePath_);
+  }
+  GT_DEPRECATED("renamed: getFolderPath") static std::string getFolderPathFromFilePath(const std::string &filePath_){
+    return getFolderPath(filePath_);
+  }
+  GT_DEPRECATED("renamed: getFileName") static std::string getFileNameFromFilePath(const std::string &filePath_, bool keepExtension_ = true){
+    return getFileName(filePath_, keepExtension_);
+  }
+  GT_DEPRECATED("renamed: replaceExtension") static std::string replaceFileExtension(const std::string& filePath_, const std::string& newExtension_){
+    return replaceExtension(filePath_, newExtension_);
   }
 
 }

@@ -8,8 +8,9 @@
 // This Project
 #include "GenericToolbox.ProgressBar.h"
 #include "GenericToolbox.Misc.h"
-#include "GenericToolbox.Vector.h"
 #include "GenericToolbox.Fs.h"
+#include "GenericToolbox.Vector.h"
+#include "GenericToolbox.String.h"
 #include "GenericToolbox.Macro.h"
 
 // ROOT Headers
@@ -168,7 +169,7 @@ namespace GenericToolbox {
     // Grab the appearing leaf names
     std::vector<std::string> leafNameList;
     for( int iLeaf = 0 ; iLeaf < treeFormula_->GetNcodes() ; iLeaf++ ){
-      if( not GenericToolbox::doesElementIsInVector(treeFormula_->GetLeaf(iLeaf)->GetName(), leafNameList)){
+      if( not isIn(treeFormula_->GetLeaf(iLeaf)->GetName(), leafNameList)){
         leafNameList.emplace_back(treeFormula_->GetLeaf(iLeaf)->GetName());
       }
     }
@@ -206,7 +207,7 @@ namespace GenericToolbox {
         // Here, we know the leaf appear at least once
 
         // Adding update pieces
-        expressionBreakDownUpdate.at(iExpr) = GenericToolbox::splitString(expressionBrokenDown[iExpr], leafName);
+        expressionBreakDownUpdate.at(iExpr) = splitString(expressionBrokenDown[iExpr], leafName);
         isReplacedElementUpdate.at(iExpr) = std::vector<bool>(expressionBreakDownUpdate.at(iExpr).size(), false);
 
         // Look for leaves called as arrays
@@ -236,15 +237,15 @@ namespace GenericToolbox {
             }
             expressionBreakDownUpdate.at(iExpr)[iSubExpr] = untouchedSubExpr;
 
-            GenericToolbox::replaceSubstringInsideInputString(leafExprToReplace, "[", "(");
-            GenericToolbox::replaceSubstringInsideInputString(leafExprToReplace, "]", ")");
+            replaceSubstringInsideInputString(leafExprToReplace, "[", "(");
+            replaceSubstringInsideInputString(leafExprToReplace, "]", ")");
           }
           else{
             // Not an array! We are good
           }
 
-          GenericToolbox::insertInVector(expressionBreakDownUpdate.at(iExpr), "[" + leafExprToReplace + "]", iSubExpr);
-          GenericToolbox::insertInVector(isReplacedElementUpdate.at(iExpr), true, iSubExpr);
+          insertInVector(expressionBreakDownUpdate.at(iExpr), "[" + leafExprToReplace + "]", iSubExpr);
+          insertInVector(isReplacedElementUpdate.at(iExpr), true, iSubExpr);
 
         } // iSubExpr
 
@@ -259,14 +260,14 @@ namespace GenericToolbox {
         expressionBrokenDown.erase(expressionBrokenDown.begin() + iExpr);
         isReplacedElement.erase(isReplacedElement.begin() + iExpr);
 
-        GenericToolbox::insertInVector(expressionBrokenDown, expressionBreakDownUpdate.at(iExpr), iExpr);
-        GenericToolbox::insertInVector(isReplacedElement, isReplacedElementUpdate.at(iExpr), iExpr);
+        insertInVector(expressionBrokenDown, expressionBreakDownUpdate.at(iExpr), iExpr);
+        insertInVector(isReplacedElement, isReplacedElementUpdate.at(iExpr), iExpr);
 
       } // iExpr
 
     } // Leaf
 
-    std::string formulaStr = GenericToolbox::joinVectorString(expressionBrokenDown, "");
+    std::string formulaStr = joinVectorString(expressionBrokenDown, "");
 
     return new TFormula(formulaStr.c_str(), formulaStr.c_str());
 
@@ -276,7 +277,7 @@ namespace GenericToolbox {
     if( formula_ == nullptr ) return output;
 
     for( int iPar = 0 ; iPar < formula_->GetNpar() ; iPar++ ){
-      output.emplace_back(GenericToolbox::splitString(formula_->GetParName(iPar), "(")[0]);
+      output.emplace_back(splitString(formula_->GetParName(iPar), "(")[0]);
     }
     return output;
   }
@@ -286,7 +287,7 @@ namespace GenericToolbox {
 
     for( int iPar = 0 ; iPar < formula_->GetNpar() ; iPar++ ){
       output.emplace_back();
-      auto parCandidateSplit = GenericToolbox::splitString(formula_->GetParName(iPar), "(");
+      auto parCandidateSplit = splitString(formula_->GetParName(iPar), "(");
 
       if( parCandidateSplit.size() == 1 ){
         continue; // no index
@@ -308,7 +309,7 @@ namespace GenericToolbox {
     return output;
   }
   inline TTreeFormula* createTreeFormulaWithoutTree(const std::string& formulaStr_, std::vector<std::string> expectedLeafNames_){
-    auto* cwd = GenericToolbox::getCurrentTDirectory();
+    auto* cwd = getCurrentTDirectory();
     ROOT::GetROOT()->cd();
     std::vector<Int_t> varObjList(expectedLeafNames_.size(),0);
     auto* fakeTree = new TTree("fakeTree", "fakeTree");
@@ -349,7 +350,7 @@ namespace GenericToolbox {
   inline TFile* openExistingTFile(const std::string &inputFilePath_, const std::vector<std::string>& objectListToCheck_){
     TFile* outPtr{nullptr};
 
-    if( not GenericToolbox::doesPathIsFile(inputFilePath_) ){
+    if( not isFile(inputFilePath_) ){
       throw std::runtime_error("Could not find file: \"" + inputFilePath_ + "\"");
     }
     auto old_verbosity = gErrorIgnoreLevel;
@@ -358,7 +359,7 @@ namespace GenericToolbox {
     outPtr = TFile::Open(inputFilePath_.c_str(), "READ");
     gErrorIgnoreLevel = old_verbosity;
 
-    if( not GenericToolbox::doesTFileIsValid(outPtr) ){
+    if( not doesTFileIsValid(outPtr) ){
       throw std::runtime_error("Invalid TFile: \"" + inputFilePath_ + "\"");
     }
 
@@ -373,7 +374,7 @@ namespace GenericToolbox {
   inline bool doesTFileIsValid(const std::string &inputFilePath_, const std::vector<std::string>& objectListToCheck_){
     bool fileIsValid = false;
     gEnv->SetValue("TFile.Recover", 0);
-    if(GenericToolbox::doesPathIsFile(inputFilePath_)) {
+    if(isFile(inputFilePath_)) {
       auto old_verbosity = gErrorIgnoreLevel;
       gErrorIgnoreLevel  = kFatal;
       auto* tfileCandidatePtr  = TFile::Open(inputFilePath_.c_str(), "READ");
@@ -395,40 +396,40 @@ namespace GenericToolbox {
   inline bool doesTFileIsValid(TFile* tfileCandidatePtr_, bool check_if_writable_){
 
     if(tfileCandidatePtr_ == nullptr){
-      if(GenericToolbox::Parameters::_verboseLevel_ >= 1)
+      if(Parameters::_verboseLevel_ >= 1)
         std::cout << "tfileCandidatePtr_ is a nullptr" << std::endl;
       return false;
     }
 
     if(not tfileCandidatePtr_->IsOpen()){
-      if(GenericToolbox::Parameters::_verboseLevel_ >= 1)
+      if(Parameters::_verboseLevel_ >= 1)
         std::cout << "tfileCandidatePtr_ = " << tfileCandidatePtr_->GetName() << " is not opened."
                   << std::endl;
-      if(GenericToolbox::Parameters::_verboseLevel_ >= 1)
+      if(Parameters::_verboseLevel_ >= 1)
         std::cout << "tfileCandidatePtr_->IsOpen() = " << tfileCandidatePtr_->IsOpen()
                   << std::endl;
       return false;
     }
 
     if( tfileCandidatePtr_->IsZombie() ){
-      if(GenericToolbox::Parameters::_verboseLevel_ >= 1){
+      if(Parameters::_verboseLevel_ >= 1){
         std::cout << GET_VAR_NAME_VALUE(tfileCandidatePtr_->IsZombie()) << std::endl;
       }
       return false;
     }
 
     if( tfileCandidatePtr_->TestBit(TFile::kRecovered) ){
-      if(GenericToolbox::Parameters::_verboseLevel_ >= 1){
+      if(Parameters::_verboseLevel_ >= 1){
         std::cout << GET_VAR_NAME_VALUE(tfileCandidatePtr_->TestBit(TFile::kRecovered)) << std::endl;
       }
       return false;
     }
 
     if(check_if_writable_ and not tfileCandidatePtr_->IsWritable()){
-      if(GenericToolbox::Parameters::_verboseLevel_ >= 1)
+      if(Parameters::_verboseLevel_ >= 1)
         std::cout << "tfileCandidatePtr_ = " << tfileCandidatePtr_->GetName()
                   << " is not writable." << std::endl;
-      if(GenericToolbox::Parameters::_verboseLevel_ >= 1)
+      if(Parameters::_verboseLevel_ >= 1)
         std::cout << "tfileCandidatePtr_->IsWritable() = " << tfileCandidatePtr_->IsWritable()
                   << std::endl;
       return false;
@@ -441,10 +442,10 @@ namespace GenericToolbox {
 
     TClass* templateClass = TClass::GetClass<T>();
     if( templateClass == nullptr ){
-      throw std::runtime_error("invalid template class in GenericToolbox::getObjectList. Not TObject castable?");
+      throw std::runtime_error("invalid template class in getObjectList. Not TObject castable?");
     }
 
-    auto ls = GenericToolbox::lsTDirectory(directory_, templateClass->GetName());
+    auto ls = lsTDirectory(directory_, templateClass->GetName());
     std::vector<T*> output; output.reserve(ls.size());
     for( auto& entry : ls ){
       output.template emplace_back( directory_->Get<T>(entry.c_str()) );
@@ -455,7 +456,7 @@ namespace GenericToolbox {
     return output;
   }
   inline std::vector<TObject *> getListOfObjectFromTDirectory(TDirectory *directory_, const std::string &className_, bool cloneObj_) {
-    return GenericToolbox::getObjectList<TObject>(directory_, cloneObj_);
+    return getObjectList<TObject>(directory_, cloneObj_);
   }
   inline std::vector<std::string> lsTDirectory(TDirectory* directory_, const std::string& className_){
     std::vector<std::string> output{};
@@ -471,7 +472,7 @@ namespace GenericToolbox {
     return output;
   }
   inline std::vector<std::string> lsSubDirTDirectory(TDirectory* directory_){
-    return GenericToolbox::lsTDirectory(directory_, "TDirectoryFile");
+    return lsTDirectory(directory_, "TDirectoryFile");
   }
   inline TDirectory* mkdirTFile(TDirectory* baseDir_, const std::string &dirName_){
     if( baseDir_ == nullptr ) return nullptr;
@@ -523,16 +524,16 @@ namespace GenericToolbox {
     if( saveName_.empty() ) saveName_ = objToSave_->GetName();
 
     // Cleaning up object name
-    saveName_ = GenericToolbox::generateCleanBranchName(saveName_);
+    saveName_ = generateCleanBranchName(saveName_);
 
     // Building custom extension:
     std::string className = objToSave_->ClassName();
-    GenericToolbox::replaceSubstringInsideInputString(className, "<", "_");
-    GenericToolbox::replaceSubstringInsideInputString(className, ">", "");
+    replaceSubstringInsideInputString(className, "<", "_");
+    replaceSubstringInsideInputString(className, ">", "");
     if( className == "TMatrixT_double" ) className = "TMatrixD";
     else if( className == "TMatrixTSym_double" ) className = "TMatrixDSym";
 
-    if( GenericToolbox::endsWith(saveName_, className) ){
+    if( endsWith( saveName_, className ) ){
       // extension already included in the obj name
       dir_->WriteObject(objToSave_, Form("%s", saveName_.c_str()), "overwrite");
     }
@@ -543,7 +544,7 @@ namespace GenericToolbox {
 
 
     // Force TFile Write?
-    if( forceWriteFile_ ) GenericToolbox::triggerTFileWrite(dir_);
+    if( forceWriteFile_ ) triggerTFileWrite(dir_);
   }
   inline void writeInTFile(TDirectory* dir_, const TObject& objToSave_, std::string saveName_, bool forceWriteFile_){
     writeInTFile(dir_, &objToSave_, std::move(saveName_), forceWriteFile_);
@@ -601,14 +602,14 @@ namespace GenericToolbox {
   }
   inline TVectorD* generateMeanVectorOfTree(TTree* tree_, bool showProgressBar_){
     TVectorD* outMeanVector;
-    std::vector<TLeaf*> leafList = GenericToolbox::getEnabledLeavesList(tree_, false);
+    std::vector<TLeaf*> leafList = getEnabledLeavesList(tree_, false);
 
     outMeanVector = new TVectorD(int(leafList.size()));
     for(int iLeaf = 0 ; iLeaf < outMeanVector->GetNrows() ; iLeaf++){ (*outMeanVector)[iLeaf] = 0; }
 
     Long64_t nEntries = tree_->GetEntries();
     for(Long64_t iEntry = 0 ; iEntry < nEntries ; iEntry++){
-      if( showProgressBar_ ) GenericToolbox::displayProgressBar(iEntry, nEntries, "Compute mean of every variable");
+      if( showProgressBar_ ) displayProgressBar(iEntry, nEntries, "Compute mean of every variable");
       tree_->GetEntry(iEntry);
       for(int iLeaf = 0 ; iLeaf < outMeanVector->GetNrows() ; iLeaf++){
         (*outMeanVector)[iLeaf] += leafList[iLeaf]->GetValue(0);
@@ -625,7 +626,7 @@ namespace GenericToolbox {
     TMatrixD* outCovMatrix;
 
     // Generate covariance matrix of all ENABLED branches of the input tree
-    std::vector<TLeaf*> leafList = GenericToolbox::getEnabledLeavesList(tree_, false);
+    std::vector<TLeaf*> leafList = getEnabledLeavesList(tree_, false);
 
     // Initializing the matrix
     outCovMatrix = new TMatrixD(int(leafList.size()), int(leafList.size()));
@@ -637,13 +638,13 @@ namespace GenericToolbox {
 
     // Compute mean of every variable
     if( meanValueLeafList_ == nullptr ){
-      meanValueLeafList_ = GenericToolbox::generateMeanVectorOfTree(tree_, showProgressBar_);
+      meanValueLeafList_ = generateMeanVectorOfTree(tree_, showProgressBar_);
     }
 
     // Compute covariance
     Long64_t nEntries = tree_->GetEntries();
     for(Long64_t iEntry = 0 ; iEntry < nEntries ; iEntry++){
-      if( showProgressBar_ ) GenericToolbox::displayProgressBar(iEntry, nEntries, "Compute covariance");
+      if( showProgressBar_ ) displayProgressBar(iEntry, nEntries, "Compute covariance");
       tree_->GetEntry(iEntry);
       for(int iCol = 0 ; iCol < leafList.size() ; iCol++){
         for(int iRow = 0 ; iRow < leafList.size() ; iRow++){
@@ -665,19 +666,19 @@ namespace GenericToolbox {
   inline std::string generateCleanBranchName(const std::string& name_){
     std::string out{name_};
 
-    GenericToolbox::replaceSubstringInsideInputString(out, " ", "_");
-    GenericToolbox::replaceSubstringInsideInputString(out, "-", "_");
-    GenericToolbox::replaceSubstringInsideInputString(out, "/", "_");
-    GenericToolbox::replaceSubstringInsideInputString(out, "<", "_");
+    replaceSubstringInsideInputString(out, " ", "_");
+    replaceSubstringInsideInputString(out, "-", "_");
+    replaceSubstringInsideInputString(out, "/", "_");
+    replaceSubstringInsideInputString(out, "<", "_");
 
-    GenericToolbox::replaceSubstringInsideInputString(out, ">", "");
-    GenericToolbox::replaceSubstringInsideInputString(out, "(", "");
-    GenericToolbox::replaceSubstringInsideInputString(out, ")", "");
-    GenericToolbox::replaceSubstringInsideInputString(out, "{", "");
-    GenericToolbox::replaceSubstringInsideInputString(out, "}", "");
-    GenericToolbox::replaceSubstringInsideInputString(out, "[", "");
-    GenericToolbox::replaceSubstringInsideInputString(out, "]", "");
-    GenericToolbox::replaceSubstringInsideInputString(out, "#", "");
+    replaceSubstringInsideInputString(out, ">", "");
+    replaceSubstringInsideInputString(out, "(", "");
+    replaceSubstringInsideInputString(out, ")", "");
+    replaceSubstringInsideInputString(out, "{", "");
+    replaceSubstringInsideInputString(out, "}", "");
+    replaceSubstringInsideInputString(out, "[", "");
+    replaceSubstringInsideInputString(out, "]", "");
+    replaceSubstringInsideInputString(out, "#", "");
 
     return out;
   }
@@ -689,7 +690,7 @@ namespace GenericToolbox {
 //
 ////    TTree* outCompTree{nullptr};
 //
-//    auto* prevDir = GenericToolbox::getCurrentTDirectory();
+//    auto* prevDir = getCurrentTDirectory();
 //    outDir_->cd();
 //
 ////    outCompTree = new TTree("outCompTree", "outCompTree");
@@ -707,7 +708,7 @@ namespace GenericToolbox {
   inline std::map<std::string, TMatrixD *> invertMatrixSVD(TMatrixD *matrix_, const std::string &outputContent_) {
     std::map<std::string, TMatrixD *> results_handler;
 
-    auto content_names = GenericToolbox::splitString(outputContent_, ":");
+    auto content_names = splitString(outputContent_, ":");
 
     if (std::find(content_names.begin(), content_names.end(), "inverse_covariance_matrix") != content_names.end()) {
       results_handler["inverse_covariance_matrix"]
@@ -790,7 +791,7 @@ namespace GenericToolbox {
     return results_handler;
   }
   inline std::vector<double> getEigenValues(TMatrixD *matrix_) {
-    auto *symmetric_matrix = GenericToolbox::convertToSymmetricMatrix(matrix_);
+    auto *symmetric_matrix = convertToSymmetricMatrix(matrix_);
     auto *Eigen_matrix_decomposer = new TMatrixDSymEigen(*symmetric_matrix);
     auto *Eigen_values = &(Eigen_matrix_decomposer->GetEigenValues());
 
@@ -803,7 +804,7 @@ namespace GenericToolbox {
   }
   inline TMatrixD* getCholeskyMatrix(TMatrixD* covMatrix_){
     if(covMatrix_ == nullptr) return nullptr;
-    auto* covMatrixSym = GenericToolbox::convertToSymmetricMatrix(covMatrix_);
+    auto* covMatrixSym = convertToSymmetricMatrix(covMatrix_);
     auto* out = getCholeskyMatrix(covMatrixSym);
     delete covMatrixSym;
     return out;
@@ -878,7 +879,7 @@ namespace GenericToolbox {
     return out;
   }
   template<typename T> inline TVectorT<T>* getMatrixDiagonal(TMatrixTSym<T>* m_){
-    return GenericToolbox::getMatrixDiagonal((TMatrixT<T>*) m_);
+    return getMatrixDiagonal((TMatrixT<T>*) m_);
   }
   template<typename T> inline TVectorT<T>* getMatrixLine(TMatrixT<T>* m_, int line_){
     if( m_ == nullptr ) return nullptr;
@@ -1008,7 +1009,7 @@ namespace GenericToolbox {
   inline TH1D *getTH1DlogBinning(const std::string &name_, const std::string &title_, int n_bins_, double X_min_, double X_max_) {
 
     TH1D *output = nullptr;
-    std::vector<double> xbins = GenericToolbox::getLogBinning(n_bins_, X_min_, X_max_);
+    std::vector<double> xbins = getLogBinning(n_bins_, X_min_, X_max_);
     output = new TH1D(name_.c_str(), title_.c_str(), xbins.size() - 1, &xbins[0]);
     return output;
 
@@ -1019,15 +1020,15 @@ namespace GenericToolbox {
     TH2D *output = nullptr;
     std::vector<double> xbins;
     std::vector<double> ybins;
-    if (GenericToolbox::hasSubStr(log_axis_, "X")) {
-      xbins = GenericToolbox::getLogBinning(nb_X_bins_, X_min_, X_max_);
+    if( hasSubStr(log_axis_, "X") ){
+      xbins = getLogBinning(nb_X_bins_, X_min_, X_max_);
     } else {
-      xbins = GenericToolbox::getLinearBinning(nb_X_bins_, X_min_, X_max_);
+      xbins = getLinearBinning(nb_X_bins_, X_min_, X_max_);
     }
-    if (GenericToolbox::hasSubStr(log_axis_, "Y")) {
-      ybins = GenericToolbox::getLogBinning(nb_Y_bins_, Y_min_, Y_max_);
+    if( hasSubStr(log_axis_, "Y") ){
+      ybins = getLogBinning(nb_Y_bins_, Y_min_, Y_max_);
     } else {
-      ybins = GenericToolbox::getLinearBinning(nb_Y_bins_, Y_min_, Y_max_);
+      ybins = getLinearBinning(nb_Y_bins_, Y_min_, Y_max_);
     }
 
     output = new TH2D(name_.c_str(), title_.c_str(), xbins.size() - 1, &xbins[0], ybins.size() - 1, &ybins[0]);
@@ -1199,40 +1200,39 @@ namespace GenericToolbox{
     oldVerbosity      = -1;
   }
 
-  inline char findOriginalVariableType(const GenericToolbox::AnyType& obj_){
-    // can't use switch case: typeid hash is not const expr
-    if     ( obj_.getType() == typeid(Bool_t) ){ return 'O'; }
-    else if( obj_.getType() == typeid(Char_t) ){ return 'B'; }
-    else if( obj_.getType() == typeid(UChar_t) ){ return 'b'; }
-    else if( obj_.getType() == typeid(Short_t) ){ return 'S'; }
-    else if( obj_.getType() == typeid(UShort_t) ){ return 's'; }
-    else if( obj_.getType() == typeid(Int_t) ){ return 'I'; }
-    else if( obj_.getType() == typeid(UInt_t) ){ return 'i'; }
-    else if( obj_.getType() == typeid(Float_t) ){ return 'F'; }    // `F` : a 32 bit floating point (`Float_t`)
-    else if( obj_.getType() == typeid(Float16_t) ){ return 'f'; }  // `f` : a 24 bit floating point with truncated mantissa
-    else if( obj_.getType() == typeid(Double_t) ){ return 'D'; }   // `D` : a 64 bit floating point (`Double_t`)
-    else if( obj_.getType() == typeid(Double32_t) ){ return 'd'; } // `d` : a 24 bit truncated floating point (`Double32_t`)
-    else if( obj_.getType() == typeid(Long64_t) ){ return 'L'; }
-    else if( obj_.getType() == typeid(ULong64_t) ){ return 'l'; }
-    else if( obj_.getType() == typeid(Long_t) ){ return 'G'; } // `G` : a long signed integer, stored as 64 bit (`Long_t`)
-    else if( obj_.getType() == typeid(ULong_t) ){ return 'g'; } // `g` : a long unsigned integer, stored as 64 bit (`ULong_t`)
+  inline char findOriginalVariableType(const AnyType& obj_){
+    if( obj_.getType() == typeid(Bool_t) ){ return 'O'; }
+    if( obj_.getType() == typeid(Char_t) ){ return 'B'; }
+    if( obj_.getType() == typeid(UChar_t) ){ return 'b'; }
+    if( obj_.getType() == typeid(Short_t) ){ return 'S'; }
+    if( obj_.getType() == typeid(UShort_t) ){ return 's'; }
+    if( obj_.getType() == typeid(Int_t) ){ return 'I'; }
+    if( obj_.getType() == typeid(UInt_t) ){ return 'i'; }
+    if( obj_.getType() == typeid(Float_t) ){ return 'F'; }    // `F` : a 32 bit floating point (`Float_t`)
+    if( obj_.getType() == typeid(Float16_t) ){ return 'f'; }  // `f` : a 24 bit floating point with truncated mantissa
+    if( obj_.getType() == typeid(Double_t) ){ return 'D'; }   // `D` : a 64 bit floating point (`Double_t`)
+    if( obj_.getType() == typeid(Double32_t) ){ return 'd'; } // `d` : a 24 bit truncated floating point (`Double32_t`)
+    if( obj_.getType() == typeid(Long64_t) ){ return 'L'; }
+    if( obj_.getType() == typeid(ULong64_t) ){ return 'l'; }
+    if( obj_.getType() == typeid(Long_t) ){ return 'G'; } // `G` : a long signed integer, stored as 64 bit (`Long_t`)
+    if( obj_.getType() == typeid(ULong_t) ){ return 'g'; } // `g` : a long unsigned integer, stored as 64 bit (`ULong_t`)
     return char(0xFF); // OTHER??
   }
-  inline GenericToolbox::AnyType leafToAnyType(const std::string& leafTypeName_){
-    GenericToolbox::AnyType out;
+  inline AnyType leafToAnyType(const std::string& leafTypeName_){
+    AnyType out;
     leafToAnyType(leafTypeName_, out);
     return out;
   }
-  inline GenericToolbox::AnyType leafToAnyType(const TLeaf* leaf_){
-    GenericToolbox::AnyType out;
+  inline AnyType leafToAnyType(const TLeaf* leaf_){
+    AnyType out;
     leafToAnyType(leaf_, out);
     return out;
   }
-  inline void leafToAnyType(const TLeaf* leaf_, GenericToolbox::AnyType& out_){
+  inline void leafToAnyType(const TLeaf* leaf_, AnyType& out_){
     if( leaf_ == nullptr ){ throw std::runtime_error("leaf_ is nullptr"); }
     leafToAnyType(leaf_->GetTypeName(), out_);
   }
-  inline void leafToAnyType(const std::string& leafTypeName_, GenericToolbox::AnyType& out_){
+  inline void leafToAnyType(const std::string& leafTypeName_, AnyType& out_){
     if( leafTypeName_.empty() ){ throw std::runtime_error("empty leafTypeName_ provided."); }
 
     // Int like variables

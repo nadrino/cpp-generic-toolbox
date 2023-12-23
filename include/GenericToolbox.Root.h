@@ -151,11 +151,11 @@ namespace GenericToolbox{
   inline void muteRoot();
   inline void unmuteRoot();
 
-  inline char findOriginalVariableType(const GenericToolbox::AnyType& obj_);
-  inline GenericToolbox::AnyType leafToAnyType(const std::string& leafTypeName_);
-  inline GenericToolbox::AnyType leafToAnyType(const TLeaf* leaf_);
-  inline void leafToAnyType(const TLeaf* leaf_, GenericToolbox::AnyType& out_);
-  inline void leafToAnyType(const std::string& leafTypeName_, GenericToolbox::AnyType& out_);
+  inline char findOriginalVariableType(const AnyType& obj_);
+  inline AnyType leafToAnyType(const std::string& leafTypeName_);
+  inline AnyType leafToAnyType(const TLeaf* leaf_);
+  inline void leafToAnyType(const TLeaf* leaf_, AnyType& out_);
+  inline void leafToAnyType(const std::string& leafTypeName_, AnyType& out_);
 
   // LinkDef does not enable function declaration by itself.
   // A proxy class can be used to trigger the function declaration on CINT startup

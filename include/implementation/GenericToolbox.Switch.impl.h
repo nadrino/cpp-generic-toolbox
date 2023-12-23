@@ -18,14 +18,14 @@ namespace GenericToolbox::Switch {
     inline static bool copyFile(const std::string& srcFilePath_, const std::string& dstFilePath_, bool force_){
       bool isSuccess{false};
 
-      if(not doesPathIsFile(srcFilePath_)) return false;
+      if(not isFile(srcFilePath_)) return false;
 
-      if( doesPathIsFile(dstFilePath_) ){
+      if( isFile(dstFilePath_) ){
         if( not force_ ){ return false; }
         if( not deleteFile(dstFilePath_) ){ return false; }
       }
 
-      auto outDir = GenericToolbox::getFolderPathFromFilePath(dstFilePath_);
+      auto outDir = GenericToolbox::getFolderPath(dstFilePath_);
       if( not doesPathIsFolder(outDir) ){ mkdirPath(outDir); }
 
       ssize_t srcFileSize = getFileSize(srcFilePath_);
@@ -38,7 +38,7 @@ namespace GenericToolbox::Switch {
       std::vector<char> contentBuffer(bufferSize, 0);
       size_t nChunk = (size_t(srcFileSize)/bufferSize) + 1;
       Utils::b.progressMap["copyFile"] = double(1) / double(nChunk);
-      std::string pTitle = GenericToolbox::getFileNameFromFilePath(srcFilePath_) + " -> " + outDir;
+      std::string pTitle = GenericToolbox::getFileName(srcFilePath_) + " -> " + outDir;
 
       size_t timeLoad{0};
       size_t timeDrop{0};
@@ -63,8 +63,8 @@ namespace GenericToolbox::Switch {
       return isSuccess;
     }
     static bool doFilesAreIdentical(const std::string& file1Path_, const std::string& file2Path_){
-      if( not doesPathIsFile(file1Path_) ) { return false; }
-      if( not doesPathIsFile(file2Path_) ) { return false; }
+      if( not isFile(file1Path_) ) { return false; }
+      if( not isFile(file2Path_) ) { return false; }
 
       ssize_t file1Size = getFileSize(file1Path_);
       if( file1Size != getFileSize(file2Path_) ) return false;

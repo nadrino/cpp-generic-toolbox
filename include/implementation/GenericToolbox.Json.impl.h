@@ -27,7 +27,7 @@ namespace GenericToolbox {
       return output;
     }
     template<typename J> inline auto readConfigFile(const std::string& configFilePath_) -> J{
-      if( not GenericToolbox::doesPathIsFile(configFilePath_) ){
+      if( not GenericToolbox::isFile(configFilePath_) ){
         std::cout << "\"" << configFilePath_ << "\" could not be found." << std::endl;
         throw std::runtime_error("file not found.");
       }

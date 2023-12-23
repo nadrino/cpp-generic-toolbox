@@ -38,8 +38,8 @@ int main(){
   cout << "Expanded path: ~/test.txt -> " << GenericToolbox::expandEnvironmentVariables("~/test.txt") << endl;
   cout << "Expanded path: $$/test.txt -> " << GenericToolbox::expandEnvironmentVariables("$$/test.txt") << endl;
   cout << "Current working directory: " << GenericToolbox::getCurrentWorkingDirectory() << endl;
-  cout << "Is this a directory? " << GenericToolbox::doesPathIsFolder("../include") << endl;
-  cout << "Is this a file? " << GenericToolbox::doesPathIsFile("../include/GenericToolbox.h") << endl;
+  cout << "Is this a directory? " << GenericToolbox::isDir("../include") << endl;
+  cout << "Is this a file? " << GenericToolbox::isFile("../include/GenericToolbox.h") << endl;
   cout << "Its size: " << GenericToolbox::parseSizeUnits(GenericToolbox::getFileSizeInBytes("../include/GenericToolbox.h")) << endl;
   cout << "Hash of this file: " << GenericToolbox::getHashFile("../include/GenericToolbox.h") << endl;
   cout << "Are they identical?: " << GenericToolbox::doFilesAreTheSame("../include/GenericToolbox.h","../include/GenericToolbox_impl.h") << endl;
