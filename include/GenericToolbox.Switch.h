@@ -29,8 +29,8 @@ namespace GenericToolbox::Switch{
     static ParametersHolder p{};
 
     // Read/Write
-    inline static bool copyFile(const std::string& srcFilePath_, const std::string& dstFilePath_, bool force_=true);
-    inline static bool doFilesAreIdentical(const std::string& file1Path_, const std::string& file2Path_);
+    static bool copyFile(const std::string& srcFilePath_, const std::string& dstFilePath_, bool force_=true);
+    static bool doFilesAreIdentical(const std::string& file1Path_, const std::string& file2Path_);
   }
 
   // Utils
@@ -41,23 +41,23 @@ namespace GenericToolbox::Switch{
     };
     static BuffersHolder b{};
 
-    inline static bool isTidLike(const std::string& name_);
-    inline static std::string lookForTidInSubFolders(const std::string& folderPath_, int maxDepth_ = 5);
-    inline static uint8_t* getIconFromTitleId(const std::string& titleId_);
+    static bool isTidLike(const std::string& name_);
+    static std::string lookForTidInSubFolders(const std::string& folderPath_, int maxDepth_ = 5);
+    static uint8_t* getIconFromTitleId(const std::string& titleId_);
   }
 
   namespace UI{
-    inline static std::string openKeyboardUi(const std::string &defaultStr_ = "");
+    static std::string openKeyboardUi(const std::string &defaultStr_ = "");
   }
 
   // Printout
   namespace Terminal{
-    inline static void printRight(const std::string& input_, const std::string& color_ = "", bool flush_ = false);
-    inline static void printLeft(const std::string& input_, const std::string& color_ = "", bool flush_ = false);
-    inline static void printLeftRight(const std::string& inputLeft_, const std::string& inputRight_, const std::string& color_ = "", bool flush_ = false);
+    static void printRight(const std::string& input_, const std::string& color_ = "", bool flush_ = false);
+    static void printLeft(const std::string& input_, const std::string& color_ = "", bool flush_ = false);
+    static void printLeftRight(const std::string& inputLeft_, const std::string& inputRight_, const std::string& color_ = "", bool flush_ = false);
 
-    inline static void makePause(const std::string& message_ = "");
-    template<typename T, typename TT> inline static void displayProgressBar( const T& iCurrent_, const TT& iTotal_,
+    static void makePause(const std::string& message_ = "");
+    template<typename T, typename TT> static void displayProgressBar( const T& iCurrent_, const TT& iTotal_,
         const std::string &title_ = "", bool forcePrint_ = false, const std::string& color_="");
 
   }
@@ -78,11 +78,11 @@ namespace GenericToolbox::Switch{
         SystemUnsafe
         )
 
-    inline static u64 getMemoryInfo(PhysicalMemoryType type_, PhysicalMemoryOf of_);
-    inline static std::string getMemoryUsageStr(PhysicalMemoryOf of_);
+    static u64 getMemoryInfo(PhysicalMemoryType type_, PhysicalMemoryOf of_);
+    static std::string getMemoryUsageStr(PhysicalMemoryOf of_);
 
-    inline static int getTerminalWidth();
-    inline static int getTerminalHeight();
+    static int getTerminalWidth();
+    static int getTerminalHeight();
 
   }
 

@@ -16,11 +16,11 @@
 namespace GenericToolbox{
 
   //! Misc Tools
-  static inline std::string getClassName(const std::string& PRETTY_FUNCTION_); // When calling this functions, provide __PRETTY_FUNCTION__ macro
-  static inline std::string getMethodName(const std::string& PRETTY_FUNCTION_);
+  static std::string getClassName(const std::string& PRETTY_FUNCTION_); // When calling this functions, provide __PRETTY_FUNCTION__ macro
+  static std::string getMethodName(const std::string& PRETTY_FUNCTION_);
 
-  template<class Derived, class Base> static inline bool isDerivedFrom(Base* objPtr_); // slow...
-  template<class Derived, class Base> static inline bool isDerivedType(Base* objPtr_); // works when Derived is the final type
+  template<class Derived, class Base> static bool isDerivedFrom(Base* objPtr_); // slow...
+  template<class Derived, class Base> static bool isDerivedType(Base* objPtr_); // works when Derived is the final type
 
   template<typename T> inline auto getTypedArray(size_t nBytes_, char* byteArray_) -> std::vector<T>;
 
@@ -48,14 +48,14 @@ namespace GenericToolbox{
   }
 
 
-  template<class Derived, class ObjClass> static inline bool isDerivedFrom(ObjClass* objPtr_){
+  template<class Derived, class ObjClass> static bool isDerivedFrom(ObjClass* objPtr_){
     return dynamic_cast< Derived* >( objPtr_ ) != nullptr;
   }
-  template<class Derived, class Base> static inline bool isDerivedType(Base* objPtr_){
+  template<class Derived, class Base> static bool isDerivedType(Base* objPtr_){
     return std::type_index(typeid(*objPtr_)) == std::type_index(typeid(Derived));
   }
 
-  static inline std::string getClassName(const std::string& PRETTY_FUNCTION_){
+  static std::string getClassName(const std::string& PRETTY_FUNCTION_){
     size_t colons = PRETTY_FUNCTION_.find("::");
     if (colons == std::string::npos)
       return "::";
@@ -64,7 +64,7 @@ namespace GenericToolbox{
 
     return PRETTY_FUNCTION_.substr(begin, end);
   }
-  static inline std::string getMethodName(const std::string& PRETTY_FUNCTION_){
+  static std::string getMethodName(const std::string& PRETTY_FUNCTION_){
     size_t colons = PRETTY_FUNCTION_.find("::");
     size_t begin = PRETTY_FUNCTION_.substr(0, colons).rfind(' ') + 1;
     size_t end = PRETTY_FUNCTION_.rfind('(') - begin;

@@ -9,7 +9,6 @@
 #include "GenericToolbox.ProgressBar.h"
 #include "GenericToolbox.Misc.h"
 #include "GenericToolbox.Vector.h"
-#include "GenericToolbox.Os.h"
 #include "GenericToolbox.Fs.h"
 #include "GenericToolbox.Macro.h"
 
@@ -200,7 +199,7 @@ namespace GenericToolbox {
           continue;
         }
 
-        if( not GenericToolbox::doesStringContainsSubstring(expressionBrokenDown[iExpr], leafName) ){
+        if( not GenericToolbox::hasSubStr(expressionBrokenDown[iExpr], leafName) ){
           // Leaf is not present in this chunk
           continue;
         }
@@ -533,7 +532,7 @@ namespace GenericToolbox {
     if( className == "TMatrixT_double" ) className = "TMatrixD";
     else if( className == "TMatrixTSym_double" ) className = "TMatrixDSym";
 
-    if( GenericToolbox::doesStringEndsWithSubstring(saveName_, className) ){
+    if( GenericToolbox::endsWith(saveName_, className) ){
       // extension already included in the obj name
       dir_->WriteObject(objToSave_, Form("%s", saveName_.c_str()), "overwrite");
     }
@@ -1020,12 +1019,12 @@ namespace GenericToolbox {
     TH2D *output = nullptr;
     std::vector<double> xbins;
     std::vector<double> ybins;
-    if (GenericToolbox::doesStringContainsSubstring(log_axis_, "X")) {
+    if (GenericToolbox::hasSubStr(log_axis_, "X")) {
       xbins = GenericToolbox::getLogBinning(nb_X_bins_, X_min_, X_max_);
     } else {
       xbins = GenericToolbox::getLinearBinning(nb_X_bins_, X_min_, X_max_);
     }
-    if (GenericToolbox::doesStringContainsSubstring(log_axis_, "Y")) {
+    if (GenericToolbox::hasSubStr(log_axis_, "Y")) {
       ybins = GenericToolbox::getLogBinning(nb_Y_bins_, Y_min_, Y_max_);
     } else {
       ybins = GenericToolbox::getLinearBinning(nb_Y_bins_, Y_min_, Y_max_);
@@ -1201,6 +1200,7 @@ namespace GenericToolbox{
   }
 
   inline char findOriginalVariableType(const GenericToolbox::AnyType& obj_){
+    // can't use switch case: typeid hash is not const expr
     if     ( obj_.getType() == typeid(Bool_t) ){ return 'O'; }
     else if( obj_.getType() == typeid(Char_t) ){ return 'B'; }
     else if( obj_.getType() == typeid(UChar_t) ){ return 'b'; }

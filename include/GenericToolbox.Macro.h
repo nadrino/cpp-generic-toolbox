@@ -7,9 +7,25 @@
 
 #include <sstream>
 
+#ifndef HAS_CPP_17
 #define HAS_CPP_17 (__cplusplus >= 201703L)
+#endif // HAS_CPP_17
+
+#ifndef HAS_CPP_14
 #define HAS_CPP_14 (__cplusplus >= 201300L)
+#endif // HAS_CPP_14
+
+#ifndef HAS_CPP_11
 #define HAS_CPP_11 (__cplusplus >= 201103L)
+#endif // HAS_CPP_11
+
+
+// #define WARN_DEPRECATED_FCT
+#ifndef WARN_DEPRECATED_FCT
+#define GT_DEPRECATED(msg_) // nothing
+#else
+#define GT_DEPRECATED(msg_) [[deprecated(msg_)]]
+#endif
 
 
 #ifndef __FILENAME__
@@ -39,48 +55,48 @@
   namespace _enumName_##EnumNamespace{\
     static const char *enumNamesAggregate = GT_INTERNALS_VA_TO_STR(_v1_, __VA_ARGS__); \
                                                                       \
-    static inline size_t getEnumSize(){\
+    static size_t getEnumSize(){\
       return std::count(&enumNamesAggregate[0], &enumNamesAggregate[strlen(enumNamesAggregate)], ',')+1;\
     }                                                                 \
-    static inline std::string getEnumStr(int enumValue_){\
+    static std::string getEnumStr(int enumValue_){\
       enumValue_ -= (_intOffset_);\
       if( enumValue_ < 0 || enumValue_ >= int(getEnumSize()) ) throw std::runtime_error("invalid enum.");\
       std::string out; std::stringstream ss{enumNamesAggregate};\
       while (enumValue_-- >= 0) { std::getline(ss, out, ','); } \
       return GenericToolbox::trimString(out, " ");\
     }\
-    static inline std::vector<std::string> getEnumNamesList(){              \
+    static std::vector<std::string> getEnumNamesList(){              \
       std::vector<std::string> out(getEnumSize());                    \
       for(int iEnum = 0 ; iEnum < int(out.size()) ; iEnum++){ out[iEnum] = getEnumStr(iEnum+(_intOffset_)); } \
       return out;              \
     }                                                              \
-    static inline std::vector<_enumName_> getEnumList(){                   \
+    static std::vector<_enumName_> getEnumList(){                   \
       std::vector<_enumName_> output(_enumName_##_OVERFLOW);         \
       for( int iIndex = _intOffset_ ; iIndex < _enumName_##_OVERFLOW ; iIndex++ ){     \
         output.at(iIndex) = (static_cast<_enumName_>(iIndex));      \
       }                                                            \
       return output;\
     }\
-    static inline std::string toString(int enumValue_, bool excludeEnumName_ = false){      \
+    static std::string toString(int enumValue_, bool excludeEnumName_ = false){      \
       if( excludeEnumName_ ) return getEnumStr(enumValue_);        \
       return {(#_enumName_) + std::string{"::"} + getEnumStr(enumValue_)};\
     }\
-    static inline std::string toString(_enumName_ enumValue_, bool excludeEnumName_ = false){\
+    static std::string toString(_enumName_ enumValue_, bool excludeEnumName_ = false){\
       return _enumName_##EnumNamespace::toString(static_cast<int>(enumValue_), excludeEnumName_);       \
     }\
-    static inline int toEnumInt(const std::string& enumStr_, bool throwIfNotFound_ = false){\
+    static int toEnumInt(const std::string& enumStr_, bool throwIfNotFound_ = false){\
       for( int enumIndex = _intOffset_ ; enumIndex < _enumName_::_enumName_##_OVERFLOW ; enumIndex++ ){             \
         if( _enumName_##EnumNamespace::toString(enumIndex) == enumStr_ ){ return enumIndex; } \
         if( _enumName_##EnumNamespace::toString(enumIndex, true) == enumStr_ ){ return enumIndex; } \
       }                                                            \
       if( throwIfNotFound_ ){                                        \
-        std::cout << "Could not find \"" << enumStr_ << "\" in: " << GenericToolbox::parseVectorAsString(getEnumNamesList()) << std::endl; \
+        std::cout << "Could not find \"" << enumStr_ << "\" in: " << GenericToolbox::toString(getEnumNamesList()) << std::endl; \
         throw std::runtime_error( enumStr_ + " not found in " + #_enumName_ );   \
       }                                                             \
 /*      return _intOffset_ - 1; */ \
       return int(_enumName_##_OVERFLOW); /* returns invalid value */\
     }\
-    static inline _enumName_ toEnum(const std::string& enumStr_, bool throwIfNotFound_ = false){                         \
+    static _enumName_ toEnum(const std::string& enumStr_, bool throwIfNotFound_ = false){                         \
       return static_cast<_enumName_>(_enumName_##EnumNamespace::toEnumInt(enumStr_, throwIfNotFound_));  \
     }\
   }

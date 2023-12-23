@@ -20,22 +20,22 @@
 // Declaration section
 namespace GenericToolbox{
 
-  static inline std::string getHomeDirectory();
-  static inline std::string getCurrentWorkingDirectory();
-  static inline std::string expandEnvironmentVariables(const std::string &filePath_);
-  static inline std::string getExecutableName(); // untested on windows platform
+  static std::string getHomeDirectory();
+  static std::string getCurrentWorkingDirectory();
+  static std::string expandEnvironmentVariables(const std::string &filePath_);
+  static std::string getExecutableName(); // untested on windows platform
 
   // hardware
-  static inline size_t getProcessMemoryUsage();
-  static inline size_t getProcessMaxMemoryUsage();
-  static inline double getCpuUsageByProcess();
-  static inline long getProcessMemoryUsageDiffSinceLastCall();
-  static inline double getFreeDiskSpacePercent( const std::string& path_ );
-  static inline unsigned long long getFreeDiskSpace( const std::string& path_ );
-  static inline unsigned long long getTotalDiskSpace( const std::string& path_ );
-  static inline int getTerminalWidth();
-  static inline int getTerminalHeight();
-  static inline std::vector<std::string> getOutputOfShellCommand(const std::string& cmd_);
+  static size_t getProcessMemoryUsage();
+  static size_t getProcessMaxMemoryUsage();
+  static double getCpuUsageByProcess();
+  static long getProcessMemoryUsageDiffSinceLastCall();
+  static double getFreeDiskSpacePercent( const std::string& path_ );
+  static unsigned long long getFreeDiskSpace( const std::string& path_ );
+  static unsigned long long getTotalDiskSpace( const std::string& path_ );
+  static int getTerminalWidth();
+  static int getTerminalHeight();
+  static std::vector<std::string> getOutputOfShellCommand(const std::string& cmd_);
 
 }
 
@@ -88,7 +88,7 @@ extern char* __progname;
 namespace GenericToolbox{
 
   namespace Internals {
-    static inline char * getEnvironmentVariable(char const envVarName_[]){
+    static char * getEnvironmentVariable(char const envVarName_[]){
 #if defined _WIN32 // getenv() is deprecated on Windows
       char *buf{nullptr};
       size_t sz;
@@ -101,7 +101,7 @@ namespace GenericToolbox{
       return getenv(envVarName_);
 #endif
     }
-    static inline bool expandEnvironmentVariables(const char *fname, char *xname) {
+    static bool expandEnvironmentVariables(const char *fname, char *xname) {
       int n, ier, iter, lx, ncopy;
       char *inp, *out, *x, *t, *buff;
       const char *b, *c, *e;
@@ -239,11 +239,11 @@ namespace GenericToolbox{
     }
   }
 
-  static inline std::string getHomeDirectory(){
+  static std::string getHomeDirectory(){
     struct passwd *pw = getpwuid(getuid());
     return {pw->pw_dir};
   }
-  static inline std::string getCurrentWorkingDirectory(){
+  static std::string getCurrentWorkingDirectory(){
 #ifdef PATH_MAX
     char cwd[PATH_MAX];
 #else
@@ -255,7 +255,7 @@ namespace GenericToolbox{
     std::string output_cwd(cwd);
     return output_cwd;
   }
-  static inline std::string expandEnvironmentVariables(const std::string &filePath_){
+  static std::string expandEnvironmentVariables(const std::string &filePath_){
 //#define USE_BASH_TO_EXPAND // VERY SLOW IN FACT...
 #ifdef USE_BASH_TO_EXPAND
     std::array<char, PATH_MAX> buffer{};
@@ -279,7 +279,7 @@ namespace GenericToolbox{
     return {outputName};
 #endif
   }
-  static inline std::string getExecutableName(){
+  static std::string getExecutableName(){
     std::string outStr;
 #if defined(__linux__) || defined(__linux) || defined(linux) || defined(__gnu_linux__) //check defines for your setup
     std::ifstream("/proc/self/comm") >> outStr;
@@ -324,7 +324,7 @@ namespace GenericToolbox{
   };
   static CpuStat cs{};
 
-  static inline size_t getProcessMemoryUsage(){
+  static size_t getProcessMemoryUsage(){
     /**
      * Returns the current resident set size (physical memory use) measured
      * in bytes, or zero if the value cannot be determined on this OS.
@@ -382,7 +382,7 @@ namespace GenericToolbox{
 
 #endif
   }
-  static inline size_t getProcessMaxMemoryUsage(){
+  static size_t getProcessMaxMemoryUsage(){
     /**
      * Returns the peak (maximum so far) resident set size (physical
      * memory use) measured in bytes, or zero if the value cannot be
@@ -427,29 +427,29 @@ namespace GenericToolbox{
     return (size_t)0L;          /* Unsupported. */
 #endif
   }
-  static inline double getCpuUsageByProcess(){
+  static double getCpuUsageByProcess(){
     return cs.getCpuUsageByProcess();
   }
-  static inline long getProcessMemoryUsageDiffSinceLastCall(){
+  static long getProcessMemoryUsageDiffSinceLastCall(){
     size_t currentProcessMemoryUsage = getProcessMemoryUsage();
     long outVal = static_cast<long>(currentProcessMemoryUsage) - static_cast<long>(Internals::Hardware::lastProcessMemoryUsage);
     Internals::Hardware::lastProcessMemoryUsage = currentProcessMemoryUsage;
     return outVal;
   }
-  static inline double getFreeDiskSpacePercent( const std::string& path_ ){
+  static double getFreeDiskSpacePercent( const std::string& path_ ){
     return double( getFreeDiskSpace(path_) )/double( getTotalDiskSpace(path_) );
   }
-  static inline unsigned long long getFreeDiskSpace( const std::string& path_ ){
+  static unsigned long long getFreeDiskSpace( const std::string& path_ ){
     struct statvfs stat{};
     if( statvfs(path_.c_str(), &stat) != 0 ){ return 0; }
     return stat.f_bsize * static_cast<unsigned long long>(stat.f_bfree);
   }
-  static inline unsigned long long getTotalDiskSpace( const std::string& path_ ){
+  static unsigned long long getTotalDiskSpace( const std::string& path_ ){
     struct statvfs stat{};
     if( statvfs(path_.c_str(), &stat) != 0 ){ return 0; }
     return stat.f_bsize * static_cast<unsigned long long>(stat.f_blocks);
   }
-  static inline int getTerminalWidth(){
+  static int getTerminalWidth(){
     int outWith = 0;
 #if defined(_WIN32)
     CONSOLE_SCREEN_BUFFER_INFO csbi;
@@ -468,7 +468,7 @@ namespace GenericToolbox{
 #endif // Windows/Linux
     return outWith;
   }
-  static inline int getTerminalHeight(){
+  static int getTerminalHeight(){
     int outWith = 0;
 #if defined(_WIN32)
     CONSOLE_SCREEN_BUFFER_INFO csbi;
@@ -487,7 +487,7 @@ namespace GenericToolbox{
 #endif // Windows/Linux
     return outWith;
   }
-  static inline std::vector<std::string> getOutputOfShellCommand(const std::string& cmd_) {
+  static std::vector<std::string> getOutputOfShellCommand(const std::string& cmd_) {
     // Inspired from: https://stackoverflow.com/questions/478898/how-do-i-execute-a-command-and-get-the-output-of-the-command-within-c-using-po
     std::array<char, 128> buffer{};
     std::vector<std::string> output;
