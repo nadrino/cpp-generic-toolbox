@@ -14,6 +14,8 @@
 #include <iomanip>
 #include <sstream>
 #include <string>
+#include <array>
+#include <cmath>
 #include <regex>
 
 #pragma GCC diagnostic push
@@ -438,7 +440,7 @@ namespace GenericToolbox {
       ss << std::setprecision(maxPadSize_-1);
     }
 
-    auto reducedVal = size_t(fabs(val_));
+    auto reducedVal = size_t(std::abs(val_));
     if( reducedVal > 0 ){
       if     ( (reducedVal = (reducedVal / 1000)) == 0 ){
         ss << val_;

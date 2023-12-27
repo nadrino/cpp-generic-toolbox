@@ -12,6 +12,7 @@
 #include <sstream>
 #include <iomanip>
 #include <string>
+#include <chrono>
 #include <map>
 
 #pragma GCC diagnostic push
@@ -57,7 +58,7 @@ namespace GenericToolbox{
       ss << std::setprecision(maxPadSize_-1);
     }
 
-    auto reducedVal = size_t(fabs(nbMicroSec_));
+    auto reducedVal = size_t(std::abs(nbMicroSec_));
     if     ( (reducedVal = (reducedVal / 1000)) < 9 ){ // print in ms?
       ss << nbMicroSec_ << "us";                       // <- no
     }

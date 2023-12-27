@@ -6,6 +6,7 @@
 #define CPP_GENERIC_TOOLBOX_MACRO_H
 
 #include <sstream>
+#include <cstring>
 
 #ifndef HAS_CPP_17
 #define HAS_CPP_17 (__cplusplus >= 201703L)
@@ -20,7 +21,7 @@
 #endif // HAS_CPP_11
 
 
-//#define WARN_DEPRECATED_FCT
+#define WARN_DEPRECATED_FCT
 #ifndef WARN_DEPRECATED_FCT
 #define GT_DEPRECATED(msg_) // nothing
 #else
