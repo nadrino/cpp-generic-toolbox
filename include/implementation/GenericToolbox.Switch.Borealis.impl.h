@@ -15,8 +15,8 @@ namespace GenericToolbox::Switch::Borealis{
     brls::View::~View();
   }
 
-  void ProgressBarMonitorView::setHeaderTitle(const std::string &header) {
-    _header_ = header;
+  void ProgressBarMonitorView::setHeaderTitle(const std::string &header_) {
+    _header_ = header_;
   }
   void ProgressBarMonitorView::setProgressColor(const NVGcolor &progressColor_) {
     _progressColor_ = progressColor_;
@@ -25,17 +25,17 @@ namespace GenericToolbox::Switch::Borealis{
     _execOnDelete_ = execOnDelete_;
   }
 
-  void ProgressBarMonitorView::setTitlePtr(const std::string *titlePtr) {
-    _titlePtr_ = titlePtr;
+  void ProgressBarMonitorView::setTitlePtr(const std::string *titlePtr_) {
+    _titlePtr_ = titlePtr_;
   }
-  void ProgressBarMonitorView::setSubTitlePtr(const std::string *subTitlePtr) {
-    _subTitlePtr_ = subTitlePtr;
+  void ProgressBarMonitorView::setSubTitlePtr(const std::string *subTitlePtr_) {
+    _subTitlePtr_ = subTitlePtr_;
   }
-  void ProgressBarMonitorView::setProgressFractionPtr(double *progressFractionPtr) {
-    _progressFractionPtr_ = progressFractionPtr;
+  void ProgressBarMonitorView::setProgressFractionPtr(const double *progressFractionPtr_) {
+    _progressFractionPtr_ = progressFractionPtr_;
   }
-  void ProgressBarMonitorView::setSubProgressFractionPtr(double *subProgressFractionPtr) {
-    _subProgressFractionPtr_ = subProgressFractionPtr;
+  void ProgressBarMonitorView::setSubProgressFractionPtr(const double *subProgressFractionPtr_) {
+    _subProgressFractionPtr_ = subProgressFractionPtr_;
   }
 
   void ProgressBarMonitorView::resetMonitorAddresses(){
@@ -52,30 +52,36 @@ namespace GenericToolbox::Switch::Borealis{
     float y_offset = 0;
     if(not _header_.empty()){
       y_offset += 12;
+
       // Drawing header
       nvgBeginPath(vg);
       nvgFontFaceId(vg, ctx->fontStash->regular);
-      nvgFontSize(vg, style->Header.fontSize);
+      nvgFontSize(vg, float( style->Header.fontSize ) );
       nvgFillColor(vg, a(ctx->theme->textColor));
       nvgTextAlign(vg, NVG_ALIGN_LEFT | NVG_ALIGN_MIDDLE);
-      nvgText(vg, x + style->Header.rectangleWidth + style->Header.padding, y - height/2., (_header_).c_str(), nullptr);
+      nvgText(vg,
+              float(x) + float(style->Header.rectangleWidth) + float(style->Header.padding),
+              float(y) - float(height/2.),
+              (_header_).c_str(), nullptr
+      );
 
       // Separator
       nvgBeginPath(vg);
       nvgFillColor(vg, a(ctx->theme->separatorColor));
-      nvgRect(vg, x, y - height/2. + style->Header.fontSize, width, 1);
+      nvgRect(vg, float(x), float(y) - float(height/2.) + float(style->Header.fontSize), float(width), 1);
       nvgFill(vg);
     }
 
     // Draw Title
-    nvgFillColor(vg, a(ctx->theme->textColor));
-    nvgFontSize(vg, style->Label.dialogFontSize);
-    nvgFontFaceId(vg, ctx->fontStash->regular);
-    nvgTextLineHeight(vg, 1.0f);
-    nvgTextAlign(vg, NVG_ALIGN_CENTER | NVG_ALIGN_MIDDLE);
-    nvgBeginPath(vg);
-    if(_titlePtr_ == nullptr) nvgText(vg, x + width / 2, y + y_offset + height / 2 - 1.8*style->Label.dialogFontSize, "", nullptr);
-    else{ nvgText(vg, x + width / 2, y + y_offset + height / 2 - 1.8*style->Label.dialogFontSize, (*_titlePtr_).c_str(), nullptr); }
+    if( _titlePtr_ != nullptr ){
+      nvgFillColor(vg, a(ctx->theme->textColor));
+      nvgFontSize(vg, float(style->Label.dialogFontSize));
+      nvgFontFaceId(vg, ctx->fontStash->regular);
+      nvgTextLineHeight(vg, 1.0f);
+      nvgTextAlign(vg, NVG_ALIGN_CENTER | NVG_ALIGN_MIDDLE);
+      nvgBeginPath(vg);
+      nvgText(vg, float(x) + float(width/2.), y + y_offset + height/2. - 1.8*style->Label.dialogFontSize, (*_titlePtr_).c_str(), nullptr);
+    }
 
     // Draw subTitle
     if(_subTitlePtr_ != nullptr and not _subTitlePtr_->empty() ){ // .empty() does not work ?
@@ -143,7 +149,7 @@ namespace GenericToolbox::Switch::Borealis{
     // push the box to the view
     brls::Application::pushView( _loadingBox_ );
   }
-  void PopupLoadingBox::popView(){
+  void PopupLoadingBox::popView() const{
     // is another view is disappearing? -> let it's time to go
     while( brls::Application::hasViewDisappearing() ){
       // wait for one extra frame before push
@@ -151,7 +157,7 @@ namespace GenericToolbox::Switch::Borealis{
     }
 
     // call if it's still on top
-    if( _loadingBox_ == brls::Application::getTopStackView() ){
+    if( this->isOnTopView() ){
       brls::Application::popView( brls::ViewAnimation::FADE );
     }
   }
