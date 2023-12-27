@@ -29,14 +29,14 @@ namespace GenericToolbox::Switch::Borealis{
     inline ~ProgressBarMonitorView() override;
 
     // setters
-    inline void setHeaderTitle(const std::string &header);
+    inline void setHeaderTitle(const std::string &header_);
     inline void setProgressColor(const NVGcolor &progressColor_);
     inline void setExecOnDelete(const std::function<void()> &execOnDelete_);
 
-    inline void setTitlePtr(const std::string *titlePtr);
-    inline void setSubTitlePtr(const std::string *subTitlePtr);
-    inline void setProgressFractionPtr(double *progressFractionPtr);
-    inline void setSubProgressFractionPtr(double *subProgressFractionPtr);
+    inline void setTitlePtr(const std::string *titlePtr_);
+    inline void setSubTitlePtr(const std::string *subTitlePtr_);
+    inline void setProgressFractionPtr(const double *progressFractionPtr_);
+    inline void setSubProgressFractionPtr(const double *subProgressFractionPtr_);
 
     // misc
     inline void resetMonitorAddresses();
@@ -71,7 +71,7 @@ namespace GenericToolbox::Switch::Borealis{
     [[nodiscard]] inline brls::Dialog *getLoadingBox() const;
 
     inline void pushView();
-    inline void popView();
+    inline void popView() const;
     inline bool isOnTopView() const;
 
 
