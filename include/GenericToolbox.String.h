@@ -9,10 +9,16 @@
 //! String related tools
 // ***************************
 
+#include "GenericToolbox.Macro.h"
+
 #include <iomanip>
 #include <sstream>
 #include <string>
 #include <regex>
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-function"
+#pragma GCC diagnostic ignored "-Wunused-variable"
 
 
 // Declaration section
@@ -84,61 +90,64 @@ namespace GenericToolbox{
     static const std::array<const char*, 6> rainbowColorList{redText, greenText, yellowText, blueText, magentaText, cyanText};
   }
 
-  // -- Aesthetic
-  static inline std::string addUpDownBars(const std::string& str_, bool stripUnicode_ = true);
-
-  // -- Transformations
-  static inline bool doesStringContainsSubstring(const std::string& str_, const std::string& subStr_, bool ignoreCase_ = false);
-  static inline bool doesStringStartsWithSubstring(const std::string& str_, const std::string& subStr_, bool ignoreCase_ = false);
-  static inline bool doesStringEndsWithSubstring(const std::string& str_, const std::string& subStr_, bool ignoreCase_ = false);
-  static inline std::string toLowerCase(const std::string &inputStr_);
-  static inline std::string stripStringUnicode(const std::string &inputStr_);
-  static inline std::string stripBracket(const std::string &inputStr_, char bra_, char ket_, bool allowUnclosed_ = true, std::vector<std::string>* argBuffer_ = nullptr);
-  static inline std::string repeatString(const std::string &inputStr_, int amount_);
-  static inline std::string trimString(const std::string &inputStr_, const std::string &strToTrim_);
-  static inline std::string padString(const std::string& inputStr_, unsigned int padSize_, const char& padChar = ' ');
-  static inline std::string indentString(const std::string& inputStr_, unsigned int indentCount_, const std::string& indentChar = " ");
-  static inline std::string removeRepeatedCharacters(const std::string& inputStr_, const std::string &repeatedChar_);
-  template<typename T> static inline std::string joinVectorString(const std::vector<T> &stringList_, const std::string &delimiter_, int beginIndex_ = 0, int endIndex_ = 0);
-  template<typename... Args> static inline std::string joinAsString(const std::string &delimiter_, const Args&... args);
-  static inline std::string replaceSubstringInString(const std::string &input_str_, const std::string &substr_to_look_for_, const std::string &substr_to_replace_);
-  static inline std::string replaceSubstringInString(const std::string &input_str_, const std::vector<std::string> &substr_to_look_for_, const std::vector<std::string> &substr_to_replace_);
-  static inline std::vector<std::string> splitString(const std::string& inputString_, const std::string &delimiter_, bool removeEmpty_ = false);
-
-  // -- Transformations (Fast)
-  static inline void replaceSubstringInsideInputString(std::string &input_str_, const std::string &substr_to_look_for_, const std::string &substr_to_replace_);
-  static inline void removeRepeatedCharInsideInputStr(std::string &inputStr_, const std::string &doubledChar_);
-  static inline void removeTrailingCharInsideInputStr(std::string &inputStr_, const std::string &trailingChar_);
-  static inline void indentInputString(std::string& inputStr_, unsigned int indentCount_, const std::string& indentChar = " ");
-  static inline void trimInputString(std::string &inputStr_, const std::string &strToTrim_);
-
-  // -- Parsing
-  static inline size_t getPrintSize(const std::string& str_);
-  static inline size_t getNLines(const std::string& str_);
-  static inline std::string parseDecimalValue(double val_, const std::string& format_="%s%s", bool allowSubOne_ = true);
-  static inline std::string parseUnitPrefix(double val_, int maxPadSize_=-1);
-  static inline std::string parseSizeUnits(double sizeInBytes_);
-  static inline std::string formatString( const std::string& strToFormat_ ); // overrider: make sure this is the one used when no extra args are provided.
-  template<typename ... Args> static inline std::string formatString(const std::string& strToFormat_, Args ... args );
+  // -- Quick checks
+  static bool hasSubStr(const std::string& str_, const std::string& subStr_, bool ignoreCase_ = false);
+  static bool startsWith(const std::string& str_, const std::string& subStr_, bool ignoreCase_ = false);
+  static bool endsWith(const std::string& str_, const std::string& subStr_, bool ignoreCase_ = false);
 
   // -- Conversion Tools
-  template<typename T, size_t N> static inline std::string toString(const std::array<T, N>& array_);
-  static inline std::string toHex(const void* address_, size_t nBytes_);
-  template<typename T> static inline std::string toHex(const T& val_);
-  template<typename T> static inline std::string toHexString(T integerVal_, size_t nbDigit_ = 0);
-  template<typename T> static inline std::string stackToHex(const std::vector<T> &rawData_, size_t stackSize_);
-  static inline bool toBool(const std::string& str);
+  template<typename T, typename TT> static std::string toString(const T& iterable_, const TT& toStrFct_, bool jumpLine_=true, bool indentLine_=true);
+  template<typename T> static std::string toString(const std::vector<T> &vector_, bool jumpLine_ = false, bool indentLine_ = false);
+  template<> std::string toString(const std::vector<std::string> &vector_, bool jumpLine_, bool indentLine_);
+  template<> std::string toString(const std::vector<unsigned char> &vector_, bool jumpLine_, bool indentLine_);
+  template<> std::string toString(const std::vector<char> &vector_, bool jumpLine_, bool indentLine_);
+  template<typename T, size_t N> static std::string toString(const std::array<T, N>& array_);
 
-  template<typename T, typename TT> inline static std::string iterableToString(const T& iterable_, const TT& toStrFct_, bool jumpLine_=true, bool indentLine_=true);
+  // -- Transformations
+  static std::string toLowerCase(const std::string &inputStr_);
 
-  inline static std::string parseIntAsString(int intToFormat_);
-  inline static std::string highlightIf(bool condition_, const std::string& text_);
-  inline static std::string makeRainbowString(const std::string& inputStr_, bool stripUnicode_ = true);
+  static std::string stripUnicode(const std::string &inputStr_);
 
-  template<typename T> static inline std::string parseVectorAsString(const std::vector<T> &vector_, bool jumpLine_ = false, bool indentLine_=true);
-  static inline std::string parseVectorAsString(const std::vector<std::string> &vector_, bool jumpLine_ = false, bool indentLine_=true);
-  static inline std::string parseVectorAsString(const std::vector<unsigned char> &vector_, bool jumpLine_ = false, bool indentLine_=true); // usually chars are 1 byte containers, not actual chars...
-  static inline std::string parseVectorAsString(const std::vector<char> &vector_, bool jumpLine_ = false, bool indentLine_=true);
+  static std::string stripBracket(const std::string &inputStr_, char bra_, char ket_, bool allowUnclosed_ = true, std::vector<std::string>* argBuffer_ = nullptr);
+  static std::string repeatString(const std::string &inputStr_, int amount_);
+  static std::string trimString(const std::string &inputStr_, const std::string &strToTrim_);
+  static std::string padString(const std::string& inputStr_, unsigned int padSize_, const char& padChar = ' ');
+  static std::string indentString(const std::string& inputStr_, unsigned int indentCount_, const std::string& indentChar = " ");
+  static std::string removeRepeatedCharacters(const std::string& inputStr_, const std::string &repeatedChar_);
+  template<typename T> static std::string joinVectorString(const std::vector<T> &stringList_, const std::string &delimiter_, int beginIndex_ = 0, int endIndex_ = 0);
+  template<typename... Args> static std::string joinAsString(const std::string &delimiter_, const Args&... args);
+  static std::string replaceSubstringInString(const std::string &input_str_, const std::string &substr_to_look_for_, const std::string &substr_to_replace_);
+  static std::string replaceSubstringInString(const std::string &input_str_, const std::vector<std::string> &substr_to_look_for_, const std::vector<std::string> &substr_to_replace_);
+  static std::vector<std::string> splitString(const std::string& inputString_, const std::string &delimiter_, bool removeEmpty_ = false);
+
+  // -- Transformations (Fast)
+  static void replaceSubstringInsideInputString(std::string &input_str_, const std::string &substr_to_look_for_, const std::string &substr_to_replace_);
+  static void removeRepeatedCharInsideInputStr(std::string &inputStr_, const std::string &doubledChar_);
+  static void removeTrailingCharInsideInputStr(std::string &inputStr_, const std::string &trailingChar_);
+  static void indentInputString(std::string& inputStr_, unsigned int indentCount_, const std::string& indentChar = " ");
+  static void trimInputString(std::string &inputStr_, const std::string &strToTrim_);
+
+  // -- Parsing
+  static size_t getPrintSize(const std::string& str_);
+  static size_t getNLines(const std::string& str_);
+  static std::string parseDecimalValue(double val_, const std::string& format_="%s%s", bool allowSubOne_ = true);
+  static std::string parseUnitPrefix(double val_, int maxPadSize_=-1);
+  static std::string parseSizeUnits(double sizeInBytes_);
+  static std::string formatString( const std::string& strToFormat_ ); // overrider: make sure this is the one used when no extra args are provided.
+  template<typename ... Args> static std::string formatString(const std::string& strToFormat_, Args ... args );
+
+
+  // -- Representations
+  static std::string toHex(const void* address_, size_t nBytes_);
+  template<typename T> static std::string toHex(const T& val_);
+  template<typename T> static std::string stackToHex(const std::vector<T> &rawData_, size_t stackSize_);
+  static bool toBool(const std::string& str);
+  static std::string parseIntAsString(int intToFormat_);
+
+  // -- Aesthetic
+  static std::string addUpDownBars(const std::string& str_, bool stripUnicode_ = true);
+  static std::string highlightIf(bool condition_, const std::string& text_);
+  static std::string makeRainbowString(const std::string& inputStr_, bool stripUnicode_ = true);
 
 }
 
@@ -146,28 +155,13 @@ namespace GenericToolbox{
 // Implementation section
 namespace GenericToolbox {
 
-#if defined(__GNUC__) && !defined(__clang__) && (__GNUC__ < 4 || (__GNUC__ == 4 && __GNUC_MINOR__ < 9))
-#else
-  namespace StringManagementUtils{
-    static std::regex ansiRegex("\033((\\[((\\d+;)*\\d+)?[A-DHJKMRcfghilmnprsu])|\\(|\\))");
-  }
-#endif
-
-  static inline std::string addUpDownBars(const std::string& str_, bool stripUnicode_){
-    std::stringstream ss;
-    size_t strLength = str_.size();
-    if( stripUnicode_ ) strLength = GenericToolbox::stripStringUnicode(str_).size();
-    std::string bar = GenericToolbox::repeatString("─", int(strLength));
-    ss << bar << std::endl << str_ << std::endl << bar;
-    return ss.str();
-  }
-
-  static inline bool doesStringContainsSubstring(const std::string& str_, const std::string& subStr_, bool ignoreCase_) {
+  // -- Quick checks
+  static bool hasSubStr(const std::string& str_, const std::string& subStr_, bool ignoreCase_) {
     if( subStr_.empty() ){ return true; }
     if( ignoreCase_ ){ return toLowerCase(str_).find( toLowerCase( subStr_ ) ) != std::string::npos; }
     return str_.find( subStr_ ) != std::string::npos;
   }
-  static inline bool doesStringStartsWithSubstring(const std::string& str_, const std::string& subStr_, bool ignoreCase_) {
+  static bool startsWith(const std::string& str_, const std::string& subStr_, bool ignoreCase_) {
     if( subStr_.empty() ){ return true; }
     if( subStr_.size() > str_.size() ){ return false; }
     if( ignoreCase_ ){
@@ -176,7 +170,7 @@ namespace GenericToolbox {
     }
     return std::equal( subStr_.begin(), subStr_.end(), str_.begin() );
   }
-  static inline bool doesStringEndsWithSubstring(const std::string& str_, const std::string& subStr_, bool ignoreCase_) {
+  static bool endsWith(const std::string& str_, const std::string& subStr_, bool ignoreCase_) {
     if( subStr_.empty() ){ return true; }
     if( subStr_.size() > str_.size() ){ return false; }
     if( ignoreCase_ ){
@@ -185,16 +179,49 @@ namespace GenericToolbox {
     }
     return std::equal( subStr_.begin(), subStr_.end(), str_.end() - long(subStr_.size()) );
   }
-  static inline std::string toLowerCase(const std::string &inputStr_) {
+
+  // -- Aesthetic
+  static std::string addUpDownBars(const std::string& str_, bool stripUnicode_){
+    std::stringstream ss;
+    size_t strLength = str_.size();
+    if( stripUnicode_ ) strLength = GenericToolbox::stripUnicode(str_).size();
+    std::string bar = GenericToolbox::repeatString("─", int(strLength));
+    ss << bar << std::endl << str_ << std::endl << bar;
+    return ss.str();
+  }
+  static std::string highlightIf(bool condition_, const std::string& text_){
+    std::stringstream ss;
+    ss << (condition_ ? ColorCodes::redBackground : "" );
+    ss << text_;
+    ss << ( condition_ ? ColorCodes::resetColor : "" );
+    return ss.str();
+  }
+  static std::string makeRainbowString(const std::string& inputStr_, bool stripUnicode_){
+    std::string outputString;
+    std::string inputStrStripped;
+    stripUnicode_ ? inputStrStripped = GenericToolbox::stripUnicode(inputStr_) : inputStrStripped = inputStr_;
+    double nbCharsPerColor = double(inputStrStripped.size()) / double(ColorCodes::rainbowColorList.size());
+    int colorSlot{0};
+    for( size_t iChar = 0 ; iChar < inputStrStripped.size() ; iChar++ ){
+      if( nbCharsPerColor < 1 or iChar == 0 or ( int(iChar+1) / nbCharsPerColor) - colorSlot + 1 > 1 ){
+        outputString += ColorCodes::rainbowColorList[colorSlot++];
+      }
+      outputString += inputStrStripped[iChar];
+    }
+    outputString += ColorCodes::resetColor;
+    return outputString;
+  }
+
+  static std::string toLowerCase(const std::string &inputStr_) {
     std::string output_str(inputStr_);
     std::transform(output_str.begin(), output_str.end(), output_str.begin(),
                    [](unsigned char c) { return std::tolower(c); });
     return output_str;
   }
-  static inline std::string stripStringUnicode(const std::string &inputStr_){
+  static std::string stripUnicode(const std::string &inputStr_){
     std::string outputStr(inputStr_);
 
-    if(GenericToolbox::doesStringContainsSubstring(outputStr, "\033")){
+    if( GenericToolbox::hasSubStr(outputStr, "\033") ){
       // remove color
       std::string tempStr;
       auto splitOutputStr = GenericToolbox::splitString(outputStr, "\033");
@@ -230,7 +257,8 @@ namespace GenericToolbox {
 
     return outputStr;
   }
-  static inline std::string stripBracket(const std::string &inputStr_, char bra_, char ket_, bool allowUnclosed_, std::vector<std::string>* argBuffer_){
+
+  static std::string stripBracket(const std::string &inputStr_, char bra_, char ket_, bool allowUnclosed_, std::vector<std::string>* argBuffer_){
     size_t iChar{0}; std::string out;
     char currentChar;
     while( iChar < inputStr_.size() ){
@@ -270,12 +298,19 @@ namespace GenericToolbox {
     }
 
 //    std::cout << inputStr_ << " -> " << out;
-//    if(argBuffer_!= nullptr) std::cout << " args:" << GenericToolbox::parseVectorAsString(*argBuffer_);
+//    if(argBuffer_!= nullptr) std::cout << " args:" << GenericToolbox::toString(*argBuffer_);
 //    std::cout << std::endl;
 
     return out;
   }
-  static inline size_t getPrintSize(const std::string& str_){
+
+#if defined(__GNUC__) && !defined(__clang__) && (__GNUC__ < 4 || (__GNUC__ == 4 && __GNUC_MINOR__ < 9))
+#else
+  namespace StringManagementUtils{
+    static std::regex ansiRegex("\033((\\[((\\d+;)*\\d+)?[A-DHJKMRcfghilmnprsu])|\\(|\\))");
+  }
+#endif
+  static size_t getPrintSize(const std::string& str_){
     if( str_.empty() ) return 0;
 #if defined(__GNUC__) && !defined(__clang__) && (__GNUC__ < 4 || (__GNUC__ == 4 && __GNUC_MINOR__ < 9))
     // this is gcc 4.8 or earlier
@@ -296,11 +331,12 @@ namespace GenericToolbox {
     return result;
 #endif
   }
-  static inline size_t getNLines(const std::string& str_){
+
+  static size_t getNLines(const std::string& str_){
     if( str_.empty() ) return 0;
     return std::count(str_.begin(), str_.end(), '\n')+1;
   }
-  static inline std::string repeatString(const std::string &inputStr_, int amount_){
+  static std::string repeatString(const std::string &inputStr_, int amount_){
     std::string outputStr;
     if(amount_ <= 0) return outputStr;
     for(int i_count = 0 ; i_count < amount_ ; i_count++){
@@ -308,12 +344,12 @@ namespace GenericToolbox {
     }
     return outputStr;
   }
-  static inline std::string trimString(const std::string &inputStr_, const std::string &strToTrim_){
+  static std::string trimString(const std::string &inputStr_, const std::string &strToTrim_){
     std::string outputStr(inputStr_);
     GenericToolbox::trimInputString( outputStr, strToTrim_ );
     return outputStr;
   }
-  static inline std::string padString(const std::string& inputStr_, unsigned int padSize_, const char& padChar){
+  static std::string padString(const std::string& inputStr_, unsigned int padSize_, const char& padChar){
     std::string outputString;
 //    int padDelta = int(inputStr_.size()) - int(padSize_);
     int padDelta = int(GenericToolbox::getPrintSize(inputStr_)) - int(padSize_);
@@ -325,12 +361,12 @@ namespace GenericToolbox {
     outputString += inputStr_;
     return outputString.substr(0, outputString.size() - padDelta);
   }
-  static inline std::string indentString(const std::string& inputStr_, unsigned int indentCount_, const std::string& indentChar){
+  static std::string indentString(const std::string& inputStr_, unsigned int indentCount_, const std::string& indentChar){
     std::string outStr = inputStr_;
     GenericToolbox::indentInputString(outStr, indentCount_, indentChar);
     return outStr;
   }
-  static inline std::string removeRepeatedCharacters(const std::string &inputStr_, const std::string &repeatedChar_) {
+  static std::string removeRepeatedCharacters(const std::string &inputStr_, const std::string &repeatedChar_) {
     std::string outStr = inputStr_;
     GenericToolbox::removeRepeatedCharInsideInputStr(outStr, repeatedChar_);
     return outStr;
@@ -351,7 +387,7 @@ namespace GenericToolbox {
 
     return ss.str();
   }
-  template<typename... Args> static inline std::string joinAsString(const std::string& delimiter, const Args&... args) {
+  template<typename... Args> static std::string joinAsString(const std::string& delimiter, const Args&... args) {
     std::stringstream ss;
     int dummy[] = {0, ((void)(ss << args << delimiter), 0)...};
     (void)dummy;  // Avoid unused variable warning
@@ -375,7 +411,7 @@ namespace GenericToolbox {
     }
     return input_str_;
   }
-  static inline std::string parseDecimalValue(double val_, const std::string& format_, bool allowSubOne_){
+  static std::string parseDecimalValue(double val_, const std::string& format_, bool allowSubOne_){
     std::stringstream ss;
 
     // flip the sign
@@ -438,7 +474,7 @@ namespace GenericToolbox {
   std::string parseSizeUnits(double sizeInBytes_){
     return parseUnitPrefix(sizeInBytes_) + "B";
   }
-  static inline std::vector<std::string> splitString(const std::string &inputString_, const std::string &delimiter_, bool removeEmpty_) {
+  static std::vector<std::string> splitString(const std::string &inputString_, const std::string &delimiter_, bool removeEmpty_) {
 
     std::vector<std::string> outputSliceList;
 
@@ -479,7 +515,7 @@ namespace GenericToolbox {
 
 
   }
-  static inline std::string formatString( const std::string& strToFormat_ ){
+  static std::string formatString( const std::string& strToFormat_ ){
     return strToFormat_;
   }
   template<typename ... Args> std::string formatString(const std::string& strToFormat_, Args ... args) {
@@ -490,14 +526,14 @@ namespace GenericToolbox {
     return {buf.get(), buf.get() + size - 1}; // We don't want the '\0' inside
   }
 
-  static inline void replaceSubstringInsideInputString(std::string &input_str_, const std::string &substr_to_look_for_, const std::string &substr_to_replace_){
+  static void replaceSubstringInsideInputString(std::string &input_str_, const std::string &substr_to_look_for_, const std::string &substr_to_replace_){
     size_t index = 0;
     while ((index = input_str_.find(substr_to_look_for_, index)) != std::string::npos) {
       input_str_.replace(index, substr_to_look_for_.length(), substr_to_replace_);
       index += substr_to_replace_.length();
     }
   }
-  static inline void removeRepeatedCharInsideInputStr(std::string &inputStr_, const std::string &doubledChar_){
+  static void removeRepeatedCharInsideInputStr(std::string &inputStr_, const std::string &doubledChar_){
     std::string doubledCharStr = doubledChar_+doubledChar_;
     std::string lastStr;
     do{
@@ -505,12 +541,12 @@ namespace GenericToolbox {
       GenericToolbox::replaceSubstringInsideInputString(inputStr_, doubledCharStr, doubledChar_);
     } while( lastStr != inputStr_ );
   }
-  static inline void removeTrailingCharInsideInputStr(std::string &inputStr_, const std::string &trailingChar_){
-    if( GenericToolbox::doesStringEndsWithSubstring(inputStr_, trailingChar_) ){
+  static void removeTrailingCharInsideInputStr(std::string &inputStr_, const std::string &trailingChar_){
+    if( GenericToolbox::endsWith(inputStr_, trailingChar_) ){
       inputStr_.erase(inputStr_.size() - trailingChar_.size());
     }
   }
-  static inline void indentInputString(std::string& inputStr_, unsigned int indentCount_, const std::string& indentChar){
+  static void indentInputString(std::string& inputStr_, unsigned int indentCount_, const std::string& indentChar){
     int originalSize = int(inputStr_.size());
     for( int iChar = originalSize-1 ; iChar >= 0 ; iChar-- ){
       if( iChar == 0 or inputStr_[iChar] == '\n'){
@@ -522,74 +558,17 @@ namespace GenericToolbox {
       }
     }
   }
-  static inline void trimInputString(std::string &inputStr_, const std::string &strToTrim_){
-    while( GenericToolbox::doesStringStartsWithSubstring(inputStr_, strToTrim_) ){
+  static void trimInputString(std::string &inputStr_, const std::string &strToTrim_){
+    while( GenericToolbox::startsWith(inputStr_, strToTrim_) ){
       inputStr_ = inputStr_.substr(strToTrim_.size(), inputStr_.size());
     }
-    while( GenericToolbox::doesStringEndsWithSubstring(inputStr_, strToTrim_) ){
+    while( GenericToolbox::endsWith(inputStr_, strToTrim_) ){
       inputStr_ = inputStr_.substr(0, inputStr_.size() - strToTrim_.size());
     }
   }
 
-  template<typename T, size_t N> static inline std::string toString(const std::array<T, N>& array_){
-    return std::string(std::begin(array_), std::end(array_));
-  }
-  static inline std::string toHex(const void* address_, size_t nBytes_){
-    std::stringstream ss(std::string(2*nBytes_, 0));
-    unsigned char* address{(unsigned char*)(address_) + nBytes_-1};
-    do{ ss << std::hex << std::setfill('0') << std::setw(2) << static_cast<unsigned>(*(address--)); } while(address >= address_);
-    return ss.str();
-  }
-  template<typename T> static inline std::string toHex(const T& val_){
-    return toHex(&val_, sizeof(val_));
-  }
-  template<typename T> static inline std::string toHexString(T integerVal_, size_t nbDigit_){
-    std::stringstream stream;
-    stream << "0x" << toHex(&integerVal_, sizeof(integerVal_));
-    if( nbDigit_ == 0 ) return stream.str();
-    else return "0x" + stream.str().substr(2 + sizeof(T)*2 - nbDigit_, nbDigit_);
-  }
-  template<typename T> static inline std::string stackToHex(const std::vector<T> &rawData_, size_t stackSize_) {
-    std::stringstream ss;
-    size_t nChunks = rawData_.size()*sizeof(T)/stackSize_;
-    const unsigned char* address{&rawData_[0]};
-    for( int iChunk=0 ; iChunk < nChunks ; iChunk++ ){
-      ss.str().empty()? ss << "{ ": ss << ", ";
-      ss << "0x" << GenericToolbox::toHex(address, stackSize_);
-      address += stackSize_;
-    }
-
-    if( address < &(rawData_.back())+sizeof(T) ) {
-      ss.str().empty()? ss << "{ ": ss << ", ";
-      ss << "0x" << GenericToolbox::repeatString("_-", address+stackSize_ - (&(rawData_.back())+sizeof(T)));
-      ss << GenericToolbox::toHex(address, (&(rawData_.back()) + sizeof(T)) - address);
-    }
-
-    ss << " }";
-    return ss.str();
-  }
-  static inline bool toBool(const std::string& str) {
-    auto result = false;    // failure to assert is false
-
-    std::istringstream is(str);
-    // first try simple integer conversion
-    is >> result;
-
-    if (is.fail()) {
-      // simple integer failed; try boolean
-      is.clear();
-      is >> std::boolalpha >> result;
-    }
-
-    if( is.fail() ){
-      throw std::invalid_argument( str + " is not convertable to bool" );
-      return false;
-    }
-
-    return result;
-  }
-
-  template<typename T, typename TT> inline static std::string iterableToString(const T& iterable_, const TT& toStrFct_, bool jumpLine_, bool indentLine_){
+  // -- conversions
+  template<typename T, typename TT> static std::string toString(const T& iterable_, const TT& toStrFct_, bool jumpLine_, bool indentLine_){
     std::stringstream ss;
     ss << "{ ";
     if( not iterable_.empty() ){
@@ -611,8 +590,70 @@ namespace GenericToolbox {
     ss << "}";
     return ss.str();
   }
+  template<typename T> static std::string toString(const std::vector<T> &vector_, bool jumpLine_, bool indentLine_){
+    return GenericToolbox::toString(vector_, [&](const T& elm_){ return elm_; }, jumpLine_, indentLine_);
+  }
+  template<> std::string toString(const std::vector<std::string> &vector_, bool jumpLine_, bool indentLine_){
+    return GenericToolbox::toString(vector_, [&](const std::string& elm_){ return std::string{"\""+elm_+"\""}; }, jumpLine_, indentLine_);
+  }
+  template<> std::string toString(const std::vector<unsigned char> &vector_, bool jumpLine_, bool indentLine_){
+    return GenericToolbox::toString(vector_, [&](const unsigned char& elm_){ return std::string{"0x"+GenericToolbox::toHex(elm_)}; }, jumpLine_, indentLine_);
+  }
+  template<> std::string toString(const std::vector<char> &vector_, bool jumpLine_, bool indentLine_){
+    return GenericToolbox::toString(vector_, [&](const unsigned char& elm_){ return std::string{"0x"+GenericToolbox::toHex(elm_)}; }, jumpLine_, indentLine_);
+  }
+  template<typename T, size_t N> static std::string toString(const std::array<T, N>& array_){
+    return std::string(std::begin(array_), std::end(array_));
+  }
 
-  inline static std::string parseIntAsString(int intToFormat_){
+  template<typename T> static std::string toHex(const T& val_){ return toHex(&val_, sizeof(val_)); }
+  static std::string toHex(const void* address_, size_t nBytes_){
+    std::stringstream ss(std::string(2*nBytes_, 0));
+    unsigned char* address{(unsigned char*)(address_) + nBytes_-1};
+    do{ ss << std::hex << std::setfill('0') << std::setw(2) << static_cast<unsigned>(*(address--)); } while(address >= address_);
+    return ss.str();
+  }
+  template<typename T> static std::string stackToHex(const std::vector<T> &rawData_, size_t stackSize_) {
+    std::stringstream ss;
+    size_t nChunks = rawData_.size()*sizeof(T)/stackSize_;
+    const unsigned char* address{&rawData_[0]};
+    for( int iChunk=0 ; iChunk < nChunks ; iChunk++ ){
+      ss.str().empty()? ss << "{ ": ss << ", ";
+      ss << "0x" << GenericToolbox::toHex(address, stackSize_);
+      address += stackSize_;
+    }
+
+    if( address < &(rawData_.back())+sizeof(T) ) {
+      ss.str().empty()? ss << "{ ": ss << ", ";
+      ss << "0x" << GenericToolbox::repeatString("_-", address+stackSize_ - (&(rawData_.back())+sizeof(T)));
+      ss << GenericToolbox::toHex(address, (&(rawData_.back()) + sizeof(T)) - address);
+    }
+
+    ss << " }";
+    return ss.str();
+  }
+  static bool toBool(const std::string& str) {
+    auto result = false;    // failure to assert is false
+
+    std::istringstream is(str);
+    // first try simple integer conversion
+    is >> result;
+
+    if (is.fail()) {
+      // simple integer failed; try boolean
+      is.clear();
+      is >> std::boolalpha >> result;
+    }
+
+    if( is.fail() ){
+      throw std::invalid_argument( str + " is not convertable to bool" );
+      return false;
+    }
+
+    return result;
+  }
+
+  static std::string parseIntAsString(int intToFormat_){
     if(intToFormat_ / 1000 < 10){
       return std::to_string(intToFormat_);
     }
@@ -635,40 +676,43 @@ namespace GenericToolbox {
     intToFormat_/=1000.; // in P
     return std::to_string(intToFormat_) + "P";
   }
-  inline static std::string highlightIf(bool condition_, const std::string& text_){
-    std::stringstream ss;
-    ss << (condition_ ? ColorCodes::redBackground : "" );
-    ss << text_;
-    ss << ( condition_ ? ColorCodes::resetColor : "" );
-    return ss.str();
+
+  // deprecated
+  GT_DEPRECATED("renamed: hasSubStr") static bool doesStringContainsSubstring(const std::string& str_, const std::string& subStr_, bool ignoreCase_ = false) {
+    return hasSubStr(str_, subStr_, ignoreCase_);
   }
-  inline static std::string makeRainbowString(const std::string& inputStr_, bool stripUnicode_){
-    std::string outputString;
-    std::string inputStrStripped;
-    stripUnicode_ ? inputStrStripped = GenericToolbox::stripStringUnicode(inputStr_) : inputStrStripped = inputStr_;
-    double nbCharsPerColor = double(inputStrStripped.size()) / double(ColorCodes::rainbowColorList.size());
-    int colorSlot{0};
-    for( size_t iChar = 0 ; iChar < inputStrStripped.size() ; iChar++ ){
-      if( nbCharsPerColor < 1 or iChar == 0 or ( int(iChar+1) / nbCharsPerColor) - colorSlot + 1 > 1 ){
-        outputString += ColorCodes::rainbowColorList[colorSlot++];
-      }
-      outputString += inputStrStripped[iChar];
-    }
-    outputString += ColorCodes::resetColor;
-    return outputString;
+  GT_DEPRECATED("renamed: startsWith") static bool doesStringStartsWithSubstring(const std::string& str_, const std::string& subStr_, bool ignoreCase_ = false) {
+    return startsWith(str_, subStr_, ignoreCase_);
+  }
+  GT_DEPRECATED("renamed: endsWith") static bool doesStringEndsWithSubstring(const std::string& str_, const std::string& subStr_, bool ignoreCase_ = false) {
+    return endsWith(str_, subStr_, ignoreCase_);
   }
 
-  template <typename T> static inline std::string parseVectorAsString(const std::vector<T>& vector_, bool jumpLine_, bool indentLine_){
-    return GenericToolbox::iterableToString(vector_, [&](const T& elm_){ return elm_; }, jumpLine_, indentLine_);
+  template<typename T, typename TT> GT_DEPRECATED("renamed: toString") static std::string iterableToString(const T& iterable_, const TT& toStrFct_, bool jumpLine_=true, bool indentLine_=true){
+    return toString(iterable_, toStrFct_, jumpLine_, indentLine_);
   }
-  static inline std::string parseVectorAsString(const std::vector<std::string> &vector_, bool jumpLine_, bool indentLine_){
-    return GenericToolbox::iterableToString(vector_, [&](const std::string& elm_){ return std::string{"\""+elm_+"\""}; }, jumpLine_, indentLine_);
+  template <typename T> GT_DEPRECATED("renamed: toString") static std::string parseVectorAsString(const std::vector<T>& vector_, bool jumpLine_=true, bool indentLine_=true){
+    return toString(vector_, jumpLine_, indentLine_);
   }
-  static inline std::string parseVectorAsString(const std::vector<unsigned char> &vector_, bool jumpLine_, bool indentLine_){
-    return GenericToolbox::iterableToString(vector_, [&](const unsigned char& elm_){ return std::string{"0x"+GenericToolbox::toHex(elm_)}; }, jumpLine_, indentLine_);
+  GT_DEPRECATED("renamed: toString") static std::string parseVectorAsString(const std::vector<std::string> &vector_, bool jumpLine_=true, bool indentLine_=true){
+    return toString(vector_, jumpLine_, indentLine_);
   }
-  static inline std::string parseVectorAsString(const std::vector<char> &vector_, bool jumpLine_, bool indentLine_){
-    return GenericToolbox::iterableToString(vector_, [&](const unsigned char& elm_){ return std::string{"0x"+GenericToolbox::toHex(elm_)}; }, jumpLine_, indentLine_);
+  GT_DEPRECATED("renamed: toString") static std::string parseVectorAsString(const std::vector<unsigned char> &vector_, bool jumpLine_=true, bool indentLine_=true){
+    return toString(vector_, jumpLine_, indentLine_);
+  }
+  GT_DEPRECATED("renamed: toString") static std::string parseVectorAsString(const std::vector<char> &vector_, bool jumpLine_=true, bool indentLine_=true){
+    return toString(vector_, jumpLine_, indentLine_);
+  }
+
+  GT_DEPRECATED("renamed: stripUnicode") static std::string stripStringUnicode(const std::string &inputStr_){
+    return stripUnicode(inputStr_);
+  }
+
+  template<typename T> static std::string toHexString(T integerVal_, size_t nbDigit_){
+    std::stringstream stream;
+    stream << "0x" << toHex(&integerVal_, sizeof(integerVal_));
+    if( nbDigit_ == 0 ) return stream.str();
+    else return "0x" + stream.str().substr(2 + sizeof(T)*2 - nbDigit_, nbDigit_);
   }
 
 }

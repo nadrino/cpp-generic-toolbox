@@ -8,14 +8,18 @@
 #include <iostream>
 #include <GenericToolbox.h>
 
-ENUM_EXPANDER(
-    MyEnum, 0,
-    Case0,
-    Case1, // here is a comment
-    Case2 ,
-    Case3 = 3,
-    Case4,Case5
-    )
+#define MAKE_ENUM \
+  ENUM_NAME(MyEnum) \
+  ENUM_TYPE(unsigned int) \
+  ENUM_ENTRY(Case0, 0) \
+  ENUM_ENTRY(Case1)    \
+  ENUM_ENTRY(Case2)    \
+  ENUM_ENTRY(Case33, 33)    \
+  ENUM_ENTRY(Case34)    \
+  ENUM_ENTRY(Case35)    \
+  ENUM_OVERFLOW(0)
+#include "GenericToolbox.MakeEnum.h"
+#undef MAKE_ENUM
 
 class ClassExample{
 

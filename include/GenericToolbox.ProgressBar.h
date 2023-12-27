@@ -41,12 +41,12 @@
 
 namespace GenericToolbox{
 
-  template<typename T, typename TT> inline static void displayProgressBar( const T& iCurrent_, const TT& iTotal_, const std::string &title_ = "", bool forcePrint_ = false);
-  template<typename T, typename TT> inline static std::string getProgressBarStr(const T& iCurrent_, const TT& iTotal_, const std::string &title_ = "", bool forcePrint_ = false );
-  template<typename T, typename TT> inline static std::string generateProgressBarStr(const T& iCurrent_, const TT& iTotal_, const std::string &title_ = "" );
-  template<typename T, typename TT> inline static bool showProgressBar(const T& iCurrent_, const TT& iTotal_);
-  inline static void resetLastDisplayedValue();
-  inline static void waitProgressBar(unsigned int nbMilliSecToWait_, const std::string &progressTitle_ = "Waiting...");
+  template<typename T, typename TT> static void displayProgressBar( const T& iCurrent_, const TT& iTotal_, const std::string &title_ = "", bool forcePrint_ = false);
+  template<typename T, typename TT> static std::string getProgressBarStr(const T& iCurrent_, const TT& iTotal_, const std::string &title_ = "", bool forcePrint_ = false );
+  template<typename T, typename TT> static std::string generateProgressBarStr(const T& iCurrent_, const TT& iTotal_, const std::string &title_ = "" );
+  template<typename T, typename TT> static bool showProgressBar(const T& iCurrent_, const TT& iTotal_);
+  static void resetLastDisplayedValue();
+  static void waitProgressBar(unsigned int nbMilliSecToWait_, const std::string &progressTitle_ = "Waiting...");
 
   namespace ProgressBar{
     class ProgressBar{
@@ -100,19 +100,19 @@ namespace GenericToolbox{
 
 namespace GenericToolbox {
 
-  template<typename T, typename TT> inline static std::string generateProgressBarStr( const T& iCurrent_, const TT& iTotal_, const std::string &title_ ){
+  template<typename T, typename TT> static std::string generateProgressBarStr( const T& iCurrent_, const TT& iTotal_, const std::string &title_ ){
     return ProgressBar::gProgressBar.template generateProgressBarStr(iCurrent_, iTotal_, title_);
   }
-  template<typename T, typename TT> inline static bool showProgressBar(const T& iCurrent_, const TT& iTotal_){
+  template<typename T, typename TT> static bool showProgressBar(const T& iCurrent_, const TT& iTotal_){
     return ProgressBar::gProgressBar.template showProgressBar(iCurrent_, iTotal_);
   }
-  template<typename T, typename TT> inline static std::string getProgressBarStr(const T& iCurrent_, const TT& iTotal_, const std::string &title_, bool forcePrint_ ){
+  template<typename T, typename TT> static std::string getProgressBarStr(const T& iCurrent_, const TT& iTotal_, const std::string &title_, bool forcePrint_ ){
     return ProgressBar::gProgressBar.template getProgressBarStr(iCurrent_, iTotal_, title_, forcePrint_);
   }
-  template<typename T, typename TT> inline static void displayProgressBar(const T& iCurrent_, const TT& iTotal_, const std::string &title_, bool forcePrint_) {
+  template<typename T, typename TT> static void displayProgressBar(const T& iCurrent_, const TT& iTotal_, const std::string &title_, bool forcePrint_) {
     return ProgressBar::gProgressBar.template displayProgressBar(iCurrent_, iTotal_, title_, forcePrint_);
   }
-  inline static void resetLastDisplayedValue(){
+  static void resetLastDisplayedValue(){
     ProgressBar::gProgressBar.resetLastDisplayedValue();
   }
 
@@ -361,7 +361,7 @@ namespace GenericToolbox {
 
   }
 
-  inline static void waitProgressBar(unsigned int nbMilliSecToWait_, const std::string &progressTitle_) {
+  static void waitProgressBar(unsigned int nbMilliSecToWait_, const std::string &progressTitle_) {
 
     auto anchorTimePoint = std::chrono::high_resolution_clock::now();
     std::chrono::microseconds totalDurationToWait(nbMilliSecToWait_*1000);

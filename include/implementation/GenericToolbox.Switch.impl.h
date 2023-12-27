@@ -18,14 +18,14 @@ namespace GenericToolbox::Switch {
     inline static bool copyFile(const std::string& srcFilePath_, const std::string& dstFilePath_, bool force_){
       bool isSuccess{false};
 
-      if(not doesPathIsFile(srcFilePath_)) return false;
+      if(not isFile(srcFilePath_)) return false;
 
-      if( doesPathIsFile(dstFilePath_) ){
+      if( isFile(dstFilePath_) ){
         if( not force_ ){ return false; }
         if( not deleteFile(dstFilePath_) ){ return false; }
       }
 
-      auto outDir = GenericToolbox::getFolderPathFromFilePath(dstFilePath_);
+      auto outDir = GenericToolbox::getFolderPath(dstFilePath_);
       if( not doesPathIsFolder(outDir) ){ mkdirPath(outDir); }
 
       ssize_t srcFileSize = getFileSize(srcFilePath_);
@@ -38,7 +38,7 @@ namespace GenericToolbox::Switch {
       std::vector<char> contentBuffer(bufferSize, 0);
       size_t nChunk = (size_t(srcFileSize)/bufferSize) + 1;
       Utils::b.progressMap["copyFile"] = double(1) / double(nChunk);
-      std::string pTitle = GenericToolbox::getFileNameFromFilePath(srcFilePath_) + " -> " + outDir;
+      std::string pTitle = GenericToolbox::getFileName(srcFilePath_) + " -> " + outDir;
 
       size_t timeLoad{0};
       size_t timeDrop{0};
@@ -62,9 +62,9 @@ namespace GenericToolbox::Switch {
       Utils::b.progressMap["copyFile"] = 1.;
       return isSuccess;
     }
-    inline static bool doFilesAreIdentical(const std::string& file1Path_, const std::string& file2Path_){
-      if( not doesPathIsFile(file1Path_) ) { return false; }
-      if( not doesPathIsFile(file2Path_) ) { return false; }
+    static bool doFilesAreIdentical(const std::string& file1Path_, const std::string& file2Path_){
+      if( not isFile(file1Path_) ) { return false; }
+      if( not isFile(file2Path_) ) { return false; }
 
       ssize_t file1Size = getFileSize(file1Path_);
       if( file1Size != getFileSize(file2Path_) ) return false;
@@ -104,13 +104,13 @@ namespace GenericToolbox::Switch {
   }
 
   namespace Utils{
-    inline static bool isTidLike(const std::string& name_){
+    static bool isTidLike(const std::string& name_){
       // std::string tidExample = "010062601165E000";
       // 16 hex string that starts with '0'
       std::regex hexRegex("0[0-9a-fA-F]{15}");
       return std::regex_match(name_, hexRegex);
     }
-    inline static std::string lookForTidInSubFolders(const std::string& folderPath_, int maxDepth_){
+    static std::string lookForTidInSubFolders(const std::string& folderPath_, int maxDepth_){
       // WARNING : Recursive function
       maxDepth_--;
       std::vector<std::string> subFolderList = GenericToolbox::getListOfSubFoldersInFolder(folderPath_);
@@ -132,7 +132,7 @@ namespace GenericToolbox::Switch {
 
       return "";
     }
-    inline static uint8_t* getIconFromTitleId(const std::string& titleId_){
+    static uint8_t* getIconFromTitleId(const std::string& titleId_){
       if( titleId_.empty() ) return nullptr;
 
       uint8_t* icon = nullptr;
@@ -152,7 +152,7 @@ namespace GenericToolbox::Switch {
   }
 
   namespace UI{
-    inline static std::string openKeyboardUi(const std::string &defaultStr_) {
+    static std::string openKeyboardUi(const std::string &defaultStr_) {
       SwkbdConfig kbd;
       char tmpoutstr[64];
 
@@ -169,7 +169,7 @@ namespace GenericToolbox::Switch {
 
   namespace Terminal {
 
-    inline static void printRight(const std::string& input_, const std::string& color_, bool flush_){
+    static void printRight(const std::string& input_, const std::string& color_, bool flush_){
       int nbSpaceLeft{GenericToolbox::Switch::Hardware::getTerminalWidth()};
       nbSpaceLeft -= int(GenericToolbox::getPrintSize(input_));
       if( nbSpaceLeft <= 0 ){
@@ -187,7 +187,7 @@ namespace GenericToolbox::Switch {
       if(flush_) std::cout << "\r";
       else if(int(input_.size()) > GenericToolbox::Switch::Hardware::getTerminalWidth()) std::cout << std::endl;
     }
-    inline static void printLeft(const std::string& input_, const std::string& color_, bool flush_){
+    static void printLeft(const std::string& input_, const std::string& color_, bool flush_){
       int nbSpaceLeft{ GenericToolbox::Switch::Hardware::getTerminalWidth() };
       nbSpaceLeft -= int(GenericToolbox::getPrintSize(input_));
 
@@ -209,7 +209,7 @@ namespace GenericToolbox::Switch {
       std::cout << color_ << input_ << GenericToolbox::repeatString(" ", nbSpaceLeft) << GenericToolbox::ColorCodes::resetColor;
       if(flush_) std::cout << "\r";
     }
-    inline static void printLeftRight(const std::string& inputLeft_, const std::string& inputRight_, const std::string& color_, bool flush_){
+    static void printLeftRight(const std::string& inputLeft_, const std::string& inputRight_, const std::string& color_, bool flush_){
       int nbSpaceLeft{ GenericToolbox::Switch::Hardware::getTerminalWidth() };
       nbSpaceLeft -= int( GenericToolbox::getPrintSize(inputLeft_) );
       nbSpaceLeft -= int( GenericToolbox::getPrintSize(inputRight_) );
@@ -231,7 +231,7 @@ namespace GenericToolbox::Switch {
       }
     }
 
-    inline static void makePause(const std::string& message_){
+    static void makePause(const std::string& message_){
       if( not message_.empty() ) std::cout << message_ << std::endl;
       std::cout << "+ to quit now or PRESS any button to continue." << std::endl;
       consoleUpdate(nullptr);
@@ -260,7 +260,7 @@ namespace GenericToolbox::Switch {
       std::this_thread::sleep_for(std::chrono::milliseconds(100));
       consoleUpdate(nullptr);
     }
-    template<typename T, typename TT> inline static void displayProgressBar(const T& iCurrent_, const TT& iTotal_,
+    template<typename T, typename TT> static void displayProgressBar(const T& iCurrent_, const TT& iTotal_,
         const std::string &title_, bool forcePrint_, const std::string& color_){
       if(forcePrint_ or ProgressBar::gProgressBar.template showProgressBar(iCurrent_, iTotal_) ){
         ProgressBar::gProgressBar.setDisableVt100Cmd( true );

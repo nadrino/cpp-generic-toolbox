@@ -134,7 +134,7 @@ struct MAKE_ENUM {
 #define ENUM_ENTRY(...) // nothing
     return names[index_];
   }
-  static inline StructType toEnum( const std::string& name_ ){
+  static StructType toEnum( const std::string& name_ ){
     int nEntries{getEnumSize()};
     for( int iEntry = 0 ; iEntry < nEntries ; iEntry++ ){
       if( name_ == getEnumEntryToStr(iEntry) ){
@@ -144,7 +144,7 @@ struct MAKE_ENUM {
     return StructType::overflowValue;
   }
 
-  static inline std::string toString( EnumTypeName value_ ){
+  static std::string toString( EnumTypeName value_ ){
     int nEntries{getEnumSize()};
     for( int iEntry = 0 ; iEntry < nEntries ; iEntry++ ){
       if( value_ == getEnumVal(iEntry) ){
@@ -153,7 +153,7 @@ struct MAKE_ENUM {
     }
     return {};
   }
-  static inline std::string toString( EnumType value_ ){ return toString( static_cast<EnumTypeName>(value_) ); }
+  static std::string toString( EnumType value_ ){ return toString( static_cast<EnumTypeName>(value_) ); }
   static inline std::string toString( StructType enum_ ){ return toString( enum_.value ); }
   [[nodiscard]] inline std::string toString() const { return toString( this->value ); }
   friend std::ostream& operator<< (std::ostream& stream, const StructType& this_){ stream << this_.toString(); return stream; }

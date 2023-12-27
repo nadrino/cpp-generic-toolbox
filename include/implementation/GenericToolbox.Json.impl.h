@@ -27,7 +27,7 @@ namespace GenericToolbox {
       return output;
     }
     template<typename J> inline auto readConfigFile(const std::string& configFilePath_) -> J{
-      if( not GenericToolbox::doesPathIsFile(configFilePath_) ){
+      if( not GenericToolbox::isFile(configFilePath_) ){
         std::cout << "\"" << configFilePath_ << "\" could not be found." << std::endl;
         throw std::runtime_error("file not found.");
       }
@@ -65,8 +65,8 @@ namespace GenericToolbox {
     template<typename J> inline void unfoldConfig(J& config_){
       for( auto& entry : config_ ){
         if( entry.is_string() and (
-            GenericToolbox::doesStringEndsWithSubstring(entry.template get<std::string>(), ".yaml", true)
-            or GenericToolbox::doesStringEndsWithSubstring(entry.template get<std::string>(), ".json", true)
+            GenericToolbox::endsWith(entry.template get<std::string>(), ".yaml", true)
+            or GenericToolbox::endsWith(entry.template get<std::string>(), ".json", true)
         ) ){
           GenericToolbox::Json::forwardConfig(entry);
           GenericToolbox::Json::unfoldConfig(config_); // remake the loop on the unfolder config
@@ -187,7 +187,7 @@ namespace GenericToolbox {
           return GenericToolbox::Json::fetchValue<T>(jsonConfig_, keyName);
         }
       }
-      throw std::runtime_error("Could not find any json entry: " + GenericToolbox::parseVectorAsString(keyNames_) + ":\n" + jsonConfig_.dump());
+      throw std::runtime_error("Could not find any json entry: " + GenericToolbox::toString(keyNames_) + ":\n" + jsonConfig_.dump());
     }
     template<typename T, typename J> inline auto fetchValue(const J& jsonConfig_, const std::string& keyName_, const T& defaultValue_) -> T{
       try{

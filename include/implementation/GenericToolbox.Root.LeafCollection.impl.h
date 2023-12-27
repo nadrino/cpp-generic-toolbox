@@ -233,9 +233,9 @@ namespace GenericToolbox{
   inline std::string LeafCollection::getSummary() const{
     std::stringstream ss;
     ss << "tree{ " << _treePtr_->GetName() << " }";
-    ss << std::endl << "leavesExpr" << GenericToolbox::parseVectorAsString(_leafExpressionList_, true);
-    ss << std::endl << "branchesBuf" << GenericToolbox::iterableToString(_branchBufferList_, [](const BranchBuffer& b){ return b.getSummary(); });
-    ss << std::endl << "leafForm" << GenericToolbox::iterableToString(_leafFormList_, [](const LeafForm& l){ return l.getSummary(); } );
+    ss << std::endl << "leavesExpr" << GenericToolbox::toString(_leafExpressionList_, true);
+    ss << std::endl << "branchesBuf" << GenericToolbox::toString(_branchBufferList_, [](const BranchBuffer& b){ return b.getSummary(); });
+    ss << std::endl << "leafForm" << GenericToolbox::toString(_leafFormList_, [](const LeafForm& l){ return l.getSummary(); } );
     return ss.str();
   }
   inline int LeafCollection::getLeafExpIndex(const std::string& leafExpression_) const {

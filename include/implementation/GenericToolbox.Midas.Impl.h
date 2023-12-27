@@ -247,7 +247,7 @@ namespace GenericToolbox {
         return subKeyNameList;
       }
       //  template<class T> std::map<std::string, T> fetchMatchingValues(const std::string& regexPath_, const std::string& regexConditionPath_){
-      //    GenericToolbox::doesStringContainsSubstring()
+      //    GenericToolbox::hasSubStr()
       //  }
 
       inline bool setKey(const std::string &path_, const DWORD &type_) {

@@ -24,10 +24,10 @@ int main(){
   // String management
   string str("This is a simple message.");
   cout << str << endl;
-  cout << "Does str contains \"simple message\"? " << GenericToolbox::doesStringContainsSubstring(str, "simple message") << endl;
+  cout << "Does str contains \"simple message\"? " << GenericToolbox::hasSubStr(str, "simple message") << endl;
   cout << "Remove the caps chars: " << GenericToolbox::toLowerCase(str) << endl;
   auto splitVec = GenericToolbox::splitString(str, " ");
-  cout << "Those are the words in str: "; GenericToolbox::printVector(splitVec);
+  cout << "Those are the words in str: " << GenericToolbox::toString(splitVec);
   cout << "Let's_join_the_vector_element:_" << GenericToolbox::joinVectorString(splitVec, "_") << endl;
   cout << GenericToolbox::formatString("I would %s to create a printf-style string %i, %p", "like", 4, &splitVec) << endl;
 
@@ -38,8 +38,8 @@ int main(){
   cout << "Expanded path: ~/test.txt -> " << GenericToolbox::expandEnvironmentVariables("~/test.txt") << endl;
   cout << "Expanded path: $$/test.txt -> " << GenericToolbox::expandEnvironmentVariables("$$/test.txt") << endl;
   cout << "Current working directory: " << GenericToolbox::getCurrentWorkingDirectory() << endl;
-  cout << "Is this a directory? " << GenericToolbox::doesPathIsFolder("../include") << endl;
-  cout << "Is this a file? " << GenericToolbox::doesPathIsFile("../include/GenericToolbox.h") << endl;
+  cout << "Is this a directory? " << GenericToolbox::isDir("../include") << endl;
+  cout << "Is this a file? " << GenericToolbox::isFile("../include/GenericToolbox.h") << endl;
   cout << "Its size: " << GenericToolbox::parseSizeUnits(GenericToolbox::getFileSizeInBytes("../include/GenericToolbox.h")) << endl;
   cout << "Hash of this file: " << GenericToolbox::getHashFile("../include/GenericToolbox.h") << endl;
   cout << "Are they identical?: " << GenericToolbox::doFilesAreTheSame("../include/GenericToolbox.h","../include/GenericToolbox_impl.h") << endl;
@@ -66,13 +66,12 @@ int main(){
   ClassExample example;
   example.MyGreatMethod();
 
-  std::cout << "MyEnum = " << MyEnum::Case1 << ": " << MyEnumEnumNamespace::toString(MyEnum::Case1) << std::endl;
-  std::cout << "MyEnum = " << MyEnum::Case2 << ": " << MyEnumEnumNamespace::toString(MyEnum::Case2) << std::endl;
-  MyEnum enumTest = Case3;
-  std::cout << "MyEnum = " << enumTest << ": " << MyEnumEnumNamespace::toString(enumTest) << std::endl;
-  std::cout << "MyEnum = " << MyEnum::Case4 << ": " << MyEnumEnumNamespace::toString(MyEnum::Case4) << std::endl;
-  std::cout << "MyEnum = " << MyEnum::Case5 << ": " << MyEnumEnumNamespace::toString(MyEnum::Case5) << std::endl;
-  std::cout << GenericToolbox::parseVectorAsString(MyEnumEnumNamespace::enumNamesDict) << std::endl;
+  std::cout << "MyEnum = " << MyEnum::Case1 << ": " << MyEnum::toString(MyEnum::Case1) << std::endl;
+  std::cout << "MyEnum = " << MyEnum::Case2 << ": " << MyEnum::toString(MyEnum::Case2) << std::endl;
+  MyEnum enumTest = MyEnum::Case33;
+  std::cout << "MyEnum = " << enumTest << ": " << enumTest.toString() << std::endl;
+  std::cout << "MyEnum = " << MyEnum::Case34 << ": " << MyEnum::toString(MyEnum::Case34) << std::endl;
+  std::cout << "MyEnum = " << MyEnum::Case35 << ": " << MyEnum::toString(MyEnum::Case35) << std::endl;
 
   GenericToolbox::ParallelWorker p;
   p.setNThreads(4); // 3 parallel threads + 1 main

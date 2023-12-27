@@ -45,7 +45,7 @@ namespace GenericToolbox{
   class ParallelWorker {
 
   public:
-    template<typename T> inline static std::pair<T, T> getThreadBoundIndices(int iThread_, int nThreads_, T nTotal_);
+    template<typename T> static std::pair<T, T> getThreadBoundIndices(int iThread_, int nThreads_, T nTotal_);
 
   public:
     inline ParallelWorker() = default;

@@ -22,12 +22,12 @@
 // Declaration section
 namespace GenericToolbox{
 
-  static inline std::string parseTimeUnit(double nbMicroSec_, int maxPadSize_=-1);
-  static inline std::string getElapsedTimeSinceLastCallStr(const std::string& key_);
-  static inline std::string getElapsedTimeSinceLastCallStr(int instance_ = -1);
-  static inline long long getElapsedTimeSinceLastCallInMicroSeconds(const std::string& key_);
-  static inline long long getElapsedTimeSinceLastCallInMicroSeconds(int instance = -1);
-  static inline std::string getNowDateString(const std::string& dateFormat_="%Y_%m_%d-%H_%M_%S");
+  static std::string parseTimeUnit(double nbMicroSec_, int maxPadSize_=-1);
+  static std::string getElapsedTimeSinceLastCallStr(const std::string& key_);
+  static std::string getElapsedTimeSinceLastCallStr(int instance_ = -1);
+  static long long getElapsedTimeSinceLastCallInMicroSeconds(const std::string& key_);
+  static long long getElapsedTimeSinceLastCallInMicroSeconds(int instance = -1);
+  static std::string getNowDateString(const std::string& dateFormat_="%Y_%m_%d-%H_%M_%S");
 
 }
 
@@ -43,7 +43,7 @@ namespace GenericToolbox{
   }
 
 
-  static inline std::string parseTimeUnit(double nbMicroSec_, int maxPadSize_){
+  static std::string parseTimeUnit(double nbMicroSec_, int maxPadSize_){
 
     std::stringstream ss;
 
@@ -81,13 +81,13 @@ namespace GenericToolbox{
     }
     return ss.str();
   }
-  static inline std::string getElapsedTimeSinceLastCallStr( const std::string& key_ ) {
+  static std::string getElapsedTimeSinceLastCallStr( const std::string& key_ ) {
     return GenericToolbox::parseTimeUnit(double(GenericToolbox::getElapsedTimeSinceLastCallInMicroSeconds(key_)));
   }
-  static inline std::string getElapsedTimeSinceLastCallStr(int instance_){
+  static std::string getElapsedTimeSinceLastCallStr(int instance_){
     return GenericToolbox::parseTimeUnit(double(getElapsedTimeSinceLastCallInMicroSeconds(instance_)));
   }
-  static inline long long getElapsedTimeSinceLastCallInMicroSeconds( const std::string& key_ ) {
+  static long long getElapsedTimeSinceLastCallInMicroSeconds( const std::string& key_ ) {
     auto newTimePoint = std::chrono::high_resolution_clock::now();
     auto microseconds = std::chrono::duration_cast<std::chrono::microseconds>(
         newTimePoint - Time::Internals::lastTimePointMapStr[key_]
@@ -95,7 +95,7 @@ namespace GenericToolbox{
     Time::Internals::lastTimePointMapStr[key_] = newTimePoint;
     return microseconds.count();
   }
-  static inline long long getElapsedTimeSinceLastCallInMicroSeconds(int instance_){
+  static long long getElapsedTimeSinceLastCallInMicroSeconds(int instance_){
     auto newTimePoint = std::chrono::high_resolution_clock::now();
     auto microseconds = std::chrono::duration_cast<std::chrono::microseconds>(
         newTimePoint - Time::Internals::lastTimePointMap[instance_]
@@ -103,7 +103,7 @@ namespace GenericToolbox{
     Time::Internals::lastTimePointMap[instance_] = newTimePoint;
     return microseconds.count();
   }
-  static inline std::string getNowDateString(const std::string& dateFormat_){
+  static std::string getNowDateString(const std::string& dateFormat_){
     std::stringstream ss;
 #if defined(__GNUC__) && !defined(__clang__) && (__GNUC__ <= 4)
     std::time_t now = std::time(nullptr);
