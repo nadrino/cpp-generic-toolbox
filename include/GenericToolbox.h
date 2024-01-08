@@ -13,7 +13,7 @@
 #include "GenericToolbox.Os.h"
 #include "GenericToolbox.Time.h"
 #include "GenericToolbox.Macro.h"
-#include "GenericToolbox.ProgressBar.h"
+#include "GenericToolbox.Utils.h"
 #include "GenericToolbox.Misc.h"
 
 #endif // CPP_GENERIC_TOOLBOX_H

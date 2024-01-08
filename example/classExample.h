@@ -6,7 +6,6 @@
 #define CPP_GENERIC_TOOLBOX_CLASSEXAMPLE_H
 
 #include <iostream>
-#include <GenericToolbox.h>
 
 #define MAKE_ENUM \
   ENUM_NAME(MyEnum) \

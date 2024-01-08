@@ -7,7 +7,7 @@
 
 #ifdef __SWITCH__
 
-#include "GenericToolbox.ProgressBar.h"
+#include "GenericToolbox.Utils.h"
 #include "GenericToolbox.Macro.h"
 #include "GenericToolbox.Time.h"
 #include "GenericToolbox.Os.h"

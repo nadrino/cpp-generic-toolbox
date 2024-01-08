@@ -2,14 +2,13 @@
 // Created by Nadrino on 25/06/2021.
 //
 
-#ifndef CPP_GENERIC_TOOLBOX_GENERICTOOLBOX_THREADPOOL_H
-#define CPP_GENERIC_TOOLBOX_GENERICTOOLBOX_THREADPOOL_H
+#ifndef CPP_GENERIC_TOOLBOX_THREAD_H
+#define CPP_GENERIC_TOOLBOX_THREAD_H
 
 
 #include "GenericToolbox.Wrappers.h"
 #include "GenericToolbox.Vector.h"
 #include "GenericToolbox.Macro.h"
-
 
 #include <condition_variable>
 #include <iostream>
@@ -20,12 +19,12 @@
 #include <chrono>
 #include <future>
 #include <mutex>
+#include <queue>
 #include <map>
 
 
-// Classes : ParallelWorker
+// WorkerEntry
 namespace GenericToolbox{
-
   struct WorkerEntry{
     int index{-1};
     std::shared_ptr<std::future<void>> thread{nullptr};
@@ -35,7 +34,10 @@ namespace GenericToolbox{
     GenericToolbox::Atomic<bool> isEngaged{false};
     GenericToolbox::Atomic<bool> isRunning{false};
   };
+}
 
+// JobEntry
+namespace GenericToolbox{
   struct JobEntry{
     std::string name{};
     std::function<void(int)> function{};
@@ -45,6 +47,10 @@ namespace GenericToolbox{
     JobEntry() = delete;
     explicit JobEntry(std::string  name_) : name(std::move(name_)) {}
   };
+}
+
+// ParallelWorker
+namespace GenericToolbox{
 
   class ParallelWorker {
 
@@ -93,11 +99,6 @@ namespace GenericToolbox{
     std::vector<JobEntry> _jobEntryList_{};
 
   };
-
-}
-
-// implementation
-namespace GenericToolbox{
 
   // statics
   template<typename T> inline std::pair<T, T> ParallelWorker::getThreadBoundIndices(int iThread_, int nThreads_, T nTotal_){
@@ -292,4 +293,47 @@ namespace GenericToolbox{
   }
 }
 
-#endif //CPP_GENERIC_TOOLBOX_GENERICTOOLBOX_THREADPOOL_H
+// OrderedLock
+namespace GenericToolbox{
+  class OrderedLock {
+
+  public:
+    inline OrderedLock() = default;
+
+    [[nodiscard]] inline bool isLocked() const { return _isLocked_; }
+
+    inline void lock();
+    inline void unlock();
+
+  private:
+    bool _isLocked_{false};
+    NoCopyWrapper<std::mutex> _lock_{};
+    std::queue<std::condition_variable *> _conditionVariable_{};
+  };
+
+  void OrderedLock::lock() {
+    std::unique_lock<std::mutex> acquire(_lock_);
+    if (_isLocked_) {
+      std::condition_variable signal{};
+      _conditionVariable_.emplace(&signal);
+      signal.wait(acquire);
+    }
+    else {
+      _isLocked_ = true;
+    }
+  }
+  void OrderedLock::unlock() {
+    std::unique_lock<std::mutex> acquire(_lock_);
+    if (_conditionVariable_.empty()) {
+      _isLocked_ = false;
+    }
+    else {
+      _conditionVariable_.front()->notify_one();
+      _conditionVariable_.pop();
+    }
+  }
+}
+
+
+
+#endif //CPP_GENERIC_TOOLBOX_THREAD_H

@@ -2,15 +2,13 @@
 // Created by Nadrino on 07/05/2023.
 //
 
-#ifndef SIMPLEMODMANAGER_GENERICTOOLBOX_SWITCH_BOREALIS_H
-#define SIMPLEMODMANAGER_GENERICTOOLBOX_SWITCH_BOREALIS_H
-
-#ifdef __SWITCH__
+#ifndef CPP_GENERIC_TOOLBOX_BOREALIS_H
+#define CPP_GENERIC_TOOLBOX_BOREALIS_H
 
 #include "borealis.hpp"
 
-#include <string>
 #include <functional>
+#include <string>
 #include <thread>
 #include <chrono>
 
@@ -20,7 +18,7 @@
 
 
 
-namespace GenericToolbox::Switch::Borealis{
+namespace GenericToolbox::Borealis{
 
   const NVGcolor redNvgColor{nvgRGB(0xff, 0x64, 0x64)};
   const NVGcolor greenNvgColor{nvgRGB(0x00, 0xff, 0xc8)};
@@ -217,6 +215,4 @@ namespace GenericToolbox::Switch::Borealis{
 
 }
 
-#endif
-
-#endif //SIMPLEMODMANAGER_GENERICTOOLBOX_SWITCH_BOREALIS_H
+#endif // CPP_GENERIC_TOOLBOX_BOREALIS_H

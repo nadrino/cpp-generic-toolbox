@@ -37,5 +37,5 @@ include_directories(path/to/cpp-generic-toolbox/include)
 Now you can include the header in your source file:
 
 ```c++
-#include <GenericToolbox.h>
+#include "GenericToolbox.h"
 ```

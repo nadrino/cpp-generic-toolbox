@@ -11,8 +11,10 @@
 
 #include <sstream>
 #include <iomanip>
+#include <utility>
 #include <string>
 #include <chrono>
+#include <vector>
 #include <map>
 
 #pragma GCC diagnostic push
@@ -22,6 +24,55 @@
 
 // Declaration section
 namespace GenericToolbox{
+
+  namespace Time{
+    struct CycleTimer{
+      long long counts{0};
+      long long cumulated{0};
+      inline friend std::ostream& operator<< (std::ostream& stream, const CycleTimer& timer_);
+    };
+    class CycleClock{
+    public:
+      CycleClock() = default;
+      explicit CycleClock(std::string unit_) : _unit_(std::move(unit_)) {}
+      ~CycleClock() = default;
+
+      // setters
+      inline void setUnit(const std::string &unit_) { _unit_ = unit_; }
+
+      // getters
+      inline long long int getCounts() const { return _counts_; }
+      inline double* getCountSpeedPtr(){ return &_countSpeed_; }
+
+      // measure
+      inline void start(){ _startTime_ = std::chrono::high_resolution_clock::now(); _hasStarted_ = true; }
+      inline void stopAndCumulate(long long counts_=1);
+      inline void cycle(long long int counts_=1);
+      inline void cumulate(long long int counts_){ _counts_ += counts_; }
+
+      // output
+      inline std::string getCountingSpeed() const;
+      inline friend std::ostream& operator<< (std::ostream& stream, const CycleClock& cCock_) { stream << cCock_.getCountingSpeed(); return stream; }
+
+      // cache
+      inline void updateCountingSpeed() const { _countSpeed_ = double(_counts_)/_cumulatedSeconds_; }
+
+    private:
+      // parameters
+      std::string _unit_{"counts"};
+
+      // internals
+      bool _hasStarted_{false};
+      long long int _counts_{0};
+      double _cumulatedSeconds_{0};
+
+      // caches
+      std::chrono::high_resolution_clock::time_point _startTime_;
+      mutable double _countSpeed_{0};
+    };
+  }
+
+
 
   static std::string parseTimeUnit(double nbMicroSec_, int maxPadSize_=-1);
   static std::string getElapsedTimeSinceLastCallStr(const std::string& key_);
@@ -37,11 +88,45 @@ namespace GenericToolbox{
 namespace GenericToolbox{
 
   namespace Time{
+    inline std::ostream& operator<< (std::ostream& stream, const CycleTimer& timer_) {
+      if(timer_.counts == 0) stream << "0s";
+      else stream << GenericToolbox::parseTimeUnit(double(timer_.cumulated) / double(timer_.counts));
+      return stream;
+    }
+
+    inline void CycleClock::stopAndCumulate(long long counts_){
+      if( not _hasStarted_ ){ throw std::runtime_error("clock not started."); }
+      _cumulatedSeconds_ += std::chrono::duration<double>(std::chrono::high_resolution_clock::now()-_startTime_).count();
+      cumulate( counts_ );
+      _hasStarted_ = false;
+    }
+    inline void CycleClock::cycle(long long int counts_){
+      if( not _hasStarted_ ){
+        cumulate(counts_);
+        start();
+      }
+      else{
+        // stop-start
+        stopAndCumulate( counts_ );
+        start();
+      }
+    }
+    inline std::string CycleClock::getCountingSpeed() const{
+      std::stringstream ss;
+      if( _counts_ == 0 or not _hasStarted_ ) ss << "0 " << _unit_ << "/s";
+      else{
+        this->updateCountingSpeed();
+        ss << GenericToolbox::parseUnitPrefix(_countSpeed_) << " " << _unit_ << "/s";
+      }
+      return ss.str();
+    }
+
     namespace Internals{
       static std::map<int, std::chrono::high_resolution_clock::time_point> lastTimePointMap{};
       static std::map<std::string, std::chrono::high_resolution_clock::time_point> lastTimePointMapStr{};
     }
   }
+
 
 
   static std::string parseTimeUnit(double nbMicroSec_, int maxPadSize_){
@@ -122,6 +207,8 @@ namespace GenericToolbox{
 #endif
     return ss.str();
   }
+
+
 
 }
 

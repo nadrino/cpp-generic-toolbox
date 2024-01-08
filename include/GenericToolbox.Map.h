@@ -26,8 +26,6 @@ namespace GenericToolbox{
   template <typename K, typename T> static T* getElementPtrIsInMap( const K& key_, std::map<K,T>& map_ );
   template <typename T1, typename T2> static void appendToMap( std::map<T1, T2> &mapContainer_, const std::map<T1, T2> &mapToPushBack_, bool overwrite_ = true );
   template <typename T> static std::map<std::string, T> getSubMap(const std::map<std::string, T>& map_, const std::string &keyStrStartWith_ );
-  template <typename T1, typename T2> static std::string parseMapAsString(const std::map<T1, T2>& map_, bool enableLineJump_ = true);
-  template <typename T1, typename T2, typename T3> static std::string parseMapAsString(const std::map<T1, std::pair<T2,T3>>& map_, bool enableLineJump_ = true);
 
 }
 
@@ -61,26 +59,6 @@ namespace GenericToolbox {
       }
     }
     return outSubMap;
-  }
-  template <typename T1, typename T2> static std::string parseMapAsString(const std::map<T1, T2>& map_, bool enableLineJump_){
-    return GenericToolbox::toString(
-        map_,
-        [&](const std::pair<T1, T2>& elm_){
-          std::stringstream ss;
-          ss << "{ " << elm_.first << ": " << elm_.second << " }";
-          return ss.str();
-        },
-        enableLineJump_, enableLineJump_);
-  }
-  template <typename T1, typename T2, typename T3> static std::string parseMapAsString(const std::map<T1, std::pair<T2,T3>>& map_, bool enableLineJump_){
-    return GenericToolbox::toString(
-        map_,
-        [&](const std::pair<T1, std::pair<T2,T3>>& elm_){
-          std::stringstream ss;
-          ss << "{ " << elm_.first << ": {" << elm_.second.first << ", " << elm_.second.second << "} }";
-          return ss.str();
-        },
-        enableLineJump_, enableLineJump_);
   }
 
 }
