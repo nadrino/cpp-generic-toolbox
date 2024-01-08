@@ -5,7 +5,7 @@
 #ifndef CPP_GENERIC_TOOLBOX_GENERICTOOLBOX_ROOT_LEAFFORM_IMPL_H
 #define CPP_GENERIC_TOOLBOX_GENERICTOOLBOX_ROOT_LEAFFORM_IMPL_H
 
-#include "GenericToolbox.h"
+
 #include "GenericToolbox.Root.LeafCollection.h"
 
 #include <stdexcept>

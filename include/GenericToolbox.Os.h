@@ -6,10 +6,18 @@
 #define CPP_GENERIC_TOOLBOX_OS_H
 
 
+#ifdef __SWITCH__
+#include <switch.h>
+#endif
+
 #include <unistd.h>
 #include <string>
 #include <vector>
+#include <array>
 #include <pwd.h>
+
+#include <sys/stat.h>
+#include <sys/statvfs.h>
 
 
 // ***************************

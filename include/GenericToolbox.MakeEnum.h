@@ -3,16 +3,25 @@
 //
 
 
-// example of usage (in a src or header file):
-// #define MAKE_ENUM \
-//  ENUM_NAME( MyEnum ) \
-//  ENUM_ENTRY( FOO, 0 ) \
-//  ENUM_ENTRY( BAR, 10 ) \
-//  ENUM_ENTRY( BOO )
-// #include "GenericToolbox.MakeEnum.h"
-// #undef MAKE_ENUM
-// int i = MyEnum::FOO;
-// std::string s = MyEnum::toString(i);
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wcomment"
+
+
+/*
+ *  example of usage (in a src or header file):
+ *   #define MAKE_ENUM \
+ *    ENUM_NAME( MyEnum ) \
+ *    ENUM_TYPE( size_t ) \
+ *    ENUM_ENTRY( FOO, 0 ) \
+ *    ENUM_ENTRY( BAR, 10 ) \
+ *    ENUM_ENTRY( BOO )
+ *   #include "GenericToolbox.MakeEnum.h"
+ *   #undef MAKE_ENUM
+ *   int i = MyEnum::FOO;
+ *   std::string s = MyEnum::toString(i);
+ */
+
+
 
 
 // only do it if an enum has been created
@@ -118,7 +127,7 @@ struct MAKE_ENUM {
   }
   static EnumType getEnumVal(int index_){
     static const EnumType indices[] = { MAKE_ENUM };
-    if( index_ < 0 or index_ > sizeof(indices)/sizeof(EnumType) ){ return StructType::overflowValue; }
+    if( index_ < 0 or index_ > int(sizeof(indices)/sizeof(EnumType)) ){ return StructType::overflowValue; }
     return indices[index_];
   }
 #undef ENUM_ENTRY

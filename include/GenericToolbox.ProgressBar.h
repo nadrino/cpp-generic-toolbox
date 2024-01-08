@@ -13,6 +13,7 @@
 #include <string>
 #include <iostream>
 #include <cstddef>
+#include <cmath>
 
 
 #ifndef PROGRESS_BAR_ENABLE_RAINBOW

@@ -5,7 +5,7 @@
 #ifndef CPP_GENERIC_TOOLBOX_GENERICTOOLBOX_RAWDATAARRAY_H
 #define CPP_GENERIC_TOOLBOX_GENERICTOOLBOX_RAWDATAARRAY_H
 
-#include "GenericToolbox.h"
+
 
 #include <utility>
 #include <vector>

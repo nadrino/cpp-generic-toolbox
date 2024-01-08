@@ -5,7 +5,7 @@
 #ifndef CPP_GENERIC_TOOLBOX_GENERICTOOLBOX_TABLE_PRINTER_IMPL_H
 #define CPP_GENERIC_TOOLBOX_GENERICTOOLBOX_TABLE_PRINTER_IMPL_H
 
-#include "GenericToolbox.h"
+
 
 #include <chrono>
 #include <sstream>

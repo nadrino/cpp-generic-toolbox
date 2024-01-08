@@ -15,10 +15,6 @@
 // Declaration section
 namespace GenericToolbox{
 
-  //! Misc Tools
-  static std::string getClassName(const std::string& PRETTY_FUNCTION_); // When calling this functions, provide __PRETTY_FUNCTION__ macro
-  static std::string getMethodName(const std::string& PRETTY_FUNCTION_);
-
   template<class Derived, class Base> static bool isDerivedFrom(Base* objPtr_); // slow...
   template<class Derived, class Base> static bool isDerivedType(Base* objPtr_); // works when Derived is the final type
 
@@ -28,6 +24,13 @@ namespace GenericToolbox{
 
 // Implementation section
 namespace GenericToolbox{
+
+  template<class Derived, class ObjClass> static bool isDerivedFrom(ObjClass* objPtr_){
+    return dynamic_cast< Derived* >( objPtr_ ) != nullptr;
+  }
+  template<class Derived, class Base> static bool isDerivedType(Base* objPtr_){
+    return std::type_index(typeid(*objPtr_)) == std::type_index(typeid(Derived));
+  }
 
   template<typename T> inline auto getTypedArray(size_t nBytes_, char* byteArray_) -> std::vector<T>{
     std::vector<T> out;
@@ -47,37 +50,9 @@ namespace GenericToolbox{
     return out;
   }
 
-
-  template<class Derived, class ObjClass> static bool isDerivedFrom(ObjClass* objPtr_){
-    return dynamic_cast< Derived* >( objPtr_ ) != nullptr;
-  }
-  template<class Derived, class Base> static bool isDerivedType(Base* objPtr_){
-    return std::type_index(typeid(*objPtr_)) == std::type_index(typeid(Derived));
-  }
-
-  static std::string getClassName(const std::string& PRETTY_FUNCTION_){
-    size_t colons = PRETTY_FUNCTION_.find("::");
-    if (colons == std::string::npos)
-      return "::";
-    size_t begin = PRETTY_FUNCTION_.substr(0, colons).rfind(' ') + 1;
-    size_t end = colons - begin;
-
-    return PRETTY_FUNCTION_.substr(begin, end);
-  }
-  static std::string getMethodName(const std::string& PRETTY_FUNCTION_){
-    size_t colons = PRETTY_FUNCTION_.find("::");
-    size_t begin = PRETTY_FUNCTION_.substr(0, colons).rfind(' ') + 1;
-    size_t end = PRETTY_FUNCTION_.rfind('(') - begin;
-
-    return PRETTY_FUNCTION_.substr(begin, end) + "()";
-  }
-
 }
 
-//! MACROS Tools
-#define __CLASS_NAME__ GenericToolbox::getClassName(__PRETTY_FUNCTION__)
-//#define __CLASS_NAME__ ( this != nullptr ? typeid(*this).name() )
-#define __METHOD_NAME__ GenericToolbox::getMethodName(__PRETTY_FUNCTION__)
+
 
 
 #endif // CPP_GENERIC_TOOLBOX_MISC_H
