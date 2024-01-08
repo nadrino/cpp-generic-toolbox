@@ -11,6 +11,7 @@
 
 #include "GenericToolbox.Macro.h"
 
+#include <functional>
 #include <numeric>
 #include <string>
 #include <vector>
