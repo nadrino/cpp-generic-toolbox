@@ -15,6 +15,7 @@
 #include <numeric>
 #include <string>
 #include <vector>
+#include <cmath>
 #include <list>
 
 #pragma GCC diagnostic push
