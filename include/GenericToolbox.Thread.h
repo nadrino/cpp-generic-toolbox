@@ -11,6 +11,7 @@
 #include "GenericToolbox.Macro.h"
 
 #include <condition_variable>
+#include <functional>
 #include <iostream>
 #include <utility>
 #include <vector>
