@@ -5,7 +5,7 @@
 #ifndef CPP_GENERIC_TOOLBOX_GENERICTOOLBOX_ROOT_LEAFHOLDER_IMPL_H
 #define CPP_GENERIC_TOOLBOX_GENERICTOOLBOX_ROOT_LEAFHOLDER_IMPL_H
 
-#include "GenericToolbox.h"
+
 #include "GenericToolbox.Root.h"
 
 #include "TGraph.h"

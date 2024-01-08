@@ -5,7 +5,7 @@
 #ifndef CPP_GENERIC_TOOLBOX_GENERICTOOLBOX_THREADPOOL_H
 #define CPP_GENERIC_TOOLBOX_GENERICTOOLBOX_THREADPOOL_H
 
-#include "GenericToolbox.h"
+
 #include "GenericToolbox.Wrappers.h"
 
 #include <map>
