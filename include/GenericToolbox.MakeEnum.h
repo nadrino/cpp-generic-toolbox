@@ -44,6 +44,10 @@
 #define TEMP_IS_EMPTY_IMPL(...) TEMP_EXPAND(TEMP_SELECT_FROM5(__VA_ARGS__,0,0,0,0,1))
 #define TEMP_IS_EMPTY(...) TEMP_EXPAND(TEMP_IS_EMPTY_IMPL(TEMP_ARGS_DUMMY(__VA_ARGS__)))
 
+#define TEMP_DO_EXPAND(VAL)  VAL ## 1
+#define TEMP_EMPTY_CHECK(VAL)     TEMP_DO_EXPAND(VAL)
+
+
 
 #define ENUM_NAME(...)  // nothing
 #define ENUM_TYPE(...)  // nothing
@@ -59,11 +63,18 @@ struct MAKE_ENUM {
 
 #undef ENUM_TYPE
 #define ENUM_TYPE(type_) type_
-#if TEMP_IS_EMPTY( MAKE_ENUM )
+#if TEMP_EMPTY_CHECK(MAKE_ENUM) == 1
   typedef int EnumType;
 #else
   typedef MAKE_ENUM EnumType;
 #endif
+//  typedef NEW_CHECK(MAKE_ENUM) EnumType;
+
+//#if TEMP_IS_EMPTY(MAKE_ENUM)
+//  typedef int EnumType;
+//#else
+//  typedef MAKE_ENUM EnumType;
+//#endif
 #undef ENUM_TYPE
 #define ENUM_TYPE(...)  // nothing
 
@@ -127,14 +138,14 @@ struct MAKE_ENUM {
   }
   static EnumType getEnumVal(int index_){
     static const EnumType indices[] = { MAKE_ENUM };
-    if( index_ < 0 or index_ > int(sizeof(indices)/sizeof(EnumType)) ){ return StructType::overflowValue; }
+    if( index_ < 0 or index_ >= int(sizeof(indices)/sizeof(EnumType)) ){ return StructType::overflowValue; }
     return indices[index_];
   }
 #undef ENUM_ENTRY
 #define ENUM_ENTRY(...) // nothing
 
   static std::string getEnumEntryToStr(int index_){
-    if( index_ < 0 or index_ > getEnumSize() ){ return {"UNNAMED_ENUM"}; }
+    if( index_ < 0 or index_ >= getEnumSize() ){ return {"UNNAMED_ENUM"}; }
 // MAKE_ENUM -> return only enum entry names
 #undef ENUM_ENTRY
 #define ENUM_ENTRY(...) TEMP_FIRST_ARG_TO_STR(__VA_ARGS__),
@@ -182,6 +193,9 @@ struct MAKE_ENUM {
 #undef TEMP_SELECT_FROM5
 #undef TEMP_IS_EMPTY_IMPL
 #undef TEMP_IS_EMPTY
+
+#undef TEMP_DO_EXPAND
+#undef TEMP_EMPTY_CHECK
 
 #undef TEMP_MERGE
 

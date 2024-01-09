@@ -14,9 +14,11 @@
 #include <iomanip>
 #include <sstream>
 #include <string>
+#include <vector>
 #include <array>
 #include <cmath>
 #include <regex>
+#include <map>
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-function"
@@ -104,6 +106,8 @@ namespace GenericToolbox{
   template<> std::string toString(const std::vector<unsigned char> &vector_, bool jumpLine_, bool indentLine_);
   template<> std::string toString(const std::vector<char> &vector_, bool jumpLine_, bool indentLine_);
   template<typename T, size_t N> static std::string toString(const std::array<T, N>& array_);
+  template <typename T1, typename T2> static std::string toString(const std::map<T1, T2>& map_, bool enableLineJump_ = true);
+  template <typename T1, typename T2, typename T3> static std::string toString(const std::map<T1, std::pair<T2,T3>>& map_, bool enableLineJump_ = true);
 
   // -- Transformations
   static std::string toLowerCase(const std::string &inputStr_);
@@ -607,6 +611,26 @@ namespace GenericToolbox {
   template<typename T, size_t N> static std::string toString(const std::array<T, N>& array_){
     return std::string(std::begin(array_), std::end(array_));
   }
+  template <typename T1, typename T2> static std::string toString(const std::map<T1, T2>& map_, bool enableLineJump_){
+    return GenericToolbox::toString(
+        map_,
+        [&](const std::pair<T1, T2>& elm_){
+          std::stringstream ss;
+          ss << "{ " << elm_.first << ": " << elm_.second << " }";
+          return ss.str();
+        },
+        enableLineJump_, enableLineJump_);
+  }
+  template <typename T1, typename T2, typename T3> static std::string toString(const std::map<T1, std::pair<T2,T3>>& map_, bool enableLineJump_){
+    return GenericToolbox::toString(
+        map_,
+        [&](const std::pair<T1, std::pair<T2,T3>>& elm_){
+          std::stringstream ss;
+          ss << "{ " << elm_.first << ": {" << elm_.second.first << ", " << elm_.second.second << "} }";
+          return ss.str();
+        },
+        enableLineJump_, enableLineJump_);
+  }
 
   template<typename T> static std::string toHex(const T& val_){ return toHex(&val_, sizeof(val_)); }
   static std::string toHex(const void* address_, size_t nBytes_){
@@ -705,6 +729,8 @@ namespace GenericToolbox {
   GT_DEPRECATED("renamed: toString") static std::string parseVectorAsString(const std::vector<char> &vector_, bool jumpLine_=true, bool indentLine_=true){
     return toString(vector_, jumpLine_, indentLine_);
   }
+  template <typename T1, typename T2> GT_DEPRECATED("renamed: toString") static std::string parseMapAsString(const std::map<T1, T2>& map_, bool enableLineJump_=true){ return toString(map_, enableLineJump_); }
+  template <typename T1, typename T2, typename T3> GT_DEPRECATED("renamed: toString") static std::string parseMapAsString(const std::map<T1, std::pair<T2,T3>>& map_, bool enableLineJump_){ return toString(map_, enableLineJump_); }
 
   GT_DEPRECATED("renamed: stripUnicode") static std::string stripStringUnicode(const std::string &inputStr_){
     return stripUnicode(inputStr_);

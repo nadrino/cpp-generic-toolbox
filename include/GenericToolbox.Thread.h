@@ -2,14 +2,104 @@
 // Created by Nadrino on 25/06/2021.
 //
 
-#ifndef CPP_GENERIC_TOOLBOX_GENERICTOOLBOX_THREADPOOL_IMPL_H
-#define CPP_GENERIC_TOOLBOX_GENERICTOOLBOX_THREADPOOL_IMPL_H
+#ifndef CPP_GENERIC_TOOLBOX_THREAD_H
+#define CPP_GENERIC_TOOLBOX_THREAD_H
 
 
+#include "GenericToolbox.Wrappers.h"
+#include "GenericToolbox.Vector.h"
+#include "GenericToolbox.Macro.h"
+
+#include <condition_variable>
+#include <functional>
+#include <iostream>
+#include <utility>
+#include <vector>
+#include <string>
+#include <memory>
+#include <chrono>
+#include <future>
+#include <mutex>
+#include <queue>
+#include <map>
 
 
-// Classes: ParallelWorker
+// WorkerEntry
 namespace GenericToolbox{
+  struct WorkerEntry{
+    int index{-1};
+    std::shared_ptr<std::future<void>> thread{nullptr};
+
+    // signal handler
+    std::function<void(int)>* fctToRunPtr{nullptr};
+    GenericToolbox::Atomic<bool> isEngaged{false};
+    GenericToolbox::Atomic<bool> isRunning{false};
+  };
+}
+
+// JobEntry
+namespace GenericToolbox{
+  struct JobEntry{
+    std::string name{};
+    std::function<void(int)> function{};
+    std::function<void()> functionPreParallel{};
+    std::function<void()> functionPostParallel{};
+
+    JobEntry() = delete;
+    explicit JobEntry(std::string  name_) : name(std::move(name_)) {}
+  };
+}
+
+// ParallelWorker
+namespace GenericToolbox{
+
+  class ParallelWorker {
+
+  public:
+    template<typename T> static std::pair<T, T> getThreadBoundIndices(int iThread_, int nThreads_, T nTotal_);
+
+  public:
+    inline ParallelWorker() = default;
+    inline virtual ~ParallelWorker(){ if( not _workerList_.empty() ){ this->stopThreads(); } };
+
+    inline void setIsVerbose(bool isVerbose_){ _isVerbose_ = isVerbose_; }
+    inline void setNThreads(int nThreads_);
+    inline void setCpuTimeSaverIsEnabled(bool cpuTimeSaverIsEnabled_);
+
+    // const getters
+    [[nodiscard]] inline int getNbThreads() const{ return _nbThreads_; }
+    [[nodiscard]] inline int getJobIdx(const std::string& name_) const;
+    [[nodiscard]] inline const JobEntry* getJobPtr(const std::string& name_) const;
+
+    // getters
+    inline JobEntry* getJobPtr(const std::string& name_);
+
+    // core
+    inline void addJob(const std::string& jobName_, const std::function<void(int)>& function_); // int arg is supposed to be the thread id
+    inline void setPostParallelJob(const std::string& jobName_, const std::function<void()>& function_);
+    inline void setPreParallelJob(const std::string& jobName_, const std::function<void()>& function_);
+    inline void runJob(const std::string& jobName_);
+    inline void removeJob(const std::string& jobName_);
+
+  protected:
+    inline void startThreads();
+    inline void stopThreads();
+
+    inline void threadWorker(int iThread_);
+
+  private:
+    // Parameters
+    bool _isVerbose_{false};
+    bool _cpuTimeSaverIsEnabled_{false};
+    int _nbThreads_{1};
+
+    // Internals
+    bool _stopThreads_{false};
+
+    std::vector<WorkerEntry> _workerList_{};
+    std::vector<JobEntry> _jobEntryList_{};
+
+  };
 
   // statics
   template<typename T> inline std::pair<T, T> ParallelWorker::getThreadBoundIndices(int iThread_, int nThreads_, T nTotal_){
@@ -204,4 +294,47 @@ namespace GenericToolbox{
   }
 }
 
-#endif //CPP_GENERIC_TOOLBOX_GENERICTOOLBOX_THREADPOOL_IMPL_H
+// OrderedLock
+namespace GenericToolbox{
+  class OrderedLock {
+
+  public:
+    inline OrderedLock() = default;
+
+    [[nodiscard]] inline bool isLocked() const { return _isLocked_; }
+
+    inline void lock();
+    inline void unlock();
+
+  private:
+    bool _isLocked_{false};
+    NoCopyWrapper<std::mutex> _lock_{};
+    std::queue<std::condition_variable *> _conditionVariable_{};
+  };
+
+  void OrderedLock::lock() {
+    std::unique_lock<std::mutex> acquire(_lock_);
+    if (_isLocked_) {
+      std::condition_variable signal{};
+      _conditionVariable_.emplace(&signal);
+      signal.wait(acquire);
+    }
+    else {
+      _isLocked_ = true;
+    }
+  }
+  void OrderedLock::unlock() {
+    std::unique_lock<std::mutex> acquire(_lock_);
+    if (_conditionVariable_.empty()) {
+      _isLocked_ = false;
+    }
+    else {
+      _conditionVariable_.front()->notify_one();
+      _conditionVariable_.pop();
+    }
+  }
+}
+
+
+
+#endif //CPP_GENERIC_TOOLBOX_THREAD_H

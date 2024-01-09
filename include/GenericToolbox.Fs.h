@@ -367,7 +367,7 @@ namespace GenericToolbox{
     return ssize_t(st.st_size);
   }
   static inline std::string dumpFileAsString(const std::string &filePath_){
-    if( isFile(filePath_) ){ return {}; }
+    if( not isFile(filePath_) ){ return {}; }
     std::string data;
     std::ifstream input_file(filePath_.c_str(), std::ios::binary | std::ios::in );
     std::ostringstream ss;
@@ -377,15 +377,17 @@ namespace GenericToolbox{
     return data;
   }
   static inline std::vector<std::string> dumpFileAsVectorString(const std::string &filePath_, bool skipEmptyLines_){
+
+    if( not isFile( filePath_ ) ){ return {}; }
+
+    std::ifstream file( filePath_ );
+    if( not file.is_open() ){ return {}; }
+
     std::vector<std::string> lines;
-    if(isFile(filePath_)){
-      std::string data = GenericToolbox::dumpFileAsString(filePath_);
-      lines = GenericToolbox::splitString(data, "\n", skipEmptyLines_);
-    }
-    for(auto& line: lines){
-      if(GenericToolbox::endsWith(line, "\r")){
-        line = line.substr(0, line.size()-1);
-      }
+
+    std::string lineBuffer{};
+    while( std::getline(file, lineBuffer) ){
+      lines.emplace_back( lineBuffer );
     }
 
     return lines;
@@ -460,9 +462,7 @@ namespace GenericToolbox{
   GT_DEPRECATED("renamed: getExtension") static std::string getFileExtension(const std::string& filePath_){
     return getExtension(filePath_);
   }
-  GT_DEPRECATED("renamed: getFolderPath") static std::string getFolderPathFromFilePath(const std::string &filePath_){
-    return getFolderPath(filePath_);
-  }
+  GT_DEPRECATED("renamed: getFolderPath") static std::string getFolderPathFromFilePath(const std::string &filePath_){ return getFolderPath(filePath_); }
   GT_DEPRECATED("renamed: getFileName") static std::string getFileNameFromFilePath(const std::string &filePath_, bool keepExtension_ = true){
     return getFileName(filePath_, keepExtension_);
   }

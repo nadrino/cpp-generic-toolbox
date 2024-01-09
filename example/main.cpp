@@ -6,9 +6,9 @@
 #include <iostream>
 #include <thread>
 
-#include <GenericToolbox.h>
-#include "GenericToolbox.ParallelWorker.h" // extension
-#include "GenericToolbox.VariablesMonitor.h" // extension
+#include "GenericToolbox.h"
+#include "GenericToolbox.Thread.h" // extension
+#include "GenericToolbox.Utils.h" // extension
 
 #ifdef ENABLE_ROOT_EXTENSION
 #include <GenericToolbox.Root.h>

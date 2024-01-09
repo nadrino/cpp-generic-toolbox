@@ -9,10 +9,14 @@
 //! Vector related tools
 // ***************************
 
+#include "GenericToolbox.Macro.h"
+
+#include <functional>
 #include <numeric>
-#include <vector>
-#include <list>
 #include <string>
+#include <vector>
+#include <cmath>
+#include <list>
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-function"
