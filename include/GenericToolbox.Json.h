@@ -203,7 +203,6 @@ namespace GenericToolbox {
 
       if( jsonList.size() == 1 and not jsonList[0].is_string() and jsonList[0].is_array() ){
         // hot fix for broken json versions
-        std::cout << "HIT FIX" << std::endl;
         jsonList = jsonList[0];
       }
 
