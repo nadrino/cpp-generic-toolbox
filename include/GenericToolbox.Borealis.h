@@ -56,7 +56,7 @@ namespace GenericToolbox::Borealis{
   private:
     // user parameters
     std::string _header_{};
-    NVGcolor _progressColor_{GenericToolbox::Switch::Borealis::greenNvgColor};
+    NVGcolor _progressColor_{GenericToolbox::Borealis::greenNvgColor};
     std::function<void()> _execOnDelete_{};
 
     // monitoring
