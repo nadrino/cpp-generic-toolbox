@@ -202,10 +202,12 @@ namespace GenericToolbox {
       auto jsonList{ GenericToolbox::Json::fetchValue<J>(jsonConfig_, keyName_) };
       for( auto& condEntry : jsonList ){
         if( condEntry.is_string() ){
-          conditionsList.emplace_back(condEntry.template get<std::string>());
+          conditionsList.emplace_back( condEntry.template get<std::string>() );
         }
         else{
           std::cout << "Could not recognise condition entry: " << condEntry << std::endl;
+          std::cout << "Array? " << condEntry.is_array() << std::endl;
+          std::cout << "list Array? " << jsonList.is_array() << std::endl;
           throw std::runtime_error("Could not recognise condition entry");
         }
       }

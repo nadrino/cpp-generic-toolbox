@@ -44,8 +44,8 @@
 #define TEMP_IS_EMPTY_IMPL(...) TEMP_EXPAND(TEMP_SELECT_FROM5(__VA_ARGS__,0,0,0,0,1))
 #define TEMP_IS_EMPTY(...) TEMP_EXPAND(TEMP_IS_EMPTY_IMPL(TEMP_ARGS_DUMMY(__VA_ARGS__)))
 
-#define DO_EXPAND(VAL)  VAL ## 1
-#define EXPAND(VAL)     DO_EXPAND(VAL)
+#define TEMP_DO_EXPAND(VAL)  VAL ## 1
+#define TEMP_EMPTY_CHECK(VAL)     TEMP_DO_EXPAND(VAL)
 
 
 
@@ -63,7 +63,7 @@ struct MAKE_ENUM {
 
 #undef ENUM_TYPE
 #define ENUM_TYPE(type_) type_
-#if EXPAND(MAKE_ENUM) == 1
+#if TEMP_EMPTY_CHECK(MAKE_ENUM) == 1
   typedef int EnumType;
 #else
   typedef MAKE_ENUM EnumType;
@@ -193,6 +193,9 @@ struct MAKE_ENUM {
 #undef TEMP_SELECT_FROM5
 #undef TEMP_IS_EMPTY_IMPL
 #undef TEMP_IS_EMPTY
+
+#undef TEMP_DO_EXPAND
+#undef TEMP_EMPTY_CHECK
 
 #undef TEMP_MERGE
 
