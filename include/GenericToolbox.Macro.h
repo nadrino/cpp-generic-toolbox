@@ -14,6 +14,10 @@
 #pragma GCC diagnostic ignored "-Wunused-variable"
 
 
+#ifndef HAS_CPP_20
+#define HAS_CPP_20 (__cplusplus >= 202002L)
+#endif // HAS_CPP_20
+
 #ifndef HAS_CPP_17
 #define HAS_CPP_17 (__cplusplus >= 201703L)
 #endif // HAS_CPP_17

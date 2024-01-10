@@ -22,8 +22,6 @@
  */
 
 
-
-
 // only do it if an enum has been created
 #ifdef MAKE_ENUM
 
@@ -36,18 +34,13 @@
 #define TEMP_ENUM_OVERFLOW2(entry_, val_) entry_ = val_
 #define TEMP_ENUM_OVERFLOW1(entry_) entry_
 
-#define TEMP_MERGE(X, Y) X##Y
+#define TEMP_MERGE_DEPLOY(X, Y) X##Y
+#define TEMP_MERGE(X, Y) TEMP_MERGE_DEPLOY(X, Y) // use a proxy for evaluating X and Y before merging
 
-#define TEMP_EXPAND(x) x
-#define TEMP_ARGS_DUMMY(...) dummy,##__VA_ARGS__
-#define TEMP_SELECT_FROM5(_1,_2,_3,_4,_5,num,...) num
-#define TEMP_IS_EMPTY_IMPL(...) TEMP_EXPAND(TEMP_SELECT_FROM5(__VA_ARGS__,0,0,0,0,1))
-#define TEMP_IS_EMPTY(...) TEMP_EXPAND(TEMP_IS_EMPTY_IMPL(TEMP_ARGS_DUMMY(__VA_ARGS__)))
-
-#define TEMP_DO_EXPAND(VAL)  VAL ## 1
-#define TEMP_EMPTY_CHECK(VAL)     TEMP_DO_EXPAND(VAL)
-
-
+#define TEMP_GET_SECOND(_1, _2, ...) _2
+#define TEMP_HANDLE_DEFAULT(default_, ...) TEMP_GET_SECOND(dummy,##__VA_ARGS__, default_)
+#define TEMP_DISPATCH_ENUM_TYPE( val ) TEMP_HANDLE_DEFAULT(int, val)
+#define TEMP_DISPATCH_ENUM_OVERFLOW( val ) TEMP_HANDLE_DEFAULT(ENUM_OVERFLOW, val)
 
 #define ENUM_NAME(...)  // nothing
 #define ENUM_TYPE(...)  // nothing
@@ -63,47 +56,30 @@ struct MAKE_ENUM {
 
 #undef ENUM_TYPE
 #define ENUM_TYPE(type_) type_
-#if TEMP_EMPTY_CHECK(MAKE_ENUM) == 1
-  typedef int EnumType;
-#else
-  typedef MAKE_ENUM EnumType;
-#endif
-//  typedef NEW_CHECK(MAKE_ENUM) EnumType;
-
-//#if TEMP_IS_EMPTY(MAKE_ENUM)
-//  typedef int EnumType;
-//#else
-//  typedef MAKE_ENUM EnumType;
-//#endif
+  typedef TEMP_DISPATCH_ENUM_TYPE( MAKE_ENUM ) EnumType;
 #undef ENUM_TYPE
 #define ENUM_TYPE(...)  // nothing
 
 #undef ENUM_NAME
 #define ENUM_NAME(name_) name_
-  enum TEMP_MERGE(MAKE_ENUM, EnumType) : EnumType {
+  enum TEMP_MERGE(MAKE_ENUM, EnumType) : EnumType{
 #undef ENUM_NAME
-#define ENUM_NAME(...) // nothing
+#define ENUM_NAME( ... ) // nothing
 
 // MAKE_ENUM -> return only enum entries
 #undef ENUM_ENTRY
-#define ENUM_ENTRY(...) TEMP_GET_OVERLOADED_MACRO2(__VA_ARGS__, TEMP_ENUM_ENTRY2, TEMP_ENUM_ENTRY1)(__VA_ARGS__)
+#define ENUM_ENTRY( ... ) TEMP_GET_OVERLOADED_MACRO2(__VA_ARGS__, TEMP_ENUM_ENTRY2, TEMP_ENUM_ENTRY1)(__VA_ARGS__)
     MAKE_ENUM
 #undef ENUM_ENTRY
-#define ENUM_ENTRY(...) // nothing
+#define ENUM_ENTRY( ... ) // nothing
 
 #undef ENUM_OVERFLOW
-#define ENUM_OVERFLOW(...) TEMP_GET_OVERLOADED_MACRO2(__VA_ARGS__, TEMP_ENUM_OVERFLOW2, TEMP_ENUM_OVERFLOW1)(__VA_ARGS__)
-#if TEMP_IS_EMPTY( MAKE_ENUM )
-    ENUM_OVERFLOW
-  };
-  static const EnumType overflowValue{ENUM_OVERFLOW};
-#else
-    MAKE_ENUM
+#define ENUM_OVERFLOW( ... ) TEMP_GET_OVERLOADED_MACRO2(__VA_ARGS__, TEMP_ENUM_OVERFLOW2, TEMP_ENUM_OVERFLOW1)(__VA_ARGS__)
+    TEMP_DISPATCH_ENUM_OVERFLOW(MAKE_ENUM)
   };
 #undef ENUM_OVERFLOW
-#define ENUM_OVERFLOW(...) TEMP_FIRST_ARG(__VA_ARGS__)
-  static const EnumType overflowValue{MAKE_ENUM};
-#endif
+#define ENUM_OVERFLOW(...) TEMP_FIRST_ARG(__VA_ARGS__) // get only the enum name
+  static const EnumType overflowValue{ TEMP_DISPATCH_ENUM_OVERFLOW(MAKE_ENUM) };
 #undef ENUM_OVERFLOW
 #define ENUM_OVERFLOW(...) // nothing
 
@@ -127,6 +103,7 @@ struct MAKE_ENUM {
   StructType& operator=(EnumType value_){ this->value = static_cast<EnumTypeName>(value_); return *this; }
 
   friend bool operator==(const StructType& lhs, const StructType& rhs){ return lhs.value == rhs.value; }
+  friend bool operator!=(const StructType& lhs, const StructType& rhs){ return lhs.value != rhs.value; }
 
 
   static int getEnumSize(){
@@ -188,16 +165,13 @@ struct MAKE_ENUM {
 #undef ENUM_OVERFLOW
 
 // clean up temp macros
-#undef TEMP_EXPAND
-#undef TEMP_ARGS_DUMMY
-#undef TEMP_SELECT_FROM5
-#undef TEMP_IS_EMPTY_IMPL
-#undef TEMP_IS_EMPTY
-
-#undef TEMP_DO_EXPAND
-#undef TEMP_EMPTY_CHECK
+#undef TEMP_DISPATCH_ENUM_OVERFLOW
+#undef TEMP_DISPATCH_ENUM_TYPE
+#undef TEMP_HANDLE_DEFAULT
+#undef TEMP_GET_SECOND
 
 #undef TEMP_MERGE
+#undef TEMP_MERGE_DEPLOY
 
 #undef TEMP_ENUM_ENTRY1
 #undef TEMP_ENUM_ENTRY2
