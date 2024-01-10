@@ -38,16 +38,28 @@
 
 #define TEMP_MERGE(X, Y) X##Y
 
+// https://stackoverflow.com/questions/4287905/test-if-a-c-macros-value-is-empty
 #define TEMP_EXPAND(x) x
-#define TEMP_ARGS_DUMMY(...) dummy,##__VA_ARGS__
-#define TEMP_SELECT_FROM5(_1,_2,_3,_4,_5,num,...) num
-#define TEMP_IS_EMPTY_IMPL(...) TEMP_EXPAND(TEMP_SELECT_FROM5(__VA_ARGS__,0,0,0,0,1))
-#define TEMP_IS_EMPTY(...) TEMP_EXPAND(TEMP_IS_EMPTY_IMPL(TEMP_ARGS_DUMMY(__VA_ARGS__)))
+#define TEMP_SELECT_THIRD(_1,_2,num,...) num
+#define TEMP_IS_NOT_EMPTY_IMPL(...) TEMP_EXPAND(TEMP_SELECT_THIRD(__VA_ARGS__,1,0))
+#define TEMP_ARGS_DUMMY( ... ) dummy,##__VA_ARGS__
+#define TEMP_IS_NOT_EMPTY( val ) TEMP_IS_NOT_EMPTY_IMPL(TEMP_ARGS_DUMMY( val ))
 
-#define TEMP_DO_EXPAND(VAL)  VAL ## 1
-#define TEMP_EMPTY_CHECK(VAL)     TEMP_DO_EXPAND(VAL)
+#define MAKE_ENUM_EMPTY
+#if TEMP_IS_NOT_EMPTY( MAKE_ENUM_EMPTY ) == 1
+// NOT empty
+#warning "TEMP_IS_NOT_EMPTY does not work correctly for empty macro"
+#else
+// empty
+#endif
 
-
+#define MAKE_ENUM_NOT_EMPTY unsigned int
+#if TEMP_IS_NOT_EMPTY( MAKE_ENUM_NOT_EMPTY ) == 1
+// NOT empty
+#else
+// empty
+#warning "TEMP_IS_NOT_EMPTY does not work correctly for NOT empty macro"
+#endif
 
 #define ENUM_NAME(...)  // nothing
 #define ENUM_TYPE(...)  // nothing
@@ -63,18 +75,11 @@ struct MAKE_ENUM {
 
 #undef ENUM_TYPE
 #define ENUM_TYPE(type_) type_
-#if TEMP_EMPTY_CHECK(MAKE_ENUM) == 1
-  typedef int EnumType;
-#else
+#if TEMP_IS_NOT_EMPTY( MAKE_ENUM ) == 1
   typedef MAKE_ENUM EnumType;
+#else
+  typedef int EnumType;
 #endif
-//  typedef NEW_CHECK(MAKE_ENUM) EnumType;
-
-//#if TEMP_IS_EMPTY(MAKE_ENUM)
-//  typedef int EnumType;
-//#else
-//  typedef MAKE_ENUM EnumType;
-//#endif
 #undef ENUM_TYPE
 #define ENUM_TYPE(...)  // nothing
 
