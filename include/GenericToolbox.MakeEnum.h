@@ -7,30 +7,36 @@
 #pragma GCC diagnostic ignored "-Wcomment"
 
 
-// required: ENUM_NAME, ENUM_FIELDS
-// optional: ENUM_TYPE, ENUM_OVERFLOW
+/*
+ * required: ENUM_NAME, ENUM_FIELDS
+ * optional: ENUM_TYPE, ENUM_OVERFLOW
+ *
+ * example:
 
-// example:
-//#define ENUM_NAME GffDataType
-//#define ENUM_FIELDS \
-//  ENUM_FIELD( UChar, 0 ) ENUM_FIELD( Char ) \
-//  ENUM_FIELD( UShort ) ENUM_FIELD( Short ) \
-//  ENUM_FIELD( UInt ) ENUM_FIELD( Int ) \
-//  ENUM_FIELD( ULong ) ENUM_FIELD( Long ) \
-//  ENUM_FIELD( Float ) ENUM_FIELD( Double ) \
-//  ENUM_FIELD( ExoString ) \
-//  ENUM_FIELD( ResourceReference ) \
-//  ENUM_FIELD( LocalizedString ) \
-//  ENUM_FIELD( Void ) \
-//  ENUM_FIELD( Struct ) \
-//  ENUM_FIELD( List ) \
-//  ENUM_FIELD( Orientation ) \
-//  ENUM_FIELD( Position ) \
-//  ENUM_FIELD( StringReference ) \
-//  ENUM_FIELD( TopLevelStruct, 0xFFFFFFFF )
-//#define ENUM_TYPE unsigned int
-//#define ENUM_OVERFLOW ENUM_FIELD( BadGffDataType, 0x0FFFFFFF )
-//#include "GenericToolbox.MakeEnum.h"
+#define ENUM_NAME GffDataType
+#define ENUM_FIELDS \
+  ENUM_FIELD( UChar, 0 ) ENUM_FIELD( Char ) \
+  ENUM_FIELD( UShort ) ENUM_FIELD( Short ) \
+  ENUM_FIELD( UInt ) ENUM_FIELD( Int ) \
+  ENUM_FIELD( ULong ) ENUM_FIELD( Long ) \
+  ENUM_FIELD( Float ) ENUM_FIELD( Double ) \
+  ENUM_FIELD( ExoString ) \
+  ENUM_FIELD( ResourceReference ) \
+  ENUM_FIELD( LocalizedString ) \
+  ENUM_FIELD( Void ) \
+  ENUM_FIELD( Struct ) \
+  ENUM_FIELD( List ) \
+  ENUM_FIELD( Orientation ) \
+  ENUM_FIELD( Position ) \
+  ENUM_FIELD( StringReference ) \
+  ENUM_FIELD( TopLevelStruct, 0xFFFFFFFF )
+#define ENUM_TYPE unsigned int
+#define ENUM_OVERFLOW ENUM_FIELD( BadGffDataType, 0x0FFFFFFF )
+#include "GenericToolbox.MakeEnum.h"
+
+ *
+ */
+
 
 // sanity checks
 #ifndef ENUM_NAME
