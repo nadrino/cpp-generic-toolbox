@@ -98,16 +98,16 @@ struct MAKE_ENUM {
 
 #undef ENUM_OVERFLOW
 #define ENUM_OVERFLOW(...) TEMP_GET_OVERLOADED_MACRO2(__VA_ARGS__, TEMP_ENUM_OVERFLOW2, TEMP_ENUM_OVERFLOW1)(__VA_ARGS__)
-#if TEMP_IS_EMPTY( MAKE_ENUM )
-    ENUM_OVERFLOW
-  };
-  static const EnumType overflowValue{ENUM_OVERFLOW};
-#else
+#if TEMP_IS_NOT_EMPTY( MAKE_ENUM )
     MAKE_ENUM
   };
 #undef ENUM_OVERFLOW
 #define ENUM_OVERFLOW(...) TEMP_FIRST_ARG(__VA_ARGS__)
   static const EnumType overflowValue{MAKE_ENUM};
+#else
+    ENUM_OVERFLOW
+  };
+  static const EnumType overflowValue{ENUM_OVERFLOW};
 #endif
 #undef ENUM_OVERFLOW
 #define ENUM_OVERFLOW(...) // nothing
