@@ -45,6 +45,12 @@
 #define TEMP_ARGS_DUMMY( ... ) dummy,##__VA_ARGS__
 #define TEMP_IS_NOT_EMPTY( val ) TEMP_IS_NOT_EMPTY_IMPL(TEMP_ARGS_DUMMY( val ))
 
+#define FIRST_ONE(dummy, a1, ...) a1
+#define NEW_CHECK(default_, ...) FIRST_ONE(dummy,##__VA_ARGS__, default_)
+#define DISPATCH_ENUM_TYPE( val ) NEW_CHECK(int, val)
+
+
+
 #define MAKE_ENUM_EMPTY
 #if TEMP_IS_NOT_EMPTY( MAKE_ENUM_EMPTY ) == 1
 // NOT empty
@@ -75,11 +81,14 @@ struct MAKE_ENUM {
 
 #undef ENUM_TYPE
 #define ENUM_TYPE(type_) type_
-#if TEMP_IS_NOT_EMPTY( MAKE_ENUM ) == 1
-  typedef MAKE_ENUM EnumType;
-#else
-  typedef int EnumType;
-#endif
+  typedef DISPATCH_ENUM_TYPE( MAKE_ENUM ) EnumType;
+
+//#if TEMP_IS_NOT_EMPTY( MAKE_ENUM ) == 1
+//  typedef MAKE_ENUM EnumType;
+//#else
+//  typedef int EnumType;
+//#endif
+
 #undef ENUM_TYPE
 #define ENUM_TYPE(...)  // nothing
 
