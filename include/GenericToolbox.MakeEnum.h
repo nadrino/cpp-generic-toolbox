@@ -22,8 +22,6 @@
  */
 
 
-
-
 // only do it if an enum has been created
 #ifdef MAKE_ENUM
 
@@ -36,36 +34,42 @@
 #define TEMP_ENUM_OVERFLOW2(entry_, val_) entry_ = val_
 #define TEMP_ENUM_OVERFLOW1(entry_) entry_
 
-#define TEMP_MERGE(X, Y) X##Y
+#define TEMP_MERGE_DEPLOY(X, Y) X##Y
+#define TEMP_MERGE(X, Y) TEMP_MERGE_DEPLOY(X, Y) // use a proxy for evaluating X and Y before merging
 
 // https://stackoverflow.com/questions/4287905/test-if-a-c-macros-value-is-empty
-#define TEMP_EXPAND(x) x
-#define TEMP_SELECT_THIRD(_1,_2,num,...) num
-#define TEMP_IS_NOT_EMPTY_IMPL(...) TEMP_EXPAND(TEMP_SELECT_THIRD(__VA_ARGS__,1,0))
-#define TEMP_ARGS_DUMMY( ... ) dummy,##__VA_ARGS__
-#define TEMP_IS_NOT_EMPTY( val ) TEMP_IS_NOT_EMPTY_IMPL(TEMP_ARGS_DUMMY( val ))
+//#define TEMP_EXPAND(x) x
+//#define TEMP_SELECT_THIRD(_1,_2,num,...) num
+//#define TEMP_IS_NOT_EMPTY_IMPL(...) TEMP_EXPAND(TEMP_SELECT_THIRD(__VA_ARGS__,1,0))
+//#define TEMP_ARGS_DUMMY( ... ) dummy,##__VA_ARGS__
+//#define TEMP_IS_NOT_EMPTY( val ) TEMP_IS_NOT_EMPTY_IMPL(TEMP_ARGS_DUMMY( val ))
 
 #define FIRST_ONE(dummy, a1, ...) a1
 #define NEW_CHECK(default_, ...) FIRST_ONE(dummy,##__VA_ARGS__, default_)
 #define DISPATCH_ENUM_TYPE( val ) NEW_CHECK(int, val)
+#define DISPATCH_ENUM_OVERFLOW( val ) NEW_CHECK(ENUM_OVERFLOW, val)
+
+//#define ENUM_TYPE_1(name)         ENUM_TYPE_2(name, int)
+//#define ENUM_TYPE_2(name, type)   typedef type name;
+//#define ENUM_TYPE_N(_2,_1,N,...)  ENUM_TYPE##N
+//#define GET_ENUM_TYPE(...)            GET_ENUM_TYPE_N(__VA_ARGS__,_2,_1)(__VA_ARGS__)
 
 
-
-#define MAKE_ENUM_EMPTY
-#if TEMP_IS_NOT_EMPTY( MAKE_ENUM_EMPTY ) == 1
-// NOT empty
-#warning "TEMP_IS_NOT_EMPTY does not work correctly for empty macro"
-#else
-// empty
-#endif
-
-#define MAKE_ENUM_NOT_EMPTY unsigned int
-#if TEMP_IS_NOT_EMPTY( MAKE_ENUM_NOT_EMPTY ) == 1
-// NOT empty
-#else
-// empty
-#warning "TEMP_IS_NOT_EMPTY does not work correctly for NOT empty macro"
-#endif
+//#define MAKE_ENUM_EMPTY
+//#if TEMP_IS_NOT_EMPTY( MAKE_ENUM_EMPTY ) == 1
+//// NOT empty
+//#warning "TEMP_IS_NOT_EMPTY does not work correctly for empty macro"
+//#else
+//// empty
+//#endif
+//
+//#define MAKE_ENUM_NOT_EMPTY unsigned int
+//#if TEMP_IS_NOT_EMPTY( MAKE_ENUM_NOT_EMPTY ) == 1
+//// NOT empty
+//#else
+//// empty
+//#warning "TEMP_IS_NOT_EMPTY does not work correctly for NOT empty macro"
+//#endif
 
 #define ENUM_NAME(...)  // nothing
 #define ENUM_TYPE(...)  // nothing
@@ -94,30 +98,39 @@ struct MAKE_ENUM {
 
 #undef ENUM_NAME
 #define ENUM_NAME(name_) name_
-  enum TEMP_MERGE(MAKE_ENUM, EnumType) : EnumType {
+  enum TEMP_MERGE(MAKE_ENUM, EnumType) : EnumType{
 #undef ENUM_NAME
-#define ENUM_NAME(...) // nothing
+#define ENUM_NAME( ... ) // nothing
 
 // MAKE_ENUM -> return only enum entries
 #undef ENUM_ENTRY
-#define ENUM_ENTRY(...) TEMP_GET_OVERLOADED_MACRO2(__VA_ARGS__, TEMP_ENUM_ENTRY2, TEMP_ENUM_ENTRY1)(__VA_ARGS__)
+#define ENUM_ENTRY( ... ) TEMP_GET_OVERLOADED_MACRO2(__VA_ARGS__, TEMP_ENUM_ENTRY2, TEMP_ENUM_ENTRY1)(__VA_ARGS__)
     MAKE_ENUM
 #undef ENUM_ENTRY
-#define ENUM_ENTRY(...) // nothing
+#define ENUM_ENTRY( ... ) // nothing
 
 #undef ENUM_OVERFLOW
-#define ENUM_OVERFLOW(...) TEMP_GET_OVERLOADED_MACRO2(__VA_ARGS__, TEMP_ENUM_OVERFLOW2, TEMP_ENUM_OVERFLOW1)(__VA_ARGS__)
-#if TEMP_IS_NOT_EMPTY( MAKE_ENUM )
-    MAKE_ENUM
+#define ENUM_OVERFLOW( ... ) TEMP_GET_OVERLOADED_MACRO2(__VA_ARGS__, TEMP_ENUM_OVERFLOW2, TEMP_ENUM_OVERFLOW1)(__VA_ARGS__)
+
+    DISPATCH_ENUM_OVERFLOW(MAKE_ENUM)
   };
+
 #undef ENUM_OVERFLOW
-#define ENUM_OVERFLOW(...) TEMP_FIRST_ARG(__VA_ARGS__)
-  static const EnumType overflowValue{MAKE_ENUM};
-#else
-    ENUM_OVERFLOW
-  };
-  static const EnumType overflowValue{ENUM_OVERFLOW};
-#endif
+#define ENUM_OVERFLOW(...) TEMP_FIRST_ARG(__VA_ARGS__) // get only the enum name
+  static const EnumType overflowValue{ DISPATCH_ENUM_OVERFLOW(MAKE_ENUM) };
+
+//#if TEMP_IS_NOT_EMPTY( MAKE_ENUM )
+//    MAKE_ENUM // get overflow enum name (with or without value)
+//  };
+//#undef ENUM_OVERFLOW
+//#define ENUM_OVERFLOW(...) TEMP_FIRST_ARG(__VA_ARGS__) // get only the enum name
+//  static const EnumType overflowValue{MAKE_ENUM};
+//#else
+//    ENUM_OVERFLOW
+//  };
+//  static const EnumType overflowValue{ENUM_OVERFLOW};
+//#endif
+
 #undef ENUM_OVERFLOW
 #define ENUM_OVERFLOW(...) // nothing
 
