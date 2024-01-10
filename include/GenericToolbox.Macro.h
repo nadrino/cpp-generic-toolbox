@@ -31,7 +31,7 @@
 #endif // HAS_CPP_11
 
 
-#define WARN_DEPRECATED_FCT
+//#define WARN_DEPRECATED_FCT
 #ifndef WARN_DEPRECATED_FCT
 #define GT_DEPRECATED(msg_) // nothing
 #else

@@ -6,13 +6,17 @@
 #include <iostream>
 #include <thread>
 
-#include "GenericToolbox.h"
+#define WARN_DEPRECATED_FCT
+
+#include "GenericToolbox.String.h"
+#include "GenericToolbox.Vector.h"
+#include "GenericToolbox.Fs.h"
 #include "GenericToolbox.Thread.h" // extension
 #include "GenericToolbox.Utils.h" // extension
 
-#ifdef ENABLE_ROOT_EXTENSION
-#include <GenericToolbox.Root.h>
-#endif
+//#ifdef ENABLE_ROOT_EXTENSION
+//#include <GenericToolbox.Root.h>
+//#endif
 
 #include "classExample.h"
 
@@ -40,9 +44,9 @@ int main(){
   cout << "Current working directory: " << GenericToolbox::getCurrentWorkingDirectory() << endl;
   cout << "Is this a directory? " << GenericToolbox::isDir("../include") << endl;
   cout << "Is this a file? " << GenericToolbox::isFile("../include/GenericToolbox.h") << endl;
-  cout << "Its size: " << GenericToolbox::parseSizeUnits(GenericToolbox::getFileSizeInBytes("../include/GenericToolbox.h")) << endl;
-  cout << "Hash of this file: " << GenericToolbox::getHashFile("../include/GenericToolbox.h") << endl;
-  cout << "Are they identical?: " << GenericToolbox::doFilesAreTheSame("../include/GenericToolbox.h","../include/GenericToolbox_impl.h") << endl;
+  cout << "Its size: " << GenericToolbox::parseSizeUnits(GenericToolbox::getFileSize("../include/GenericToolbox.h")) << endl;
+  cout << "Hash of this file: " << GenericToolbox::getFileHash("../include/GenericToolbox.h") << endl;
+  cout << "Are they identical?: " << GenericToolbox::areSameFiles("../include/GenericToolbox.h","../include/GenericToolbox_impl.h") << endl;
 
 
   // Hardware
