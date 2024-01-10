@@ -7,18 +7,17 @@
 
 #include <iostream>
 
-#define MAKE_ENUM \
-  ENUM_NAME(MyEnum) \
-  ENUM_TYPE(unsigned int) \
-  ENUM_ENTRY(Case0, 0) \
-  ENUM_ENTRY(Case1)    \
-  ENUM_ENTRY(Case2)    \
-  ENUM_ENTRY(Case33, 33)    \
-  ENUM_ENTRY(Case34)    \
-  ENUM_ENTRY(Case35)    \
-  ENUM_OVERFLOW(0)
+#define ENUM_NAME MyEnum
+#define ENUM_TYPE unsigned int
+#define ENUM_OVERFLOW ENUM_FIELD(BadValue, 0xFFFF)
+#define ENUM_FIELDS \
+  ENUM_FIELD(Case0, 0) \
+  ENUM_FIELD(Case1)    \
+  ENUM_FIELD(Case2)    \
+  ENUM_FIELD(Case33, 33)    \
+  ENUM_FIELD(Case34)    \
+  ENUM_FIELD(Case35)
 #include "GenericToolbox.MakeEnum.h"
-#undef MAKE_ENUM
 
 class ClassExample{
 

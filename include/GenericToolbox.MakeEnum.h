@@ -7,97 +7,86 @@
 #pragma GCC diagnostic ignored "-Wcomment"
 
 
-/*
- *  example of usage (in a src or header file):
- *   #define MAKE_ENUM \
- *    ENUM_NAME( MyEnum ) \
- *    ENUM_TYPE( size_t ) \
- *    ENUM_ENTRY( FOO, 0 ) \
- *    ENUM_ENTRY( BAR, 10 ) \
- *    ENUM_ENTRY( BOO )
- *   #include "GenericToolbox.MakeEnum.h"
- *   #undef MAKE_ENUM
- *   int i = MyEnum::FOO;
- *   std::string s = MyEnum::toString(i);
- */
+// required: ENUM_NAME, ENUM_FIELDS
+// optional: ENUM_TYPE, ENUM_OVERFLOW
 
+// example:
+//#define ENUM_NAME GffDataType
+//#define ENUM_FIELDS \
+//  ENUM_FIELD( UChar, 0 ) ENUM_FIELD( Char ) \
+//  ENUM_FIELD( UShort ) ENUM_FIELD( Short ) \
+//  ENUM_FIELD( UInt ) ENUM_FIELD( Int ) \
+//  ENUM_FIELD( ULong ) ENUM_FIELD( Long ) \
+//  ENUM_FIELD( Float ) ENUM_FIELD( Double ) \
+//  ENUM_FIELD( ExoString ) \
+//  ENUM_FIELD( ResourceReference ) \
+//  ENUM_FIELD( LocalizedString ) \
+//  ENUM_FIELD( Void ) \
+//  ENUM_FIELD( Struct ) \
+//  ENUM_FIELD( List ) \
+//  ENUM_FIELD( Orientation ) \
+//  ENUM_FIELD( Position ) \
+//  ENUM_FIELD( StringReference ) \
+//  ENUM_FIELD( TopLevelStruct, 0xFFFFFFFF )
+//#define ENUM_TYPE unsigned int
+//#define ENUM_OVERFLOW ENUM_FIELD( BadGffDataType, 0x0FFFFFFF )
+//#include "GenericToolbox.MakeEnum.h"
 
-// only do it if an enum has been created
-#ifdef MAKE_ENUM
+// sanity checks
+#ifndef ENUM_NAME
+#error "ENUM_NAME not set."
+#endif
+
+#ifndef ENUM_FIELDS
+#error "ENUM_FIELDS not set."
+#endif
 
 // define temp macros
 #define TEMP_GET_OVERLOADED_MACRO2(_1,_2,NAME,...) NAME
 #define TEMP_FIRST_ARG_TO_STR(entry_, ...) #entry_
 #define TEMP_FIRST_ARG(entry_, ...) entry_
-#define TEMP_ENUM_ENTRY2(entry_, val_) entry_ = val_,
-#define TEMP_ENUM_ENTRY1(entry_) entry_,
-#define TEMP_ENUM_OVERFLOW2(entry_, val_) entry_ = val_
-#define TEMP_ENUM_OVERFLOW1(entry_) entry_
-
+#define TEMP_ENUM_FIELD2(entry_, val_) entry_ = val_,
+#define TEMP_ENUM_FIELD1(entry_) entry_,
 #define TEMP_MERGE_DEPLOY(X, Y) X##Y
 #define TEMP_MERGE(X, Y) TEMP_MERGE_DEPLOY(X, Y) // use a proxy for evaluating X and Y before merging
 
-#define TEMP_GET_SECOND(_1, _2, ...) _2
-#define TEMP_HANDLE_DEFAULT(default_, ...) TEMP_GET_SECOND(dummy,##__VA_ARGS__, default_)
-#define TEMP_DISPATCH_ENUM_TYPE( val ) TEMP_HANDLE_DEFAULT(int, val)
-#define TEMP_DISPATCH_ENUM_OVERFLOW( val ) TEMP_HANDLE_DEFAULT(ENUM_OVERFLOW, val)
 
-#define ENUM_NAME(...)  // nothing
-#define ENUM_TYPE(...)  // nothing
-#define ENUM_ENTRY(...) // nothing
-#define ENUM_OVERFLOW(...) // nothing
+// Yes, this is a lie... It's actually a struct!
+struct ENUM_NAME {
 
-#undef ENUM_NAME
-#define ENUM_NAME(name_) name_
-struct MAKE_ENUM {
-  typedef MAKE_ENUM StructType;
-#undef ENUM_NAME
-#define ENUM_NAME(...) // nothing
+#ifdef ENUM_TYPE
+  typedef ENUM_TYPE EnumType;
+#else
+  typedef int EnumType;
+#endif
 
-#undef ENUM_TYPE
-#define ENUM_TYPE(type_) type_
-  typedef TEMP_DISPATCH_ENUM_TYPE( MAKE_ENUM ) EnumType;
-#undef ENUM_TYPE
-#define ENUM_TYPE(...)  // nothing
+  enum TEMP_MERGE(ENUM_NAME, Enum) : EnumType {
 
-#undef ENUM_NAME
-#define ENUM_NAME(name_) name_
-  enum TEMP_MERGE(MAKE_ENUM, EnumType) : EnumType{
-#undef ENUM_NAME
-#define ENUM_NAME( ... ) // nothing
-
-// MAKE_ENUM -> return only enum entries
-#undef ENUM_ENTRY
-#define ENUM_ENTRY( ... ) TEMP_GET_OVERLOADED_MACRO2(__VA_ARGS__, TEMP_ENUM_ENTRY2, TEMP_ENUM_ENTRY1)(__VA_ARGS__)
-    MAKE_ENUM
-#undef ENUM_ENTRY
-#define ENUM_ENTRY( ... ) // nothing
-
-#undef ENUM_OVERFLOW
-#define ENUM_OVERFLOW( ... ) TEMP_GET_OVERLOADED_MACRO2(__VA_ARGS__, TEMP_ENUM_OVERFLOW2, TEMP_ENUM_OVERFLOW1)(__VA_ARGS__)
-    TEMP_DISPATCH_ENUM_OVERFLOW(MAKE_ENUM)
+#define ENUM_FIELD( ... ) TEMP_GET_OVERLOADED_MACRO2(__VA_ARGS__, TEMP_ENUM_FIELD2, TEMP_ENUM_FIELD1)(__VA_ARGS__)
+    ENUM_FIELDS
+#ifdef ENUM_OVERFLOW
+    ENUM_OVERFLOW
+#undef ENUM_FIELD
+#define ENUM_FIELD( ... ) TEMP_FIRST_ARG(__VA_ARGS__)
   };
-#undef ENUM_OVERFLOW
-#define ENUM_OVERFLOW(...) TEMP_FIRST_ARG(__VA_ARGS__) // get only the enum name
-  static const EnumType overflowValue{ TEMP_DISPATCH_ENUM_OVERFLOW(MAKE_ENUM) };
-#undef ENUM_OVERFLOW
-#define ENUM_OVERFLOW(...) // nothing
+  static const EnumType overflowValue{ ENUM_OVERFLOW };
+#else
+    EnumOverflow
+  };
+  static const EnumType overflowValue{ EnumOverflow };
+#endif
+#undef ENUM_FIELD
 
-
-
-#undef ENUM_NAME
-#define ENUM_NAME(name_) name_
-  typedef TEMP_MERGE(MAKE_ENUM, EnumType) EnumTypeName;
+  typedef TEMP_MERGE(ENUM_NAME, Enum) EnumTypeName;
+  typedef ENUM_NAME StructType;
 
   // store the actual value
   EnumTypeName value{};
 
   // can't use "StructType" for CTors
-  MAKE_ENUM() = default;
-  MAKE_ENUM(EnumTypeName value_) : value(value_) {}
-  MAKE_ENUM(EnumType value_) : value(static_cast<EnumTypeName>(value_)) {}
-#undef ENUM_NAME
-#define ENUM_NAME(name_) // nothing
+  ENUM_NAME() = default;
+  ENUM_NAME(EnumTypeName value_) : value(value_) {}
+  ENUM_NAME(EnumType value_) : value(static_cast<EnumTypeName>(value_)) {}
 
   StructType& operator=(EnumTypeName value_){ this->value = value_; return *this; }
   StructType& operator=(EnumType value_){ this->value = static_cast<EnumTypeName>(value_); return *this; }
@@ -107,28 +96,23 @@ struct MAKE_ENUM {
 
 
   static int getEnumSize(){
-    // MAKE_ENUM -> return only enum entries
-#undef ENUM_ENTRY
-#define ENUM_ENTRY(...) TEMP_FIRST_ARG(__VA_ARGS__),
-    static const EnumType indices[] = { MAKE_ENUM };
+#define ENUM_FIELD(...) TEMP_FIRST_ARG(__VA_ARGS__),
+    static const EnumType indices[] = { ENUM_FIELDS };
     return sizeof(indices)/sizeof(EnumType);
   }
   static EnumType getEnumVal(int index_){
-    static const EnumType indices[] = { MAKE_ENUM };
+    static const EnumType indices[] = { ENUM_FIELDS };
     if( index_ < 0 or index_ >= int(sizeof(indices)/sizeof(EnumType)) ){ return StructType::overflowValue; }
     return indices[index_];
   }
-#undef ENUM_ENTRY
-#define ENUM_ENTRY(...) // nothing
+#undef ENUM_FIELD
 
   static std::string getEnumEntryToStr(int index_){
     if( index_ < 0 or index_ >= getEnumSize() ){ return {"UNNAMED_ENUM"}; }
 // MAKE_ENUM -> return only enum entry names
-#undef ENUM_ENTRY
-#define ENUM_ENTRY(...) TEMP_FIRST_ARG_TO_STR(__VA_ARGS__),
-    static const char *names[] = { MAKE_ENUM };
-#undef ENUM_ENTRY
-#define ENUM_ENTRY(...) // nothing
+#define ENUM_FIELD(...) TEMP_FIRST_ARG_TO_STR(__VA_ARGS__),
+    static const char *names[] = { ENUM_FIELDS };
+#undef ENUM_FIELD
     return names[index_];
   }
   static StructType toEnum( const std::string& name_ ){
@@ -158,25 +142,19 @@ struct MAKE_ENUM {
 };
 
 
-// clean up X macros
-#undef ENUM_NAME
-#undef ENUM_TYPE
-#undef ENUM_ENTRY
-#undef ENUM_OVERFLOW
-
 // clean up temp macros
-#undef TEMP_DISPATCH_ENUM_OVERFLOW
-#undef TEMP_DISPATCH_ENUM_TYPE
-#undef TEMP_HANDLE_DEFAULT
-#undef TEMP_GET_SECOND
-
 #undef TEMP_MERGE
 #undef TEMP_MERGE_DEPLOY
-
-#undef TEMP_ENUM_ENTRY1
-#undef TEMP_ENUM_ENTRY2
+#undef TEMP_ENUM_FIELD1
+#undef TEMP_ENUM_FIELD2
 #undef TEMP_FIRST_ARG
 #undef TEMP_FIRST_ARG_TO_STR
 #undef TEMP_GET_OVERLOADED_MACRO2
 
-#endif // #ifdef MAKE_ENUM
+// clean up user macros
+#undef ENUM_NAME
+#undef ENUM_TYPE
+#undef ENUM_FIELD
+#undef ENUM_FIELDS
+#undef ENUM_OVERFLOW
+

@@ -16,6 +16,7 @@
 #include <dirent.h>
 #include <fstream>
 #include <sstream>
+#include <iosfwd>
 #include <string>
 
 #pragma GCC diagnostic push
@@ -74,10 +75,11 @@ namespace GenericToolbox{
   static void dumpStringInFile(const std::string &outFilePath_, const std::string &stringToWrite_);
 
   // -- binary reader
+  static void fillData( std::istream& file_, std::string& buffer_, size_t size_ );
   template<typename T> static void fillData( std::istream& file_, T& buffer_ );
+
   template<typename T> static void writeData( std::ofstream& file_, const T& buffer_ );
   template<> inline void writeData( std::ofstream& file_, const std::string& buffer_ );
-  static void fillData( std::istream& file_, std::string& buffer_, size_t size_ );
 
 }
 
@@ -408,18 +410,18 @@ namespace GenericToolbox{
     file_.read( reinterpret_cast<char*>(buffer_), sizeof(T)*size_ );
   }
   template<typename T, size_t N> static inline void fillData( std::istream& file_, std::array<T, N>& buffer_ ){
-    file_.read( reinterpret_cast<char*>(buffer_.data()), sizeof(T)*N );
+    file_.read( reinterpret_cast<char*>(&buffer_[0]), sizeof(T)*N );
   }
   template<typename T> static inline void writeData( std::ofstream& file_, const T& buffer_ ){
     file_.write( reinterpret_cast<const char*>(&buffer_), sizeof(T) );
   }
   template<> inline void writeData( std::ofstream& file_, const std::string& buffer_ ){
-    file_.write( buffer_.data(), long(buffer_.size()) );
+    file_.write( &buffer_[0], long(buffer_.size()) );
   }
   static inline void fillData( std::istream& file_, std::string& buffer_, size_t size_ ){
     buffer_.clear();
     buffer_.resize(size_);
-    file_.read( buffer_.data(), long(size_) );
+    file_.read( &buffer_[0], long(size_) );
   }
 
   // Deprecated
