@@ -59,10 +59,14 @@ namespace GenericToolbox{
       }
 
       [[nodiscard]] std::chrono::duration<double> calcAverage() const {
+        std::chrono::duration<double> out{0};
         if( not _isCycleCompleted_ ){
-          return std::accumulate(_durationsBuffer_.begin(), _durationsBuffer_.begin()+_cursorIndex_+1)/(_cursorIndex_+1);
+          for( int iSlot = 0 ; iSlot < _cursorIndex_+1 ; iSlot++ ){ out += _durationsBuffer_[iSlot]; }
+          return out/(_cursorIndex_+1);
         }
-        return std::accumulate(_durationsBuffer_.begin(), _durationsBuffer_.end())/_durationsBuffer_.size();
+
+        for( auto& duration : _durationsBuffer_ ){ out += duration; }
+        return out/_durationsBuffer_.size();
       }
       inline friend std::ostream& operator<< (std::ostream& stream, const AveragedTimer& cCock_) {
         stream << cCock_.calcAverage().count(); return stream;
