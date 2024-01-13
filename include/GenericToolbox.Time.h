@@ -26,16 +26,63 @@
 namespace GenericToolbox{
 
   namespace Time{
+
     struct CycleTimer{
       long long counts{0};
       long long cumulated{0};
       inline friend std::ostream& operator<< (std::ostream& stream, const CycleTimer& timer_);
     };
-    class CycleClock{
+
+    class StopWatch {
+
     public:
-      CycleClock() = default;
-      explicit CycleClock(std::string unit_) : _unit_(std::move(unit_)) {}
-      ~CycleClock() = default;
+      StopWatch() = default;
+
+      void reset(){ _startTime_ = std::chrono::high_resolution_clock::now(); }
+      std::chrono::duration<double> get(){ return std::chrono::high_resolution_clock::now()-_startTime_; }
+
+    private:
+      std::chrono::high_resolution_clock::time_point _startTime_{std::chrono::high_resolution_clock::now()};
+
+    };
+
+
+    template <size_t N> class AveragedTimer{
+
+    public:
+      void start(){ _stopWatch_.reset(); _isStarted_ = true; }
+      void stop(){
+        if( not _isStarted_ ){ return; }
+        _durationsBuffer_[_cursorIndex_++] = _stopWatch_.get();
+        if( _cursorIndex_ >= _durationsBuffer_.size() ){ _cursorIndex_ = 0; _isCycleCompleted_ = true; }
+        _isStarted_ = false;
+      }
+
+      [[nodiscard]] std::chrono::duration<double> calcAverage() const {
+        if( not _isCycleCompleted_ ){
+          return std::accumulate(_durationsBuffer_.begin(), _durationsBuffer_.begin()+_cursorIndex_+1)/(_cursorIndex_+1);
+        }
+        return std::accumulate(_durationsBuffer_.begin(), _durationsBuffer_.end())/_durationsBuffer_.size();
+      }
+      inline friend std::ostream& operator<< (std::ostream& stream, const AveragedTimer& cCock_) {
+        stream << cCock_.calcAverage().count(); return stream;
+      }
+
+    private:
+      StopWatch _stopWatch_{};
+
+      bool _isStarted_{false};
+      bool _isCycleCompleted_{false};
+      int _cursorIndex_{0};
+      std::array<std::chrono::duration<double>, N> _durationsBuffer_{};
+    };
+
+
+    class CycleCounterClock{
+    public:
+      CycleCounterClock() = default;
+      explicit CycleCounterClock( std::string unit_) : _unit_(std::move(unit_)) {}
+      ~CycleCounterClock() = default;
 
       // setters
       inline void setUnit(const std::string &unit_) { _unit_ = unit_; }
@@ -45,14 +92,14 @@ namespace GenericToolbox{
       inline double* getCountSpeedPtr(){ return &_countSpeed_; }
 
       // measure
-      inline void start(){ _startTime_ = std::chrono::high_resolution_clock::now(); _hasStarted_ = true; }
+      inline void start(){ _stopWatch_.reset(); _hasStarted_ = true; }
       inline void stopAndCumulate(long long counts_=1);
       inline void cycle(long long int counts_=1);
       inline void cumulate(long long int counts_){ _counts_ += counts_; }
 
       // output
       inline std::string getCountingSpeed() const;
-      inline friend std::ostream& operator<< (std::ostream& stream, const CycleClock& cCock_) { stream << cCock_.getCountingSpeed(); return stream; }
+      inline friend std::ostream& operator<< (std::ostream& stream, const CycleCounterClock& cCock_) { stream << cCock_.getCountingSpeed(); return stream; }
 
       // cache
       inline void updateCountingSpeed() const { _countSpeed_ = double(_counts_)/_cumulatedSeconds_; }
@@ -67,7 +114,7 @@ namespace GenericToolbox{
       double _cumulatedSeconds_{0};
 
       // caches
-      std::chrono::high_resolution_clock::time_point _startTime_;
+      StopWatch _stopWatch_{};
       mutable double _countSpeed_{0};
     };
   }
@@ -94,13 +141,13 @@ namespace GenericToolbox{
       return stream;
     }
 
-    inline void CycleClock::stopAndCumulate(long long counts_){
+    inline void CycleCounterClock::stopAndCumulate( long long counts_){
       if( not _hasStarted_ ){ throw std::runtime_error("clock not started."); }
-      _cumulatedSeconds_ += std::chrono::duration<double>(std::chrono::high_resolution_clock::now()-_startTime_).count();
+      _cumulatedSeconds_ += _stopWatch_.get().count();
       cumulate( counts_ );
       _hasStarted_ = false;
     }
-    inline void CycleClock::cycle(long long int counts_){
+    inline void CycleCounterClock::cycle( long long int counts_){
       if( not _hasStarted_ ){
         cumulate(counts_);
         start();
@@ -111,7 +158,7 @@ namespace GenericToolbox{
         start();
       }
     }
-    inline std::string CycleClock::getCountingSpeed() const{
+    inline std::string CycleCounterClock::getCountingSpeed() const{
       std::stringstream ss;
       if( _counts_ == 0 or not _hasStarted_ ) ss << "0 " << _unit_ << "/s";
       else{
