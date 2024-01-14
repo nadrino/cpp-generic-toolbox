@@ -34,49 +34,74 @@ namespace GenericToolbox{
 
   namespace Time{
 
-    struct CycleTimer{
-      long long counts{0};
-      long long cumulated{0};
-      inline friend std::ostream& operator<< (std::ostream& stream, const CycleTimer& timer_);
-    };
-
     class StopWatch {
 
     public:
       StopWatch() = default;
 
       void reset(){ _startTime_ = std::chrono::high_resolution_clock::now(); }
-      std::chrono::duration<double> get(){ return std::chrono::high_resolution_clock::now()-_startTime_; }
+      [[nodiscard]] std::chrono::duration<double> get() const { return std::chrono::high_resolution_clock::now()-_startTime_; }
+
+      [[nodiscard]] inline std::string toString() const {
+        // .count() returns a double expressing the time in seconds
+        return GenericToolbox::parseTimeUnit( this->get().count()*1E6 );
+      }
+      inline friend std::ostream& operator<< (std::ostream& stream, const StopWatch& stopWatch_) {
+        stream << stopWatch_.toString(); return stream;
+      }
 
     private:
       std::chrono::high_resolution_clock::time_point _startTime_{std::chrono::high_resolution_clock::now()};
 
     };
 
-
     template <size_t N> class AveragedTimer{
 
     public:
-      void start(){ _stopWatch_.reset(); _isStarted_ = true; }
-      void stop(){
-        if( not _isStarted_ ){ return; }
-        _durationsBuffer_[_cursorIndex_++] = _stopWatch_.get();
-        if( _cursorIndex_ >= _durationsBuffer_.size() ){ _cursorIndex_ = 0; _isCycleCompleted_ = true; }
+      inline void start(){ _stopWatch_.reset(); _isStarted_ = true; }
+      inline void stop( size_t nbCycles_=1 ){
+        if( not _isStarted_ or nbCycles_ == 0 ){ return; }
+        _nbCumulated_ += nbCycles_;
+        _durationsBuffer_[_cursorIndex_++] = _stopWatch_.get()/nbCycles_;
+        if( _cursorIndex_ >= _durationsBuffer_.size() ){ _cursorIndex_ = 0; _isBufferFilled_ = true; }
         _isStarted_ = false;
       }
+      inline void cycle( size_t nbCycles_=1 ){
+        this->stop(nbCycles_);
+        this->start();
+      }
+      inline void count( size_t nbCumulated_=1 ){
+        if( nbCumulated_ > _nbCumulated_ ){ this->cycle(nbCumulated_ - _nbCumulated_);  }
+        else{ _nbCumulated_ = nbCumulated_; }
+      }
 
-      [[nodiscard]] std::chrono::duration<double> calcAverage() const {
+      [[nodiscard]] inline std::chrono::duration<double> calcAverage() const {
         std::chrono::duration<double> out{0};
-        if( not _isCycleCompleted_ ){
+        if( not _isBufferFilled_ ){
           for( int iSlot = 0 ; iSlot < _cursorIndex_+1 ; iSlot++ ){ out += _durationsBuffer_[iSlot]; }
           return out/(_cursorIndex_+1);
         }
 
         for( auto& duration : _durationsBuffer_ ){ out += duration; }
+
+        // in seconds
         return out/_durationsBuffer_.size();
       }
+      template<typename T> [[nodiscard]] inline ssize_t calcAverage() const{
+        return std::chrono::duration_cast<T>( this->calcAverage() ).count();
+      }
+
+      [[nodiscard]] inline double calcCountSpeed() const{
+        // per second
+        return 1./this->calcAverage().count();
+      }
+      template<typename T> [[nodiscard]] inline double calcCountSpeed() const{
+        return 1./this->calcAverage<T>();
+      }
+
       [[nodiscard]] inline std::string toString() const {
-        return GenericToolbox::parseTimeUnit( std::chrono::duration_cast<std::chrono::nanoseconds>( this->calcAverage() ).count()/1000. );
+        // .count() returns a double expressing the time in seconds
+        return GenericToolbox::parseTimeUnit( this->calcAverage().count()*1E6 );
       }
       inline friend std::ostream& operator<< (std::ostream& stream, const AveragedTimer& aTimer_) {
         stream << aTimer_.toString(); return stream;
@@ -86,8 +111,9 @@ namespace GenericToolbox{
       StopWatch _stopWatch_{};
 
       bool _isStarted_{false};
-      bool _isCycleCompleted_{false};
+      bool _isBufferFilled_{false};
       int _cursorIndex_{0};
+      size_t _nbCumulated_{0};
       std::array<std::chrono::duration<double>, N> _durationsBuffer_{};
     };
 
@@ -140,11 +166,6 @@ namespace GenericToolbox{
 namespace GenericToolbox{
 
   namespace Time{
-    inline std::ostream& operator<< (std::ostream& stream, const CycleTimer& timer_) {
-      if(timer_.counts == 0) stream << "0s";
-      else stream << GenericToolbox::parseTimeUnit(double(timer_.cumulated) / double(timer_.counts));
-      return stream;
-    }
 
     inline void CycleCounterClock::stopAndCumulate( long long counts_){
       if( not _hasStarted_ ){ throw std::runtime_error("clock not started."); }
