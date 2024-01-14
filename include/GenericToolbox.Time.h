@@ -25,6 +25,13 @@
 // Declaration section
 namespace GenericToolbox{
 
+  static std::string parseTimeUnit(double nbMicroSec_, int maxPadSize_=-1);
+  static std::string getElapsedTimeSinceLastCallStr(const std::string& key_);
+  static std::string getElapsedTimeSinceLastCallStr(int instance_ = -1);
+  static long long getElapsedTimeSinceLastCallInMicroSeconds(const std::string& key_);
+  static long long getElapsedTimeSinceLastCallInMicroSeconds(int instance = -1);
+  static std::string getNowDateString(const std::string& dateFormat_="%Y_%m_%d-%H_%M_%S");
+
   namespace Time{
 
     struct CycleTimer{
@@ -68,8 +75,11 @@ namespace GenericToolbox{
         for( auto& duration : _durationsBuffer_ ){ out += duration; }
         return out/_durationsBuffer_.size();
       }
-      inline friend std::ostream& operator<< (std::ostream& stream, const AveragedTimer& cCock_) {
-        stream << cCock_.calcAverage().count(); return stream;
+      [[nodiscard]] inline std::string toString() const {
+        return GenericToolbox::parseTimeUnit( std::chrono::duration_cast<std::chrono::nanoseconds>( this->calcAverage() ).count()/1000. );
+      }
+      inline friend std::ostream& operator<< (std::ostream& stream, const AveragedTimer& aTimer_) {
+        stream << aTimer_.toString(); return stream;
       }
 
     private:
@@ -122,15 +132,6 @@ namespace GenericToolbox{
       mutable double _countSpeed_{0};
     };
   }
-
-
-
-  static std::string parseTimeUnit(double nbMicroSec_, int maxPadSize_=-1);
-  static std::string getElapsedTimeSinceLastCallStr(const std::string& key_);
-  static std::string getElapsedTimeSinceLastCallStr(int instance_ = -1);
-  static long long getElapsedTimeSinceLastCallInMicroSeconds(const std::string& key_);
-  static long long getElapsedTimeSinceLastCallInMicroSeconds(int instance = -1);
-  static std::string getNowDateString(const std::string& dateFormat_="%Y_%m_%d-%H_%M_%S");
 
 }
 
