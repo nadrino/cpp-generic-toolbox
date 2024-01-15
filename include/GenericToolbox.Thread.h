@@ -8,6 +8,7 @@
 
 #include "GenericToolbox.Wrappers.h"
 #include "GenericToolbox.Vector.h"
+#include "GenericToolbox.Time.h"
 #include "GenericToolbox.Macro.h"
 
 #include <condition_variable>
@@ -70,6 +71,7 @@ namespace GenericToolbox{
     [[nodiscard]] inline int getNbThreads() const{ return _nbThreads_; }
     [[nodiscard]] inline int getJobIdx(const std::string& name_) const;
     [[nodiscard]] inline const JobEntry* getJobPtr(const std::string& name_) const;
+    [[nodiscard]] inline const GenericToolbox::Time::Timer& getLastJobTimer() const { return _lastJobTimer_; }
 
     // getters
     inline JobEntry* getJobPtr(const std::string& name_);
@@ -98,6 +100,9 @@ namespace GenericToolbox{
 
     std::vector<WorkerEntry> _workerList_{};
     std::vector<JobEntry> _jobEntryList_{};
+
+    // Monitoring
+    Time::Timer _lastJobTimer_{};
 
   };
 
@@ -189,6 +194,7 @@ namespace GenericToolbox{
     jobPtr->functionPreParallel = function_;
   }
   inline void ParallelWorker::runJob(const std::string &jobName_) {
+    _lastJobTimer_.start();
     if( _isVerbose_ ){ std::cout << "Running \"" << jobName_ << "\" on " << _nbThreads_ << " parallel threads..." << std::endl; }
 
     // existing job?
@@ -221,6 +227,7 @@ namespace GenericToolbox{
     // runs the post-job if set
     if( jobPtr->functionPostParallel ){ jobPtr->functionPostParallel(); }
 
+    _lastJobTimer_.stop();
   }
   inline void ParallelWorker::removeJob(const std::string& jobName_){
     // existing job?
