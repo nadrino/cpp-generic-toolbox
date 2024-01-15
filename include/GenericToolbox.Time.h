@@ -25,61 +25,112 @@
 // Declaration section
 namespace GenericToolbox{
 
-  namespace Time{
-    struct CycleTimer{
-      long long counts{0};
-      long long cumulated{0};
-      inline friend std::ostream& operator<< (std::ostream& stream, const CycleTimer& timer_);
-    };
-    class CycleClock{
-    public:
-      CycleClock() = default;
-      explicit CycleClock(std::string unit_) : _unit_(std::move(unit_)) {}
-      ~CycleClock() = default;
-
-      // setters
-      inline void setUnit(const std::string &unit_) { _unit_ = unit_; }
-
-      // getters
-      inline long long int getCounts() const { return _counts_; }
-      inline double* getCountSpeedPtr(){ return &_countSpeed_; }
-
-      // measure
-      inline void start(){ _startTime_ = std::chrono::high_resolution_clock::now(); _hasStarted_ = true; }
-      inline void stopAndCumulate(long long counts_=1);
-      inline void cycle(long long int counts_=1);
-      inline void cumulate(long long int counts_){ _counts_ += counts_; }
-
-      // output
-      inline std::string getCountingSpeed() const;
-      inline friend std::ostream& operator<< (std::ostream& stream, const CycleClock& cCock_) { stream << cCock_.getCountingSpeed(); return stream; }
-
-      // cache
-      inline void updateCountingSpeed() const { _countSpeed_ = double(_counts_)/_cumulatedSeconds_; }
-
-    private:
-      // parameters
-      std::string _unit_{"counts"};
-
-      // internals
-      bool _hasStarted_{false};
-      long long int _counts_{0};
-      double _cumulatedSeconds_{0};
-
-      // caches
-      std::chrono::high_resolution_clock::time_point _startTime_;
-      mutable double _countSpeed_{0};
-    };
-  }
-
-
-
   static std::string parseTimeUnit(double nbMicroSec_, int maxPadSize_=-1);
   static std::string getElapsedTimeSinceLastCallStr(const std::string& key_);
   static std::string getElapsedTimeSinceLastCallStr(int instance_ = -1);
   static long long getElapsedTimeSinceLastCallInMicroSeconds(const std::string& key_);
   static long long getElapsedTimeSinceLastCallInMicroSeconds(int instance = -1);
   static std::string getNowDateString(const std::string& dateFormat_="%Y_%m_%d-%H_%M_%S");
+
+  namespace Time{
+
+    class StopWatch {
+
+    public:
+      StopWatch() = default;
+
+      void reset(){ _startTime_ = std::chrono::high_resolution_clock::now(); }
+      [[nodiscard]] std::chrono::duration<double> get() const { return std::chrono::high_resolution_clock::now()-_startTime_; }
+
+      [[nodiscard]] inline std::string toString() const {
+        // .count() returns a double expressing the time in seconds
+        return GenericToolbox::parseTimeUnit( this->get().count()*1E6 );
+      }
+      inline friend std::ostream& operator<< (std::ostream& stream, const StopWatch& stopWatch_) {
+        stream << stopWatch_.toString(); return stream;
+      }
+
+    private:
+      std::chrono::high_resolution_clock::time_point _startTime_{std::chrono::high_resolution_clock::now()};
+
+    };
+
+    class TimerBase{
+
+    public:
+      inline virtual void stop() = 0;
+      inline virtual void stop( size_t nbCycles_ ) = 0; // handles what to do with the StopWatch clock
+      [[nodiscard]] inline virtual std::chrono::duration<double> eval() const = 0; // eval returns a number of seconds
+
+      inline void start(){ _stopWatch_.reset(); _isStarted_ = true; }
+      inline void cycle( size_t nbCycles_=1 ){ this->stop(nbCycles_); this->start(); }
+      inline void count( size_t nbCumulated_=1 ){
+        if( nbCumulated_ > _nbCumulated_ ){ this->cycle(nbCumulated_ - _nbCumulated_);  }
+        else{ _nbCumulated_ = nbCumulated_; }
+      }
+
+      // eval in a given units T = std::chrono::milliseconds for instance
+      template<typename T> [[nodiscard]] inline ssize_t eval() const{ return std::chrono::duration_cast<T>( this->eval() ).count(); }
+      [[nodiscard]] inline double evalTickSpeed() const{ return 1./this->eval().count(); } // per second
+      template<typename T> [[nodiscard]] inline double evalTickSpeed() const{ return 1./this->evalTickSpeed<T>(); }
+
+      [[nodiscard]] inline std::string toString() const { return GenericToolbox::parseTimeUnit( this->eval().count()*1E6 ); }
+      inline friend std::ostream& operator<< (std::ostream& stream, const TimerBase& aTimer_) { stream << aTimer_.toString(); return stream; }
+
+    protected:
+      StopWatch _stopWatch_{};
+
+      bool _isStarted_{false};
+      size_t _nbCumulated_{0};
+
+    };
+
+    class Timer : public TimerBase {
+
+    public:
+      inline void stop( size_t nbCycles_ ) override {
+        if( not _isStarted_ or nbCycles_ == 0 ){ return; }
+        _nbCumulated_ += nbCycles_;
+        _buffer_ = _stopWatch_.get()/nbCycles_;
+        _isStarted_ = false;
+      }
+      inline void stop() override { this->stop(1); }
+      [[nodiscard]] inline std::chrono::duration<double> eval() const override { return _buffer_; }
+
+    private:
+      std::chrono::duration<double> _buffer_{};
+    };
+
+    template <size_t N> class AveragedTimer : public TimerBase {
+
+    public:
+      inline void stop( size_t nbCycles_ ) override {
+        if( not _isStarted_ or nbCycles_ == 0 ){ return; }
+        _nbCumulated_ += nbCycles_;
+        _durationsBuffer_[_cursorIndex_++] = _stopWatch_.get()/nbCycles_;
+        if( _cursorIndex_ >= _durationsBuffer_.size() ){ _cursorIndex_ = 0; _isBufferFilled_ = true; }
+        _isStarted_ = false;
+      }
+      inline void stop() override { this->stop(1); }
+      [[nodiscard]] inline std::chrono::duration<double> eval() const override {
+        std::chrono::duration<double> out{0};
+        if( not _isBufferFilled_ ){
+          for( int iSlot = 0 ; iSlot < _cursorIndex_+1 ; iSlot++ ){ out += _durationsBuffer_[iSlot]; }
+          return out/(_cursorIndex_+1);
+        }
+
+        for( auto& duration : _durationsBuffer_ ){ out += duration; }
+
+        // in seconds
+        return out/_durationsBuffer_.size();
+      }
+
+    private:
+      bool _isBufferFilled_{false};
+      int _cursorIndex_{0};
+      std::array<std::chrono::duration<double>, N> _durationsBuffer_{};
+    };
+  }
 
 }
 
@@ -88,39 +139,6 @@ namespace GenericToolbox{
 namespace GenericToolbox{
 
   namespace Time{
-    inline std::ostream& operator<< (std::ostream& stream, const CycleTimer& timer_) {
-      if(timer_.counts == 0) stream << "0s";
-      else stream << GenericToolbox::parseTimeUnit(double(timer_.cumulated) / double(timer_.counts));
-      return stream;
-    }
-
-    inline void CycleClock::stopAndCumulate(long long counts_){
-      if( not _hasStarted_ ){ throw std::runtime_error("clock not started."); }
-      _cumulatedSeconds_ += std::chrono::duration<double>(std::chrono::high_resolution_clock::now()-_startTime_).count();
-      cumulate( counts_ );
-      _hasStarted_ = false;
-    }
-    inline void CycleClock::cycle(long long int counts_){
-      if( not _hasStarted_ ){
-        cumulate(counts_);
-        start();
-      }
-      else{
-        // stop-start
-        stopAndCumulate( counts_ );
-        start();
-      }
-    }
-    inline std::string CycleClock::getCountingSpeed() const{
-      std::stringstream ss;
-      if( _counts_ == 0 or not _hasStarted_ ) ss << "0 " << _unit_ << "/s";
-      else{
-        this->updateCountingSpeed();
-        ss << GenericToolbox::parseUnitPrefix(_countSpeed_) << " " << _unit_ << "/s";
-      }
-      return ss.str();
-    }
-
     namespace Internals{
       static std::map<int, std::chrono::high_resolution_clock::time_point> lastTimePointMap{};
       static std::map<std::string, std::chrono::high_resolution_clock::time_point> lastTimePointMapStr{};

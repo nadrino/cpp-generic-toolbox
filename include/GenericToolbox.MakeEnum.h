@@ -100,7 +100,6 @@ struct ENUM_NAME {
   friend bool operator==(const StructType& lhs, const StructType& rhs){ return lhs.value == rhs.value; }
   friend bool operator!=(const StructType& lhs, const StructType& rhs){ return lhs.value != rhs.value; }
 
-
   static int getEnumSize(){
 #define ENUM_FIELD(...) TEMP_FIRST_ARG(__VA_ARGS__),
     static const EnumType indices[] = { ENUM_FIELDS };
@@ -144,6 +143,17 @@ struct ENUM_NAME {
   static inline std::string toString( StructType enum_ ){ return toString( enum_.value ); }
   [[nodiscard]] inline std::string toString() const { return toString( this->value ); }
   friend std::ostream& operator<< (std::ostream& stream, const StructType& this_){ stream << this_.toString(); return stream; }
+
+  static std::string generateEnumFieldsAsString(){
+    std::string out{"{ "};
+    int nEntries{getEnumSize()};
+    for( int iEntry = 0 ; iEntry < nEntries ; iEntry++ ){
+      out += getEnumEntryToStr(iEntry);
+      if( iEntry < nEntries-1 ){ out += ", "; }
+    }
+    out += " }";
+    return out;
+  }
 
 };
 

@@ -39,7 +39,7 @@ namespace GenericToolbox {
     template<typename T, typename J> inline auto fetchValue(const J& jsonConfig_, const std::vector<std::string>& keyName_, const T& defaultValue_) -> T;
     template<typename T, typename J> inline auto fetchValuePath(const J& jsonConfig_, const std::string& keyNamePath_) -> T;
     template<typename J, typename T> inline auto fetchMatchingEntry(const J& jsonConfig_, const std::string& keyName_, const T& keyValue_) -> J;
-    template<typename J, typename F> inline void deprecatedAction(const J& jsonConfig_, const std::string& keyName_, const F& action_);
+    template<typename J, typename F> inline bool deprecatedAction(const J& jsonConfig_, const std::string& keyName_, const F& action_);
 
     // template specialization when a string literal is passed:
     template<std::size_t N, typename J> inline auto fetchValue(const J& jsonConfig_, const std::string& keyName_, const char (&defaultValue_)[N]) -> std::string { return fetchValue(jsonConfig_, keyName_, std::string(defaultValue_)); }
@@ -295,11 +295,13 @@ namespace GenericToolbox {
       }
       return {}; // .empty()
     }
-    template<typename J, typename F> inline void deprecatedAction(const J& jsonConfig_, const std::string& keyName_, const F& action_){
+    template<typename J, typename F> inline bool deprecatedAction(const J& jsonConfig_, const std::string& keyName_, const F& action_){
       if( GenericToolbox::Json::doKeyExist(jsonConfig_, keyName_) ){
         std::cout << "DEPRECATED option: \"" << keyName_ << "\". Running defined action..." << std::endl;
         action_();
+        return true;
       }
+      return false;
     }
 
   }
