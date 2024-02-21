@@ -177,10 +177,7 @@ namespace GenericToolbox{
 
   // LinkDef does not enable function declaration by itself.
   // A proxy class can be used to trigger the function declaration on CINT startup
-  class Enabler{
-  public:
-    Enabler() = default;
-  };
+  struct Enabler{};
 
 }
 
