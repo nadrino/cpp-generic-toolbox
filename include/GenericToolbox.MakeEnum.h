@@ -120,11 +120,18 @@ struct ENUM_NAME {
 #undef ENUM_FIELD
     return names[index_];
   }
-  static StructType toEnum( const std::string& name_ ){
+  static StructType toEnum( const std::string& name_, bool ignoreCase_ = false ){
     int nEntries{getEnumSize()};
     for( int iEntry = 0 ; iEntry < nEntries ; iEntry++ ){
-      if( name_ == getEnumEntryToStr(iEntry) ){
-        return getEnumVal(iEntry);
+      if( ignoreCase_ ){
+        if( GenericToolbox::toLowerCase(name_) == GenericToolbox::toLowerCase(getEnumEntryToStr(iEntry)) ){
+          return getEnumVal(iEntry);
+        }
+      }
+      else{
+        if( name_ == getEnumEntryToStr(iEntry) ){
+          return getEnumVal(iEntry);
+        }
       }
     }
     return StructType::overflowValue;
