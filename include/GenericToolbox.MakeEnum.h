@@ -6,6 +6,10 @@
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wcomment"
 
+#include <algorithm>
+#include <string>
+#include <cctype>
+
 
 /*
  * required: ENUM_NAME, ENUM_FIELDS
@@ -124,9 +128,13 @@ struct ENUM_NAME {
     int nEntries{getEnumSize()};
     for( int iEntry = 0 ; iEntry < nEntries ; iEntry++ ){
       if( ignoreCase_ ){
-        if( GenericToolbox::toLowerCase(name_) == GenericToolbox::toLowerCase(getEnumEntryToStr(iEntry)) ){
-          return getEnumVal(iEntry);
-        }
+
+        std::string nameLower{name_};
+        std::transform(nameLower.begin(), nameLower.end(), nameLower.begin(), [](unsigned char c) { return std::tolower(c); });
+        std::string enumNameLower{getEnumEntryToStr(iEntry)};
+        std::transform(enumNameLower.begin(), enumNameLower.end(), enumNameLower.begin(), [](unsigned char c) { return std::tolower(c); });
+
+        if( nameLower == enumNameLower ){ return getEnumVal(iEntry); }
       }
       else{
         if( name_ == getEnumEntryToStr(iEntry) ){
