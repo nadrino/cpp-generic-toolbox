@@ -80,6 +80,7 @@ namespace GenericToolbox{
     inline void addJob(const std::string& jobName_, const std::function<void(int)>& function_); // int arg is supposed to be the thread id
     inline void setPostParallelJob(const std::string& jobName_, const std::function<void()>& function_);
     inline void setPreParallelJob(const std::string& jobName_, const std::function<void()>& function_);
+    inline void runJob(const std::function<void(int)>& function_);
     inline void runJob(const std::string& jobName_);
     inline void removeJob(const std::string& jobName_);
 
@@ -192,6 +193,12 @@ namespace GenericToolbox{
     if( jobPtr == nullptr ){ throw std::logic_error(jobName_ + ": is not in the available jobsList"); }
 
     jobPtr->functionPreParallel = function_;
+  }
+  inline void ParallelWorker::runJob(const std::function<void(int)>& function_){
+    std::string tempName{std::to_string((unsigned long long)(void**)this)};
+    this->addJob(tempName, function_);
+    this->runJob(tempName);
+    this->removeJob(tempName);
   }
   inline void ParallelWorker::runJob(const std::string &jobName_) {
     _lastJobTimer_.start();
