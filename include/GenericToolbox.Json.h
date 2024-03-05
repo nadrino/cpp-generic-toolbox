@@ -231,7 +231,7 @@ namespace GenericToolbox {
     template<typename T, typename J> inline auto fetchValue(const J& jsonConfig_, const std::string& keyName_) -> T{
       auto jsonEntry = jsonConfig_.find(keyName_);
       if( jsonEntry == jsonConfig_.end() ){
-        throw std::runtime_error("Could not find json entry: " + keyName_ + ":\n" + jsonConfig_.dump());
+        throw std::runtime_error("Could not find json entry: " + keyName_ + ":\n" + GenericToolbox::Json::toReadableString(jsonConfig_));
       }
       return jsonEntry->template get<T>();
     }
@@ -241,7 +241,7 @@ namespace GenericToolbox {
           return GenericToolbox::Json::fetchValue<T>(jsonConfig_, keyName);
         }
       }
-      throw std::runtime_error("Could not find any json entry: " + GenericToolbox::toString(keyNames_) + ":\n" + jsonConfig_.dump());
+      throw std::runtime_error("Could not find any json entry: " + GenericToolbox::toString(keyNames_) + ":\n" + GenericToolbox::Json::toReadableString(jsonConfig_));
     }
     template<typename T, typename J> inline auto fetchValue(const J& jsonConfig_, const std::string& keyName_, const T& defaultValue_) -> T{
       try{
@@ -279,7 +279,7 @@ namespace GenericToolbox {
       if( not jsonConfig_.is_array() ){
         std::cout << "key: " << keyName_ << std::endl;
         std::cout << "value: " << keyValue_ << std::endl;
-        std::cout << "dump: " << jsonConfig_.dump() << std::endl;
+        std::cout << "dump: " << GenericToolbox::Json::toReadableString(jsonConfig_) << std::endl;
         throw std::runtime_error("GenericToolbox::Json::fetchMatchingEntry: jsonConfig_ is not an array.");
       }
 
