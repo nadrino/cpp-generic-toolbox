@@ -74,21 +74,19 @@ namespace GenericToolbox::Switch{
   // Hardware
   namespace Hardware{
 
-#define MAKE_ENUM \
-  ENUM_NAME(PhysicalMemoryType) \
-  ENUM_ENTRY(TotalPhysicalMemorySize, 0) \
-  ENUM_ENTRY(UsedPhysicalMemorySize)
+#define ENUM_NAME PhysicalMemoryType
+#define ENUM_FIELDS \
+  ENUM_FIELD(TotalPhysicalMemorySize, 0) \
+  ENUM_FIELD(UsedPhysicalMemorySize)
 #include "GenericToolbox.MakeEnum.h"
-#undef MAKE_ENUM
 
-#define MAKE_ENUM \
-  ENUM_NAME(PhysicalMemoryOf) \
-  ENUM_ENTRY(Application, 0) \
-  ENUM_ENTRY(Applet) \
-  ENUM_ENTRY(System) \
-  ENUM_ENTRY(SystemUnsafe)
+#define ENUM_NAME PhysicalMemoryOf
+#define ENUM_FIELDS \
+  ENUM_FIELD(Application, 0) \
+  ENUM_FIELD(Applet) \
+  ENUM_FIELD(System) \
+  ENUM_FIELD(SystemUnsafe)
 #include "GenericToolbox.MakeEnum.h"
-#undef MAKE_ENUM
 
     static u64 getMemoryInfo(PhysicalMemoryType type_, PhysicalMemoryOf of_);
     static std::string getMemoryUsageStr(PhysicalMemoryOf of_);
