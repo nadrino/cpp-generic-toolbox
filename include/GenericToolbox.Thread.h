@@ -57,7 +57,8 @@ namespace GenericToolbox{
   class ParallelWorker {
 
   public:
-    template<typename T> static std::pair<T, T> getThreadBoundIndices(int iThread_, int nThreads_, T nTotal_);
+    template<typename T> struct ThreadBounds{ T beginIndex{}; T endIndex{}; };
+    template<typename T> static ThreadBounds<T> getThreadBoundIndices(int iThread_, int nThreads_, T nTotal_);
 
   public:
     inline ParallelWorker() = default;
@@ -80,6 +81,7 @@ namespace GenericToolbox{
     inline void addJob(const std::string& jobName_, const std::function<void(int)>& function_); // int arg is supposed to be the thread id
     inline void setPostParallelJob(const std::string& jobName_, const std::function<void()>& function_);
     inline void setPreParallelJob(const std::string& jobName_, const std::function<void()>& function_);
+    inline void runJob(const std::function<void(int)>& function_);
     inline void runJob(const std::string& jobName_);
     inline void removeJob(const std::string& jobName_);
 
@@ -107,9 +109,9 @@ namespace GenericToolbox{
   };
 
   // statics
-  template<typename T> inline std::pair<T, T> ParallelWorker::getThreadBoundIndices(int iThread_, int nThreads_, T nTotal_){
+  template<typename T> inline ParallelWorker::ThreadBounds<T> ParallelWorker::getThreadBoundIndices(int iThread_, int nThreads_, T nTotal_){
     // first index, last index: for( int i = out.first ; i < out.second ; i++){}
-    std::pair<T, T> out{0, nTotal_};
+    ParallelWorker::ThreadBounds<T> out{0, nTotal_};
 
     if( iThread_ == -1 or nThreads_ == 1 ){ return out; }
 
@@ -117,13 +119,13 @@ namespace GenericToolbox{
     int nExtraEvents = nTotal_ % nThreads_;
 
     // make sure we get the right shift event if nTotal_ < nThreads_
-    out.first =
+    out.beginIndex =
         std::min(iThread_, nExtraEvents) * (nEventsPerThread + 1) +
         std::max(0, iThread_ - nExtraEvents) * nEventsPerThread;
 
     // adjust such the first threads are sharing the numExtraEvents
-    out.second =
-        out.first +
+    out.endIndex =
+        out.beginIndex +
         ((iThread_ < nExtraEvents) ? nEventsPerThread + 1 : nEventsPerThread );
 
     // OLD METHOD:
@@ -192,6 +194,12 @@ namespace GenericToolbox{
     if( jobPtr == nullptr ){ throw std::logic_error(jobName_ + ": is not in the available jobsList"); }
 
     jobPtr->functionPreParallel = function_;
+  }
+  inline void ParallelWorker::runJob(const std::function<void(int)>& function_){
+    std::string tempName{std::to_string((unsigned long long)(void**)this)};
+    this->addJob(tempName, function_);
+    this->runJob(tempName);
+    this->removeJob(tempName);
   }
   inline void ParallelWorker::runJob(const std::string &jobName_) {
     _lastJobTimer_.start();

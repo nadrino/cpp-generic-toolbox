@@ -6,6 +6,10 @@
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wcomment"
 
+#include <algorithm>
+#include <string>
+#include <cctype>
+
 
 /*
  * required: ENUM_NAME, ENUM_FIELDS
@@ -120,11 +124,22 @@ struct ENUM_NAME {
 #undef ENUM_FIELD
     return names[index_];
   }
-  static StructType toEnum( const std::string& name_ ){
+  static StructType toEnum( const std::string& name_, bool ignoreCase_ = false ){
     int nEntries{getEnumSize()};
     for( int iEntry = 0 ; iEntry < nEntries ; iEntry++ ){
-      if( name_ == getEnumEntryToStr(iEntry) ){
-        return getEnumVal(iEntry);
+      if( ignoreCase_ ){
+
+        std::string nameLower{name_};
+        std::transform(nameLower.begin(), nameLower.end(), nameLower.begin(), [](unsigned char c) { return std::tolower(c); });
+        std::string enumNameLower{getEnumEntryToStr(iEntry)};
+        std::transform(enumNameLower.begin(), enumNameLower.end(), enumNameLower.begin(), [](unsigned char c) { return std::tolower(c); });
+
+        if( nameLower == enumNameLower ){ return getEnumVal(iEntry); }
+      }
+      else{
+        if( name_ == getEnumEntryToStr(iEntry) ){
+          return getEnumVal(iEntry);
+        }
       }
     }
     return StructType::overflowValue;

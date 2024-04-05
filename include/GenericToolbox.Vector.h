@@ -29,6 +29,7 @@ namespace GenericToolbox{
   // Content management
   template<typename Elem, typename Cont> static bool isIn( const Elem& element_, const Cont& container_ );
   template<typename Elem, typename Cont, typename Lambda> static bool isIn( const Elem& element_, const Cont& container_, const Lambda& fetchElem_ );
+  template<typename Elm, typename Val, typename Lambda> static int isIn(const Val& value_, const std::vector<Elm>& vector_, const Lambda& fetchElmValueFct_);
 
   template<typename T> static int findElementIndex( const T& element_, const std::vector<T>& vector_ );
   static int findElementIndex(const char* element_, const std::vector<std::string>& vector_ );
@@ -78,6 +79,9 @@ namespace GenericToolbox {
   }
   template<typename Elem, typename Cont, typename Lambda> static bool isIn( const Elem& element_, const Cont& container_, const Lambda& fetchElem_ ){
     return std::find_if( container_.begin(), container_.end(), [&](const Elem& t){ return fetchElem_(t) == element_; }) != container_.end();
+  }
+  template <typename Elm, typename Val, typename Lambda> static int isIn(const Val& value_, const std::vector<Elm>& vector_, const Lambda& fetchElmValueFct_){
+    return std::find_if( vector_.begin(), vector_.end(), [&](const Elm& t){ return fetchElmValueFct_(t) == value_; }) != vector_.end();
   }
 
   template <typename T> static bool doesElementIsInVector(const T& element_, const std::vector<T>& vector_){

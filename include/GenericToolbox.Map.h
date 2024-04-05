@@ -22,10 +22,12 @@
 // Declaration section
 namespace GenericToolbox{
 
-  template <typename K, typename T> static bool doesKeyIsInMap( const K& key_, const std::map<K,T>& map_ );
+  template <typename K, typename T> static bool isIn( const K& key_, const std::map<K,T>& map_ );
   template <typename K, typename T> static T* getElementPtrIsInMap( const K& key_, std::map<K,T>& map_ );
   template <typename T1, typename T2> static void appendToMap( std::map<T1, T2> &mapContainer_, const std::map<T1, T2> &mapToPushBack_, bool overwrite_ = true );
   template <typename T> static std::map<std::string, T> getSubMap(const std::map<std::string, T>& map_, const std::string &keyStrStartWith_ );
+
+  template <typename K, typename T> [[deprecated("use isIn()")]] static bool doesKeyIsInMap( const K& key_, const std::map<K,T>& map_ ){ return isIn(key_, map_);}
 
 }
 
@@ -33,7 +35,7 @@ namespace GenericToolbox{
 // Implementation section
 namespace GenericToolbox {
 
-  template <typename K, typename  T> static bool doesKeyIsInMap( const K& key_, const std::map<K,T>& map_ ){
+  template <typename K, typename  T> static bool isIn( const K& key_, const std::map<K,T>& map_ ){
     return ( map_.find(key_) != map_.end() );
   }
   template <typename K, typename T> static T* getElementPtrIsInMap( const K& key_, std::map<K,T>& map_ ){
