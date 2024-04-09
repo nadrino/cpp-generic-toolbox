@@ -276,12 +276,8 @@ namespace GenericToolbox {
     }
     template<typename J, typename T> inline auto fetchMatchingEntry(const J& jsonConfig_, const std::string& keyName_, const T& keyValue_) -> J{
 
-      if( not jsonConfig_.is_array() ){
-        std::cout << "key: " << keyName_ << std::endl;
-        std::cout << "value: " << keyValue_ << std::endl;
-        std::cout << "dump: " << GenericToolbox::Json::toReadableString(jsonConfig_) << std::endl;
-        throw std::runtime_error("GenericToolbox::Json::fetchMatchingEntry: jsonConfig_ is not an array.");
-      }
+      if( not jsonConfig_.empty() ){ return {}; }
+      if( not jsonConfig_.is_array() ){ return {}; }
 
       for( const auto& jsonEntry : jsonConfig_ ){
         try{
