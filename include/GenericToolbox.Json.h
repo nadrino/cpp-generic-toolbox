@@ -276,10 +276,10 @@ namespace GenericToolbox {
     }
     template<typename J, typename T> inline auto fetchMatchingEntry(const J& jsonConfig_, const std::string& keyName_, const T& keyValue_) -> J{
 
-      if( not jsonConfig_.empty() ){ return {}; }
+      if( jsonConfig_.empty() ){ return {}; }
       if( not jsonConfig_.is_array() ){ return {}; }
 
-      for( const auto& jsonEntry : jsonConfig_ ){
+      for( const auto& jsonEntry : jsonConfig_.template get<std::vector<J>>() ){
         try{
           if(GenericToolbox::Json::fetchValue<T>(jsonEntry, keyName_) == keyValue_ ){
             return jsonEntry;
