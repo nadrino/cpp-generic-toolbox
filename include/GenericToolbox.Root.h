@@ -1810,6 +1810,7 @@ namespace GenericToolbox{
     _treePtr_->SetBranchStatus("*", false);
 
     for( auto& br : _branchBufferList_ ){
+      _treePtr_->SetBranchStatus(br.getBranchName().c_str(), true);
       br.setBranchPtr( _treePtr_->GetBranch( br.getBranchName().c_str() ) );
       br.hookBuffer();
     }
