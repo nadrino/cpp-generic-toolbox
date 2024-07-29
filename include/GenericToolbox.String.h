@@ -132,6 +132,7 @@ namespace GenericToolbox{
   static void removeTrailingCharInsideInputStr(std::string &inputStr_, const std::string &trailingChar_);
   static void indentInputString(std::string& inputStr_, unsigned int indentCount_, const std::string& indentChar = " ");
   static void trimInputString(std::string &inputStr_, const std::string &strToTrim_);
+  static void removeEscapeCodes(std::string &inputStr_);
 
   // -- Parsing
   static size_t getPrintSize(const std::string& str_);
@@ -570,6 +571,14 @@ namespace GenericToolbox {
     }
     while( GenericToolbox::endsWith(inputStr_, strToTrim_) ){
       inputStr_ = inputStr_.substr(0, inputStr_.size() - strToTrim_.size());
+    }
+  }
+  static void removeEscapeCodes(std::string &inputStr_){
+    // https://www.eso.org/~ndelmott/ascii.html
+    std::string escapeCodeStr{0x01};
+    for( char escapeCode = 0x01 ; escapeCode <= 0x1F ; escapeCode++ ){
+      escapeCodeStr[0] = escapeCode;
+      GenericToolbox::replaceSubstringInsideInputString(inputStr_, escapeCodeStr, "");
     }
   }
 
