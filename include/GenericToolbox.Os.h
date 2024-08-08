@@ -111,7 +111,7 @@ namespace GenericToolbox{
 #endif
     }
     static bool expandEnvironmentVariables(const char *fname, char *xname) {
-      int n, ier, iter, lx, ncopy;
+      int ier, iter, lx, ncopy;
       char *inp, *out, *x, *t, *buff;
       const char *b, *c, *e;
       const char *p;
