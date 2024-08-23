@@ -200,7 +200,7 @@ namespace GenericToolbox {
       }
 
       std::vector<std::string> conditionsList;
-      auto jsonList{ GenericToolbox::Json::fetchValue<J>(jsonConfig_, keyName_) };
+      auto jsonList( GenericToolbox::Json::fetchValue<J>(jsonConfig_, keyName_) );
 
       if( jsonList.size() == 1 and not jsonList[0].is_string() and jsonList[0].is_array() ){
         // hot fix for broken json versions
