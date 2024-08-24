@@ -93,7 +93,7 @@ namespace GenericToolbox{
     return endsWith(filePath_, "." + extension_);
   }
   static bool hasExtension(const std::string &filePath_, const std::vector<std::string> &extensionList_){
-    return std::any_of(extensionList_.begin(), extensionList_.end(), [&](auto& extension){ return GenericToolbox::hasExtension(filePath_, extension); });
+    return std::any_of(extensionList_.begin(), extensionList_.end(), [&](const std::string& extension){ return GenericToolbox::hasExtension(filePath_, extension); });
   }
   static std::string getExtension(const std::string& filePath_){
     if( filePath_.find_last_of('.') == size_t(-1) ) return {};
