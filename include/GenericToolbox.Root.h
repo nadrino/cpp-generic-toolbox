@@ -164,6 +164,10 @@ namespace GenericToolbox{
   inline void fixTH2display(TH2 *histogram_);
   inline void setXaxisOfAllPads(TCanvas* canvas_, double Xmin_, double Xmax_);
 
+  //! Display tools
+  inline void cleanupForDisplay(TCanvas* canvas_);
+  inline void cleanupForDisplay(TH1* hist_);
+
 
   //! ROOT Internals
   inline void muteRoot();
@@ -1320,6 +1324,37 @@ namespace GenericToolbox {
   }
 
 }
+
+
+//! Display tools
+namespace GenericToolbox{
+
+  inline void cleanupForDisplay(TCanvas* canvas_){
+
+    if( canvas_ == nullptr ){ return; }
+
+    int nPrimitives( canvas_->GetListOfPrimitives()->GetEntries() );
+    for( int iPrim = 0 ; iPrim < nPrimitives ; iPrim++ ){
+      if( not canvas_->GetListOfPrimitives()->At( iPrim )->InheritsFrom("TH1") ){ continue; }
+      cleanupForDisplay( (TH1*) canvas_->GetListOfPrimitives()->At( iPrim ) );
+    }
+
+  }
+  inline void cleanupForDisplay(TH1* hist_){
+
+    if( hist_ == nullptr ){ return; }
+    int nBins( hist_->GetNcells() );
+    for( int iBin = 0 ; iBin < nBins ; iBin++ ){
+      if( std::isnan( hist_->GetBinContent(iBin) ) ){ hist_->SetBinContent(iBin, 0); }
+      if( std::isnan( hist_->GetBinError(iBin) ) ){ hist_->SetBinError(iBin, 0); }
+    }
+
+  }
+
+
+
+}
+
 
 //! ROOT Internals
 namespace GenericToolbox{
