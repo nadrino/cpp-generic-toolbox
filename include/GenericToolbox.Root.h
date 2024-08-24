@@ -1623,6 +1623,7 @@ namespace GenericToolbox{
     [[nodiscard]] inline void* getDataAddress() const;
     [[nodiscard]] inline size_t getDataSize() const;
     [[nodiscard]] inline std::string getLeafTypeName() const;
+    [[nodiscard]] inline bool isPointerLeaf() const { return ( _primaryLeafPtr_ != nullptr and _primaryLeafPtr_->GetNdata() == 0 ); }
 
     inline double evalAsDouble() const;
     inline void fillLocalBuffer() const;
@@ -1724,18 +1725,19 @@ namespace GenericToolbox{
   inline void LeafForm::cacheDataSize(){
     // buffer data size
     _dataSize_ = 0; // reset
-    if     ( _primaryLeafPtr_ != nullptr ){
-      if( _primaryLeafPtr_->GetNdata() != 0 ){
-        // primary type leaf (int, double, long, etc...)
-        _dataSize_ += _primaryLeafPtr_->GetLenType();
-      }
-      else{
-        // pointer-like obj (TGraph, TClonesArray...)
-        _dataSize_ += 2 * _primaryLeafPtr_->GetLenType(); // pointer-like obj: ROOT didn't update the ptr size from 32 to 64 bits??
-      }
+
+    if( this->isPointerLeaf() ){
+      // pointer-like obj (TGraph, TClonesArray...)
+      // ROOT didn't update the ptr size from 32 to 64 bits??
+      _dataSize_ += 2 * _primaryLeafPtr_->GetLenType();
+    }
+    else if( _primaryLeafPtr_ != nullptr ){
+      // primary type leaf (int, double, long, etc...)
+      _dataSize_ += _primaryLeafPtr_->GetLenType();
     }
     else if( _treeFormulaPtr_ != nullptr ){
-      _dataSize_ = 8; // double
+      // double
+      _dataSize_ = 8;
     }
     else{
       throw std::runtime_error(__METHOD_NAME__ + ": no data defined -> " + this->getSummary());
@@ -1845,6 +1847,7 @@ namespace GenericToolbox{
     _treePtr_->SetBranchStatus("*", false);
 
     for( auto& br : _branchBufferList_ ){
+      _treePtr_->SetBranchStatus(br.getBranchName().c_str(), true);
       br.setBranchPtr( _treePtr_->GetBranch( br.getBranchName().c_str() ) );
       br.hookBuffer();
     }

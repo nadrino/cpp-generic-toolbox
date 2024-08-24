@@ -111,7 +111,7 @@ namespace GenericToolbox{
 #endif
     }
     static bool expandEnvironmentVariables(const char *fname, char *xname) {
-      int n, ier, iter, lx, ncopy;
+      int ier, iter, lx, ncopy;
       char *inp, *out, *x, *t, *buff;
       const char *b, *c, *e;
       const char *p;
@@ -271,7 +271,7 @@ namespace GenericToolbox{
     std::string result;
 
     std::string command = "echo " + filePath_;
-    std::unique_ptr<FILE, decltype(&pclose)> pipe(popen(command.c_str(), "r"), pclose);
+    std::unique_ptr<FILE, int(*)(FILE*)> pipe(popen(command.c_str(), "r"), pclose);
     if( pipe == nullptr ){ return filePath_; }
 
     std::FILE* pipe_ptr = pipe.get();
@@ -498,20 +498,20 @@ namespace GenericToolbox{
   }
   static std::vector<std::string> getOutputOfShellCommand(const std::string& cmd_) {
     // Inspired from: https://stackoverflow.com/questions/478898/how-do-i-execute-a-command-and-get-the-output-of-the-command-within-c-using-po
-    std::array<char, 128> buffer{};
-    std::vector<std::string> output;
 #if defined(_WIN32)
     std::unique_ptr<FILE, decltype(&_pclose)> pipe(_popen(cmd_.c_str(), "r"), _pclose);
 #else
-    std::unique_ptr<FILE, decltype(&pclose)> pipe(popen(cmd_.c_str(), "r"), pclose);
+    std::unique_ptr<FILE, int(*)(FILE*)> pipe(popen(cmd_.c_str(), "r"), pclose);
 #endif
-    if( pipe == nullptr ){
-//      throw std::runtime_error("popen() failed!");
-    }
-    else{
-      while (fgets(buffer.data(), buffer.size(), pipe.get()) != nullptr) {
-        output.emplace_back( buffer.data() );
-      }
+
+    // in case the terminal couldn't be opened
+    if( pipe == nullptr ){ return {}; }
+
+    // read and store the outputs
+    std::array<char, 128> buffer{};
+    std::vector<std::string> output;
+    while( fgets( buffer.data(), buffer.size(), pipe.get() ) != nullptr ){
+      output.emplace_back( buffer.data() );
     }
     return output;
   }

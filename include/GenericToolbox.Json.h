@@ -200,7 +200,7 @@ namespace GenericToolbox {
       }
 
       std::vector<std::string> conditionsList;
-      auto jsonList{ GenericToolbox::Json::fetchValue<J>(jsonConfig_, keyName_) };
+      auto jsonList( GenericToolbox::Json::fetchValue<J>(jsonConfig_, keyName_) );
 
       if( jsonList.size() == 1 and not jsonList[0].is_string() and jsonList[0].is_array() ){
         // hot fix for broken json versions
@@ -276,14 +276,10 @@ namespace GenericToolbox {
     }
     template<typename J, typename T> inline auto fetchMatchingEntry(const J& jsonConfig_, const std::string& keyName_, const T& keyValue_) -> J{
 
-      if( not jsonConfig_.is_array() ){
-        std::cout << "key: " << keyName_ << std::endl;
-        std::cout << "value: " << keyValue_ << std::endl;
-        std::cout << "dump: " << GenericToolbox::Json::toReadableString(jsonConfig_) << std::endl;
-        throw std::runtime_error("GenericToolbox::Json::fetchMatchingEntry: jsonConfig_ is not an array.");
-      }
+      if( jsonConfig_.empty() ){ return {}; }
+      if( not jsonConfig_.is_array() ){ return {}; }
 
-      for( const auto& jsonEntry : jsonConfig_ ){
+      for( const auto& jsonEntry : jsonConfig_.template get<std::vector<J>>() ){
         try{
           if(GenericToolbox::Json::fetchValue<T>(jsonEntry, keyName_) == keyValue_ ){
             return jsonEntry;
