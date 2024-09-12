@@ -16,6 +16,7 @@
 #include "TPaletteAxis.h"
 #include "TMatrixDSym.h"
 #include "TDecompChol.h"
+#include "TParameter.h"
 #include "TRandom3.h"
 #include "TMatrixD.h"
 #include "TFormula.h"
@@ -102,6 +103,7 @@ namespace GenericToolbox{
   inline TDirectory* getCurrentTDirectory();
   inline void writeInTFile(TDirectory* dir_, const TObject* objToSave_, std::string saveName_ = "", bool forceWriteFile_=false);
   inline void writeInTFile(TDirectory* dir_, const TObject& objToSave_, std::string saveName_ = "", bool forceWriteFile_=false);
+  template<typename T> inline void writeInTFile(TDirectory* dir_, const T& objToSave_, std::string saveName_);
   inline void triggerTFileWrite(TDirectory* dir_);
 
   inline std::vector<std::string> lsTDirectory(TDirectory* directory_, const std::string& className_ = "");
@@ -182,6 +184,22 @@ namespace GenericToolbox{
   // LinkDef does not enable function declaration by itself.
   // A proxy class can be used to trigger the function declaration on CINT startup
   struct Enabler{};
+
+  class [[maybe_unused]] TFilePath {
+
+  public:
+    TFilePath(TDirectory* rootDir_, std::string subDirPath_): rootDir(rootDir_), subDirPath(subDirPath_) {}
+    TFilePath getSubDir( const std::string& subDir_ ) const {
+      TFilePath out(*this);
+      out.subDirPath = GenericToolbox::joinPath(this->subDirPath, subDir_);
+      return out;
+    }
+    TDirectory* getDir() const { return GenericToolbox::mkdirTFile(rootDir, subDirPath); }
+
+  private:
+    TDirectory* rootDir{nullptr};
+    std::string subDirPath{};
+  };
 
 }
 
@@ -454,7 +472,7 @@ namespace GenericToolbox {
   }
   inline TTreeFormula* createTreeFormulaWithoutTree(const std::string& formulaStr_, std::vector<std::string> expectedLeafNames_){
     auto* cwd = getCurrentTDirectory();
-    ROOT::GetROOT()->cd();
+    ::ROOT::GetROOT()->cd();
     std::vector<Int_t> varObjList(expectedLeafNames_.size(),0);
     auto* fakeTree = new TTree("fakeTree", "fakeTree");
     for( size_t iVar = 0 ; iVar < expectedLeafNames_.size() ; iVar++ ){
@@ -630,7 +648,7 @@ namespace GenericToolbox {
   inline std::vector<TFile *> getListOfOpenedTFiles() {
     std::vector<TFile *> output;
     // TIter next_iter(gROOT->GetListOfGlobals());
-    auto *global_obj_list = (TList *) gROOT->GetListOfGlobals();
+    auto *global_obj_list = (TList *) ::ROOT::GetROOT()->GetListOfGlobals();
     TGlobal *global;
     for (int i_obj = 0; i_obj < global_obj_list->GetEntries(); i_obj++) {
       global = (TGlobal *) global_obj_list->At(i_obj);
@@ -691,6 +709,10 @@ namespace GenericToolbox {
   }
   inline void writeInTFile(TDirectory* dir_, const TObject& objToSave_, std::string saveName_, bool forceWriteFile_){
     writeInTFile(dir_, &objToSave_, std::move(saveName_), forceWriteFile_);
+  }
+  template<typename T> inline void writeInTFile(TDirectory* dir_, const T& objToSave_, std::string saveName_){
+    TParameter<T> out(saveName_.c_str(), objToSave_);
+    writeInTFile(dir_, (TObject*) &out);
   }
   inline void triggerTFileWrite(TDirectory* dir_){
     if( dir_->GetFile() != nullptr ) dir_->GetFile()->Write();
