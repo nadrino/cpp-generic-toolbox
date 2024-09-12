@@ -36,6 +36,7 @@
 #include "TEnv.h"
 
 // STD Headers
+#include <type_traits>
 #include <string>
 #include <map>
 
@@ -103,7 +104,6 @@ namespace GenericToolbox{
   inline TDirectory* getCurrentTDirectory();
   inline void writeInTFile(TDirectory* dir_, const TObject* objToSave_, std::string saveName_ = "", bool forceWriteFile_=false);
   inline void writeInTFile(TDirectory* dir_, const TObject& objToSave_, std::string saveName_ = "", bool forceWriteFile_=false);
-  template<typename T> inline void writeInTFile(TDirectory* dir_, const T& objToSave_, std::string saveName_);
   inline void triggerTFileWrite(TDirectory* dir_);
 
   inline std::vector<std::string> lsTDirectory(TDirectory* directory_, const std::string& className_ = "");
@@ -710,7 +710,7 @@ namespace GenericToolbox {
   inline void writeInTFile(TDirectory* dir_, const TObject& objToSave_, std::string saveName_, bool forceWriteFile_){
     writeInTFile(dir_, &objToSave_, std::move(saveName_), forceWriteFile_);
   }
-  template<typename T> inline void writeInTFile(TDirectory* dir_, const T& objToSave_, std::string saveName_){
+  template<typename T, typename = std::enable_if_t<std::is_arithmetic<T>::value>> inline void writeInTFile(TDirectory* dir_, const T& objToSave_, std::string saveName_){
     TParameter<T> out(saveName_.c_str(), objToSave_);
     writeInTFile(dir_, (TObject*) &out);
   }
