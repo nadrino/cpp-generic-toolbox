@@ -230,7 +230,7 @@ namespace GenericToolbox {
     template<typename T, typename J> inline auto fetchValue(const J& jsonConfig_, const std::string& keyPath_) -> T{
       // always treats as a key path
       std::vector<std::string> keyPathElements{GenericToolbox::splitString(keyPath_, "/")};
-      J walkConfig{jsonConfig_};
+      J walkConfig(jsonConfig_);
       for( auto& keyName : keyPathElements ){
         auto entry = walkConfig.find(keyName);
         if( entry == walkConfig.end() ){
@@ -266,9 +266,7 @@ namespace GenericToolbox {
       varToFill_ = GenericToolbox::Json::fetchValue(jsonConfig_, keyPathList_, varToFill_);
     }
     template<typename J, typename T> inline auto fetchMatchingEntry(const J& jsonConfig_, const std::string& keyPath_, const T& keyValue_) -> J{
-
-      if( jsonConfig_.empty() ){ return {}; }
-      if( not jsonConfig_.is_array() ){ return {}; }
+      if( jsonConfig_.empty() or not jsonConfig_.is_array() ){ return {}; }
       for( const auto& jsonEntry : jsonConfig_.template get<std::vector<J>>() ){
         try{ if( GenericToolbox::Json::fetchValue<T>(jsonEntry, keyPath_) == keyValue_ ){ return jsonEntry; } }
         catch (...){} // next
