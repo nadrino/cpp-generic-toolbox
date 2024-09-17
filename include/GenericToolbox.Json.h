@@ -32,7 +32,6 @@ namespace GenericToolbox {
 
     template<typename J> inline std::vector<std::string> ls(const J& jsonConfig_);
     template<typename J> inline bool doKeyExist(const J& jsonConfig_, const std::string& keyPath_);
-    template<typename J> inline auto fetchSubEntry(const J& jsonConfig_, const std::vector<std::string>& keyList_) -> J;
     template<typename T, typename J> inline auto fetchValue(const J& jsonConfig_, const std::string& keyPath_) -> T;
     template<typename T, typename J> inline auto fetchValue(const J& jsonConfig_, const std::vector<std::string>& keyPathList_) -> T;
     template<typename T, typename J> inline auto fetchValue(const J& jsonConfig_, const std::string& keyPath_, const T& defaultValue_) -> T;
@@ -57,8 +56,6 @@ namespace GenericToolbox {
     inline nlohmann::json readConfigFile(const std::string& configJsonStr_) { return readConfigFile<nlohmann::json>(configJsonStr_); }
 
   }
-
-
 }
 
 
@@ -186,13 +183,6 @@ namespace GenericToolbox {
       out.reserve( jsonConfig_.size() );
       for (auto& entry : jsonConfig_.items()){ out.emplace_back( entry.key() ); }
       return out;
-    }
-    template<typename J> inline auto fetchSubEntry(const J& jsonConfig_, const std::vector<std::string>& keyList_) -> J {
-      J output = jsonConfig_;
-      for( const auto& key : keyList_ ){
-        output = GenericToolbox::Json::fetchValue<J>(output, key);
-      }
-      return output;
     }
 
     template<typename J> inline std::string buildFormula(const J& jsonConfig_, const std::string& keyPath_, const std::string& joinStr_){
