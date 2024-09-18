@@ -17,6 +17,8 @@
 
 #include <sys/statvfs.h>
 #include <sys/stat.h>
+#include <climits>
+#include <unistd.h>
 #include <unistd.h>
 #include <pwd.h>
 
@@ -33,6 +35,9 @@ namespace GenericToolbox{
   static std::string getCurrentWorkingDirectory();
   static std::string expandEnvironmentVariables(const std::string &filePath_);
   static std::string getExecutableName(); // untested on windows platform
+  static std::string getUserName();
+  static std::string getHostName();
+  static std::string getOsName();
 
   // hardware
   static size_t getProcessMemoryUsage();
@@ -300,6 +305,29 @@ namespace GenericToolbox{
     outStr = __progname;
 #endif
     return outStr;
+  }
+  static std::string getUserName(){
+    return GenericToolbox::expandEnvironmentVariables("$USER");
+  }
+  static std::string getHostName(){
+    return GenericToolbox::expandEnvironmentVariables("$HOSTNAME");
+  }
+  static std::string getOsName(){
+#if defined(_WIN32)
+    return "Windows 32-bit";
+#elif defined(_WIN64)
+    return "Windows 64-bit";
+#elif defined(__APPLE__) || defined(__MACH__)
+    return "macOS";
+#elif defined(__linux__)
+    return "Linux";
+#elif defined(__FreeBSD__)
+    return "FreeBSD";
+#elif defined(__unix) || defined(__unix__)
+    return "Unix";
+#else
+    return "Unknown OS";
+#endif
   }
 
   struct CpuStat{
