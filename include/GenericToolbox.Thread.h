@@ -94,7 +94,7 @@ namespace GenericToolbox{
   private:
     // Parameters
     bool _isVerbose_{false};
-    bool _cpuTimeSaverIsEnabled_{false};
+    bool _cpuTimeSaverIsEnabled_{true}; // shutdown the threads when no job is running - put it to false for better performances
     int _nbThreads_{1};
 
     // Internals

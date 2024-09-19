@@ -11,12 +11,16 @@
 #endif
 
 #include <fstream>
+#include <thread>
 #include <string>
 #include <vector>
 #include <array>
 
+#include <sys/utsname.h>
 #include <sys/statvfs.h>
 #include <sys/stat.h>
+#include <climits>
+#include <unistd.h>
 #include <unistd.h>
 #include <pwd.h>
 
@@ -33,11 +37,17 @@ namespace GenericToolbox{
   static std::string getCurrentWorkingDirectory();
   static std::string expandEnvironmentVariables(const std::string &filePath_);
   static std::string getExecutableName(); // untested on windows platform
+  static std::string getUserName();
+  static std::string getHostName();
+  static std::string getOsName();
+  static std::string getOsVersion();
+  static std::string getOsArchitecture();
 
   // hardware
   static size_t getProcessMemoryUsage();
   static size_t getProcessMaxMemoryUsage();
   static double getCpuUsageByProcess();
+  static double getCpuNbAvailableCores();
   static long getProcessMemoryUsageDiffSinceLastCall();
   static double getFreeDiskSpacePercent( const std::string& path_ );
   static unsigned long long getFreeDiskSpace( const std::string& path_ );
@@ -301,6 +311,39 @@ namespace GenericToolbox{
 #endif
     return outStr;
   }
+  static std::string getUserName(){
+    return GenericToolbox::expandEnvironmentVariables("$USER");
+  }
+  static std::string getHostName(){
+    utsname s{};
+    uname(&s);
+    return s.nodename;
+  }
+  static std::string getOsName(){
+#if defined(_WIN32)
+    return "Windows 32-bit";
+#elif defined(_WIN64)
+    return "Windows 64-bit";
+#elif defined(__FreeBSD__)
+    return "FreeBSD";
+#elif (defined(__APPLE__) || defined(__MACH__) || defined(__linux__))
+    utsname s{};
+    uname(&s);
+    return s.sysname;
+#else
+    return "Unknown OS";
+#endif
+  }
+  static std::string getOsVersion(){
+    utsname s{};
+    uname(&s);
+    return s.release;
+  }
+  static std::string getOsArchitecture(){
+    utsname s{};
+    uname(&s);
+    return s.machine;
+  }
 
   struct CpuStat{
     inline CpuStat(){ this->getCpuUsageByProcess(); }
@@ -438,6 +481,9 @@ namespace GenericToolbox{
   }
   static double getCpuUsageByProcess(){
     return cs.getCpuUsageByProcess();
+  }
+  static double getCpuNbAvailableCores(){
+    return std::thread::hardware_concurrency();
   }
   static long getProcessMemoryUsageDiffSinceLastCall(){
     size_t currentProcessMemoryUsage = getProcessMemoryUsage();
