@@ -11,6 +11,7 @@
 #endif
 
 #include <fstream>
+#include <thread>
 #include <string>
 #include <vector>
 #include <array>
@@ -46,6 +47,7 @@ namespace GenericToolbox{
   static size_t getProcessMemoryUsage();
   static size_t getProcessMaxMemoryUsage();
   static double getCpuUsageByProcess();
+  static double getCpuNbAvailableCores();
   static long getProcessMemoryUsageDiffSinceLastCall();
   static double getFreeDiskSpacePercent( const std::string& path_ );
   static unsigned long long getFreeDiskSpace( const std::string& path_ );
@@ -479,6 +481,9 @@ namespace GenericToolbox{
   }
   static double getCpuUsageByProcess(){
     return cs.getCpuUsageByProcess();
+  }
+  static double getCpuNbAvailableCores(){
+    return std::thread::hardware_concurrency();
   }
   static long getProcessMemoryUsageDiffSinceLastCall(){
     size_t currentProcessMemoryUsage = getProcessMemoryUsage();
