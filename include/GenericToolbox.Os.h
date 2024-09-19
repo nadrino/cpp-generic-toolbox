@@ -15,6 +15,7 @@
 #include <vector>
 #include <array>
 
+#include <sys/utsname.h>
 #include <sys/statvfs.h>
 #include <sys/stat.h>
 #include <climits>
@@ -38,6 +39,8 @@ namespace GenericToolbox{
   static std::string getUserName();
   static std::string getHostName();
   static std::string getOsName();
+  static std::string getOsVersion();
+  static std::string getOsArchitecture();
 
   // hardware
   static size_t getProcessMemoryUsage();
@@ -310,24 +313,34 @@ namespace GenericToolbox{
     return GenericToolbox::expandEnvironmentVariables("$USER");
   }
   static std::string getHostName(){
-    return GenericToolbox::expandEnvironmentVariables("$HOSTNAME");
+    utsname s{};
+    uname(&s);
+    return s.nodename;
   }
   static std::string getOsName(){
 #if defined(_WIN32)
     return "Windows 32-bit";
 #elif defined(_WIN64)
     return "Windows 64-bit";
-#elif defined(__APPLE__) || defined(__MACH__)
-    return "macOS";
-#elif defined(__linux__)
-    return "Linux";
 #elif defined(__FreeBSD__)
     return "FreeBSD";
-#elif defined(__unix) || defined(__unix__)
-    return "Unix";
+#elif (defined(__APPLE__) || defined(__MACH__) || defined(__linux__))
+    utsname s{};
+    uname(&s);
+    return s.sysname;
 #else
     return "Unknown OS";
 #endif
+  }
+  static std::string getOsVersion(){
+    utsname s{};
+    uname(&s);
+    return s.release;
+  }
+  static std::string getOsArchitecture(){
+    utsname s{};
+    uname(&s);
+    return s.machine;
   }
 
   struct CpuStat{
