@@ -58,9 +58,9 @@ namespace GenericToolbox{
     class TimerBase{
 
     public:
-      inline virtual void stop() = 0;
-      inline virtual void stop( size_t nbCycles_ ) = 0; // handles what to do with the StopWatch clock
-      [[nodiscard]] inline virtual std::chrono::duration<double> eval() const = 0; // eval returns a number of seconds
+      inline virtual void stop(){}
+      inline virtual void stop( size_t nbCycles_ ){} // handles what to do with the StopWatch clock
+      [[nodiscard]] inline virtual std::chrono::duration<double> eval(){} // eval returns a number of seconds
 
       inline void start(){ _stopWatch_.reset(); _isStarted_ = true; }
       inline void cycle( size_t nbCycles_=1 ){ this->stop(nbCycles_); this->start(); }
