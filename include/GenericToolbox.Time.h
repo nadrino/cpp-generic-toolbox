@@ -60,7 +60,7 @@ namespace GenericToolbox{
     public:
       inline virtual void stop(){}
       inline virtual void stop( size_t nbCycles_ ){} // handles what to do with the StopWatch clock
-      [[nodiscard]] inline virtual std::chrono::duration<double> eval() const { return std::chrono::duration<double>(); } // eval returns a number of seconds
+      [[nodiscard]] inline virtual std::chrono::duration<double> eval() const { return std::chrono::duration<double>(0.); } // eval returns a number of seconds
 
       inline void start(){ _stopWatch_.reset(); _isStarted_ = true; }
       inline void cycle( size_t nbCycles_=1 ){ this->stop(nbCycles_); this->start(); }
