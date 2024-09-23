@@ -489,10 +489,7 @@ namespace GenericToolbox {
     // instances are distinct expressions which are separated with ";", for example: "var1 == 4; var2 == var3"
     // In practice, we never use multiple instance. In case we do, this algo will understand the ";" as "&&"
     for(int jInstance = 0; jInstance < treeFormula_->GetNdata(); jInstance++) {
-      if ( treeFormula_->EvalInstance(jInstance) == 0 ) {
-        return false;
-        break;
-      }
+      if( treeFormula_->EvalInstance(jInstance) == 0 ) { return false; }
     }
     return true;
   }

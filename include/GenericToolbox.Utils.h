@@ -391,12 +391,8 @@ namespace GenericToolbox{
     while( true ){
       std::this_thread::sleep_for( loopUpdateMaxFrequency );
       cumulatedDuration = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now() - anchorTimePoint);
-      if( cumulatedDuration >= totalDurationToWait ){
-        return;
-      }
-      else{
-        GenericToolbox::displayProgressBar( cumulatedDuration.count(), totalDurationToWait.count(), progressTitle_);
-      }
+      if( cumulatedDuration >= totalDurationToWait ){ break; }
+      else{ GenericToolbox::displayProgressBar( cumulatedDuration.count(), totalDurationToWait.count(), progressTitle_); }
     }
     GenericToolbox::displayProgressBar( totalDurationToWait.count(), totalDurationToWait.count(), progressTitle_);
 

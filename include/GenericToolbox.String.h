@@ -680,10 +680,7 @@ namespace GenericToolbox {
       is >> std::boolalpha >> result;
     }
 
-    if( is.fail() ){
-      throw std::invalid_argument( str + " is not convertable to bool" );
-      return false;
-    }
+    if( is.fail() ){ throw std::invalid_argument( str + " is not convertable to bool" ); }
 
     return result;
   }
