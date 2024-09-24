@@ -459,19 +459,24 @@ namespace GenericToolbox{
   template<class ConfigType> class ConfigBaseClass : public InitBaseClass {
 
   public:
-    // Common structure
+    // C-tor and D-tor
     inline ConfigBaseClass() = default;
     inline ~ConfigBaseClass() override = default;
 
-    inline virtual void setConfig(const ConfigType& config_);
+    // setters
+    inline virtual void setConfig(const ConfigType& config_){ _config_ = config_; }
 
-    inline void readConfig();
-    inline void readConfig(const ConfigType& config_);
-
-    inline void initialize() override;
-
+    // const getters
     [[nodiscard]] inline bool isConfigReadDone() const { return _isConfigReadDone_; }
     inline const ConfigType &getConfig() const { return _config_; }
+
+    // mutable getters
+    inline ConfigType &getConfig(){ return _config_; }
+
+    // non-overridable methods
+    inline void readConfig(){ _isConfigReadDone_ = true; this->readConfigImpl(); }
+    inline void readConfig(const ConfigType& config_){ this->setConfig(config_); this->readConfig(); }
+    inline void initialize() override{ if( not _isConfigReadDone_ ){ this->readConfig(); } this->InitBaseClass::initialize(); }
 
   protected:
     // where the derivative classes will specify (although override is optional)
@@ -485,23 +490,6 @@ namespace GenericToolbox{
 
   };
 
-  template<class ConfigType> inline void ConfigBaseClass<ConfigType>::setConfig(const ConfigType &config_) {
-    _config_ = config_;
-  }
-
-  template<class ConfigType> inline void ConfigBaseClass<ConfigType>::readConfig() {
-    _isConfigReadDone_ = true;
-    this->readConfigImpl();
-  }
-  template<class ConfigType> inline void ConfigBaseClass<ConfigType>::readConfig(const ConfigType& config_){
-    this->setConfig(config_);
-    this->readConfig();
-  }
-
-  template<class ConfigType> inline void ConfigBaseClass<ConfigType>::initialize() {
-    if( not _isConfigReadDone_ ) this->readConfig();
-    InitBaseClass::initialize();
-  }
 }
 
 // ScopedGuard
