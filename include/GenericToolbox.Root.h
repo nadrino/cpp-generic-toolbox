@@ -69,6 +69,11 @@ namespace GenericToolbox{
 
 namespace GenericToolbox{
 
+  struct Range{
+    double min{std::nan("unset")};
+    double max{std::nan("unset")};
+  };
+
   //! Conversion Tools
   inline TH1D* convertToTH1D(const TVectorD *yValuesPtr_, const std::string &histTitle_ = "", const std::string &yTitle_ = "", const std::string &xTitle_ = "Entry #", TVectorD *yErrorsPtr_ = nullptr);
   inline TH1D* convertToTH1D(const std::vector<double> &Y_values_, const std::string &histTitle_ = "", const std::string &Y_title_ = "", const std::string &X_title_ = "Entry #", TVectorD *Y_errors_ = nullptr);
@@ -142,9 +147,9 @@ namespace GenericToolbox{
   inline void resetHistogram(TH1D* hist_);
   inline void rescalePerBinWidth(TH1D* hist_, double globalScaler_ = 1);
   inline void transformBinContent(TH1D* hist_, const std::function<void(TH1D*, int)>& transformFunction_, bool processOverflowBins_ = false);
-  inline std::pair<double, double> fetchYRange(TH1* h_, bool withError_ = true, const std::pair<double, double>& caps_ = {0., std::nan("unset")});
-  inline std::pair<double, double> getYBounds(TH1* h_, const std::pair<double, double>& margins_ = {0.1, 0.25});
-  inline std::pair<double, double> getYBounds(const std::vector<TH1*>& h_, const std::pair<double, double>& margins_ = {0.1, 0.25});
+  inline Range fetchYRange(TH1* h_, bool withError_ = true, const Range& caps_ = {0., std::nan("unset")});
+  inline Range getYBounds(TH1* h_, const Range& margins_ = {0.1, 0.25});
+  inline Range getYBounds(const std::vector<TH1*>& h_, const Range& margins_ = {0.1, 0.25});
   inline std::vector<double> getLogBinning(int n_bins_, double X_min_, double X_max_);
   inline std::vector<double> getLinearBinning(int n_bins_, double X_min_, double X_max_);
   inline TH1D* getTH1DlogBinning(const std::string &name_, const std::string &title_, int n_bins_, double X_min_, double X_max_);
@@ -606,7 +611,7 @@ namespace GenericToolbox {
     auto ls = lsTDirectory(directory_, templateClass->GetName());
     std::vector<T*> output; output.reserve(ls.size());
     for( auto& entry : ls ){
-      output.template emplace_back( directory_->Get<T>(entry.c_str()) );
+      output.emplace_back( directory_->Get<T>(entry.c_str()) );
       if( cloneObj_ ){ output.back() = (T*) output.back()->Clone(); }
     }
 
@@ -1098,8 +1103,8 @@ namespace GenericToolbox {
       transformFunction_(hist_, iBin);
     }
   }
-  inline std::pair<double, double> fetchYRange(TH1* h_, bool withError_, const std::pair<double, double>& caps_){
-    std::pair<double, double> out{std::nan(""), std::nan("")};
+  inline Range fetchYRange(TH1* h_, bool withError_, const Range& caps_){
+    Range out{std::nan(""), std::nan("")};
     if( h_ == nullptr ) return out;
     for( int iBin = 1 ; iBin <= h_->GetNbinsX() ; iBin++ ){
       double minValCandidate = h_->GetBinContent(iBin);
@@ -1110,41 +1115,41 @@ namespace GenericToolbox {
         maxValCandidate += h_->GetBinError(iBin);
       }
 
-      if( std::isnan(caps_.first) or minValCandidate > caps_.first ){
-        out.first = std::min(minValCandidate, out.first); // std::nan on right
+      if( std::isnan(caps_.min) or minValCandidate > caps_.min ){
+        out.min = std::min(minValCandidate, out.min); // std::nan on right
       }
-      if( std::isnan(caps_.second) or maxValCandidate < caps_.second ){
-        out.second = std::max(maxValCandidate, out.second);
+      if( std::isnan(caps_.max) or maxValCandidate < caps_.max ){
+        out.max = std::max(maxValCandidate, out.max);
       }
     }
     // try to avoid returning nan:
-    if( std::isnan(out.first) ) out.first = caps_.first;
-    if( std::isnan(out.second) ) out.second = caps_.second;
+    if( std::isnan(out.min) ) out.min = caps_.min;
+    if( std::isnan(out.max) ) out.max = caps_.max;
     return out;
   }
-  inline std::pair<double, double> getYBounds(TH1* h_, const std::pair<double, double>& margins_){
-    std::pair<double, double> out{std::nan("unset"), std::nan("unset")};
+  inline Range getYBounds(TH1* h_, const Range& margins_){
+    Range out{std::nan("unset"), std::nan("unset")};
     if( h_ == nullptr ) return out;
     for( int iBin = 1 ; iBin <= h_->GetNbinsX() ; iBin++ ){
       double minValCandidate = h_->GetBinContent(iBin) - h_->GetBinError(iBin);
       double maxValCandidate = h_->GetBinContent(iBin) + h_->GetBinError(iBin);
-      out.first = std::min(minValCandidate, out.first); // std::nan on right
-      out.second = std::max(maxValCandidate, out.second);
+      out.min = std::min(minValCandidate, out.min); // std::nan on right
+      out.max = std::max(maxValCandidate, out.max);
     }
-    double yRange = (out.second-out.first);
-    out.first -= margins_.first * yRange;
-    out.second += margins_.second * yRange;
+    double yRange = (out.max-out.min);
+    out.min -= margins_.min * yRange;
+    out.max += margins_.max * yRange;
     return out;
   }
-  inline std::pair<double, double> getYBounds(const std::vector<TH1*>& h_, const std::pair<double, double>& margins_){
-    std::pair<double, double> out{std::nan("unset"), std::nan("unset")};
+  inline Range getYBounds(const std::vector<TH1*>& h_, const Range& margins_){
+    Range out{std::nan("unset"), std::nan("unset")};
     for( auto& hist : h_ ){
       if( hist == nullptr ) continue;
       auto bounds = getYBounds(hist, margins_);
-      if( out.first != out.first ) out.first = bounds.first;
-      if( out.second != out.second ) out.second = bounds.second;
-      out.first = std::min(out.first, bounds.first);
-      out.second = std::max(out.second, bounds.second);
+      if( out.min != out.min ) out.min = bounds.min;
+      if( out.max != out.max ) out.max = bounds.max;
+      out.min = std::min(out.min, bounds.min);
+      out.max = std::max(out.max, bounds.max);
     }
     return out;
   }
