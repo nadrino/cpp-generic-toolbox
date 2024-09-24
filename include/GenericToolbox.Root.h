@@ -714,7 +714,7 @@ namespace GenericToolbox {
     writeInTFile(dir_, &objToSave_, std::move(saveName_), forceWriteFile_);
   }
   inline void writeInTFile(TDirectory* dir_, const std::string& objToSave_, std::string saveName_, bool forceWriteFile_){
-    writeInTFile(dir_, TNamed(saveName_, objToSave_.c_str()), objToSave_, forceWriteFile_);
+    writeInTFile(dir_, TNamed(saveName_, objToSave_.c_str()), saveName_, forceWriteFile_);
   }
   template<typename T, typename = std::enable_if_t<std::is_arithmetic<T>::value>> inline void writeInTFile(TDirectory* dir_, const T& objToSave_, std::string saveName_){
     TParameter<T> out(saveName_.c_str(), objToSave_);
