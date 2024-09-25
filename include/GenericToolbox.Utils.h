@@ -51,6 +51,7 @@
 
 // Declarations
 namespace GenericToolbox{
+  struct Range;
   class InitBaseClass;
   template<class ConfigType> class ConfigBaseClass;
   class ScopedGuard;
@@ -398,6 +399,14 @@ namespace GenericToolbox{
 
   }
 
+}
+
+
+namespace GenericToolbox{
+  struct Range{
+    double min{std::nan("unset")};
+    double max{std::nan("unset")};
+  };
 }
 
 // InitBaseClass

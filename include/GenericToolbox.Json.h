@@ -38,11 +38,14 @@ namespace GenericToolbox {
     template<typename T, typename J> inline auto fetchValue(const J& jsonConfig_, const std::vector<std::string>& keyPathList_, const T& defaultValue_) -> T;
     template<typename T, typename J> inline void fillValue(const J& jsonConfig_, const std::string& keyPath_, T& varToFill_);
     template<typename T, typename J> inline void fillValue(const J& jsonConfig_, const std::vector<std::string>& keyPathList_, T& varToFill_);
+    template<typename T, typename J> inline void fillEnum(const J& jsonConfig_, const std::string& keyPath_, T& enumToFill_);
+    template<typename T, typename J> inline void fillEnum(const J& jsonConfig_, const std::vector<std::string>& keyPathList_, T& enumToFill_);
     template<typename J, typename T> inline auto fetchMatchingEntry(const J& jsonConfig_, const std::string& keyPath_, const T& keyValue_) -> J;
     template<typename J, typename F> inline bool deprecatedAction(const J& jsonConfig_, const std::string& keyPath_, const F& action_);
     template<typename J, typename F> inline bool deprecatedAction(const J& jsonConfig_, const std::vector<std::string>& keyPathList_, const F& action_);
 
     // template specialization when a string literal is passed:
+    template<typename J> inline void fillValue(const J& jsonConfig_, const std::string& keyPath_, Range& varToFill_);
     template<std::size_t N, typename J> inline auto fetchValue(const J& jsonConfig_, const std::string& keyPath_, const char (&defaultValue_)[N]) -> std::string { return fetchValue(jsonConfig_, keyPath_, std::string(defaultValue_)); }
     template<std::size_t N, typename J> inline auto fetchValue(const J& jsonConfig_, const std::vector<std::string>& keyPathList_, const char (&defaultValue_)[N]) -> std::string { return fetchValue(jsonConfig_, keyPathList_, std::string(defaultValue_)); }
     template<std::size_t N> inline auto fetchMatchingEntry(const nlohmann::json& jsonConfig_, const std::string& keyPath_, const char (&keyValue_)[N]) -> nlohmann::json{ return fetchMatchingEntry(jsonConfig_, keyPath_, std::string(keyValue_)); }
@@ -265,6 +268,16 @@ namespace GenericToolbox {
     template<typename T, typename J> inline void fillValue(const J& jsonConfig_, const std::vector<std::string>& keyPathList_, T& varToFill_){
       varToFill_ = GenericToolbox::Json::fetchValue(jsonConfig_, keyPathList_, varToFill_);
     }
+    template<typename T, typename J> inline void fillEnum(const J& jsonConfig_, const std::string& keyPath_, T& enumToFill_){
+      enumToFill_ = enumToFill_.toEnum( GenericToolbox::Json::fetchValue(jsonConfig_, "pcaMethod", enumToFill_.toString()), true );
+    }
+    template<typename T, typename J> inline void fillEnum(const J& jsonConfig_, const std::vector<std::string>& keyPathList_, T& enumToFill_){
+      for( auto& keyPath : keyPathList_ ){
+        if( not doKeyExist(jsonConfig_, keyPath)){ continue; }
+        fillEnum(jsonConfig_, keyPathList_, enumToFill_);
+        break;
+      }
+    }
     template<typename J, typename T> inline auto fetchMatchingEntry(const J& jsonConfig_, const std::string& keyPath_, const T& keyValue_) -> J{
       if( jsonConfig_.empty() or not jsonConfig_.is_array() ){ return {}; }
       for( const auto& jsonEntry : jsonConfig_.template get<std::vector<J>>() ){
@@ -286,6 +299,14 @@ namespace GenericToolbox {
         }
       }
       return false;
+    }
+    template<typename J> inline void fillValue(const J& jsonConfig_, const std::string& keyPath_, Range& varToFill_){
+      std::vector<double> buffer;
+      fetchValue(jsonConfig_, keyPath_, buffer);
+      if( buffer.empty() ){ return; }
+      if( buffer.size() != 2 ){ throw std::runtime_error(keyPath_ + " has " + std::to_string(buffer.size()) + " values (2 expected)."); }
+      varToFill_.min = buffer[0];
+      varToFill_.max = buffer[1];
     }
 
   }

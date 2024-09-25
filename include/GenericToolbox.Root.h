@@ -69,11 +69,6 @@ namespace GenericToolbox{
 
 namespace GenericToolbox{
 
-  struct Range{
-    double min{std::nan("unset")};
-    double max{std::nan("unset")};
-  };
-
   //! Conversion Tools
   inline TH1D* convertToTH1D(const TVectorD *yValuesPtr_, const std::string &histTitle_ = "", const std::string &yTitle_ = "", const std::string &xTitle_ = "Entry #", TVectorD *yErrorsPtr_ = nullptr);
   inline TH1D* convertToTH1D(const std::vector<double> &Y_values_, const std::string &histTitle_ = "", const std::string &Y_title_ = "", const std::string &X_title_ = "Entry #", TVectorD *Y_errors_ = nullptr);
