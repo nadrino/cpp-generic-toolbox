@@ -406,6 +406,9 @@ namespace GenericToolbox{
   struct Range{
     double min{std::nan("unset")};
     double max{std::nan("unset")};
+
+    Range() = default;
+    Range(double min_, double max_) : min(min_), max(max_) {}
   };
 }
 

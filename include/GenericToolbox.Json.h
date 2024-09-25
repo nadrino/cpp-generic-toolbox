@@ -47,6 +47,7 @@ namespace GenericToolbox {
 
     // template specialization when a string literal is passed:
     template<typename J> inline void fillValue(const J& jsonConfig_, const std::string& keyPath_, Range& varToFill_);
+    template<typename J> inline void fillValue(const J& jsonConfig_, const std::string& keyPath_, std::vector<Range>& varToFill_);
     template<std::size_t N, typename J> inline auto fetchValue(const J& jsonConfig_, const std::string& keyPath_, const char (&defaultValue_)[N]) -> std::string { return fetchValue(jsonConfig_, keyPath_, std::string(defaultValue_)); }
     template<std::size_t N, typename J> inline auto fetchValue(const J& jsonConfig_, const std::vector<std::string>& keyPathList_, const char (&defaultValue_)[N]) -> std::string { return fetchValue(jsonConfig_, keyPathList_, std::string(defaultValue_)); }
     template<std::size_t N> inline auto fetchMatchingEntry(const nlohmann::json& jsonConfig_, const std::string& keyPath_, const char (&keyValue_)[N]) -> nlohmann::json{ return fetchMatchingEntry(jsonConfig_, keyPath_, std::string(keyValue_)); }
@@ -308,6 +309,15 @@ namespace GenericToolbox {
       if( buffer.size() != 2 ){ throw std::runtime_error(keyPath_ + " has " + std::to_string(buffer.size()) + " values (2 expected)."); }
       varToFill_.min = buffer[0];
       varToFill_.max = buffer[1];
+    }
+    template<typename J> inline void fillValue(const J& jsonConfig_, const std::string& keyPath_, std::vector<Range>& varToFill_){
+      std::vector<std::vector<double>> buffer{};
+      fillValue(jsonConfig_, keyPath_, buffer);
+      varToFill_.reserve(buffer.size());
+      for( auto& rangeElm : buffer ){
+        if( rangeElm.size() != 2 ){ throw std::runtime_error("invalid range size: " + std::to_string(buffer.size()) + " values (2 expected)."); }
+        varToFill_.emplace_back(rangeElm[0], rangeElm[1]);
+      }
     }
 
   }
