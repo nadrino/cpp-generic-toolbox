@@ -10,6 +10,7 @@
 #include "GenericToolbox.String.h"
 #include "GenericToolbox.Fs.h"
 #include "GenericToolbox.Os.h"
+#include "GenericToolbox.Utils.h"
 
 #include "nlohmann/json.hpp"
 
