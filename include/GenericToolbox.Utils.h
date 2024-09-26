@@ -486,15 +486,9 @@ namespace GenericToolbox{
       this->InitBaseClass::initialize();
     }
 
-    [[deprecated("use configure()")]] inline void readConfig(){ _isConfigured_ = true; readConfigImpl(); }
-    [[deprecated("use isConfigured()")]] [[nodiscard]] inline bool isConfigReadDone() const { return isConfigured(); }
-
   protected:
     // where the derivative classes will specify (although override is optional)
     inline virtual void configureImpl(){};
-
-    // deprecated
-    [[deprecated("use configureImpl()")]] inline virtual void readConfigImpl(){};
 
   private:
     bool _isConfigured_{false};
@@ -515,9 +509,6 @@ namespace GenericToolbox{
 
     inline void configure() override { this->ConfigBaseClass::configure(); }
     inline void configure(const ConfigType& config_){ setConfig(config_); this->ConfigBaseClass::configure(); }
-
-    // deprecated
-    [[deprecated("use configure()")]] inline void readConfig(const ConfigType& config_){ setConfig(config_); ConfigBaseClass::readConfig(); }
 
   protected:
     // Can be accessed by derivative classes
