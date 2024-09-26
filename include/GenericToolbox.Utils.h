@@ -488,7 +488,7 @@ namespace GenericToolbox{
     // non-overridable methods
     inline void configure(){ _isConfigured_ = true; configureImpl(); }
     inline void configure(const ConfigType& config_){ setConfig(config_); configure(); }
-    inline void initialize() override{ if( not _isConfigured_ ){ this->readConfig(); } this->InitBaseClass::initialize(); }
+    inline void initialize() override{ if( not _isConfigured_ ){ this->configure(); } this->InitBaseClass::initialize(); }
 
     // deprecated
     [[deprecated("use configure()")]] inline void readConfig(){ _isConfigured_ = true; readConfigImpl(); }
@@ -502,6 +502,7 @@ namespace GenericToolbox{
     // Can be accessed by derivative classes
     ConfigType _config_{};
 
+    // deprecated
     [[deprecated("use configureImpl()")]] inline virtual void readConfigImpl(){};
 
   private:
@@ -615,17 +616,12 @@ namespace GenericToolbox{
 
   public:
     inline TablePrinter() = default;
-
     inline virtual ~TablePrinter() = default;
 
     inline void reset();
-
     inline void fillTable( const std::vector<std::vector<std::string>> &tableLines_ );
-
     inline size_t setColTitles( const std::vector<std::string> &colTitles_ );
-
     inline size_t addColTitle( const std::string &colTitle_ );
-
     inline size_t addTableLine( const std::vector<std::string> &colValues_ = std::vector<std::string>(),
                                 const std::string &colorCode_ = "" );
 
