@@ -35,7 +35,6 @@ namespace GenericToolbox {
     inline JsonType readConfigJsonStr(const std::string& configJsonStr_);
     inline JsonType readConfigFile(const std::string& configFilePath_);
     inline JsonType getForwardedConfig(const JsonType& config_);
-    inline JsonType getForwardedConfig(const JsonType& config_, const std::string& keyPath_);
     inline void forwardConfig(JsonType& config_, const std::string& className_ = "");
     inline void unfoldConfig(JsonType& config_);
     inline std::string toReadableString(const JsonType& config_);
@@ -43,6 +42,8 @@ namespace GenericToolbox {
     // reading
     inline std::vector<std::string> ls(const JsonType& jsonConfig_);
     inline bool doKeyExist(const JsonType& jsonConfig_, const std::string& keyPath_);
+    inline std::string buildFormula(const JsonType& jsonConfig_, const std::string& keyPath_, const std::string& joinStr_);
+    inline std::string buildFormula(const JsonType& jsonConfig_, const std::string& keyPath_, const std::string& joinStr_, const std::string& defaultFormula_);
 
     // reading -- templates
     template<typename T> inline auto get(const JsonType& json_) -> T;
@@ -62,10 +63,6 @@ namespace GenericToolbox {
     template<std::size_t N> inline auto fetchValue(const JsonType& jsonConfig_, const std::string& keyPath_, const char (&defaultValue_)[N]) -> std::string { return fetchValue(jsonConfig_, keyPath_, std::string(defaultValue_)); }
     template<std::size_t N> inline auto fetchValue(const JsonType& jsonConfig_, const std::vector<std::string>& keyPathList_, const char (&defaultValue_)[N]) -> std::string { return fetchValue(jsonConfig_, keyPathList_, std::string(defaultValue_)); }
     template<std::size_t N> inline JsonType fetchMatchingEntry(const JsonType& jsonConfig_, const std::string& keyPath_, const char (&keyValue_)[N]){ return fetchMatchingEntry(jsonConfig_, keyPath_, std::string(keyValue_)); }
-
-    // GUNDAM/ROOT specific
-    inline std::string buildFormula(const JsonType& jsonConfig_, const std::string& keyPath_, const std::string& joinStr_);
-    inline std::string buildFormula(const JsonType& jsonConfig_, const std::string& keyPath_, const std::string& joinStr_, const std::string& defaultFormula_);
 
     // writing
     inline std::string applyOverrides(JsonType& outConfig_, const JsonType& overrideConfig_);
@@ -87,6 +84,7 @@ namespace GenericToolbox {
 namespace GenericToolbox {
   namespace Json {
 
+    // io
     inline JsonType readConfigJsonStr(const std::string& configJsonStr_){
       std::stringstream ss;
       ss << configJsonStr_;
@@ -120,9 +118,6 @@ namespace GenericToolbox {
         out = readConfigFile(out.template get<std::string>());
       }
       return out;
-    }
-    inline JsonType getForwardedConfig(const JsonType& config_, const std::string& keyPath_){
-      return getForwardedConfig(fetchValue<JsonType>(config_, keyPath_));
     }
     inline void forwardConfig(JsonType& config_, const std::string& className_){
       while( config_.is_string() ){
@@ -190,6 +185,7 @@ namespace GenericToolbox {
       return ss.str();
     }
 
+    // read
     inline bool doKeyExist(const JsonType& jsonConfig_, const std::string& keyPath_){
       try{
         fetchValue<JsonType>(jsonConfig_, keyPath_);
@@ -207,7 +203,6 @@ namespace GenericToolbox {
       for (auto& entry : jsonConfig_.items()){ out.emplace_back( entry.key() ); }
       return out;
     }
-
     inline std::string buildFormula(const JsonType& jsonConfig_, const std::string& keyPath_, const std::string& joinStr_){
       std::string out;
 
@@ -250,12 +245,12 @@ namespace GenericToolbox {
       else return buildFormula(jsonConfig_, keyPath_, joinStr_);
     }
 
+    // templates
     template<typename T> inline auto get(const JsonType& json_) -> T {
       // the dummy argument leverage the ambiguity.
       // This is a trick to bypass template specializations, and do proper overrides
       return Internal::getImpl(json_, static_cast<T*>(nullptr));
     }
-
     template<typename T> inline auto fetchValue(const JsonType& jsonConfig_, const std::string& keyPath_) -> T{
       // always treats as a key path
       std::vector<std::string> keyPathElements{GenericToolbox::splitString(keyPath_, "/")};
@@ -326,7 +321,6 @@ namespace GenericToolbox {
       }
       return false;
     }
-
 
     // write
     inline std::string applyOverrides(JsonType& outConfig_, const JsonType& overrideConfig_){
