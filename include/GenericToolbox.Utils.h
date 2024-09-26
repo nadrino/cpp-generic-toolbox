@@ -481,10 +481,6 @@ namespace GenericToolbox{
     [[nodiscard]] inline bool isConfigured() const { return _isConfigured_; }
 
     inline virtual void configure(){ _isConfigured_ = true; configureImpl(); }
-    inline void initialize() override {
-      if( not _isConfigured_ ){ throw std::logic_error("object not configured"); }
-      this->InitBaseClass::initialize();
-    }
 
   protected:
     // where the derivative classes will specify (although override is optional)
