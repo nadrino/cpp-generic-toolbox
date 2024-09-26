@@ -479,26 +479,33 @@ namespace GenericToolbox{
     inline virtual void setConfig(const ConfigType& config_){ _config_ = config_; }
 
     // const getters
-    [[nodiscard]] inline bool isConfigReadDone() const { return _isConfigReadDone_; }
+    [[nodiscard]] inline bool isConfigured() const { return _isConfigured_; }
     inline const ConfigType &getConfig() const { return _config_; }
 
     // mutable getters
     inline ConfigType &getConfig(){ return _config_; }
 
     // non-overridable methods
-    inline void readConfig(){ _isConfigReadDone_ = true; this->readConfigImpl(); }
-    inline void readConfig(const ConfigType& config_){ this->setConfig(config_); this->readConfig(); }
-    inline void initialize() override{ if( not _isConfigReadDone_ ){ this->readConfig(); } this->InitBaseClass::initialize(); }
+    inline void configure(){ _isConfigured_ = true; configureImpl(); }
+    inline void configure(const ConfigType& config_){ setConfig(config_); configure(); }
+    inline void initialize() override{ if( not _isConfigured_ ){ this->readConfig(); } this->InitBaseClass::initialize(); }
+
+    // deprecated
+    [[deprecated("use configure()")]] inline void readConfig(){ _isConfigured_ = true; readConfigImpl(); }
+    [[deprecated("use configure()")]] inline void readConfig(const ConfigType& config_){ setConfig(config_); readConfig(); }
+    [[deprecated("use isConfigured()")]] [[nodiscard]] inline bool isConfigReadDone() const { return isConfigured(); }
 
   protected:
     // where the derivative classes will specify (although override is optional)
-    inline virtual void readConfigImpl(){};
+    inline virtual void configureImpl(){};
 
     // Can be accessed by derivative classes
     ConfigType _config_{};
 
+    [[deprecated("use configureImpl()")]] inline virtual void readConfigImpl(){};
+
   private:
-    bool _isConfigReadDone_{false};
+    bool _isConfigured_{false};
 
   };
 
