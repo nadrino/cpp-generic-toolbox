@@ -67,6 +67,10 @@ namespace GenericToolbox {
     inline std::string buildFormula(const JsonType& jsonConfig_, const std::string& keyPath_, const std::string& joinStr_);
     inline std::string buildFormula(const JsonType& jsonConfig_, const std::string& keyPath_, const std::string& joinStr_, const std::string& defaultFormula_);
 
+    // writing
+    inline void applyOverrides(JsonType& outConfig_, const JsonType& overrideConfig_);
+    inline void clearEntry(JsonType& jsonConfig_, const std::string& path_);
+
     namespace Internal{
       // not meant to be used by devs
       // those are tricks to avoid template overrides
@@ -131,8 +135,7 @@ namespace GenericToolbox {
     inline void unfoldConfig(JsonType& config_){
       for( auto& entry : config_ ){
         if( entry.is_string() and (
-            GenericToolbox::endsWith(entry.template get<std::string>(), ".yaml", true)
-            or GenericToolbox::endsWith(entry.template get<std::string>(), ".json", true)
+            GenericToolbox::endsWith(entry.template get<std::string>(), ".json", true)
         ) ){
           forwardConfig(entry);
           unfoldConfig(config_); // remake the loop on the unfolder config
@@ -322,6 +325,204 @@ namespace GenericToolbox {
         }
       }
       return false;
+    }
+
+
+    // write
+    inline void applyOverrides(JsonType& outConfig_, const JsonType& overrideConfig_){
+
+      // dev options
+      bool debug{false};
+      bool allowAddMissingKey{true};
+
+      // specific keys like "name" might help reference the lists
+      std::vector<std::string> listOfIdentifiers{{"name"}, {"__INDEX__"}};
+
+      std::vector<std::string> jsonPath{};
+      std::function<void(JsonType&, const JsonType&)> overrideRecursive =
+          [&](JsonType& outEntry_, const JsonType& overrideEntry_){
+            if(debug){ std::cout << GET_VAR_NAME_VALUE(GenericToolbox::joinPath(jsonPath)) << std::endl; }
+
+            if( overrideEntry_.is_array() ){
+              // entry is list
+              if( not outEntry_.is_array() ){
+                std::cerr << GenericToolbox::joinPath( jsonPath ) << " is not an array: " << std::endl << outEntry_ << std::endl << std::endl << overrideEntry_;
+                throw std::runtime_error("not outEntry_.is_array()");
+              }
+
+              // is it empty? -> erase
+              if( overrideEntry_.empty() ){
+                std::cout << "Overriding list: " << GenericToolbox::joinPath(jsonPath) << std::endl;
+                outEntry_ = overrideEntry_;
+                return;
+              }
+
+              // is it an array of primitive type? like std::vector<std::string>?
+              bool isStructured{false};
+              for( auto& outListEntry : outEntry_.items() ){ if( outListEntry.value().is_structured() ){ isStructured = true; break; } }
+              if( not isStructured ){
+                std::cout << "Overriding list: " << GenericToolbox::joinPath(jsonPath) << std::endl;
+                outEntry_ = overrideEntry_;
+                return;
+              }
+
+              // loop over to find the right entry
+              for( auto& overrideListEntry: overrideEntry_.items() ){
+
+                // fetch identifier if available using override
+                std::string identifier{};
+                for( auto& identifierCandidate : listOfIdentifiers ){
+                  if( GenericToolbox::Json::doKeyExist( overrideListEntry.value(), identifierCandidate ) ){
+                    identifier = identifierCandidate;
+                  }
+                }
+
+                if( not identifier.empty() ){
+                  // will i
+                  if(debug) std::cout << "Will identify override list item with key \"" << identifier << "\" = " << overrideListEntry.value()[identifier] << std::endl;
+
+                  JsonType* outListEntryMatch{nullptr};
+
+                  if( identifier == "__INDEX__" ){
+                    if     ( overrideListEntry.value()[identifier].is_string() and overrideListEntry.value()[identifier].get<std::string>() == "*" ){
+                      // applying on every entry
+                      for( auto& outSubEntry : outEntry_ ){
+                        jsonPath.emplace_back(GenericToolbox::joinAsString("",overrideListEntry.key(),"(",identifier,":",overrideListEntry.value()[identifier],")"));
+                        overrideRecursive(outSubEntry, overrideListEntry.value());
+                        jsonPath.pop_back();
+                      }
+                    }
+                    else if( overrideListEntry.value()[identifier].get<int>() == -1 ){
+                      // add entry
+                      if( allowAddMissingKey ){
+                        std::cout << "Adding: " << GenericToolbox::joinPath(jsonPath, outEntry_.size());
+                        if( overrideListEntry.value().is_primitive() ){ std::cout << " -> " << overrideListEntry.value(); }
+                        std::cout << std::endl;
+                        outEntry_.emplace_back(overrideListEntry.value());
+                      }
+                    }
+                    else if( overrideListEntry.value()[identifier].get<size_t>() < outEntry_.size() ){
+                      jsonPath.emplace_back( overrideListEntry.key() );
+                      overrideRecursive( outEntry_[overrideListEntry.value()[identifier].get<size_t>()], overrideListEntry.value() );
+                      jsonPath.pop_back();
+                    }
+                    else{
+                      std::cerr << "Invalid __INDEX__: " << overrideListEntry.value()[identifier].get<int>() << std::endl;
+                      throw std::runtime_error("Invalid index.");
+                    }
+                  }
+                  else{
+                    for( auto& outListEntry : outEntry_ ){
+                      if( GenericToolbox::Json::doKeyExist( outListEntry, identifier )
+                          and outListEntry[identifier] == overrideListEntry.value()[identifier] ){
+                        outListEntryMatch = &outListEntry;
+                        break;
+                      }
+                    }
+
+                    if( outListEntryMatch == nullptr ){
+                      if( allowAddMissingKey ) {
+                        std::cout << "Adding: " << GenericToolbox::joinPath(jsonPath, outEntry_.size()) << "(" << identifier
+                                 << ":" << overrideListEntry.value()[identifier] << ")" << std::endl;
+                        outEntry_.emplace_back(overrideListEntry.value());
+                      }
+                      continue;
+                    }
+                    jsonPath.emplace_back(GenericToolbox::joinAsString("",overrideListEntry.key(),"(",identifier,":",overrideListEntry.value()[identifier],")"));
+                    overrideRecursive(*outListEntryMatch, overrideListEntry.value());
+                    jsonPath.pop_back();
+                  }
+                }
+                else{
+                  std::cout << "No identifier found for list def in " << GenericToolbox::joinPath(jsonPath) << std::endl;
+                  continue;
+                }
+              }
+            }
+            else{
+              if(debug) std::cout << "Not array: " << overrideEntry_.empty() << std::endl;
+
+              if( overrideEntry_.empty() ){
+                std::cout << "Removing entry: " << GenericToolbox::joinPath(jsonPath) << std::endl;
+                outEntry_ = overrideEntry_;
+                return;
+              }
+
+              // entry is dictionary
+              for( auto& overrideEntry : overrideEntry_.items() ){
+                if(debug) std::cout << GET_VAR_NAME_VALUE(overrideEntry.key()) << std::endl;
+
+                // addition mode:
+                if( not GenericToolbox::Json::doKeyExist(outEntry_, overrideEntry.key()) ){
+                  if( overrideEntry.key() != "__INDEX__" ){
+                    if( allowAddMissingKey ){
+                      std::cout << "Adding: " << GenericToolbox::joinPath(jsonPath, overrideEntry.key());
+                      if( overrideEntry.value().is_primitive() ){ std::cout << " -> " << overrideEntry.value(); }
+                      std::cout << std::endl;
+                      outEntry_[overrideEntry.key()] = overrideEntry.value();
+                    }
+                    else{
+                      std::cerr << "Could not edit missing key \""
+                      << GenericToolbox::joinPath(jsonPath, overrideEntry.key()) << "\" ("
+                      << GET_VAR_NAME_VALUE(allowAddMissingKey) << ")" << std::endl;
+                      throw std::runtime_error("Could not edit missing key.");
+                    }
+                  }
+                  else{
+                    if(debug) std::cout << "skipping __INDEX__ entry" << std::endl;
+                  }
+                  continue;
+                }
+
+                // override
+                auto& outSubEntry = outEntry_[overrideEntry.key()];
+
+                if( overrideEntry.value().is_structured() ){
+                  if(debug) std::cout << "Is structured... going recursive..." << std::endl;
+                  // recursive candidate
+                  jsonPath.emplace_back(overrideEntry.key());
+                  overrideRecursive(outSubEntry, overrideEntry.value());
+                  jsonPath.pop_back();
+                }
+                else{
+                  // override
+                  std::cout << "Overriding: " << GenericToolbox::joinPath(jsonPath, overrideEntry.key()) << ": "
+                             << outSubEntry << " -> " << overrideEntry.value() << std::endl;
+                  outSubEntry = overrideEntry.value();
+                }
+              }
+            }
+
+          };
+
+      // recursive
+      if( overrideConfig_.is_array() ){
+        // old nlohmann json version -> can be defined as array
+        overrideRecursive(outConfig_, overrideConfig_[0]);
+      }
+      else{
+        overrideRecursive(outConfig_, overrideConfig_);
+      }
+
+    }
+    inline void clearEntry(JsonType& jsonConfig_, const std::string& path_){
+
+      auto pathEntries{ GenericToolbox::splitString(path_, "/") };
+      auto* configEntry{&jsonConfig_};
+
+      for( auto& pathEntry : pathEntries ){
+        if( GenericToolbox::Json::doKeyExist( *configEntry, pathEntry ) ){
+          // next
+          configEntry = &( configEntry->find(pathEntry).value() );
+        }
+        else{
+          // no need to override. The key does not exist in the config
+          return;
+        }
+      }
+
+      // clearing up
+      configEntry->clear();
     }
 
     namespace Internal{
