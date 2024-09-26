@@ -29,7 +29,7 @@ namespace GenericToolbox {
     typedef nlohmann::ordered_json JsonType;
 
     // Objects configured by a JSON file can inherit from this
-    typedef GenericToolbox::ConfigBaseClass<JsonType> ConfigBaseClass;
+    typedef GenericToolbox::ConfigClass<JsonType> ConfigBaseClass;
 
     // IO
     inline JsonType readConfigJsonStr(const std::string& configJsonStr_);

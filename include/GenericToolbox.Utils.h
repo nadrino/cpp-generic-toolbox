@@ -53,7 +53,8 @@
 namespace GenericToolbox{
   struct Range;
   class InitBaseClass;
-  template<class ConfigType> class ConfigBaseClass;
+  class ConfigBaseClass;
+  template<class ConfigType> class ConfigClass;
   class ScopedGuard;
   class RawDataArray;
   class TablePrinter;
@@ -468,45 +469,59 @@ namespace GenericToolbox{
 
 // ConfigBaseClass
 namespace GenericToolbox{
-  template<class ConfigType> class ConfigBaseClass : public InitBaseClass {
+
+  class ConfigBaseClass : public InitBaseClass {
 
   public:
     // C-tor and D-tor
-    inline ConfigBaseClass() = default;
+    inline ConfigBaseClass() = default; // purely virtual
     inline ~ConfigBaseClass() override = default;
-
-    // setters
-    inline virtual void setConfig(const ConfigType& config_){ _config_ = config_; }
 
     // const getters
     [[nodiscard]] inline bool isConfigured() const { return _isConfigured_; }
-    inline const ConfigType &getConfig() const { return _config_; }
 
-    // mutable getters
-    inline ConfigType &getConfig(){ return _config_; }
+    inline virtual void configure(){ _isConfigured_ = true; configureImpl(); }
+    inline void initialize() override {
+      if( not _isConfigured_ ){ throw std::logic_error("object not configured"); }
+      this->InitBaseClass::initialize();
+    }
 
-    // non-overridable methods
-    inline void configure(){ _isConfigured_ = true; configureImpl(); }
-    inline void configure(const ConfigType& config_){ setConfig(config_); configure(); }
-    inline void initialize() override{ if( not _isConfigured_ ){ this->configure(); } this->InitBaseClass::initialize(); }
-
-    // deprecated
     [[deprecated("use configure()")]] inline void readConfig(){ _isConfigured_ = true; readConfigImpl(); }
-    [[deprecated("use configure()")]] inline void readConfig(const ConfigType& config_){ setConfig(config_); readConfig(); }
     [[deprecated("use isConfigured()")]] [[nodiscard]] inline bool isConfigReadDone() const { return isConfigured(); }
 
   protected:
     // where the derivative classes will specify (although override is optional)
     inline virtual void configureImpl(){};
 
-    // Can be accessed by derivative classes
-    ConfigType _config_{};
-
     // deprecated
     [[deprecated("use configureImpl()")]] inline virtual void readConfigImpl(){};
 
   private:
     bool _isConfigured_{false};
+
+  };
+
+  template<class ConfigType> class ConfigClass : public ConfigBaseClass {
+
+  public:
+    // C-tor and D-tor
+    inline ConfigClass() = default;
+    inline ~ConfigClass() override = default;
+
+    inline virtual void setConfig(const ConfigType& config_){ _config_ = config_; }
+
+    inline const ConfigType &getConfig() const { return _config_; }
+    inline ConfigType &getConfig(){ return _config_; }
+
+    inline void configure() override { this->ConfigBaseClass::configure(); }
+    inline void configure(const ConfigType& config_){ setConfig(config_); this->ConfigBaseClass::configure(); }
+
+    // deprecated
+    [[deprecated("use configure()")]] inline void readConfig(const ConfigType& config_){ setConfig(config_); ConfigBaseClass::readConfig(); }
+
+  protected:
+    // Can be accessed by derivative classes
+    ConfigType _config_{};
 
   };
 
