@@ -23,40 +23,57 @@
 namespace GenericToolbox {
   namespace Json {
 
-    template<typename J> inline auto readConfigJsonStr(const std::string& configJsonStr_) -> J;
-    template<typename J> inline auto readConfigFile(const std::string& configFilePath_) -> J;
-    template<typename J> inline auto getForwardedConfig(const J& config_);
-    template<typename J> inline auto getForwardedConfig(const J& config_, const std::string& keyPath_);
-    template<typename J> inline void forwardConfig(J& config_, const std::string& className_ = "");
-    template<typename J> inline void unfoldConfig(J& config_);
-    template<typename J> inline std::string toReadableString(const J& config_);
+    // we want to preserve the ordering of the key for the
+    // override feature to fully work
+    // -> nlohmann::json are faster but move the keys
+    typedef nlohmann::ordered_json JsonType;
 
-    template<typename J> inline std::vector<std::string> ls(const J& jsonConfig_);
-    template<typename J> inline bool doKeyExist(const J& jsonConfig_, const std::string& keyPath_);
-    template<typename T, typename J> inline auto fetchValue(const J& jsonConfig_, const std::string& keyPath_) -> T;
-    template<typename T, typename J> inline auto fetchValue(const J& jsonConfig_, const std::vector<std::string>& keyPathList_) -> T;
-    template<typename T, typename J> inline auto fetchValue(const J& jsonConfig_, const std::string& keyPath_, const T& defaultValue_) -> T;
-    template<typename T, typename J> inline auto fetchValue(const J& jsonConfig_, const std::vector<std::string>& keyPathList_, const T& defaultValue_) -> T;
-    template<typename T, typename J> inline void fillValue(const J& jsonConfig_, T& varToFill_, const std::string& keyPath_);
-    template<typename T, typename J> inline void fillValue(const J&jsonConfig_, T&varToFill_, const std::vector<std::string>& keyPathList_);
-    template<typename T, typename J> inline void fillEnum( const J &jsonConfig_, T &enumToFill_, const std::string &keyPath_ );
-    template<typename T, typename J> inline void fillEnum( const J &jsonConfig_, T &enumToFill_, const std::vector<std::string> &keyPathList_ );
-    template<typename J, typename T> inline auto fetchMatchingEntry(const J& jsonConfig_, const std::string& keyPath_, const T& keyValue_) -> J;
-    template<typename J, typename F> inline bool deprecatedAction(const J& jsonConfig_, const std::string& keyPath_, const F& action_);
-    template<typename J, typename F> inline bool deprecatedAction(const J& jsonConfig_, const std::vector<std::string>& keyPathList_, const F& action_);
+    // Objects configured by a JSON file can inherit from this
+    typedef GenericToolbox::ConfigBaseClass<JsonType> ConfigBaseClass;
 
-    // template overrides:
-    template<std::size_t N, typename J> inline auto fetchValue(const J& jsonConfig_, const std::string& keyPath_, const char (&defaultValue_)[N]) -> std::string { return fetchValue(jsonConfig_, keyPath_, std::string(defaultValue_)); }
-    template<std::size_t N, typename J> inline auto fetchValue(const J& jsonConfig_, const std::vector<std::string>& keyPathList_, const char (&defaultValue_)[N]) -> std::string { return fetchValue(jsonConfig_, keyPathList_, std::string(defaultValue_)); }
-    template<std::size_t N> inline auto fetchMatchingEntry(const nlohmann::json& jsonConfig_, const std::string& keyPath_, const char (&keyValue_)[N]) -> nlohmann::json{ return fetchMatchingEntry(jsonConfig_, keyPath_, std::string(keyValue_)); }
+    // IO
+    inline JsonType readConfigJsonStr(const std::string& configJsonStr_);
+    inline JsonType readConfigFile(const std::string& configFilePath_);
+    inline JsonType getForwardedConfig(const JsonType& config_);
+    inline JsonType getForwardedConfig(const JsonType& config_, const std::string& keyPath_);
+    inline void forwardConfig(JsonType& config_, const std::string& className_ = "");
+    inline void unfoldConfig(JsonType& config_);
+    inline std::string toReadableString(const JsonType& config_);
+
+    // reading
+    inline std::vector<std::string> ls(const JsonType& jsonConfig_);
+    inline bool doKeyExist(const JsonType& jsonConfig_, const std::string& keyPath_);
+
+    // reading -- templates
+    template<typename T> inline auto get(const JsonType& json_) -> T;
+    template<typename T> inline auto fetchValue(const JsonType& jsonConfig_, const std::string& keyPath_) -> T;
+    template<typename T> inline auto fetchValue(const JsonType& jsonConfig_, const std::vector<std::string>& keyPathList_) -> T;
+    template<typename T> inline auto fetchValue(const JsonType& jsonConfig_, const std::string& keyPath_, const T& defaultValue_) -> T;
+    template<typename T> inline auto fetchValue(const JsonType& jsonConfig_, const std::vector<std::string>& keyPathList_, const T& defaultValue_) -> T;
+    template<typename T> inline void fillValue(const JsonType& jsonConfig_, T& varToFill_, const std::string& keyPath_);
+    template<typename T> inline void fillValue(const JsonType& jsonConfig_, T&varToFill_, const std::vector<std::string>& keyPathList_);
+    template<typename T> inline void fillEnum(const JsonType& jsonConfig_, T &enumToFill_, const std::string &keyPath_ );
+    template<typename T> inline void fillEnum(const JsonType& jsonConfig_, T &enumToFill_, const std::vector<std::string> &keyPathList_ );
+    template<typename T> inline JsonType fetchMatchingEntry(const JsonType& jsonConfig_, const std::string& keyPath_, const T& keyValue_);
+    template<typename F> inline bool deprecatedAction(const JsonType& jsonConfig_, const std::string& keyPath_, const F& action_);
+    template<typename F> inline bool deprecatedAction(const JsonType& jsonConfig_, const std::vector<std::string>& keyPathList_, const F& action_);
+
+    // template overrides (not specialization)
+    template<std::size_t N> inline auto fetchValue(const JsonType& jsonConfig_, const std::string& keyPath_, const char (&defaultValue_)[N]) -> std::string { return fetchValue(jsonConfig_, keyPath_, std::string(defaultValue_)); }
+    template<std::size_t N> inline auto fetchValue(const JsonType& jsonConfig_, const std::vector<std::string>& keyPathList_, const char (&defaultValue_)[N]) -> std::string { return fetchValue(jsonConfig_, keyPathList_, std::string(defaultValue_)); }
+    template<std::size_t N> inline JsonType fetchMatchingEntry(const JsonType& jsonConfig_, const std::string& keyPath_, const char (&keyValue_)[N]){ return fetchMatchingEntry(jsonConfig_, keyPath_, std::string(keyValue_)); }
 
     // GUNDAM/ROOT specific
-    template<typename J> inline std::string buildFormula(const J& jsonConfig_, const std::string& keyPath_, const std::string& joinStr_);
-    template<typename J> inline std::string buildFormula(const J& jsonConfig_, const std::string& keyPath_, const std::string& joinStr_, const std::string& defaultFormula_);
+    inline std::string buildFormula(const JsonType& jsonConfig_, const std::string& keyPath_, const std::string& joinStr_);
+    inline std::string buildFormula(const JsonType& jsonConfig_, const std::string& keyPath_, const std::string& joinStr_, const std::string& defaultFormula_);
 
-    // defaults
-    inline nlohmann::json readConfigJsonStr(const std::string& configJsonStr_) { return readConfigJsonStr<nlohmann::json>(configJsonStr_); }
-    inline nlohmann::json readConfigFile(const std::string& configJsonStr_) { return readConfigFile<nlohmann::json>(configJsonStr_); }
+    namespace Internal{
+      // not meant to be used by devs
+      // those are tricks to avoid template overrides
+      template<typename T> inline T getImpl(const JsonType& json_, T*);
+      inline Range getImpl(const JsonType& json_, Range*);
+      template<typename T> inline std::vector<T> getImpl(const JsonType& json_, std::vector<T>*);
+    }
 
   }
 }
@@ -66,16 +83,16 @@ namespace GenericToolbox {
 namespace GenericToolbox {
   namespace Json {
 
-    template<typename J> inline auto readConfigJsonStr(const std::string& configJsonStr_) -> J{
+    inline JsonType readConfigJsonStr(const std::string& configJsonStr_){
       std::stringstream ss;
       ss << configJsonStr_;
 
-      J output;
+      JsonType output;
       ss >> output;
 
       return output;
     }
-    template<typename J> inline auto readConfigFile(const std::string& configFilePath_) -> J{
+    inline JsonType readConfigFile(const std::string& configFilePath_){
       if( not GenericToolbox::isFile(configFilePath_) ){
         std::cout << "\"" << configFilePath_ << "\" could not be found." << std::endl;
         throw std::runtime_error("file not found.");
@@ -89,45 +106,45 @@ namespace GenericToolbox {
         throw std::runtime_error("file not readable.");
       }
 
-      J output;
+      JsonType output;
       fs >> output;
       return output;
     }
-    template<typename J> inline auto getForwardedConfig(const J& config_) -> J {
-      J out = config_;
+    inline JsonType getForwardedConfig(const JsonType& config_) {
+      JsonType out = config_;
       while( out.is_string() ){
-        out = GenericToolbox::Json::readConfigFile<J>(out.template get<std::string>());
+        out = readConfigFile(out.template get<std::string>());
       }
       return out;
     }
-    template<typename J> inline auto getForwardedConfig(const J& config_, const std::string& keyPath_) -> J{
-      return GenericToolbox::Json::getForwardedConfig<J>(GenericToolbox::Json::fetchValue<J>(config_, keyPath_));
+    inline JsonType getForwardedConfig(const JsonType& config_, const std::string& keyPath_){
+      return getForwardedConfig(fetchValue<JsonType>(config_, keyPath_));
     }
-    template<typename J> inline void forwardConfig(J& config_, const std::string& className_){
+    inline void forwardConfig(JsonType& config_, const std::string& className_){
       while( config_.is_string() ){
         std::cout << "Forwarding " << (className_.empty()? "": className_ + " ") << "config: \"" << config_.template get<std::string>() << "\"" << std::endl;
         auto name = config_.template get<std::string>();
         std::string expand = GenericToolbox::expandEnvironmentVariables(name);
-        config_ = GenericToolbox::Json::readConfigFile<J>(expand);
+        config_ = readConfigFile(expand);
       }
     }
-    template<typename J> inline void unfoldConfig(J& config_){
+    inline void unfoldConfig(JsonType& config_){
       for( auto& entry : config_ ){
         if( entry.is_string() and (
             GenericToolbox::endsWith(entry.template get<std::string>(), ".yaml", true)
             or GenericToolbox::endsWith(entry.template get<std::string>(), ".json", true)
         ) ){
-          GenericToolbox::Json::forwardConfig(entry);
-          GenericToolbox::Json::unfoldConfig(config_); // remake the loop on the unfolder config
+          forwardConfig(entry);
+          unfoldConfig(config_); // remake the loop on the unfolder config
           break; // don't touch anymore
         }
 
         if( entry.is_structured() ){
-          GenericToolbox::Json::unfoldConfig(entry);
+          unfoldConfig(entry);
         }
       }
     }
-    template<typename J> inline std::string toReadableString(const J& config_){
+    inline std::string toReadableString(const JsonType& config_){
       std::stringstream ss;
       ss << config_ << std::endl;
 
@@ -170,9 +187,9 @@ namespace GenericToolbox {
       return ss.str();
     }
 
-    template<typename J> inline bool doKeyExist(const J& jsonConfig_, const std::string& keyPath_){
+    inline bool doKeyExist(const JsonType& jsonConfig_, const std::string& keyPath_){
       try{
-        fetchValue<J>(jsonConfig_, keyPath_);
+        fetchValue<JsonType>(jsonConfig_, keyPath_);
         // if successfully fetched -> it exists
         return true;
       }
@@ -181,28 +198,28 @@ namespace GenericToolbox {
         return false;
       }
     }
-    template<typename J> inline std::vector<std::string> ls(const J& jsonConfig_){
+    inline std::vector<std::string> ls(const JsonType& jsonConfig_){
       std::vector<std::string> out{};
       out.reserve( jsonConfig_.size() );
       for (auto& entry : jsonConfig_.items()){ out.emplace_back( entry.key() ); }
       return out;
     }
 
-    template<typename J> inline std::string buildFormula(const J& jsonConfig_, const std::string& keyPath_, const std::string& joinStr_){
+    inline std::string buildFormula(const JsonType& jsonConfig_, const std::string& keyPath_, const std::string& joinStr_){
       std::string out;
 
-      if( not GenericToolbox::Json::doKeyExist(jsonConfig_, keyPath_) ){
+      if( not doKeyExist(jsonConfig_, keyPath_) ){
         std::cout << "Could not find key \"" << keyPath_ << "\" in " << jsonConfig_ << std::endl;
         throw std::runtime_error("Could not find key");
       }
 
-      try{ return GenericToolbox::Json::fetchValue<std::string>(jsonConfig_, keyPath_); }
+      try{ return fetchValue<std::string>(jsonConfig_, keyPath_); }
       catch (...){
         // it's a vector of strings
       }
 
       std::vector<std::string> conditionsList;
-      auto jsonList( GenericToolbox::Json::fetchValue<J>(jsonConfig_, keyPath_) );
+      auto jsonList( fetchValue<JsonType>(jsonConfig_, keyPath_) );
 
       if( jsonList.size() == 1 and not jsonList[0].is_string() and jsonList[0].is_array() ){
         // hot fix for broken json versions
@@ -225,74 +242,79 @@ namespace GenericToolbox {
 
       return out;
     }
-    template<typename J> inline std::string buildFormula(const J& jsonConfig_, const std::string& keyPath_, const std::string& joinStr_, const std::string& defaultFormula_){
-      if( not GenericToolbox::Json::doKeyExist(jsonConfig_, keyPath_) ) return defaultFormula_;
+    inline std::string buildFormula(const JsonType& jsonConfig_, const std::string& keyPath_, const std::string& joinStr_, const std::string& defaultFormula_){
+      if( not doKeyExist(jsonConfig_, keyPath_) ) return defaultFormula_;
       else return buildFormula(jsonConfig_, keyPath_, joinStr_);
     }
 
-    template<typename T, typename J> inline auto getValue(const J& json_) -> T { return json_.template get<T>(); }
-    template<typename T, typename J> inline auto fetchValue(const J& jsonConfig_, const std::string& keyPath_) -> T{
+    template<typename T> inline auto get(const JsonType& json_) -> T {
+      // the dummy argument leverage the ambiguity.
+      // This is a trick to bypass template specializations, and do proper overrides
+      return Internal::getImpl(json_, static_cast<T*>(nullptr));
+    }
+
+    template<typename T> inline auto fetchValue(const JsonType& jsonConfig_, const std::string& keyPath_) -> T{
       // always treats as a key path
       std::vector<std::string> keyPathElements{GenericToolbox::splitString(keyPath_, "/")};
-      J walkConfig(jsonConfig_);
+      JsonType walkConfig(jsonConfig_);
       for( auto& keyName : keyPathElements ){
         auto entry = walkConfig.find(keyName);
         if( entry == walkConfig.end() ){
           throw std::runtime_error(
               "Could not find json entry: " + keyPath_ + ":\n"
-              + GenericToolbox::Json::toReadableString(jsonConfig_)
+              + toReadableString(jsonConfig_)
           );
         }
-        walkConfig = getValue<J>(*entry);
+        walkConfig = get<JsonType>(*entry);
       }
-      return getValue<T>(walkConfig);
+      return get<T>(walkConfig);
     }
-    template<typename T, typename J> inline auto fetchValue(const J& jsonConfig_, const std::vector<std::string>& keyPathList_) -> T{
+    template<typename T> inline auto fetchValue(const JsonType& jsonConfig_, const std::vector<std::string>& keyPathList_) -> T{
       for( auto& keyPath : keyPathList_){
-        try{ return GenericToolbox::Json::fetchValue<T>(jsonConfig_, keyPath); }
+        try{ return fetchValue<T>(jsonConfig_, keyPath); }
         catch(...){} // try the next ones
       }
-      throw std::runtime_error("Could not find any json entry: " + GenericToolbox::toString(keyPathList_) + ":\n" + GenericToolbox::Json::toReadableString(jsonConfig_));
+      throw std::runtime_error("Could not find any json entry: " + GenericToolbox::toString(keyPathList_) + ":\n" + toReadableString(jsonConfig_));
     }
-    template<typename T, typename J> inline auto fetchValue(const J& jsonConfig_, const std::string& keyPath_, const T& defaultValue_) -> T{
-      try{ return GenericToolbox::Json::fetchValue<T>(jsonConfig_, keyPath_); }
+    template<typename T> inline auto fetchValue(const JsonType& jsonConfig_, const std::string& keyPath_, const T& defaultValue_) -> T{
+      try{ return fetchValue<T>(jsonConfig_, keyPath_); }
       catch(...){ return defaultValue_; }
     }
-    template<typename T, typename J> inline auto fetchValue(const J& jsonConfig_, const std::vector<std::string>& keyPathList_, const T& defaultValue_) -> T{
-      try{ return GenericToolbox::Json::fetchValue<T>(jsonConfig_, keyPathList_); }
+    template<typename T> inline auto fetchValue(const JsonType& jsonConfig_, const std::vector<std::string>& keyPathList_, const T& defaultValue_) -> T{
+      try{ return fetchValue<T>(jsonConfig_, keyPathList_); }
       catch(...){}
       return defaultValue_;
     }
-    template<typename T, typename J> inline void fillValue( const J &jsonConfig_, T &varToFill_, const std::string &keyPath_ ){
-      varToFill_ = GenericToolbox::Json::fetchValue(jsonConfig_, keyPath_, varToFill_);
+    template<typename T> inline void fillValue(const JsonType& jsonConfig_, T &varToFill_, const std::string &keyPath_ ){
+      varToFill_ = fetchValue(jsonConfig_, keyPath_, varToFill_);
     }
-    template<typename T, typename J> inline void fillValue( const J &jsonConfig_, T &varToFill_, const std::vector<std::string> &keyPathList_ ){
-      varToFill_ = GenericToolbox::Json::fetchValue(jsonConfig_, keyPathList_, varToFill_);
+    template<typename T> inline void fillValue(const JsonType& jsonConfig_, T &varToFill_, const std::vector<std::string> &keyPathList_ ){
+      varToFill_ = fetchValue(jsonConfig_, keyPathList_, varToFill_);
     }
-    template<typename T, typename J> inline void fillEnum(const J& jsonConfig_, T& enumToFill_, const std::string& keyPath_ ){
-      enumToFill_ = enumToFill_.toEnum( GenericToolbox::Json::fetchValue(jsonConfig_, keyPath_, enumToFill_.toString()), true );
+    template<typename T> inline void fillEnum(const JsonType& jsonConfig_, T& enumToFill_, const std::string& keyPath_ ){
+      enumToFill_ = enumToFill_.toEnum( fetchValue(jsonConfig_, keyPath_, enumToFill_.toString()), true );
     }
-    template<typename T, typename J> inline void fillEnum(const J& jsonConfig_, T& enumToFill_, const std::vector<std::string>& keyPathList_ ){
+    template<typename T> inline void fillEnum(const JsonType& jsonConfig_, T& enumToFill_, const std::vector<std::string>& keyPathList_ ){
       for( auto& keyPath : keyPathList_ ){
         if( not doKeyExist(jsonConfig_, keyPath)){ continue; }
         fillEnum(jsonConfig_, enumToFill_, keyPathList_);
         break;
       }
     }
-    template<typename J, typename T> inline auto fetchMatchingEntry(const J& jsonConfig_, const std::string& keyPath_, const T& keyValue_) -> J{
+    template<typename T> inline JsonType fetchMatchingEntry(const JsonType& jsonConfig_, const std::string& keyPath_, const T& keyValue_){
       if( jsonConfig_.empty() or not jsonConfig_.is_array() ){ return {}; }
-      for( const auto& jsonEntry : jsonConfig_.template get<std::vector<J>>() ){
-        try{ if( GenericToolbox::Json::fetchValue<T>(jsonEntry, keyPath_) == keyValue_ ){ return jsonEntry; } }
+      for(const auto& jsonEntry : jsonConfig_.template get<std::vector<JsonType>>() ){
+        try{ if( fetchValue<T>(jsonEntry, keyPath_) == keyValue_ ){ return jsonEntry; } }
         catch (...){} // next
       }
       return {}; // .empty()
     }
-    template<typename J, typename F> inline bool deprecatedAction(const J& jsonConfig_, const std::string& keyPath_, const F& action_){
+    template<typename F> inline bool deprecatedAction(const JsonType& jsonConfig_, const std::string& keyPath_, const F& action_){
       if( not doKeyExist(jsonConfig_, keyPath_) ){ return false; }
       action_();
       return true;
     }
-    template<typename J, typename F> inline bool deprecatedAction(const J& jsonConfig_, const std::vector<std::string>& keyPathList_, const F& action_){
+    template<typename F> inline bool deprecatedAction(const JsonType& jsonConfig_, const std::vector<std::string>& keyPathList_, const F& action_){
       for( auto& keyPath : keyPathList_ ){
         if( doKeyExist(jsonConfig_, keyPath) ){
           action_( keyPath );
@@ -302,38 +324,28 @@ namespace GenericToolbox {
       return false;
     }
 
-    // template specialization (note to myself: can't partially specialize...)
-    template<> inline auto getValue(const nlohmann::ordered_json& json_) -> Range {
-      auto buffer = getValue<std::vector<double>>(json_);
-      if( buffer.size() != 2 ){ throw std::runtime_error("Range has " + std::to_string(buffer.size()) + " values (2 expected)."); }
-      Range out;
-      out.min = buffer[0];
-      out.max = buffer[1];
-      return out;
-    }
-    template<> inline auto getValue(const nlohmann::ordered_json& json_) -> std::vector<Range> {
-      std::vector<Range> out;
-      for( auto& buffer : getValue<nlohmann::ordered_json>(json_)){
-        out.emplace_back( getValue<Range>(buffer) );
+    namespace Internal{
+      template<typename T> inline T getImpl(const JsonType& json_, T*){
+        return json_.template get<T>();
       }
-      return out;
-    }
-    template<> inline auto getValue(const nlohmann::json& json_) -> Range {
-      auto buffer = getValue<std::vector<double>>(json_);
-      if( buffer.size() != 2 ){ throw std::runtime_error("Range has " + std::to_string(buffer.size()) + " values (2 expected)."); }
-      Range out;
-      out.min = buffer[0];
-      out.max = buffer[1];
-      return out;
-    }
-    template<> inline auto getValue(const nlohmann::json& json_) -> std::vector<Range> {
-      std::vector<Range> out;
-      for( auto& buffer : getValue<nlohmann::json>(json_)){
-        out.emplace_back( getValue<Range>(buffer) );
+      inline Range getImpl(const JsonType& json_, Range*){
+        if( not json_.is_array() ){ throw std::runtime_error("provided json is not an array."); }
+        if( json_.size() != 2 ){ throw std::runtime_error("Range has " + std::to_string(json_.size()) + " values (2 expected)."); }
+        Range out{};
+        out.min = get<double>(json_[0]);
+        out.max = get<double>(json_[1]);
+        if( out.min > out.max ){ std::swap(out.min, out.max); }
+        return out;
       }
-      return out;
-    }
+      template<typename T> inline std::vector<T> getImpl(const JsonType& json_, std::vector<T>*){
+        std::vector<T> out; out.reserve(json_.size());
+        for( auto& entry : json_ ){
+          out.emplace_back( getImpl(entry, static_cast<T*>(nullptr) ) );
+        }
+        return out;
+      }
 
+    }
 
   }
 }
