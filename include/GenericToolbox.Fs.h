@@ -38,6 +38,7 @@ namespace GenericToolbox{
   static std::string getExtension(const std::string& filePath_);
   static std::string getFolderPath(const std::string &filePath_);
   static std::string getFileName(const std::string &filePath_, bool withExtension_ = true);
+  static std::string generateCleanFileName(const std::string &fileName_);
   static std::string replaceExtension(const std::string& filePath_, const std::string& newExtension_);
   template<typename T1, typename T2> static std::string joinPath(const T1& str1_, const T2& str2_);
   template<typename T1, typename T2> static std::string joinPath(const std::vector<T1>& vec1_, const std::vector<T2>& vec2_);
@@ -112,6 +113,25 @@ namespace GenericToolbox{
     const std::string filename = ( pos != std::string::npos ) ? filePath_.substr(pos + 1) : filePath_;
     return ( withExtension_ or filename.find('.') == std::string::npos ) ? filename : filename.substr(0, filename.find_last_of('.'));
 #endif
+  }
+  static std::string generateCleanFileName(const std::string &fileName_){
+    std::string out{fileName_};
+
+    replaceSubstringInsideInputString(out, " ", "_");
+    replaceSubstringInsideInputString(out, "-", "_");
+    replaceSubstringInsideInputString(out, "/", "_");
+    replaceSubstringInsideInputString(out, "<", "_");
+
+    replaceSubstringInsideInputString(out, ">", "");
+    replaceSubstringInsideInputString(out, "(", "");
+    replaceSubstringInsideInputString(out, ")", "");
+    replaceSubstringInsideInputString(out, "{", "");
+    replaceSubstringInsideInputString(out, "}", "");
+    replaceSubstringInsideInputString(out, "[", "");
+    replaceSubstringInsideInputString(out, "]", "");
+    replaceSubstringInsideInputString(out, "#", "");
+
+    return out;
   }
   static std::string replaceExtension(const std::string& filePath_, const std::string& newExtension_){
     if( newExtension_.empty() ) return filePath_.substr(0, filePath_.find_last_of('.'));

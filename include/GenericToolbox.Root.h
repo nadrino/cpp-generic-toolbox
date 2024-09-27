@@ -830,23 +830,7 @@ namespace GenericToolbox {
 
   }
   inline std::string generateCleanBranchName(const std::string& name_){
-    std::string out{name_};
-
-    replaceSubstringInsideInputString(out, " ", "_");
-    replaceSubstringInsideInputString(out, "-", "_");
-    replaceSubstringInsideInputString(out, "/", "_");
-    replaceSubstringInsideInputString(out, "<", "_");
-
-    replaceSubstringInsideInputString(out, ">", "");
-    replaceSubstringInsideInputString(out, "(", "");
-    replaceSubstringInsideInputString(out, ")", "");
-    replaceSubstringInsideInputString(out, "{", "");
-    replaceSubstringInsideInputString(out, "}", "");
-    replaceSubstringInsideInputString(out, "[", "");
-    replaceSubstringInsideInputString(out, "]", "");
-    replaceSubstringInsideInputString(out, "#", "");
-
-    return out;
+    return generateCleanFileName(name_);
   }
 
   inline void generateCompareTree(TTree* tree1_, TTree* tree2_, TDirectory* outDir_){
