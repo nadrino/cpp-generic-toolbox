@@ -51,8 +51,10 @@
 
 // Declarations
 namespace GenericToolbox{
+  struct Range;
   class InitBaseClass;
-  template<class ConfigType> class ConfigBaseClass;
+  class ConfigBaseClass;
+  template<class ConfigType> class ConfigClass;
   class ScopedGuard;
   class RawDataArray;
   class TablePrinter;
@@ -391,17 +393,24 @@ namespace GenericToolbox{
     while( true ){
       std::this_thread::sleep_for( loopUpdateMaxFrequency );
       cumulatedDuration = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now() - anchorTimePoint);
-      if( cumulatedDuration >= totalDurationToWait ){
-        return;
-      }
-      else{
-        GenericToolbox::displayProgressBar( cumulatedDuration.count(), totalDurationToWait.count(), progressTitle_);
-      }
+      if( cumulatedDuration >= totalDurationToWait ){ break; }
+      else{ GenericToolbox::displayProgressBar( cumulatedDuration.count(), totalDurationToWait.count(), progressTitle_); }
     }
     GenericToolbox::displayProgressBar( totalDurationToWait.count(), totalDurationToWait.count(), progressTitle_);
 
   }
 
+}
+
+
+namespace GenericToolbox{
+  struct Range{
+    double min{std::nan("unset")};
+    double max{std::nan("unset")};
+
+    Range() = default;
+    Range(double min_, double max_) : min(min_), max(max_) {}
+  };
 }
 
 // InitBaseClass
@@ -460,52 +469,49 @@ namespace GenericToolbox{
 
 // ConfigBaseClass
 namespace GenericToolbox{
-  template<class ConfigType> class ConfigBaseClass : public InitBaseClass {
+
+  class ConfigBaseClass : public InitBaseClass {
 
   public:
-    // Common structure
-    inline ConfigBaseClass() = default;
+    // C-tor and D-tor
+    inline ConfigBaseClass() = default; // purely virtual
     inline ~ConfigBaseClass() override = default;
 
-    inline virtual void setConfig(const ConfigType& config_);
+    // const getters
+    [[nodiscard]] inline bool isConfigured() const { return _isConfigured_; }
 
-    inline void readConfig();
-    inline void readConfig(const ConfigType& config_);
-
-    inline void initialize() override;
-
-    [[nodiscard]] inline bool isConfigReadDone() const { return _isConfigReadDone_; }
-    inline const ConfigType &getConfig() const { return _config_; }
+    inline virtual void configure(){ _isConfigured_ = true; configureImpl(); }
 
   protected:
     // where the derivative classes will specify (although override is optional)
-    inline virtual void readConfigImpl(){};
-
-    // Can be accessed by derivative classes
-    ConfigType _config_{};
+    inline virtual void configureImpl(){};
 
   private:
-    bool _isConfigReadDone_{false};
+    bool _isConfigured_{false};
 
   };
 
-  template<class ConfigType> inline void ConfigBaseClass<ConfigType>::setConfig(const ConfigType &config_) {
-    _config_ = config_;
-  }
+  template<class ConfigType> class ConfigClass : public ConfigBaseClass {
 
-  template<class ConfigType> inline void ConfigBaseClass<ConfigType>::readConfig() {
-    _isConfigReadDone_ = true;
-    this->readConfigImpl();
-  }
-  template<class ConfigType> inline void ConfigBaseClass<ConfigType>::readConfig(const ConfigType& config_){
-    this->setConfig(config_);
-    this->readConfig();
-  }
+  public:
+    // C-tor and D-tor
+    inline ConfigClass() = default;
+    inline ~ConfigClass() override = default;
 
-  template<class ConfigType> inline void ConfigBaseClass<ConfigType>::initialize() {
-    if( not _isConfigReadDone_ ) this->readConfig();
-    InitBaseClass::initialize();
-  }
+    inline virtual void setConfig(const ConfigType& config_){ _config_ = config_; }
+
+    inline const ConfigType &getConfig() const { return _config_; }
+    inline ConfigType &getConfig(){ return _config_; }
+
+    inline void configure() override { this->ConfigBaseClass::configure(); }
+    inline void configure(const ConfigType& config_){ setConfig(config_); this->ConfigBaseClass::configure(); }
+
+  protected:
+    // Can be accessed by derivative classes
+    ConfigType _config_{};
+
+  };
+
 }
 
 // ScopedGuard
@@ -612,17 +618,12 @@ namespace GenericToolbox{
 
   public:
     inline TablePrinter() = default;
-
     inline virtual ~TablePrinter() = default;
 
     inline void reset();
-
     inline void fillTable( const std::vector<std::vector<std::string>> &tableLines_ );
-
     inline size_t setColTitles( const std::vector<std::string> &colTitles_ );
-
     inline size_t addColTitle( const std::string &colTitle_ );
-
     inline size_t addTableLine( const std::vector<std::string> &colValues_ = std::vector<std::string>(),
                                 const std::string &colorCode_ = "" );
 
