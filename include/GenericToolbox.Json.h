@@ -72,6 +72,7 @@ namespace GenericToolbox {
       // not meant to be used by devs
       // those are tricks to avoid template overrides
       template<typename T> inline T getImpl(const JsonType& json_, T*);
+      inline double getImpl(const JsonType& json_, double*);
       inline Range getImpl(const JsonType& json_, Range*);
       template<typename T> inline std::vector<T> getImpl(const JsonType& json_, std::vector<T>*);
     }
@@ -249,7 +250,15 @@ namespace GenericToolbox {
     template<typename T> inline auto get(const JsonType& json_) -> T {
       // the dummy argument leverage the ambiguity.
       // This is a trick to bypass template specializations, and do proper overrides
-      return Internal::getImpl(json_, static_cast<T*>(nullptr));
+      try{
+        return Internal::getImpl(json_, static_cast<T*>(nullptr));
+      }
+      catch(const std::exception& e_){
+        std::cout << "json_= " << toReadableString(json_);
+        std::cout << "template type: " << typeid(T).name() << std::endl;
+        std::cout << "error: " << e_.what() << std::endl;
+        throw std::runtime_error("Could not read json value.");
+      }
     }
     template<typename T> inline auto fetchValue(const JsonType& jsonConfig_, const std::string& keyPath_) -> T{
       // always treats as a key path
@@ -522,6 +531,16 @@ namespace GenericToolbox {
     namespace Internal{
       template<typename T> inline T getImpl(const JsonType& json_, T*){
         return json_.template get<T>();
+      }
+      inline double getImpl(const JsonType& json_, double*){
+        // better handling of nan
+        if( json_.is_string() ){
+          if( json_.template get<std::string>() == "nan" ){ return std::nan("nan"); }
+          if( json_.template get<std::string>() == "null" ){ return std::nan("null"); }
+          // otherwise it is a string that should be castable as a double
+        }
+        if( json_.is_null() ){ return std::nan("null"); } // macOS
+        return json_.template get<double>();
       }
       inline Range getImpl(const JsonType& json_, Range*){
         if( not json_.is_array() ){ throw std::runtime_error("provided json is not an array."); }
