@@ -392,8 +392,9 @@ namespace GenericToolbox {
                   if( identifier == "__INDEX__" ){
                     if     ( overrideListEntry.value()[identifier].is_string() and overrideListEntry.value()[identifier].get<std::string>() == "*" ){
                       // applying on every entry
+                      int index{0};
                       for( auto& outSubEntry : outEntry_ ){
-                        jsonPath.emplace_back(GenericToolbox::joinAsString("",overrideListEntry.key(),"(",identifier,":",overrideListEntry.value()[identifier],")"));
+                        jsonPath.emplace_back(std::to_string(index++));
                         overrideRecursive(outSubEntry, overrideListEntry.value());
                         jsonPath.pop_back();
                       }
