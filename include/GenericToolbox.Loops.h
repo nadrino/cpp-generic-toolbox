@@ -67,7 +67,11 @@ namespace GenericToolbox{
     explicit ZipIterator(Iterators... iterators_) : _iterators_(iterators_...) {}
 
     auto operator*() const {
+#if HAS_CPP_17
       return std::apply([](auto&... it) { return std::tie(*it...); }, _iterators_);  // Dereference all iterators
+#else
+      return dereference(std::index_sequence_for<Iterators...>{});
+#endif
     }
 
     void operator++() {
@@ -77,6 +81,15 @@ namespace GenericToolbox{
     bool operator!=(const ZipIterator& other) const {
       return tuple_not_equal(_iterators_, other._iterators_, std::index_sequence_for<Iterators...>{});  // Compare iterators
     }
+
+  protected:
+#if !HAS_CPP_17
+    // Expanding the tuple in-place inside operator*()
+    template <std::size_t... I>
+    auto dereference(std::index_sequence<I...>) const {
+        return std::tie(*std::get<I>(_iterators_)...);  // Dereference each iterator
+    }
+#endif
 
   private:
     std::tuple<Iterators...> _iterators_;
