@@ -5,10 +5,11 @@
 #ifndef GUNDAM_GENERICTOOLBOX_LOOPS_H
 #define GUNDAM_GENERICTOOLBOX_LOOPS_H
 
+#include "GenericToolbox.Macro.h"
+
 #include <iostream>
 #include <vector>
 #include <tuple>
-
 #include <iostream>
 #include <tuple>
 #include <vector>
@@ -35,16 +36,31 @@ namespace GenericToolbox{
   // Helper function to increment each iterator in the tuple
   template <typename Tuple, std::size_t... I>
   void TupleIncrement(Tuple& t, std::index_sequence<I...>) {
+#if HAS_CPP_17
     ((++std::get<I>(t)), ...);  // Increment each iterator
+#else
+    // this is a trick to expand the ++std::get<I>(t) for each element I in the tuple.
+    using expander = int[];
+    // the following executes the increment operation for each element and discards the result (using void).
+    // The void casts are used to avoid unused value warnings, and 0 is a dummy value to make the initializer list expansion work.
+    (void)expander{0, (void(++std::get<I>(t)), 0)...};  // Use an initializer list to expand the operation
+#endif
   }
 
-// Helper function to compare the end of each iterator with the end of the corresponding container
+  // Helper function to compare the end of each iterator with the end of the corresponding container
   template <typename Tuple1, typename Tuple2, std::size_t... I>
   bool tuple_not_equal(const Tuple1& t1, const Tuple2& t2, std::index_sequence<I...>) {
+#if HAS_CPP_17
     return ((std::get<I>(t1) != std::get<I>(t2)) && ...);  // Compare iterators with end
+#else
+    bool result = true;
+    using expander = int[];
+    (void)expander{0, (void(result = result && (std::get<I>(t1) != std::get<I>(t2))), 0)...};  // Expand the comparison
+    return result;
+#endif
   }
 
-// Zip iterator class
+  // Zip iterator class
   template <typename... Iterators>
   class ZipIterator {
   public:
