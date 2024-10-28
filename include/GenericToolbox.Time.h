@@ -69,6 +69,8 @@ namespace GenericToolbox{
         else{ _nbCumulated_ = nbCumulated_; }
       }
 
+      inline ScopedGuard scopeTime(){ return ScopedGuard( [this]{this->start();}, [this]{this->stop();} ); }
+
       // eval in a given units T = std::chrono::milliseconds for instance
       template<typename T> [[nodiscard]] inline ssize_t eval() const{ return std::chrono::duration_cast<T>( this->eval() ).count(); }
       [[nodiscard]] inline double evalTickSpeed() const{ return 1./this->eval().count(); } // per second
