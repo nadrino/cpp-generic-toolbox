@@ -78,6 +78,51 @@ namespace GenericToolbox{
   inline TH2D* convertToTH2D(const TMatrixD *XY_values_, std::string graph_title_ = "", const std::string &Z_title_ = "", const std::string &Y_title_ = "Row #", const std::string &X_title_ = "Col #");
   inline TH2D* convertToTH2D(const TMatrixDSym *XY_values_, const std::string& graph_title_ = "", const std::string &Z_title_ = "", const std::string &Y_title_ = "Row #", const std::string &X_title_ = "Col #");
   template<typename T> inline TVectorT<T>* convertToTVector(const std::vector<T>& vector_);
+  template<typename T> inline TMatrixTSym<T>* toTMatrixTSym(const TMatrixT<T>* matrix_){
+    // https://root-forum.cern.ch/t/multivariate-gaussian-object-creation/55721/2
+    if( matrix_ == nullptr ){ return nullptr; }
+
+    GTLogThrowIf(
+        matrix_->GetNcols() != matrix_->GetNrows(),
+        "Matrix dimensions aren't symmetric:" << matrix_->GetNcols() << "x" << matrix_->GetNrows()
+    );
+
+    // define the output
+    auto* out = new TMatrixTSym<T>(matrix_->GetNrows());
+
+    // check if input is exactly symmetric
+    auto isSymmetricFct = [&](){
+      for( int iCol = 0 ; iCol < matrix_->GetNcols() ; iCol++ ){
+        for( int iRow = iCol+1 ; iRow < matrix_->GetNrows() ; iRow++ ){
+          if( (*matrix_)[iCol][iRow] != (*matrix_)[iRow][iCol] ){
+            GTLogAlert << "Found a non-symmetric element m[" << iCol << "][" << iRow << "]: diff = "
+            << (*matrix_)[iCol][iRow] - (*matrix_)[iRow][iCol] << std::endl;
+            return false;
+          }
+        }
+      }
+      return true;
+    };
+
+    if( not isSymmetricFct() ){
+      // assuming this is noise
+      GTLogAlert << "Conversion to symmetric matrix by averaging opposite elements..." << std::endl;
+      std::unique_ptr<TMatrixT<T>> regularisedMatrix( (TMatrixD *) matrix_->Clone() );
+
+      for( int iCol = 0 ; iCol < matrix_->GetNcols() ; iCol++ ){
+        for( int iRow = 0 ; iRow < matrix_->GetNrows() ; iRow++ ){
+          (*regularisedMatrix)[iCol][iRow] = ( (*matrix_)[iCol][iRow] + (*matrix_)[iRow][iCol] ) / 2.;
+        }
+      }
+
+      out->SetSub(0, *regularisedMatrix);
+    }
+    else{
+      out->SetSub(0, *matrix_);
+    }
+
+    return out;
+  }
 
   // Deprecated calls (kept for compatibility):
   inline TH1D* convertTVectorDtoTH1D(const TVectorD *yValuesPtr_, const std::string &histTitle_ = "", const std::string &yTitle_ = "", const std::string &xTitle_ = "Entry #", TVectorD *yErrorsPtr_ = nullptr);
@@ -327,6 +372,21 @@ namespace GenericToolbox {
     }
 
     return correlationMatrix;
+  }
+  template<typename T> inline T* toCorrelationMatrix(const T* matrix_){
+    auto* out = (T*) matrix_->Clone();
+
+    for(int iRow = 0 ; iRow < matrix_->GetNrows() ; iRow++){
+      for(int iCol = 0 ; iCol < matrix_->GetNcols() ; iCol++){
+        if( (*matrix_)[iRow][iRow] == 0 or (*matrix_)[iCol][iCol] == 0 ){ (*out)[iRow][iCol] = 0; }
+        else{ (*out)[iRow][iCol] /= TMath::Sqrt((*matrix_)[iRow][iRow]*(*matrix_)[iCol][iCol]); }
+      }
+    }
+
+    return out;
+  }
+  template<typename T> inline std::shared_ptr<T> toCorrelationMatrix(const std::shared_ptr<T>& matrix_){
+    return std::shared_ptr<T>(toCorrelationMatrix(matrix_.get())->Clone());
   }
 
 }
@@ -743,10 +803,10 @@ namespace GenericToolbox {
 
     // the containing TFile will auto destruct once we leave the thread
     std::unique_ptr<TFile> file(TFile::Open(rootFilePath.c_str()));
-    GTLogThrowIf( file == nullptr or not file->IsOpen(), "Could not open: " + rootFilePath );
+    GTLogThrowIf(file == nullptr or not file->IsOpen(), "Could not open: " + rootFilePath);
 
     TObject* objBuffer = file->Get(rootObjectPath.c_str());
-    GTLogThrowIf( objBuffer == nullptr, "Could not fine object with name \"" + rootObjectPath + "\" within the opened TFile: " + rootFilePath );
+    GTLogThrowIf(objBuffer == nullptr, "Could not fine object with name \"" + rootObjectPath + "\" within the opened TFile: " + rootFilePath);
 
     // make sure the cloned obj doesn't belong to a file
     gDirectory = nullptr;
@@ -763,7 +823,19 @@ namespace GenericToolbox {
     // not meant to be used by devs
     // those are tricks to avoid template overrides
 
+    // custom conversions
     template<typename T> inline bool convertFromTObject(TObject* objectBuffer_, std::shared_ptr<T>& out_){ return false; }
+    template<typename U> inline bool convertFromTObject(TObject* objectBuffer_, std::shared_ptr<TMatrixTSym<U>>& out_){
+
+      if( objectBuffer_ == nullptr ){ return false; }
+
+      if( GenericToolbox::startsWith(std::string( objectBuffer_->ClassName() ), "TMatrixT") ){
+        out_ = std::shared_ptr<TMatrixTSym<U>>(GenericToolbox::toTMatrixTSym((TMatrixT<U>*) objectBuffer_));
+        return true;
+      }
+
+      return false;
+    }
 
     // assuming T is a ROOT TObject based
     template<typename T> inline void fillFromTObject(TObject* objectBuffer_, std::shared_ptr<T>& out_){

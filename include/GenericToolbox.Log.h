@@ -5,6 +5,8 @@
 #ifndef GUNDAM_GENERICTOOLBOX_LOG_H
 #define GUNDAM_GENERICTOOLBOX_LOG_H
 
+#include "GenericToolbox.Macro.h"
+
 #include <iostream>
 #include <exception>
 
@@ -26,6 +28,8 @@
 #define GTLogThrow(message_) GTLogError << message_ << std::endl; throw std::runtime_error("exception thrown by the logger.")
 #define GTLogThrowIf(condition_, message_) if(condition_){ GTLogThrow( "[" << #condition_ << "] " << message_); }
 
+// debug tools
+#define GTDebugVar(var_) GTLogDebug << GET_VAR_NAME_VALUE(var_) << std::endl;
 
 
 #endif //GUNDAM_GENERICTOOLBOX_LOG_H
