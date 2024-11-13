@@ -9,6 +9,7 @@
 #include "GenericToolbox.Vector.h"
 #include "GenericToolbox.Utils.h"
 #include "GenericToolbox.Fs.h"
+#include "GenericToolbox.Log.h"
 
 // ROOT Headers
 #include "TMatrixDSymEigen.h"
@@ -67,6 +68,7 @@ namespace GenericToolbox{
 
 }
 
+// Function header
 namespace GenericToolbox{
 
   //! Conversion Tools
@@ -95,6 +97,7 @@ namespace GenericToolbox{
   inline void enableSelectedBranches(TTree* tree_, TTreeFormula* formula_);
 
   //! Files Tools
+  inline std::shared_ptr<TObject> fetchTObject(const std::string& objectPath_);
   inline TFile* openExistingTFile(const std::string &inputFilePath_, const std::vector<std::string>& objectListToCheck_ = {});
   inline bool doesTFileIsValid(const std::string &inputFilePath_, const std::vector<std::string>& objectListToCheck_ = {});
   inline bool doesTFileIsValid(TFile* tfileCandidatePtr_, bool check_if_writable_ = false);
@@ -106,11 +109,16 @@ namespace GenericToolbox{
   inline void writeInTFile(TDirectory* dir_, const TObject& objToSave_, std::string saveName_ = "", bool forceWriteFile_=false);
   inline void writeInTFile(TDirectory* dir_, const std::string& objToSave_, std::string saveName_, bool forceWriteFile_=false);
   inline void triggerTFileWrite(TDirectory* dir_);
-
   inline std::vector<std::string> lsTDirectory(TDirectory* directory_, const std::string& className_ = "");
   inline std::vector<std::string> lsSubDirTDirectory(TDirectory* directory_);
   inline std::vector<TObject*> getListOfObjectFromTDirectory(TDirectory* directory_, const std::string &className_ = "", bool cloneObj_=false);
+
   template<typename T> std::vector<T*> getObjectList(TDirectory* directory_, bool cloneObj_ = false);
+
+  namespace Internal{
+    template<typename T> inline bool convertFromTObject(TObject* objectBuffer_, std::shared_ptr<T>& out_);
+    template<typename T> inline void fillFromTObject(TObject* objectBuffer_, std::shared_ptr<T>& out_);
+  }
 
   //! Trees Tools
   inline void disableUnhookedBranches(TTree* tree_);
@@ -506,6 +514,27 @@ namespace GenericToolbox {
 //! Files Tools
 namespace GenericToolbox {
 
+  inline std::shared_ptr<TObject> fetchTObject(const std::string& objectPath_){
+
+    // example: objectPath_ = "/path/to/tfile.root:my/dir/object"
+    auto pathElements = GenericToolbox::splitString(objectPath_, ":");
+    GTLogThrowIf(pathElements.size() < 2, "Could not parse path: " + objectPath_);
+
+    std::string rootFilePath{ GenericToolbox::joinVectorString(pathElements, ":", 0, int(pathElements.size())-2 ) };
+    std::string rootObjectPath{ pathElements[int(pathElements.size())-1] };
+
+    rootFilePath = GenericToolbox::expandEnvironmentVariables(rootFilePath);
+
+    // the containing TFile will auto destruct once we leave the thread
+    std::unique_ptr<TFile> file(TFile::Open(rootFilePath.c_str()));
+    GTLogThrowIf( file == nullptr or not file->IsOpen(), "Could not open: " + rootFilePath );
+
+    TObject* objBuffer = file->Get(rootObjectPath.c_str());
+    GTLogThrowIf( objBuffer == nullptr, "Could not fine object with name \"" + rootObjectPath + "\" within the opened TFile: " + rootFilePath );
+
+    return std::shared_ptr<TObject>( objBuffer->Clone() );
+  }
+
   inline TFile* openExistingTFile(const std::string &inputFilePath_, const std::vector<std::string>& objectListToCheck_){
     TFile* outPtr{nullptr};
 
@@ -595,24 +624,6 @@ namespace GenericToolbox {
     }
 
     return true;
-  }
-  template<typename T> inline std::vector<T*> getObjectList(TDirectory* directory_, bool cloneObj_){
-    if( directory_ == nullptr ) return {};
-
-    TClass* templateClass = TClass::GetClass<T>();
-    if( templateClass == nullptr ){
-      throw std::runtime_error("invalid template class in getObjectList. Not TObject castable?");
-    }
-
-    auto ls = lsTDirectory(directory_, templateClass->GetName());
-    std::vector<T*> output; output.reserve(ls.size());
-    for( auto& entry : ls ){
-      output.emplace_back( directory_->Get<T>(entry.c_str()) );
-      if( cloneObj_ ){ output.back() = (T*) output.back()->Clone(); }
-    }
-
-    delete templateClass;
-    return output;
   }
   inline std::vector<TObject *> getListOfObjectFromTDirectory(TDirectory *directory_, const std::string &className_, bool cloneObj_) {
     return getObjectList<TObject>(directory_, cloneObj_);
@@ -711,12 +722,97 @@ namespace GenericToolbox {
   inline void writeInTFile(TDirectory* dir_, const std::string& objToSave_, std::string saveName_, bool forceWriteFile_){
     writeInTFile(dir_, TNamed(saveName_, objToSave_.c_str()), saveName_, forceWriteFile_);
   }
+  inline void triggerTFileWrite(TDirectory* dir_){
+    if( dir_->GetFile() != nullptr ) dir_->GetFile()->Write();
+  }
+
+  // template
+  template<typename T> inline std::vector<T*> getObjectList(TDirectory* directory_, bool cloneObj_){
+    if( directory_ == nullptr ) return {};
+
+    TClass* templateClass = TClass::GetClass<T>();
+    if( templateClass == nullptr ){
+      throw std::runtime_error("invalid template class in getObjectList. Not TObject castable?");
+    }
+
+    auto ls = lsTDirectory(directory_, templateClass->GetName());
+    std::vector<T*> output; output.reserve(ls.size());
+    for( auto& entry : ls ){
+      output.emplace_back( directory_->Get<T>(entry.c_str()) );
+      if( cloneObj_ ){ output.back() = (T*) output.back()->Clone(); }
+    }
+
+    delete templateClass;
+    return output;
+  }
   template<typename T, typename = std::enable_if_t<std::is_arithmetic<T>::value>> inline void writeInTFile(TDirectory* dir_, const T& objToSave_, std::string saveName_){
     TParameter<T> out(saveName_.c_str(), objToSave_);
     writeInTFile(dir_, (TObject*) &out);
   }
-  inline void triggerTFileWrite(TDirectory* dir_){
-    if( dir_->GetFile() != nullptr ) dir_->GetFile()->Write();
+  template<typename T> auto fetchObject(const std::string& objectPath_) -> std::shared_ptr<T>{
+
+    GTLogThrowIf( objectPath_.empty(), "No object path provided." );
+
+    // grab the object from the file
+    auto objBuffer = fetchTObject(objectPath_);
+    GTLogThrowIf(objBuffer == nullptr, "Could not fetch TObject: " << objectPath_);
+
+    std::shared_ptr<T> out{nullptr};
+    Internal::fillFromTObject(objBuffer.get(), out);
+
+    GTLogThrowIf(out == nullptr, "While reading TObject from: " << objectPath_ << ", couldn't convert the TObject/" << objBuffer->ClassName() << " to the desired type");
+
+    return out;
+  }
+  template<typename T> void fetchObject(const std::string& objectPath_, std::shared_ptr<T>& out_){ out_ = fetchObject<T>( objectPath_ ); }
+
+  namespace Internal{
+    // not meant to be used by devs
+    // those are tricks to avoid template overrides
+
+    template<typename T> inline bool convertFromTObject(TObject* objectBuffer_, std::shared_ptr<T>& out_){ return false; }
+
+    // assuming T is a ROOT TObject based
+    template<typename T> inline void fillFromTObject(TObject* objectBuffer_, std::shared_ptr<T>& out_){
+
+      // this template implementation relies on the fact that T is a ROOT object (TObject based)
+
+      // matching type? great! recast to the correct type
+      if( std::string(objectBuffer_->ClassName()) == std::string(T::Class_Name()) ){
+        out_ = std::shared_ptr<T>( (T*) objectBuffer_ );
+        return;
+      }
+
+      // inheritance? does the source is higher level?
+      if( TClass( objectBuffer_->ClassName() ).InheritsFrom( T::Class_Name() ) ){
+        out_ = std::shared_ptr<T>( (T*) objectBuffer_ );
+        return;
+      }
+
+      // here handles custom conversions:
+      if( convertFromTObject(objectBuffer_, out_) ){
+        // if returns true, conversion is considered as successfull
+        return;
+      }
+
+      // last resort: relying on TObject::Copy()
+      // this is dangerous as this could create a seg fault (for instance from TH1F to TVectorD...)
+      // Using well known cases where it works
+      if( T::Class()->InheritsFrom( "TH1" ) and TClass( objectBuffer_->ClassName() ).InheritsFrom( "TH1" ) ){
+
+        // memory needs to be set
+        out_ = std::make_shared<T>();
+
+        // use of the Copy() -> TObject based will use the overriden Copy() method
+        // with incompatible types, this might end up with a segfault...
+        objectBuffer_->Copy(*out_);
+
+        return;
+      }
+
+      // reached this point? nothing happened
+      GTLogError << "Unhandled conversion from " << objectBuffer_->ClassName() << " to " << T::Class_Name() << std::endl;
+    }
   }
 
 
