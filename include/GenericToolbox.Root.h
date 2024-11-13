@@ -39,6 +39,7 @@
 // STD Headers
 #include <type_traits>
 #include <string>
+#include <memory>
 #include <map>
 
 #pragma GCC diagnostic push
@@ -97,7 +98,6 @@ namespace GenericToolbox{
   inline void enableSelectedBranches(TTree* tree_, TTreeFormula* formula_);
 
   //! Files Tools
-  inline std::shared_ptr<TObject> fetchTObject(const std::string& objectPath_);
   inline TFile* openExistingTFile(const std::string &inputFilePath_, const std::vector<std::string>& objectListToCheck_ = {});
   inline bool doesTFileIsValid(const std::string &inputFilePath_, const std::vector<std::string>& objectListToCheck_ = {});
   inline bool doesTFileIsValid(TFile* tfileCandidatePtr_, bool check_if_writable_ = false);
@@ -514,36 +514,6 @@ namespace GenericToolbox {
 //! Files Tools
 namespace GenericToolbox {
 
-  inline std::shared_ptr<TObject> fetchTObject(const std::string& objectPath_){
-
-    // example: objectPath_ = "/path/to/tfile.root:my/dir/object"
-    auto pathElements = GenericToolbox::splitString(objectPath_, ":");
-    GTLogThrowIf(pathElements.size() < 2, "Could not parse path: " + objectPath_);
-
-    std::string rootFilePath{ GenericToolbox::joinVectorString(pathElements, ":", 0, -1 ) };
-    std::string rootObjectPath{ pathElements[int(pathElements.size())-1] };
-
-    rootFilePath = GenericToolbox::expandEnvironmentVariables(rootFilePath);
-
-    // the containing TFile will auto destruct once we leave the thread
-    std::unique_ptr<TFile> file(TFile::Open(rootFilePath.c_str()));
-    GTLogThrowIf( file == nullptr or not file->IsOpen(), "Could not open: " + rootFilePath );
-
-    TObject* objBuffer = file->Get(rootObjectPath.c_str());
-    GTLogThrowIf( objBuffer == nullptr, "Could not fine object with name \"" + rootObjectPath + "\" within the opened TFile: " + rootFilePath );
-
-    // make sure the copy don't happen in the TFile buffer
-    gDirectory = nullptr;
-
-    // make the clone
-    std::shared_ptr<TObject> out( objBuffer->Clone() );
-
-    // close the file. clone object should be still accessible
-    file->Close();
-
-    return out;
-  }
-
   inline TFile* openExistingTFile(const std::string &inputFilePath_, const std::vector<std::string>& objectListToCheck_){
     TFile* outPtr{nullptr};
 
@@ -762,12 +732,26 @@ namespace GenericToolbox {
 
     GTLogThrowIf( objectPath_.empty(), "No object path provided." );
 
-    // grab the object from the file
-    auto objBuffer = fetchTObject(objectPath_);
-    GTLogThrowIf(objBuffer == nullptr, "Could not fetch TObject: " << objectPath_);
+    // example: objectPath_ = "/path/to/tfile.root:my/dir/object"
+    auto pathElements = GenericToolbox::splitString(objectPath_, ":");
+    GTLogThrowIf(pathElements.size() < 2, "Could not parse path: " + objectPath_);
 
+    std::string rootFilePath{ GenericToolbox::joinVectorString(pathElements, ":", 0, -1 ) };
+    std::string rootObjectPath{ pathElements[int(pathElements.size())-1] };
+
+    rootFilePath = GenericToolbox::expandEnvironmentVariables(rootFilePath);
+
+    // the containing TFile will auto destruct once we leave the thread
+    std::unique_ptr<TFile> file(TFile::Open(rootFilePath.c_str()));
+    GTLogThrowIf( file == nullptr or not file->IsOpen(), "Could not open: " + rootFilePath );
+
+    TObject* objBuffer = file->Get(rootObjectPath.c_str());
+    GTLogThrowIf( objBuffer == nullptr, "Could not fine object with name \"" + rootObjectPath + "\" within the opened TFile: " + rootFilePath );
+
+    // make sure the cloned obj doesn't belong to a file
+    gDirectory = nullptr;
     std::shared_ptr<T> out{nullptr};
-    Internal::fillFromTObject(objBuffer.get(), out);
+    Internal::fillFromTObject(objBuffer, out);
 
     GTLogThrowIf(out == nullptr, "While reading TObject from: " << objectPath_ << ", couldn't convert the TObject/" << objBuffer->ClassName() << " to the desired type");
 
@@ -788,13 +772,13 @@ namespace GenericToolbox {
 
       // matching type? great! recast to the correct type
       if( std::string(objectBuffer_->ClassName()) == std::string(T::Class_Name()) ){
-        out_ = std::shared_ptr<T>( (T*) objectBuffer_ );
+        out_ = std::shared_ptr<T>( (T*) objectBuffer_->Clone() );
         return;
       }
 
       // inheritance? does the source is higher level?
       if( TClass( objectBuffer_->ClassName() ).InheritsFrom( T::Class_Name() ) ){
-        out_ = std::shared_ptr<T>( (T*) objectBuffer_ );
+        out_ = std::shared_ptr<T>( (T*) objectBuffer_->Clone() );
         return;
       }
 
