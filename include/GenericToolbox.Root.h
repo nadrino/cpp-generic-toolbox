@@ -532,7 +532,16 @@ namespace GenericToolbox {
     TObject* objBuffer = file->Get(rootObjectPath.c_str());
     GTLogThrowIf( objBuffer == nullptr, "Could not fine object with name \"" + rootObjectPath + "\" within the opened TFile: " + rootFilePath );
 
-    return std::shared_ptr<TObject>( objBuffer->Clone() );
+    // make sure the copy don't happen in the TFile buffer
+    gDirectory = nullptr;
+
+    // make the clone
+    std::shared_ptr<TObject> out( objBuffer->Clone() );
+
+    // close the file. clone object should be still accessible
+    file->Close();
+
+    return out;
   }
 
   inline TFile* openExistingTFile(const std::string &inputFilePath_, const std::vector<std::string>& objectListToCheck_){
