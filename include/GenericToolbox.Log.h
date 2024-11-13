@@ -24,7 +24,7 @@
 
 // conditions
 #define GTLogThrow(message_) GTLogError << message_ << std::endl; throw std::runtime_error("exception thrown by the logger.")
-#define GTLogThrowIf(condition_, message_) if(condition_){ GTLogThrow(message_); }
+#define GTLogThrowIf(condition_, message_) if(condition_){ GTLogThrow(condition_ << message_); }
 
 
 
