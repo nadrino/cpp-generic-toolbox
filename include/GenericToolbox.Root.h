@@ -520,7 +520,7 @@ namespace GenericToolbox {
     auto pathElements = GenericToolbox::splitString(objectPath_, ":");
     GTLogThrowIf(pathElements.size() < 2, "Could not parse path: " + objectPath_);
 
-    std::string rootFilePath{ GenericToolbox::joinVectorString(pathElements, ":", 0, int(pathElements.size())-2 ) };
+    std::string rootFilePath{ GenericToolbox::joinVectorString(pathElements, ":", 0, -1 ) };
     std::string rootObjectPath{ pathElements[int(pathElements.size())-1] };
 
     rootFilePath = GenericToolbox::expandEnvironmentVariables(rootFilePath);
