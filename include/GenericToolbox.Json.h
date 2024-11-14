@@ -11,6 +11,7 @@
 #include "GenericToolbox.Fs.h"
 #include "GenericToolbox.Os.h"
 #include "GenericToolbox.Utils.h"
+#include "GenericToolbox.Log.h"
 
 #include "nlohmann/json.hpp"
 
@@ -254,10 +255,13 @@ namespace GenericToolbox {
         return Internal::getImpl(json_, static_cast<T*>(nullptr));
       }
       catch(const std::exception& e_){
-        std::cout << "json_= " << toReadableString(json_);
-        std::cout << "template type: " << typeid(T).name() << std::endl;
-        std::cout << "error: " << e_.what() << std::endl;
-        throw std::runtime_error("Could not read json value.");
+        // don't print anything with std::cout as this exception could be caught from outside
+
+        std::stringstream ss;
+        ss << "json_= " << toReadableString(json_);
+        ss << "template type: " << typeid(T).name() << std::endl;
+        ss << "error: " << e_.what() << std::endl;
+        throw std::runtime_error(GTLogBase + "Could not read json value: " + ss.str());
       }
     }
     template<typename T> inline auto fetchValue(const JsonType& jsonConfig_, const std::string& keyPath_) -> T{
