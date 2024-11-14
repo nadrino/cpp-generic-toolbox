@@ -14,7 +14,7 @@
 // a very simple logger
 
 // internals
-#define GTLogBase std::string(__FILE_NAME__) + ":" + std::to_string(__LINE__) + ": "
+#define GTLogBase std::string(__FILENAME__) + ":" + std::to_string(__LINE__) + ": "
 
 // basics
 #define GTLogError   std::cout << "[ERROR] " << GTLogBase
