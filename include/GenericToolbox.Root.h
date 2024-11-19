@@ -365,7 +365,7 @@ namespace GenericToolbox {
         }
         else{
           (*correlationMatrix)[iRow][iCol] /=
-              TMath::Sqrt((*covarianceMatrix_)[iRow][iRow]*(*covarianceMatrix_)[iCol][iCol]);
+              std::sqrt((*covarianceMatrix_)[iRow][iRow]*(*covarianceMatrix_)[iCol][iCol]);
         }
 
       }
@@ -379,7 +379,7 @@ namespace GenericToolbox {
     for(int iRow = 0 ; iRow < matrix_->GetNrows() ; iRow++){
       for(int iCol = 0 ; iCol < matrix_->GetNcols() ; iCol++){
         if( (*matrix_)[iRow][iRow] == 0 or (*matrix_)[iCol][iCol] == 0 ){ (*out)[iRow][iCol] = 0; }
-        else{ (*out)[iRow][iCol] /= TMath::Sqrt((*matrix_)[iRow][iRow]*(*matrix_)[iCol][iCol]); }
+        else{ (*out)[iRow][iCol] /= std::sqrt((*matrix_)[iRow][iRow]*(*matrix_)[iCol][iCol]); }
       }
     }
 
