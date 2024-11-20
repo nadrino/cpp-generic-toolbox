@@ -1647,10 +1647,12 @@ namespace GenericToolbox {
       throw std::runtime_error("Can't init while _covarianceMatrixPtr_ is not set");
     }
 
-
     // https://root.cern.ch/doc/master/classTDecompChol.html
     _choleskyDecomposer_ = std::make_shared<TDecompChol>(*_covarianceMatrixPtr_ );
     if( not _choleskyDecomposer_->Decompose() ){
+      TVectorD eigenVal;
+      _covarianceMatrixPtr_->EigenVectors(eigenVal);
+      eigenVal.Print();
       throw std::runtime_error("Can't decompose covariance matrix.");
     }
 
