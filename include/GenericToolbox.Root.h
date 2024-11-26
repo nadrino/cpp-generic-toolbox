@@ -732,6 +732,17 @@ namespace GenericToolbox {
     // Object name:
     if( saveName_.empty() ) saveName_ = objToSave_->GetName();
 
+    auto subPath{GenericToolbox::splitString(saveName_, "/", true)};
+    if( subPath.size() > 1 ){
+      TDirectory* dir = dir_;
+      for( auto& subFolder : subPath ){
+        if( subFolder == subPath.back() ){ continue; } // skip last
+        dir = dir->mkdir( generateCleanBranchName(subFolder).c_str() );
+      }
+      saveName_ = subPath.back(); // only keep the last bit
+      dir_ = dir;
+    }
+
     // Cleaning up object name
     saveName_ = generateCleanBranchName(saveName_);
 
@@ -753,7 +764,7 @@ namespace GenericToolbox {
 
 
     // Force TFile Write?
-    if( forceWriteFile_ ) triggerTFileWrite(dir_);
+    if( forceWriteFile_ ){ triggerTFileWrite(dir_); }
   }
   inline void writeInTFile(TDirectory* dir_, const TObject& objToSave_, std::string saveName_, bool forceWriteFile_){
     writeInTFile(dir_, &objToSave_, std::move(saveName_), forceWriteFile_);
