@@ -145,6 +145,27 @@ struct ENUM_NAME {
     return StructType::overflowValue;
   }
 
+  static std::vector<std::string> generateVectorStr(){
+    std::vector<std::string> out;
+    int nEntries{getEnumSize()};
+    out.reserve(nEntries);
+    for( int iEntry = 0 ; iEntry < nEntries ; iEntry++ ){
+      out.emplace_back( getEnumEntryToStr(iEntry) );
+    }
+    return out;
+  }
+  static std::string generateEnumStrList(){
+    std::stringstream ss;
+    int nEntries{getEnumSize()};
+    ss << "{ ";
+    for( int iEntry = 0 ; iEntry < nEntries ; iEntry++ ){
+      if( iEntry != 0 ){ ss << ", "; }
+      ss << "\"" << getEnumEntryToStr(iEntry) << "\"";
+    }
+    ss << " }";
+    return ss.str();
+  }
+
   static std::string toString( EnumTypeName value_ ){
     int nEntries{getEnumSize()};
     for( int iEntry = 0 ; iEntry < nEntries ; iEntry++ ){

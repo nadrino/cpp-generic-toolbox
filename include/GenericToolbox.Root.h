@@ -161,8 +161,8 @@ namespace GenericToolbox{
   template<typename T> std::vector<T*> getObjectList(TDirectory* directory_, bool cloneObj_ = false);
 
   namespace Internal{
-    template<typename T> inline bool convertFromTObject(TObject* objectBuffer_, std::shared_ptr<T>& out_);
-    template<typename T> inline void fillFromTObject(TObject* objectBuffer_, std::shared_ptr<T>& out_);
+    template<typename T> inline bool convertFromTObject(TObject* objectBuffer_, T*& out_);
+    template<typename T> inline void fillFromTObject(TObject* objectBuffer_, T*& out_);
   }
 
   //! Trees Tools
@@ -365,7 +365,7 @@ namespace GenericToolbox {
         }
         else{
           (*correlationMatrix)[iRow][iCol] /=
-              TMath::Sqrt((*covarianceMatrix_)[iRow][iRow]*(*covarianceMatrix_)[iCol][iCol]);
+              std::sqrt((*covarianceMatrix_)[iRow][iRow]*(*covarianceMatrix_)[iCol][iCol]);
         }
 
       }
@@ -379,14 +379,14 @@ namespace GenericToolbox {
     for(int iRow = 0 ; iRow < matrix_->GetNrows() ; iRow++){
       for(int iCol = 0 ; iCol < matrix_->GetNcols() ; iCol++){
         if( (*matrix_)[iRow][iRow] == 0 or (*matrix_)[iCol][iCol] == 0 ){ (*out)[iRow][iCol] = 0; }
-        else{ (*out)[iRow][iCol] /= TMath::Sqrt((*matrix_)[iRow][iRow]*(*matrix_)[iCol][iCol]); }
+        else{ (*out)[iRow][iCol] /= std::sqrt((*matrix_)[iRow][iRow]*(*matrix_)[iCol][iCol]); }
       }
     }
 
     return out;
   }
   template<typename T> inline std::shared_ptr<T> toCorrelationMatrix(const std::shared_ptr<T>& matrix_){
-    return std::shared_ptr<T>(toCorrelationMatrix(matrix_.get())->Clone());
+    return std::shared_ptr<T>(toCorrelationMatrix(matrix_.get()));
   }
 
 }
@@ -732,6 +732,17 @@ namespace GenericToolbox {
     // Object name:
     if( saveName_.empty() ) saveName_ = objToSave_->GetName();
 
+    auto subPath{GenericToolbox::splitString(saveName_, "/", true)};
+    if( subPath.size() > 1 ){
+      TDirectory* dir = dir_;
+      for( auto& subFolder : subPath ){
+        if( subFolder == subPath.back() ){ continue; } // skip last
+        dir = dir->mkdir( generateCleanBranchName(subFolder).c_str() );
+      }
+      saveName_ = subPath.back(); // only keep the last bit
+      dir_ = dir;
+    }
+
     // Cleaning up object name
     saveName_ = generateCleanBranchName(saveName_);
 
@@ -753,7 +764,7 @@ namespace GenericToolbox {
 
 
     // Force TFile Write?
-    if( forceWriteFile_ ) triggerTFileWrite(dir_);
+    if( forceWriteFile_ ){ triggerTFileWrite(dir_); }
   }
   inline void writeInTFile(TDirectory* dir_, const TObject& objToSave_, std::string saveName_, bool forceWriteFile_){
     writeInTFile(dir_, &objToSave_, std::move(saveName_), forceWriteFile_);
@@ -788,7 +799,7 @@ namespace GenericToolbox {
     TParameter<T> out(saveName_.c_str(), objToSave_);
     writeInTFile(dir_, (TObject*) &out);
   }
-  template<typename T> auto fetchObject(const std::string& objectPath_) -> std::shared_ptr<T>{
+  template<typename T> auto fetchObject(const std::string& objectPath_) -> T*{
 
     GTLogThrowIf( objectPath_.empty(), "No object path provided." );
 
@@ -801,6 +812,8 @@ namespace GenericToolbox {
 
     rootFilePath = GenericToolbox::expandEnvironmentVariables(rootFilePath);
 
+    auto currentDir = gDirectory->GetDirectory("");
+
     // the containing TFile will auto destruct once we leave the thread
     std::unique_ptr<TFile> file(TFile::Open(rootFilePath.c_str()));
     GTLogThrowIf(file == nullptr or not file->IsOpen(), "Could not open: " + rootFilePath);
@@ -809,28 +822,31 @@ namespace GenericToolbox {
     GTLogThrowIf(objBuffer == nullptr, "Could not fine object with name \"" + rootObjectPath + "\" within the opened TFile: " + rootFilePath);
 
     // make sure the cloned obj doesn't belong to a file
-    gDirectory = nullptr;
-    std::shared_ptr<T> out{nullptr};
+    T* out{nullptr};
+    gDirectory = currentDir; // make sure the cloned object is not handled by the tfile
     Internal::fillFromTObject(objBuffer, out);
 
     GTLogThrowIf(out == nullptr, "While reading TObject from: " << objectPath_ << ", couldn't convert the TObject/" << objBuffer->ClassName() << " to the desired type");
 
     return out;
   }
-  template<typename T> void fetchObject(const std::string& objectPath_, std::shared_ptr<T>& out_){ out_ = fetchObject<T>( objectPath_ ); }
+  template<typename T> void fetchObject(const std::string& objectPath_, std::shared_ptr<T>& out_){
+    T* outPtr = fetchObject<T>( objectPath_ );
+    out_ = std::shared_ptr<T>( outPtr );
+  }
 
   namespace Internal{
     // not meant to be used by devs
     // those are tricks to avoid template overrides
 
     // custom conversions
-    template<typename T> inline bool convertFromTObject(TObject* objectBuffer_, std::shared_ptr<T>& out_){ return false; }
-    template<typename U> inline bool convertFromTObject(TObject* objectBuffer_, std::shared_ptr<TMatrixTSym<U>>& out_){
+    template<typename T> inline bool convertFromTObject(TObject* objectBuffer_, T*& out_){ return false; }
+    template<typename U> inline bool convertFromTObject(TObject* objectBuffer_, TMatrixTSym<U>*& out_){
 
       if( objectBuffer_ == nullptr ){ return false; }
 
       if( GenericToolbox::startsWith(std::string( objectBuffer_->ClassName() ), "TMatrixT") ){
-        out_ = std::shared_ptr<TMatrixTSym<U>>(GenericToolbox::toTMatrixTSym((TMatrixT<U>*) objectBuffer_));
+        out_ = GenericToolbox::toTMatrixTSym((TMatrixT<U>*) objectBuffer_->Clone());
         return true;
       }
 
@@ -838,25 +854,25 @@ namespace GenericToolbox {
     }
 
     // assuming T is a ROOT TObject based
-    template<typename T> inline void fillFromTObject(TObject* objectBuffer_, std::shared_ptr<T>& out_){
+    template<typename T> inline void fillFromTObject(TObject* objectBuffer_, T*& out_){
 
       // this template implementation relies on the fact that T is a ROOT object (TObject based)
 
+      // here handles custom conversions:
+      if( convertFromTObject(objectBuffer_, out_) ){
+        // if returns true, conversion is considered as successfull
+        return;
+      }
+
       // matching type? great! recast to the correct type
       if( std::string(objectBuffer_->ClassName()) == std::string(T::Class_Name()) ){
-        out_ = std::shared_ptr<T>( (T*) objectBuffer_->Clone() );
+        out_ = (T*) objectBuffer_->Clone();
         return;
       }
 
       // inheritance? does the source is higher level?
       if( TClass( objectBuffer_->ClassName() ).InheritsFrom( T::Class_Name() ) ){
-        out_ = std::shared_ptr<T>( (T*) objectBuffer_->Clone() );
-        return;
-      }
-
-      // here handles custom conversions:
-      if( convertFromTObject(objectBuffer_, out_) ){
-        // if returns true, conversion is considered as successfull
+        out_ = (T*) objectBuffer_->Clone();
         return;
       }
 
@@ -866,7 +882,7 @@ namespace GenericToolbox {
       if( T::Class()->InheritsFrom( "TH1" ) and TClass( objectBuffer_->ClassName() ).InheritsFrom( "TH1" ) ){
 
         // memory needs to be set
-        out_ = std::make_shared<T>();
+        out_ = new T();
 
         // use of the Copy() -> TObject based will use the overriden Copy() method
         // with incompatible types, this might end up with a segfault...
@@ -1642,10 +1658,12 @@ namespace GenericToolbox {
       throw std::runtime_error("Can't init while _covarianceMatrixPtr_ is not set");
     }
 
-
     // https://root.cern.ch/doc/master/classTDecompChol.html
     _choleskyDecomposer_ = std::make_shared<TDecompChol>(*_covarianceMatrixPtr_ );
     if( not _choleskyDecomposer_->Decompose() ){
+      TVectorD eigenVal;
+      _covarianceMatrixPtr_->EigenVectors(eigenVal);
+      eigenVal.Print();
       throw std::runtime_error("Can't decompose covariance matrix.");
     }
 

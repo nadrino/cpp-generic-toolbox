@@ -14,17 +14,17 @@
 // a very simple logger
 
 // internals
-#define GTLogBase __FILE_NAME__ << ":" << __LINE__ << ": "
+#define GTLogBase std::string(__FILENAME__) + ":" + std::to_string(__LINE__) + ": "
 
 // basics
-#define GTLogError   std::cout << "ERROR " << GTLogBase
-#define GTLogAlert   std::cout << "ALERT " << GTLogBase
-#define GTLogWarning std::cout << " WARN " << GTLogBase
-#define GTLogInfo    std::cout << " INFO " << GTLogBase
-#define GTLogDebug   std::cout << "DEBUG " << GTLogBase
-#define GTLogTrace   std::cout << "TRACE " << GTLogBase
+#define GTLogError   std::cout << "[ERROR] " << GTLogBase
+#define GTLogAlert   std::cout << "[ALERT] " << GTLogBase
+#define GTLogWarning std::cout << "[ WARN] " << GTLogBase
+#define GTLogInfo    std::cout << "[ INFO] " << GTLogBase
+#define GTLogDebug   std::cout << "[DEBUG] " << GTLogBase
+#define GTLogTrace   std::cout << "[TRACE] " << GTLogBase
 
-// conditions
+// throw
 #define GTLogThrow(message_) GTLogError << message_ << std::endl; throw std::runtime_error("exception thrown by the logger.")
 #define GTLogThrowIf(condition_, message_) if(condition_){ GTLogThrow( "[" << #condition_ << "] " << message_); }
 
