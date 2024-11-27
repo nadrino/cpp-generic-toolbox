@@ -151,6 +151,7 @@ namespace GenericToolbox{
   inline TDirectory* mkdirTFile(TFile* outputFile_, const std::string &dirName_);
   inline TDirectory* getCurrentTDirectory();
   inline void writeInTFileWithObjTypeExt(TDirectory* dir_, const TObject* objToSave_, std::string saveName_ = "", bool forceWriteFile_=false);
+  inline void writeInTFileWithObjTypeExt(TDirectory* dir_, const TObject& objToSave_, std::string saveName_ = "", bool forceWriteFile_=false);
   inline void writeInTFile(TDirectory* dir_, const TObject* objToSave_, std::string saveName_ = "", bool forceWriteFile_=false);
   inline void writeInTFile(TDirectory* dir_, const TObject& objToSave_, std::string saveName_ = "", bool forceWriteFile_=false);
   inline void writeInTFile(TDirectory* dir_, const std::string& objToSave_, std::string saveName_, bool forceWriteFile_=false);
@@ -773,6 +774,9 @@ namespace GenericToolbox {
 
     // Force TFile Write?
     if( forceWriteFile_ ){ triggerTFileWrite(dir_); }
+  }
+  inline void writeInTFileWithObjTypeExt(TDirectory* dir_, const TObject& objToSave_, std::string saveName_, bool forceWriteFile_){
+    writeInTFileWithObjTypeExt(dir_, &objToSave_, std::move(saveName_), forceWriteFile_);
   }
   inline void writeInTFile(TDirectory* dir_, const TObject& objToSave_, std::string saveName_, bool forceWriteFile_){
     writeInTFile(dir_, &objToSave_, std::move(saveName_), forceWriteFile_);
