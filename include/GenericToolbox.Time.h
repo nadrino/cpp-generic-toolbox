@@ -9,6 +9,8 @@
 //! Time related tools
 // ***************************
 
+#include "GenericToolbox.Utils.h"
+
 #include <sstream>
 #include <iomanip>
 #include <utility>
