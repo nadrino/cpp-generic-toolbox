@@ -743,10 +743,14 @@ namespace GenericToolbox {
     else if( className == "TMatrixTSym_double" ) className = "TMatrixDSym";
 
     // check if the ext isn't already included
-    if( endsWith( saveName_, className ) ){ return; }
+    if( endsWith( saveName_, className ) ){
+      writeInTFile(dir_, objToSave_, saveName_, forceWriteFile_);
+    }
+    else{
+      // use the standard function
+      writeInTFile(dir_, objToSave_, saveName_+"_"+className, forceWriteFile_);
+    }
 
-    // use the standard function
-    writeInTFile(dir_, objToSave_, saveName_+"_"+className, forceWriteFile_);
 
   }
   inline void writeInTFile(TDirectory* dir_, const TObject* objToSave_, std::string saveName_, bool forceWriteFile_){
@@ -759,10 +763,11 @@ namespace GenericToolbox {
     auto subPath{GenericToolbox::splitString(saveName_, "/", true)};
     if( subPath.size() > 1 ){
       TDirectory* dir = dir_;
-      for( auto& subFolder : subPath ){
-        if( subFolder == subPath.back() ){ continue; } // skip last
-        dir = dir->mkdir( generateCleanBranchName(subFolder).c_str() );
+
+      for( size_t iFolder = 0 ; iFolder < subPath.size()-1 ; iFolder++ ){
+        dir = GenericToolbox::mkdirTFile(dir, generateCleanBranchName(subPath[iFolder]));
       }
+
       saveName_ = subPath.back(); // only keep the last bit for the object name
       dir_ = dir; // new dir is the sub-dir
     }
