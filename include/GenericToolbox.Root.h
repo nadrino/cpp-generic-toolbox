@@ -152,7 +152,9 @@ namespace GenericToolbox{
   inline TDirectory* getCurrentTDirectory();
   inline void writeInTFileWithObjTypeExt(TDirectory* dir_, const TObject* objToSave_, std::string saveName_ = "", bool forceWriteFile_=false);
   inline void writeInTFile(TDirectory* dir_, const TObject* objToSave_, std::string saveName_ = "", bool forceWriteFile_=false);
+  inline void writeInTFileWithObjTypeExt(TDirectory* dir_, const TObject& objToSave_, std::string saveName_ = "", bool forceWriteFile_=false);
   inline void writeInTFile(TDirectory* dir_, const TObject& objToSave_, std::string saveName_ = "", bool forceWriteFile_=false);
+  inline void writeInTFileWithObjTypeExt(TDirectory* dir_, const std::string& objToSave_, std::string saveName_, bool forceWriteFile_=false);
   inline void writeInTFile(TDirectory* dir_, const std::string& objToSave_, std::string saveName_, bool forceWriteFile_=false);
   inline void triggerTFileWrite(TDirectory* dir_);
   inline std::vector<std::string> lsTDirectory(TDirectory* directory_, const std::string& className_ = "");
@@ -774,11 +776,17 @@ namespace GenericToolbox {
     // Force TFile Write?
     if( forceWriteFile_ ){ triggerTFileWrite(dir_); }
   }
+  inline void writeInTFileWithObjTypeExt(TDirectory* dir_, const TObject& objToSave_, std::string saveName_, bool forceWriteFile_){
+    writeInTFileWithObjTypeExt(dir_, &objToSave_, std::move(saveName_), forceWriteFile_);
+  }
+  inline void writeInTFileWithObjTypeExt(TDirectory* dir_, const std::string& objToSave_, std::string saveName_, bool forceWriteFile_){
+    writeInTFileWithObjTypeExt(dir_, TNamed(saveName_, objToSave_.c_str()), std::move(saveName_), forceWriteFile_);
+  }
   inline void writeInTFile(TDirectory* dir_, const TObject& objToSave_, std::string saveName_, bool forceWriteFile_){
     writeInTFile(dir_, &objToSave_, std::move(saveName_), forceWriteFile_);
   }
   inline void writeInTFile(TDirectory* dir_, const std::string& objToSave_, std::string saveName_, bool forceWriteFile_){
-    writeInTFile(dir_, TNamed(saveName_, objToSave_.c_str()), saveName_, forceWriteFile_);
+    writeInTFile(dir_, TNamed(saveName_, objToSave_.c_str()), std::move(saveName_), forceWriteFile_);
   }
   inline void triggerTFileWrite(TDirectory* dir_){
     if( dir_->GetFile() != nullptr ) dir_->GetFile()->Write();
@@ -802,6 +810,10 @@ namespace GenericToolbox {
 
     delete templateClass;
     return output;
+  }
+  template<typename T, typename = std::enable_if_t<std::is_arithmetic<T>::value>> inline void writeInTFileWithObjTypeExt(TDirectory* dir_, const T& objToSave_, std::string saveName_){
+    TParameter<T> out(saveName_.c_str(), objToSave_);
+    writeInTFileWithObjTypeExt(dir_, (TObject*) &out);
   }
   template<typename T, typename = std::enable_if_t<std::is_arithmetic<T>::value>> inline void writeInTFile(TDirectory* dir_, const T& objToSave_, std::string saveName_){
     TParameter<T> out(saveName_.c_str(), objToSave_);
