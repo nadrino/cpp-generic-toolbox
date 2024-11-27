@@ -150,6 +150,7 @@ namespace GenericToolbox{
   inline TDirectory* mkdirTFile(TDirectory* baseDir_, const std::string &dirName_);
   inline TDirectory* mkdirTFile(TFile* outputFile_, const std::string &dirName_);
   inline TDirectory* getCurrentTDirectory();
+  inline void writeInTFileWithObjTypeExt(TDirectory* dir_, const TObject* objToSave_, std::string saveName_, bool forceWriteFile_=false);
   inline void writeInTFile(TDirectory* dir_, const TObject* objToSave_, std::string saveName_ = "", bool forceWriteFile_=false);
   inline void writeInTFile(TDirectory* dir_, const TObject& objToSave_, std::string saveName_ = "", bool forceWriteFile_=false);
   inline void writeInTFile(TDirectory* dir_, const std::string& objToSave_, std::string saveName_, bool forceWriteFile_=false);
@@ -726,25 +727,11 @@ namespace GenericToolbox {
     return gDirectory;
 #endif
   }
-  inline void writeInTFile(TDirectory* dir_, const TObject* objToSave_, std::string saveName_, bool forceWriteFile_){
-    if( dir_ == nullptr or objToSave_ == nullptr ) return;
+  inline void writeInTFileWithObjTypeExt(TDirectory* dir_, const TObject* objToSave_, std::string saveName_, bool forceWriteFile_){
+    if( objToSave_ == nullptr ){ return; }
 
-    // Object name:
+    // use TObject name
     if( saveName_.empty() ) saveName_ = objToSave_->GetName();
-
-    auto subPath{GenericToolbox::splitString(saveName_, "/", true)};
-    if( subPath.size() > 1 ){
-      TDirectory* dir = dir_;
-      for( auto& subFolder : subPath ){
-        if( subFolder == subPath.back() ){ continue; } // skip last
-        dir = dir->mkdir( generateCleanBranchName(subFolder).c_str() );
-      }
-      saveName_ = subPath.back(); // only keep the last bit
-      dir_ = dir;
-    }
-
-    // Cleaning up object name
-    saveName_ = generateCleanBranchName(saveName_);
 
     // Building custom extension:
     std::string className = objToSave_->ClassName();
@@ -753,15 +740,36 @@ namespace GenericToolbox {
     if( className == "TMatrixT_double" ) className = "TMatrixD";
     else if( className == "TMatrixTSym_double" ) className = "TMatrixDSym";
 
-    if( endsWith( saveName_, className ) ){
-      // extension already included in the obj name
-      dir_->WriteObject(objToSave_, Form("%s", saveName_.c_str()), "overwrite");
-    }
-    else{
-      // add extension
-      dir_->WriteObject(objToSave_, Form("%s_%s", saveName_.c_str(), className.c_str()), "overwrite");
+    // check if the ext isn't already included
+    if( endsWith( saveName_, className ) ){ return; }
+
+    // use the standard function
+    writeInTFile(dir_, objToSave_, saveName_+"_"+className, forceWriteFile_);
+
+  }
+  inline void writeInTFile(TDirectory* dir_, const TObject* objToSave_, std::string saveName_, bool forceWriteFile_){
+    if( dir_ == nullptr or objToSave_ == nullptr ) return;
+
+    // Object name:
+    if( saveName_.empty() ) saveName_ = objToSave_->GetName();
+
+    // create the appropriate TDirectory path
+    auto subPath{GenericToolbox::splitString(saveName_, "/", true)};
+    if( subPath.size() > 1 ){
+      TDirectory* dir = dir_;
+      for( auto& subFolder : subPath ){
+        if( subFolder == subPath.back() ){ continue; } // skip last
+        dir = dir->mkdir( generateCleanBranchName(subFolder).c_str() );
+      }
+      saveName_ = subPath.back(); // only keep the last bit for the object name
+      dir_ = dir; // new dir is the sub-dir
     }
 
+    // Cleaning up object name
+    saveName_ = generateCleanBranchName(saveName_);
+
+    // write the object
+    dir_->WriteObject(objToSave_, Form("%s", saveName_.c_str()), "overwrite");
 
     // Force TFile Write?
     if( forceWriteFile_ ){ triggerTFileWrite(dir_); }
