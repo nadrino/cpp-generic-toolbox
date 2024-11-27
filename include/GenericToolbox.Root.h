@@ -763,10 +763,11 @@ namespace GenericToolbox {
     auto subPath{GenericToolbox::splitString(saveName_, "/", true)};
     if( subPath.size() > 1 ){
       TDirectory* dir = dir_;
-      for( auto& subFolder : subPath ){
-        if( subFolder == subPath.back() ){ continue; } // skip last
-        dir = dir->mkdir( generateCleanBranchName(subFolder).c_str() );
+
+      for( size_t iFolder = 0 ; iFolder < subPath.size()-1 ; iFolder++ ){
+        dir = GenericToolbox::mkdirTFile(dir, generateCleanBranchName(subPath[iFolder]));
       }
+
       saveName_ = subPath.back(); // only keep the last bit for the object name
       dir_ = dir; // new dir is the sub-dir
     }
