@@ -743,10 +743,14 @@ namespace GenericToolbox {
     else if( className == "TMatrixTSym_double" ) className = "TMatrixDSym";
 
     // check if the ext isn't already included
-    if( endsWith( saveName_, className ) ){ return; }
+    if( endsWith( saveName_, className ) ){
+      writeInTFile(dir_, objToSave_, saveName_, forceWriteFile_);
+    }
+    else{
+      // use the standard function
+      writeInTFile(dir_, objToSave_, saveName_+"_"+className, forceWriteFile_);
+    }
 
-    // use the standard function
-    writeInTFile(dir_, objToSave_, saveName_+"_"+className, forceWriteFile_);
 
   }
   inline void writeInTFile(TDirectory* dir_, const TObject* objToSave_, std::string saveName_, bool forceWriteFile_){
