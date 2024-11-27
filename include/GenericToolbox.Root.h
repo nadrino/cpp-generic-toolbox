@@ -150,7 +150,7 @@ namespace GenericToolbox{
   inline TDirectory* mkdirTFile(TDirectory* baseDir_, const std::string &dirName_);
   inline TDirectory* mkdirTFile(TFile* outputFile_, const std::string &dirName_);
   inline TDirectory* getCurrentTDirectory();
-  inline void writeInTFileWithObjTypeExt(TDirectory* dir_, const TObject* objToSave_, std::string saveName_, bool forceWriteFile_=false);
+  inline void writeInTFileWithObjTypeExt(TDirectory* dir_, const TObject* objToSave_, std::string saveName_ = "", bool forceWriteFile_=false);
   inline void writeInTFile(TDirectory* dir_, const TObject* objToSave_, std::string saveName_ = "", bool forceWriteFile_=false);
   inline void writeInTFile(TDirectory* dir_, const TObject& objToSave_, std::string saveName_ = "", bool forceWriteFile_=false);
   inline void writeInTFile(TDirectory* dir_, const std::string& objToSave_, std::string saveName_, bool forceWriteFile_=false);
