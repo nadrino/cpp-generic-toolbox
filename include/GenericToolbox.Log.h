@@ -18,7 +18,7 @@
 namespace GenericToolbox{
   namespace LoggerUtils{
 
-    std::string getTimeStr(){
+    inline std::string getTimeStr(){
       std::stringstream ss;
       time_t rawTime = std::time(nullptr);
       struct tm timeInfo = *localtime(&rawTime);
