@@ -2,8 +2,10 @@ cmake_minimum_required (VERSION 3.5 FATAL_ERROR)
 
 project(cpp-generic-toolbox)
 
-# This toolbox is written in C++11
-set (CMAKE_CXX_STANDARD 11)
+# This toolbox is written in C++14
+set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
 
 # Include the header folder
 include_directories(./include)
