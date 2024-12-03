@@ -72,6 +72,25 @@ namespace GenericToolbox{
 // Function header
 namespace GenericToolbox{
 
+  inline TMatrixD* toTMatrixD(TH2D* input_){
+    if( input_ == nullptr ){
+      GTLogError << "input TH2D is nullptr." << std::endl;
+      return nullptr;
+    }
+
+    std::unique_ptr<TMatrixD> out{nullptr};
+
+    out = std::make_unique<TMatrixD>(input_->GetNbinsX(), input_->GetNbinsY());
+
+    for( int iCol = 0 ; iCol < input_->GetNbinsX() ; iCol++ ){
+      for( int iRow = 0 ; iRow < input_->GetNbinsY() ; iRow++ ){
+        (*out)[iCol][iRow] = input_->GetBinContent(iCol, iRow);
+      }
+    }
+
+    return out.release();
+  }
+
   //! Conversion Tools
   inline TH1D* convertToTH1D(const TVectorD *yValuesPtr_, const std::string &histTitle_ = "", const std::string &yTitle_ = "", const std::string &xTitle_ = "Entry #", TVectorD *yErrorsPtr_ = nullptr);
   inline TH1D* convertToTH1D(const std::vector<double> &Y_values_, const std::string &histTitle_ = "", const std::string &Y_title_ = "", const std::string &X_title_ = "Entry #", TVectorD *Y_errors_ = nullptr);
