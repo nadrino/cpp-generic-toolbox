@@ -91,6 +91,14 @@ namespace GenericToolbox{
 
     // core
     void waitUntilEqual(const T& val_) const;
+    template <typename U = T, typename = std::enable_if_t<std::is_same<U, bool>::value>> void waitUntilEqualThenToggle( bool val_){
+      waitUntilEqual(val_);
+      setValue(!val_);
+    }
+    template <typename U = T, typename = std::enable_if_t<std::is_same<U, bool>::value>> void toggleThenWaitUntilEqual( bool val_){
+      setValue(!val_);
+      waitUntilEqual(val_);
+    }
 
     // Define operator++ (post-increment) using SFINAE
     // Using operator++(int) and not operator++(T) to stay consistent with C++ conventions */

@@ -14,9 +14,9 @@
 #include "GenericToolbox.Thread.h" // extension
 #include "GenericToolbox.Utils.h" // extension
 
-//#ifdef ENABLE_ROOT_EXTENSION
-//#include <GenericToolbox.Root.h>
-//#endif
+#ifdef ENABLE_ROOT_EXTENSION
+#include <GenericToolbox.Root.h>
+#endif
 
 #include "classExample.h"
 
