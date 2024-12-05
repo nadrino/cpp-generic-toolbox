@@ -45,6 +45,7 @@ namespace GenericToolbox {
     inline bool doKeyExist(const JsonType& jsonConfig_, const std::string& keyPath_);
     inline std::string buildFormula(const JsonType& jsonConfig_, const std::string& keyPath_, const std::string& joinStr_);
     inline std::string buildFormula(const JsonType& jsonConfig_, const std::string& keyPath_, const std::string& joinStr_, const std::string& defaultFormula_);
+    inline void fillFormula(const JsonType& jsonConfig_, std::string& formulaToFill_, const std::string& keyPath_, const std::string& joinStr_);
 
     // reading -- templates
     template<typename T> inline auto get(const JsonType& json_) -> T;
@@ -245,6 +246,9 @@ namespace GenericToolbox {
     inline std::string buildFormula(const JsonType& jsonConfig_, const std::string& keyPath_, const std::string& joinStr_, const std::string& defaultFormula_){
       if( not doKeyExist(jsonConfig_, keyPath_) ) return defaultFormula_;
       else return buildFormula(jsonConfig_, keyPath_, joinStr_);
+    }
+    inline void fillFormula(const JsonType& jsonConfig_, std::string& formulaToFill_, const std::string& keyPath_, const std::string& joinStr_){
+      formulaToFill_ = buildFormula(jsonConfig_, keyPath_, joinStr_, formulaToFill_);
     }
 
     // templates
