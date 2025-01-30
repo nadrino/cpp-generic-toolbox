@@ -813,6 +813,7 @@ namespace GenericToolbox {
     writeInTFile(dir_, TNamed(saveName_, objToSave_.c_str()), std::move(saveName_), forceWriteFile_);
   }
   inline void triggerTFileWrite(TDirectory* dir_){
+    if( dir_ == nullptr ) return;
     if( dir_->GetFile() != nullptr ) dir_->GetFile()->Write();
   }
 
