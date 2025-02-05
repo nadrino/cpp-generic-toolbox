@@ -41,6 +41,7 @@ namespace GenericToolbox {
     inline std::string toReadableString(const JsonType& config_);
 
     // reading
+    inline JsonType cd(const JsonType& json_, const std::string& keyPath_);
     inline std::vector<std::string> ls(const JsonType& jsonConfig_);
     inline bool doKeyExist(const JsonType& jsonConfig_, const std::string& keyPath_);
     inline std::string buildFormula(const JsonType& jsonConfig_, const std::string& keyPath_, const std::string& joinStr_);
@@ -199,6 +200,11 @@ namespace GenericToolbox {
         // thrown an error -> does not exist
         return false;
       }
+    }
+    inline JsonType cd(const JsonType& json_, const std::string& keyPath_){
+      JsonType out{};
+      fillValue(json_, out, keyPath_);
+      return out;
     }
     inline std::vector<std::string> ls(const JsonType& jsonConfig_){
       std::vector<std::string> out{};
