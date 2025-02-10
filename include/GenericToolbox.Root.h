@@ -396,6 +396,7 @@ namespace GenericToolbox {
     return correlationMatrix;
   }
   template<typename T> inline T* toCorrelationMatrix(const T* matrix_){
+    if( matrix_ == nullptr ){ return nullptr;}
     auto* out = (T*) matrix_->Clone();
 
     for(int iRow = 0 ; iRow < matrix_->GetNrows() ; iRow++){
