@@ -188,6 +188,9 @@ namespace GenericToolbox {
     return std::equal( subStr_.begin(), subStr_.end(), str_.end() - long(subStr_.size()) );
   }
   static bool isMatching(const std::string& str_, const std::string& pattern_){
+    // matching if equal. We only want to treat cases with *
+    if( str_ == pattern_ ){ return true; }
+
     // Convert '*' wildcard into regex equivalent ".*"
     std::regex pattern( std::regex_replace(pattern_, std::regex("\\*"), ".*") );
     return std::regex_match(str_, pattern);
