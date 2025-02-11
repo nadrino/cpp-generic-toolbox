@@ -440,10 +440,11 @@ namespace GenericToolbox {
                       // does this entry has a "name"
                       if( not doKeyExist( outListEntry, "name" ) ){ continue; }
 
-                      // and does this name matches the override
-                      if( not isMatching(outListEntry["name"], overrideListEntry.value()["name"]) ){ continue; }
-
-                      matchingFound = true;
+                      if( outListEntry["name"] == overrideListEntry.value()["name"]
+                          or isMatching(outListEntry["name"], overrideListEntry.value()["name"]) ) {
+                        matchingFound = true;
+                      }
+                      else{ continue; }
 
                       GTLogDebugIf(debug) << "Found matching " << outListEntry["name"] << " with " << overrideListEntry.value()["name"] << std::endl;
 
@@ -515,7 +516,7 @@ namespace GenericToolbox {
                 else{
                   // override
                   if( not isIn(overrideEntry.key(), listOfIdentifiers) ){
-                    ss << "Overriding: " << joinPath(jsonPath, overrideEntry.key()) << ": "
+                    ss << "Override: " << joinPath(jsonPath, overrideEntry.key()) << ": "
                               << outSubEntry << " -> " << overrideEntry.value() << std::endl;
                   }
                   outSubEntry = overrideEntry.value();
