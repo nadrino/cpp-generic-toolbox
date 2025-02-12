@@ -399,9 +399,6 @@ namespace GenericToolbox {
                 }
 
                 if( not identifier.empty() ){
-                  // will i
-                  GTLogDebugIf(debug) << "Will identify override list item with key \"" << identifier << "\" = " << overrideListEntry.value()[identifier] << std::endl;
-
                   if     ( identifier == "__INDEX__" ){
                     if     ( overrideListEntry.value()[identifier].is_string() and overrideListEntry.value()[identifier].get<std::string>() == "*" ){
                       // applying on every entry
@@ -435,25 +432,36 @@ namespace GenericToolbox {
                     // "name" identifier
                     bool matchingFound{false};
 
+                    std::vector<std::string> availableNameList{};
+
                     // looping over all list options
                     for( auto& outListEntry : outEntry_ ){
                       // does this entry has a "name"
                       if( not doKeyExist( outListEntry, "name" ) ){ continue; }
 
+                      availableNameList.emplace_back(outListEntry["name"]);
+
                       if( outListEntry["name"] == overrideListEntry.value()["name"]
                           or isMatching(outListEntry["name"], overrideListEntry.value()["name"]) ) {
                         matchingFound = true;
+
+                        GTLogDebugIf(debug) << "Found matching " << outListEntry["name"] << " with " << overrideListEntry.value()["name"] << std::endl;
+
+                        // make sure it won't override the name with regex:
+                        JsonType override = overrideListEntry.value();
+                        override["name"] = outListEntry["name"];
+
+                        jsonPath.emplace_back(joinAsString("",overrideListEntry.key(),"(name:",outListEntry["name"],")"));
+                        overrideRecursive(outListEntry, override);
+                        jsonPath.pop_back();
                       }
-                      else{ continue; }
-
-                      GTLogDebugIf(debug) << "Found matching " << outListEntry["name"] << " with " << overrideListEntry.value()["name"] << std::endl;
-
-                      jsonPath.emplace_back(joinAsString("",overrideListEntry.key(),"(name:",outListEntry["name"],")"));
-                      overrideRecursive(outListEntry, overrideListEntry.value());
-                      jsonPath.pop_back();
                     }
 
                     if( not matchingFound and allowAddMissingKey ){
+                      GTLogDebugIf(debug) << "Did NOT find any matching name entry matching " << overrideListEntry.value()["name"]
+                      // << " among: " << GenericToolbox::toString(availableNameList)
+                      << std::endl;
+
                       ss << "Added: "
                       << joinPath(jsonPath, outEntry_.size())
                       << "(name:"
