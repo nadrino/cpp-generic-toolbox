@@ -206,29 +206,32 @@ namespace GenericToolbox {
   // Sorting
   template <typename T, typename Lambda> static std::vector<size_t> getSortPermutation(const std::vector<T>& vectorToSort_, const Lambda& firstArgGoesFirstFct_ ){
     std::vector<size_t> p(vectorToSort_.size());
+    // 0,1,2,3,4...
     std::iota(p.begin(), p.end(), 0);
     try {
       std::sort(p.begin(), p.end(),
               [&](size_t i, size_t j){
-                if( i > vectorToSort_.size() or j < vectorToSort_.size() ) {
+                if( i > vectorToSort_.size() or j > vectorToSort_.size() ) {
                   throw std::runtime_error("std::sort is reaching out of range.");
                 }
                 return firstArgGoesFirstFct_(vectorToSort_.at(i), vectorToSort_.at(j));
               });
     }
     catch( ... ) {
+      // REACHING HERE MIGHT INDICATE THAT SOMETHING IS WRONG WITH firstArgGoesFirstFct_.
+      // Typically: firstArgGoesFirstFct_(obj1, obj2) != !firstArgGoesFirstFct_(obj2, obj1)
       GTLogError << "Something might be wrong with the sort function. Using std::stable_sort instead..." << std::endl;
       try {
         std::stable_sort(p.begin(), p.end(),
               [&](size_t i, size_t j){
-                if( i > vectorToSort_.size() or j < vectorToSort_.size() ) {
+                if( i > vectorToSort_.size() or j > vectorToSort_.size() ) {
                   throw std::runtime_error("std::sort is reaching out of range.");
                 }
                 return firstArgGoesFirstFct_(vectorToSort_.at(i), vectorToSort_.at(j));
               });
       }
       catch( ... ) {
-        GTLogError << "Couldn't use std::stable_sort. Skip sorting." << std::endl;
+        GTLogError << "Couldn't use std::stable_sort either. Skip sorting." << std::endl;
       }
 
     }
@@ -250,7 +253,6 @@ namespace GenericToolbox {
       std::size_t jPrev = iEntry;
       std::size_t jEntry = sortPermutation_[iEntry];
       while( iEntry != jEntry ){
-        if( jPrev == jEntry ){ throw std::runtime_error("permutation of the same entry: " + std::to_string(jEntry)); }
         std::swap(vectorToPermute_[jPrev], vectorToPermute_[jEntry]);
         done[jEntry] = true;
         jPrev = jEntry;
