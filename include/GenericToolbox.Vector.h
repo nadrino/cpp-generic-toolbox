@@ -219,6 +219,7 @@ namespace GenericToolbox {
     }
     catch( ... ) {
       // REACHING HERE MIGHT INDICATE THAT SOMETHING IS WRONG WITH firstArgGoesFirstFct_.
+      // "not a valid strict weak ordering":
       // Typically: firstArgGoesFirstFct_(obj1, obj2) != !firstArgGoesFirstFct_(obj2, obj1)
       GTLogError << "Something might be wrong with the sort function. Using std::stable_sort instead..." << std::endl;
       try {
