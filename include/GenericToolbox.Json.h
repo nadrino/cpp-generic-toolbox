@@ -401,7 +401,7 @@ namespace GenericToolbox {
                 if( not identifier.empty() ){
                   if     ( identifier == "__INDEX__" ){
                     // make sure we don't write override identifiers
-                    JsonType override{overrideListEntry.value()};
+                    JsonType override(overrideListEntry.value());
                     override.erase("__INDEX__");
 
                     if     ( overrideListEntry.value()[identifier].is_string() and overrideListEntry.value()[identifier].get<std::string>() == "*" ){
@@ -452,8 +452,8 @@ namespace GenericToolbox {
                         GTLogDebugIf(debug) << "Found matching " << outListEntry["name"] << " with " << overrideListEntry.value()["name"] << std::endl;
 
                         // make sure we don't write override identifiers
-                        JsonType override{overrideListEntry.value()};
-                        override.erase("name");
+                        JsonType override(overrideListEntry.value());
+                        if(not override.is_array()){ override.erase("name"); }
 
                         jsonPath.emplace_back(joinAsString("",overrideListEntry.key(),"(name:",outListEntry["name"],")"));
                         overrideRecursive(outListEntry, override);
