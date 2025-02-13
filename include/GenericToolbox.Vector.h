@@ -10,6 +10,7 @@
 // ***************************
 
 #include "GenericToolbox.Macro.h"
+#include "GenericToolbox.Log.h"
 
 #include <functional>
 #include <algorithm>
@@ -206,8 +207,32 @@ namespace GenericToolbox {
   template <typename T, typename Lambda> static std::vector<size_t> getSortPermutation(const std::vector<T>& vectorToSort_, const Lambda& firstArgGoesFirstFct_ ){
     std::vector<size_t> p(vectorToSort_.size());
     std::iota(p.begin(), p.end(), 0);
-    std::sort(p.begin(), p.end(),
-              [&](size_t i, size_t j){ return firstArgGoesFirstFct_(vectorToSort_.at(i), vectorToSort_.at(j)); });
+    try {
+      std::sort(p.begin(), p.end(),
+              [&](size_t i, size_t j){
+                if( i > vectorToSort_.size() or j < vectorToSort_.size() ) {
+                  throw std::runtime_error("std::sort is reaching out of range.");
+                }
+                return firstArgGoesFirstFct_(vectorToSort_.at(i), vectorToSort_.at(j));
+              });
+    }
+    catch( ... ) {
+      GTLogError << "Something might be wrong with the sort function. Using std::stable_sort instead..." << std::endl;
+      try {
+        std::stable_sort(p.begin(), p.end(),
+              [&](size_t i, size_t j){
+                if( i > vectorToSort_.size() or j < vectorToSort_.size() ) {
+                  throw std::runtime_error("std::sort is reaching out of range.");
+                }
+                return firstArgGoesFirstFct_(vectorToSort_.at(i), vectorToSort_.at(j));
+              });
+      }
+      catch( ... ) {
+        GTLogError << "Couldn't use std::stable_sort. Skip sorting." << std::endl;
+      }
+
+    }
+
     return p;
   }
   template <typename T> static std::vector<T> getSortedVector(const std::vector<T>& unsortedVector_, const std::vector<std::size_t>& sortPermutation_ ){
