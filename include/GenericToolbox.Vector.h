@@ -224,7 +224,8 @@ namespace GenericToolbox {
       done[iEntry] = true;
       std::size_t jPrev = iEntry;
       std::size_t jEntry = sortPermutation_[iEntry];
-      while( jPrev != jEntry ){
+      while( iEntry != jEntry ){
+        if( jPrev == jEntry ){ throw std::runtime_error("permutation of the same entry: " + std::to_string(jEntry)); }
         std::swap(vectorToPermute_[jPrev], vectorToPermute_[jEntry]);
         done[jEntry] = true;
         jPrev = jEntry;
