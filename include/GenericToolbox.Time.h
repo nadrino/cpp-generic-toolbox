@@ -33,6 +33,7 @@ namespace GenericToolbox{
   static long long getElapsedTimeSinceLastCallInMicroSeconds(const std::string& key_);
   static long long getElapsedTimeSinceLastCallInMicroSeconds(int instance = -1);
   static std::string getNowDateString(const std::string& dateFormat_="%Y_%m_%d-%H_%M_%S");
+  static std::string toString(std::chrono::duration<double> duration_);
 
   namespace Time{
 
@@ -227,6 +228,37 @@ namespace GenericToolbox{
 
     ss << std::put_time(std::localtime(&in_time_t), dateFormat_.c_str());
 #endif
+    return ss.str();
+  }
+  static std::string toString(std::chrono::duration<double> duration_){
+    std::stringstream ss;
+    using namespace std::chrono;
+
+    auto h = duration_cast<hours>(duration_);
+    duration_ -= h;
+    auto m = duration_cast<minutes>(duration_);
+    duration_ -= m;
+    auto s = duration_cast<seconds>(duration_);
+    duration_ -= s;
+    auto ms = duration_cast<milliseconds>(duration_);
+
+    bool started = false;
+
+    if (h.count() > 0) {
+      ss << h.count() << "h:";
+      started = true;
+    }
+    if (m.count() > 0 || started) {  // Print minutes if hours were printed
+      ss << m.count() << "m:";
+      started = true;
+    }
+    if (s.count() > 0 || started) {  // Print seconds if minutes or hours were printed
+      ss << s.count() << "s.";
+      started = true;
+    }
+    // Always print milliseconds if everything else is zero
+    ss << ms.count() << "ms";
+
     return ss.str();
   }
 
