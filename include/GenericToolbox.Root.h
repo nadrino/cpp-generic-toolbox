@@ -41,6 +41,7 @@
 #include <string>
 #include <memory>
 #include <map>
+#include <utility>
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-function"
@@ -264,13 +265,13 @@ namespace GenericToolbox{
   class [[maybe_unused]] TFilePath {
 
   public:
-    TFilePath(TDirectory* rootDir_, std::string subDirPath_): rootDir(rootDir_), subDirPath(subDirPath_) {}
-    TFilePath getSubDir( const std::string& subDir_ ) const {
+    explicit TFilePath(TDirectory* rootDir_, std::string subDirPath_ = ""): rootDir(rootDir_), subDirPath(std::move(subDirPath_)) {}
+    [[nodiscard]] TFilePath getSubDir( const std::string& subDir_ ) const {
       TFilePath out(*this);
       out.subDirPath = GenericToolbox::joinPath(this->subDirPath, subDir_);
       return out;
     }
-    TDirectory* getDir() const { return GenericToolbox::mkdirTFile(rootDir, subDirPath); }
+    [[nodiscard]] TDirectory* getDir() const { return GenericToolbox::mkdirTFile(rootDir, subDirPath); }
 
   private:
     TDirectory* rootDir{nullptr};
