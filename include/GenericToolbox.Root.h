@@ -265,7 +265,8 @@ namespace GenericToolbox{
   class [[maybe_unused]] TFilePath {
 
   public:
-    explicit TFilePath(TDirectory* rootDir_, std::string subDirPath_ = ""): rootDir(rootDir_), subDirPath(std::move(subDirPath_)) {}
+    explicit TFilePath(TDirectory* rootDir_): rootDir(rootDir_) {}
+    TFilePath(TDirectory* rootDir_, std::string subDirPath_): rootDir(rootDir_), subDirPath(std::move(subDirPath_)) {}
     [[nodiscard]] TFilePath getSubDir( const std::string& subDir_ ) const {
       TFilePath out(*this);
       out.subDirPath = GenericToolbox::joinPath(this->subDirPath, subDir_);
