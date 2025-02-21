@@ -41,6 +41,7 @@
 #include <string>
 #include <memory>
 #include <map>
+#include <utility>
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-function"
@@ -264,13 +265,14 @@ namespace GenericToolbox{
   class [[maybe_unused]] TFilePath {
 
   public:
-    TFilePath(TDirectory* rootDir_, std::string subDirPath_): rootDir(rootDir_), subDirPath(subDirPath_) {}
-    TFilePath getSubDir( const std::string& subDir_ ) const {
+    explicit TFilePath(TDirectory* rootDir_): rootDir(rootDir_) {}
+    TFilePath(TDirectory* rootDir_, std::string subDirPath_): rootDir(rootDir_), subDirPath(std::move(subDirPath_)) {}
+    [[nodiscard]] TFilePath getSubDir( const std::string& subDir_ ) const {
       TFilePath out(*this);
       out.subDirPath = GenericToolbox::joinPath(this->subDirPath, subDir_);
       return out;
     }
-    TDirectory* getDir() const { return GenericToolbox::mkdirTFile(rootDir, subDirPath); }
+    [[nodiscard]] TDirectory* getDir() const { return GenericToolbox::mkdirTFile(rootDir, subDirPath); }
 
   private:
     TDirectory* rootDir{nullptr};
@@ -396,6 +398,7 @@ namespace GenericToolbox {
     return correlationMatrix;
   }
   template<typename T> inline T* toCorrelationMatrix(const T* matrix_){
+    if( matrix_ == nullptr ){ return nullptr;}
     auto* out = (T*) matrix_->Clone();
 
     for(int iRow = 0 ; iRow < matrix_->GetNrows() ; iRow++){
@@ -813,6 +816,7 @@ namespace GenericToolbox {
     writeInTFile(dir_, TNamed(saveName_, objToSave_.c_str()), std::move(saveName_), forceWriteFile_);
   }
   inline void triggerTFileWrite(TDirectory* dir_){
+    if( dir_ == nullptr ) return;
     if( dir_->GetFile() != nullptr ) dir_->GetFile()->Write();
   }
 

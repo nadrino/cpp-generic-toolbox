@@ -10,6 +10,7 @@
 // ***************************
 
 #include "GenericToolbox.Macro.h"
+#include "GenericToolbox.Log.h"
 
 #include <functional>
 #include <algorithm>
@@ -205,9 +206,37 @@ namespace GenericToolbox {
   // Sorting
   template <typename T, typename Lambda> static std::vector<size_t> getSortPermutation(const std::vector<T>& vectorToSort_, const Lambda& firstArgGoesFirstFct_ ){
     std::vector<size_t> p(vectorToSort_.size());
+    // 0,1,2,3,4...
     std::iota(p.begin(), p.end(), 0);
-    std::sort(p.begin(), p.end(),
-              [&](size_t i, size_t j){ return firstArgGoesFirstFct_(vectorToSort_.at(i), vectorToSort_.at(j)); });
+    try {
+      std::sort(p.begin(), p.end(),
+              [&](size_t i, size_t j){
+                if( i > vectorToSort_.size() or j > vectorToSort_.size() ) {
+                  throw std::runtime_error("std::sort is reaching out of range.");
+                }
+                return firstArgGoesFirstFct_(vectorToSort_.at(i), vectorToSort_.at(j));
+              });
+    }
+    catch( ... ) {
+      // REACHING HERE MIGHT INDICATE THAT SOMETHING IS WRONG WITH firstArgGoesFirstFct_.
+      // "not a valid strict weak ordering":
+      // Typically: firstArgGoesFirstFct_(obj1, obj2) != !firstArgGoesFirstFct_(obj2, obj1)
+      GTLogError << "Something might be wrong with the sort function. Using std::stable_sort instead..." << std::endl;
+      try {
+        std::stable_sort(p.begin(), p.end(),
+              [&](size_t i, size_t j){
+                if( i > vectorToSort_.size() or j > vectorToSort_.size() ) {
+                  throw std::runtime_error("std::sort is reaching out of range.");
+                }
+                return firstArgGoesFirstFct_(vectorToSort_.at(i), vectorToSort_.at(j));
+              });
+      }
+      catch( ... ) {
+        GTLogError << "Couldn't use std::stable_sort either. Skip sorting." << std::endl;
+      }
+
+    }
+
     return p;
   }
   template <typename T> static std::vector<T> getSortedVector(const std::vector<T>& unsortedVector_, const std::vector<std::size_t>& sortPermutation_ ){

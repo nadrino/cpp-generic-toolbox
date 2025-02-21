@@ -98,6 +98,7 @@ namespace GenericToolbox{
   static bool hasSubStr(const std::string& str_, const std::string& subStr_, bool ignoreCase_ = false);
   static bool startsWith(const std::string& str_, const std::string& subStr_, bool ignoreCase_ = false);
   static bool endsWith(const std::string& str_, const std::string& subStr_, bool ignoreCase_ = false);
+  static bool isMatching(const std::string& str_, const std::string& pattern_);
 
   // -- Conversion Tools
   template<typename T, typename TT> static std::string toString(const T& iterable_, const TT& toStrFct_, bool jumpLine_=true, bool indentLine_=true);
@@ -185,6 +186,11 @@ namespace GenericToolbox {
       return std::equal( subStrLower.begin(), subStrLower.end(), toLowerCase(str_).end() - long(subStrLower.size()) );
     }
     return std::equal( subStr_.begin(), subStr_.end(), str_.end() - long(subStr_.size()) );
+  }
+  static bool isMatching(const std::string& str_, const std::string& pattern_){
+    // Convert '*' wildcard into regex equivalent ".*"
+    std::regex pattern( std::regex_replace(pattern_, std::regex("\\*"), ".*") );
+    return std::regex_match(str_, pattern);
   }
 
   // -- Aesthetic
