@@ -410,6 +410,14 @@ namespace GenericToolbox{
 
     Range() = default;
     Range(double min_, double max_) : min(min_), max(max_) {}
+    friend std::ostream& operator <<( std::ostream& o, const Range& this_ ){
+      o << "[";
+      std::isnan(this_.min) ? o << "-inf" : o << this_.min;
+      o << ", ";
+      std::isnan(this_.max) ? o << "+inf" : o << this_.max;
+      o << "]";
+      return o;
+    }
   };
 }
 
