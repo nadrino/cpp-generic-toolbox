@@ -1159,7 +1159,11 @@ namespace GenericToolbox{  // Structs to decide if a stream function can be impl
   template<typename VariableType> struct VariableHolder: public PlaceHolder{
     explicit VariableHolder(VariableType value_) : _nBytes_(sizeof(value_)), _variable_(std::move(value_)){  }
     [[nodiscard]] const std::type_info & getType() const override { return typeid(VariableType); }
+#if HAS_CPP_17
     [[nodiscard]] bool isPointerType() const override { return std::is_pointer_v<VariableType>; }
+#else
+    [[nodiscard]] bool isPointerType() const override { return std::is_pointer<VariableType>::value; }
+#endif
     [[nodiscard]] PlaceHolder* clone() const override { return new VariableHolder(_variable_); }
     void writeToStream(std::ostream& o) const override {
 #if HAS_CPP_17
@@ -1267,7 +1271,11 @@ namespace GenericToolbox{  // Structs to decide if a stream function can be impl
   }
   template<typename RequestedType> const RequestedType& AnyType::getValue() const{
     if( _varPtr_ == nullptr ){ throw std::runtime_error("AnyType value not set."); }
+#if HAS_CPP_17
     if( std::is_pointer_v<RequestedType> and _varPtr_->isPointerType() ){
+#else
+    if( std::is_pointer<RequestedType>::value and _varPtr_->isPointerType() ){
+#endif
       // allow the cast of different type pointer
     }
     else if( getType() != typeid(RequestedType) ) {
