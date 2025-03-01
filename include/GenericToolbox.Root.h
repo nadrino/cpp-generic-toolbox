@@ -1759,6 +1759,312 @@ namespace GenericToolbox{
   };
 }
 
+// ChainBuffer
+namespace GenericToolbox{
+
+  class TreeBuffer{
+    /*
+     * The ChainBuffer helps to handle general TTree/TChain expressions
+     * that get automatically parsed and converted to the optimal type
+     * by using GenericToolbox::AnyType
+     *
+     */
+
+  public:
+    TreeBuffer() = default;
+
+    // forward declaration for getters
+    class ExpressionBuffer;
+
+    void setTree(TTree* chainPtr_){ _treePtr_ = chainPtr_; }
+    int addExpression(const std::string& exprStr_);
+    void initialize();
+
+    void saveExpressions();
+    [[nodiscard]] const std::vector<std::shared_ptr<ExpressionBuffer>>& getExpressionBufferList() const{ return _expressionBufferList_; }
+    [[nodiscard]] const ExpressionBuffer* getExpressionBuffer(const std::string& exprStr_) const;
+    [[nodiscard]] int getExpressionBufferIndex(const std::string& exprStr_) const;
+
+    // sub-classes
+    struct BranchInfo{
+      // used for ttree update / notify
+      std::string name{};
+      size_t byteOffset{};
+      bool disableAutoDelete{false};
+    };
+
+    // expression and its derivatives
+    class ExpressionBuffer{
+
+    public:
+      virtual ~ExpressionBuffer() = default;
+
+      virtual void save(const uint8_t* src_);
+      virtual void notify(TTree* tree_){}
+
+      // setters
+      void setByteOffset(size_t offset_){ _byteOffset_ = offset_;}
+      void setExpression(const std::string& expression_){ _expression_ = expression_; }
+      void setBuffer(const GenericToolbox::AnyType &buffer_){ _buffer_ = buffer_; }
+
+      // getters
+      [[nodiscard]] const GenericToolbox::AnyType& getBuffer() const{ return _buffer_; }
+      [[nodiscard]] const std::string& getExpression() const{ return _expression_; }
+
+    protected:
+      [[nodiscard]] virtual const uint8_t* getBufferAddress(const uint8_t* src_) const{ return src_ + _byteOffset_; }
+
+      size_t _byteOffset_{0};
+      std::string _expression_;
+      // this buffers both saves the type, its size and its value
+      GenericToolbox::AnyType _buffer_{};
+    };
+    class NestedArrayExpression : public ExpressionBuffer {
+    public:
+      void setObjSize(size_t objSize_){ objSize = objSize_;}
+      void setExpPtrArrayIndex(ExpressionBuffer* expPtrArrayIndex_){ expPtrArrayIndex = expPtrArrayIndex_;}
+
+    protected:
+      [[nodiscard]] const uint8_t* getBufferAddress(const uint8_t* src_) const override;
+
+      size_t objSize{0};
+      ExpressionBuffer* expPtrArrayIndex{nullptr};
+    };
+    class FormulaExpression : public ExpressionBuffer {
+    public:
+      void parseFormula(TTree* tree_);
+
+    protected:
+      std::unique_ptr<TTreeFormula> _formulaPtr_{nullptr};
+
+      void notify(TTree* tree_) override;
+      void save(const uint8_t* src_) override;
+    };
+
+  protected:
+    size_t getBranchByteOffset(const std::string& branchName_);
+    void expandBuffer(const std::string& branchName_);
+    void notify();
+
+  private:
+    // The handled TChained
+    TTree* _treePtr_{nullptr};
+
+    // where TChain is writing the data
+    std::vector<uint8_t> _chainBuffer_{};
+
+    // holding branch info for re-linking the TChain
+    std::vector<BranchInfo> _branchInfoList_{};
+
+    // where the expressions are evaluated
+    std::vector<std::shared_ptr<ExpressionBuffer>> _expressionBufferList_{};
+
+    // to change re-hook address on a new TTree
+    TObjNotifier _notifier_{};
+
+  };
+
+  inline size_t TreeBuffer::getBranchByteOffset(const std::string& branchName_){
+    for( auto& bb : _branchInfoList_ ){
+      if( bb.name == branchName_ ){ return bb.byteOffset; }
+    }
+
+    // otherwise create it
+    expandBuffer(branchName_);
+    return _branchInfoList_.back().byteOffset;
+  }
+  inline void TreeBuffer::expandBuffer(const std::string& branchName_){
+    auto* b = _treePtr_->GetBranch(branchName_.c_str());
+    if( b == nullptr ){ throw std::runtime_error(branchName_ + " not found"); }
+
+    // Calculating the requested buffer size
+    bool disableAutoDelete{false};
+    size_t bufferSize{0};
+    auto* leavesList = b->GetListOfLeaves();
+    int nLeaves = leavesList->GetEntries();
+    for( int iLeaf = 0 ; iLeaf < nLeaves ; iLeaf++ ){
+      auto* l = (TLeaf*) leavesList->At(iLeaf);
+      if( l->GetNdata() != 0 ){
+        // primary type leaf (int, double, long, etc...)
+        bufferSize += l->GetNdata() * l->GetLenType();
+      }
+      else{
+        // pointer-like obj (TGraph, TClonesArray...)
+        disableAutoDelete = true; // avoid segfault when GetEntry is called while a TSpline3 has been created (probably a bug from ROOT)
+        bufferSize += 2 * l->GetLenType(); // pointer-like obj: ROOT didn't update the ptr size from 32 to 64 bits??
+      }
+    }
+
+    if( bufferSize == 0 ){ throw std::runtime_error("buffer size is 0"); }
+
+    _branchInfoList_.emplace_back();
+    _branchInfoList_.back().name = branchName_;
+    _branchInfoList_.back().byteOffset = _chainBuffer_.size();
+    _branchInfoList_.back().disableAutoDelete = disableAutoDelete;
+
+    _chainBuffer_.resize(_chainBuffer_.size() + bufferSize, 0);
+  }
+  inline int TreeBuffer::addExpression(const std::string& exprStr_){
+    if( exprStr_.empty() ){ throw std::invalid_argument("expression is empty"); }
+    if( _treePtr_ == nullptr ){ throw std::runtime_error("chain is null"); }
+
+    // check if it already exists
+    auto idx{getExpressionBufferIndex(exprStr_)};
+    if( idx != -1 ){ return idx; }
+
+    // need to parse the expression
+    std::vector<std::string> argBuffer;
+    auto strippedLeafExpr = GenericToolbox::stripBracket(exprStr_, '[', ']', false, &argBuffer);
+    if( strippedLeafExpr.empty() ){ throw std::runtime_error(__METHOD_NAME__ + " Bad leaf form expression: " + exprStr_); }
+
+    // first, check if the remaining expr is a leaf
+    auto* leafPtr = _treePtr_->GetLeaf(strippedLeafExpr.c_str());
+
+    // we support 1 dim array at maximum
+    if( leafPtr != nullptr and argBuffer.size() <= 1 ){
+
+      // add a slot for ROOT to drop the data
+      auto offset = getBranchByteOffset( leafPtr->GetBranch()->GetName() );
+      auto anySlot = GenericToolbox::leafToAnyType(leafPtr->GetTypeName());
+
+      if( argBuffer.empty() ) {
+        // not an array
+        _expressionBufferList_.emplace_back(std::make_unique<ExpressionBuffer>());
+      }
+      else{
+        // array-like
+        try{
+          // try for a static index
+          int index = std::stoi(argBuffer[0]);
+          auto exp = std::make_unique<ExpressionBuffer>();
+          // translating the array index
+          offset += index * leafPtr->GetLenType();
+          _expressionBufferList_.emplace_back(std::move(exp));
+        }
+        catch(...){
+          // add the arg as a whole new expression /!\ recursive
+          addExpression(argBuffer[0]);
+          auto exp = std::make_unique<NestedArrayExpression>();
+          exp->setObjSize( anySlot.getPlaceHolderPtr()->getVariableSize() );
+          exp->setExpPtrArrayIndex( const_cast<ExpressionBuffer *>(getExpressionBuffer(argBuffer[0])) );
+          _expressionBufferList_.emplace_back(std::move(exp));
+        }
+      }
+
+      _expressionBufferList_.back()->setByteOffset(offset);
+
+      // creating the typed buffer
+      _expressionBufferList_.back()->setBuffer(anySlot);
+
+      // keep a copy of the original expression
+      _expressionBufferList_.back()->setExpression(exprStr_);
+    }
+    else{
+      // directly use a formula
+      auto exp = std::make_unique<FormulaExpression>();
+      exp->setExpression(exprStr_);
+      exp->setExpression(exprStr_);
+      exp->setBuffer( leafToAnyType("Double_t") );
+      exp->parseFormula(_treePtr_);
+      _expressionBufferList_.emplace_back(std::move(exp));
+    }
+
+    return static_cast<int>(_expressionBufferList_.size())-1;
+  }
+  inline void TreeBuffer::saveExpressions(){
+    for( auto& eb : _expressionBufferList_ ){
+      eb->save(_chainBuffer_.data());
+    }
+  }
+  inline void TreeBuffer::initialize(){
+    if(_treePtr_ == nullptr){ throw std::runtime_error("chain not initialized"); }
+
+    // notification
+    _notifier_.setOnNotifyFct([&]{ this->notify(); });
+    _treePtr_->SetNotify( &_notifier_ );
+    this->notify();
+  }
+  inline const TreeBuffer::ExpressionBuffer* TreeBuffer::getExpressionBuffer(const std::string& exprStr_) const{
+    auto idx{getExpressionBufferIndex(exprStr_)};
+    if( idx == -1 ){ return nullptr; }
+    return _expressionBufferList_[idx].get();
+  }
+  [[nodiscard]] inline int TreeBuffer::getExpressionBufferIndex(const std::string& exprStr_) const{
+    int idx{0};
+    for( auto& exp : _expressionBufferList_){
+      if( exp->getExpression() == exprStr_ ){ return idx; }
+      idx++;
+    }
+    return -1;
+  }
+  inline void TreeBuffer::notify(){
+    // hook the branch addresses to the new TTree
+
+    // reset all branch status to 0
+    _treePtr_->SetBranchStatus("*", false);
+
+    for(auto& br: _branchInfoList_) {
+      // it should exist
+      auto* branchPtr = _treePtr_->GetBranch(br.name.c_str());
+      if( branchPtr == nullptr ){ throw std::logic_error(br.name + "Branch name doesn't match"); }
+
+      _treePtr_->SetBranchStatus(br.name.c_str(), true);
+
+      // set the address where ROOT will write the data
+      branchPtr->SetAddress( &_chainBuffer_[br.byteOffset] );
+      if( br.disableAutoDelete ){ branchPtr->SetAutoDelete(false);}
+    }
+
+    for( auto& exp : _expressionBufferList_ ){
+      exp->notify(_treePtr_);
+    }
+
+  }
+
+  inline void TreeBuffer::ExpressionBuffer::save(const uint8_t* src_){
+    std::memcpy(
+      _buffer_.getPlaceHolderPtr()->getVariableAddress(),
+      getBufferAddress(src_),
+      _buffer_.getPlaceHolderPtr()->getVariableSize()
+      );
+  }
+  inline const uint8_t* TreeBuffer::NestedArrayExpression::getBufferAddress(const uint8_t* src_) const{
+    // make sure the value is up-to-date (treat TFormula first for instance)
+    expPtrArrayIndex->save(src_);
+    return this->ExpressionBuffer::getBufferAddress(src_) + expPtrArrayIndex->getBuffer().getValueAsLong() * objSize;
+  }
+  inline void TreeBuffer::FormulaExpression::parseFormula(TTree* tree_){
+    if( tree_ == nullptr ){ throw std::runtime_error("tree_ is null"); }
+    _formulaPtr_ = std::make_unique<TTreeFormula>(
+      _expression_.c_str(), _expression_.c_str(), tree_
+    );
+
+    if( _formulaPtr_ == nullptr ){ throw std::runtime_error("couldn't create the formula"); }
+
+    // ROOT Hot fix: https://root-forum.cern.ch/t/ttreeformula-evalinstance-return-0-0/16366/10
+    _formulaPtr_->GetNdata();
+
+    if( _formulaPtr_->GetNdim() == 0 ){
+      throw std::runtime_error(__METHOD_NAME__+": \"" + _expression_ + "\" could not be parsed by the TTree");
+    }
+  }
+  inline void TreeBuffer::FormulaExpression::notify(TTree* tree_){
+    _formulaPtr_->Notify();
+    GenericToolbox::enableSelectedBranches(tree_, _formulaPtr_.get());
+  }
+  inline void TreeBuffer::FormulaExpression::save(const uint8_t* src_){
+    // src_ will be ignored since there is no buffer in that case
+    double buffer = _formulaPtr_->EvalInstance(0);
+    std::memcpy(
+      _buffer_.getPlaceHolderPtr()->getVariableAddress(),
+      &buffer,
+      _buffer_.getPlaceHolderPtr()->getVariableSize()
+      );
+  }
+
+
+}
+
 // BranchBuffer
 namespace GenericToolbox{
   class BranchBuffer{
