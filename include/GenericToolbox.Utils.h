@@ -1137,14 +1137,19 @@ namespace GenericToolbox{  // Structs to decide if a stream function can be impl
   template <typename T, bool> class DoubleCastImpl {};
   template <typename T> class DoubleCastImpl<T,true> { public: static double implement(T const& t) { return static_cast<double>(t); } };
   template <typename T> class DoubleCastImpl<T,false>{ public: static double implement(T const& t) { return std::nan(typeid(t).name()); } };
+  template <typename T, bool> class LongCastImpl {};
+  template <typename T> class LongCastImpl<T,true> { public: static long implement(T const& t) { return static_cast<long>(t); } };
+  template <typename T> class LongCastImpl<T,false>{ public: static long implement(T const& t) { return std::nan(typeid(t).name()); } };
 
   // PlaceHolder is used in AnyType as a pointer member
   struct PlaceHolder{
     virtual ~PlaceHolder() = default;
     [[nodiscard]] virtual const std::type_info& getType() const = 0;
+    [[nodiscard]] virtual bool isPointerType() const = 0;
     [[nodiscard]] virtual PlaceHolder* clone() const = 0;
     virtual void writeToStream(std::ostream& o) const = 0;
     [[nodiscard]] virtual double getVariableAsDouble() const = 0;
+    [[nodiscard]] virtual long getValueAsLong() const = 0;
     [[nodiscard]] virtual size_t getVariableSize() const = 0;
     [[nodiscard]] virtual const void* getVariableAddress() const = 0;
     virtual void* getVariableAddress() = 0;
@@ -1154,6 +1159,7 @@ namespace GenericToolbox{  // Structs to decide if a stream function can be impl
   template<typename VariableType> struct VariableHolder: public PlaceHolder{
     explicit VariableHolder(VariableType value_) : _nBytes_(sizeof(value_)), _variable_(std::move(value_)){  }
     [[nodiscard]] const std::type_info & getType() const override { return typeid(VariableType); }
+    [[nodiscard]] bool isPointerType() const override { return std::is_pointer_v<VariableType>; }
     [[nodiscard]] PlaceHolder* clone() const override { return new VariableHolder(_variable_); }
     void writeToStream(std::ostream& o) const override {
 #if HAS_CPP_17
@@ -1164,6 +1170,9 @@ namespace GenericToolbox{  // Structs to decide if a stream function can be impl
     }
     [[nodiscard]] double getVariableAsDouble() const override {
       return DoubleCastImpl<VariableType, std::is_convertible<VariableType, double>::value>::implement(_variable_);
+    }
+    [[nodiscard]] long getValueAsLong() const override {
+      return LongCastImpl<VariableType, std::is_convertible<VariableType, long>::value>::implement(_variable_);
     }
     [[nodiscard]] size_t getVariableSize() const override{
       return _nBytes_;
@@ -1204,12 +1213,13 @@ namespace GenericToolbox{  // Structs to decide if a stream function can be impl
     template<typename ValueType> inline ValueType& getValue();
     template<typename ValueType> inline const ValueType& getValue() const;
     [[nodiscard]] inline double getValueAsDouble() const;
+    [[nodiscard]] inline long getValueAsLong() const;
 
     inline friend std::ostream& operator <<( std::ostream& o, const AnyType& v );
 
 
   protected:
-    inline AnyType& swap(AnyType& rhs);
+    inline AnyType& swap(AnyType& rhs) noexcept;
 
 
   private:
@@ -1249,21 +1259,28 @@ namespace GenericToolbox{  // Structs to decide if a stream function can be impl
     return _varPtr_->getVariableSize();
   }
 
-  template<typename ValueType> inline void AnyType::setValue(const ValueType& value_){
+  template<typename ValueType> void AnyType::setValue(const ValueType& value_){
     _varPtr_ = std::unique_ptr<VariableHolder<ValueType>>(new VariableHolder<ValueType>(value_));
   }
-  template<typename ValueType> inline ValueType& AnyType::getValue() {
-    if ( _varPtr_ == nullptr ){ throw std::runtime_error("AnyType value not set."); }
-    if ( getType() != typeid(ValueType) ) { throw std::runtime_error("AnyType value type mismatch."); }
-    return static_cast<VariableHolder<ValueType> *>(_varPtr_.get())->_variable_;
+  template<typename RequestedType> RequestedType& AnyType::getValue() {
+    return const_cast<RequestedType&>( const_cast<const AnyType*>(this)->getValue<RequestedType>() );
   }
-  template<typename ValueType> inline const ValueType& AnyType::getValue() const{
-    if ( _varPtr_ == nullptr ){ throw std::runtime_error("AnyType value not set."); }
-    if ( getType() != typeid(ValueType) ) { throw std::runtime_error("AnyType value type mismatch."); }
-    return static_cast<const VariableHolder<const ValueType> *>(_varPtr_.get())->_variable_;
+  template<typename RequestedType> const RequestedType& AnyType::getValue() const{
+    if( _varPtr_ == nullptr ){ throw std::runtime_error("AnyType value not set."); }
+    if( std::is_pointer_v<RequestedType> and _varPtr_->isPointerType() ){
+      // allow the cast of different type pointer
+    }
+    else if( getType() != typeid(RequestedType) ) {
+      // otherwise it's a problem
+      throw std::runtime_error("AnyType value type mismatch: stored: " + std::string(getType().name()) + ", requested: " + typeid(RequestedType).name());
+    }
+    return static_cast<const VariableHolder<const RequestedType> *>(_varPtr_.get())->_variable_;
   }
   inline double AnyType::getValueAsDouble() const{
     return _varPtr_->getVariableAsDouble();
+  }
+  inline long AnyType::getValueAsLong() const{
+    return _varPtr_->getValueAsLong();
   }
 
   inline std::ostream& operator<<( std::ostream& o, const AnyType& v ) {
@@ -1272,7 +1289,7 @@ namespace GenericToolbox{  // Structs to decide if a stream function can be impl
   }
 
   // Protected
-  inline AnyType& AnyType::swap(AnyType& rhs) {
+  inline AnyType& AnyType::swap(AnyType& rhs) noexcept {
     std::swap(_varPtr_, rhs._varPtr_);
     return *this;
   }
