@@ -410,6 +410,12 @@ namespace GenericToolbox{
 
     Range() = default;
     Range(double min_, double max_) : min(min_), max(max_) {}
+    [[nodiscard]] bool isUnbounded() const{ return std::isnan(min) and std::isnan(max); }
+    [[nodiscard]] bool isInBounds(double val_) const{
+      if( not std::isnan(min) and val_ < min ){ return false; }
+      if( not std::isnan(max) and val_ > max ){ return false; }
+      return true;
+    }
     friend std::ostream& operator <<( std::ostream& o, const Range& this_ ){
       o << "[";
       std::isnan(this_.min) ? o << "-inf" : o << this_.min;
