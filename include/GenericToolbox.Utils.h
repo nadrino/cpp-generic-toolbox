@@ -409,9 +409,10 @@ namespace GenericToolbox{
     double max{std::nan("unset")};
 
     Range() = default;
-    Range(double min_, double max_) : min(min_), max(max_) {}
+    Range(double min_, double max_) : min(min_), max(max_){}
     [[nodiscard]] bool isUnbounded() const{ return std::isnan(min) and std::isnan(max); }
     [[nodiscard]] bool isInBounds(double val_) const{
+      // both bounds are inclusive [min, max]
       if( not std::isnan(min) and val_ < min ){ return false; }
       if( not std::isnan(max) and val_ > max ){ return false; }
       return true;
