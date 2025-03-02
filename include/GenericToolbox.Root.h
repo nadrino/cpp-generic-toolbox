@@ -1790,7 +1790,6 @@ namespace GenericToolbox{
       // used for ttree update / notify
       std::string name{};
       size_t byteOffset{};
-      bool disableAutoDelete{false};
     };
 
     // expression and its derivatives
@@ -1878,7 +1877,6 @@ namespace GenericToolbox{
     if( b == nullptr ){ throw std::runtime_error(branchName_ + " not found"); }
 
     // Calculating the requested buffer size
-    bool disableAutoDelete{false};
     size_t bufferSize{0};
     auto* leavesList = b->GetListOfLeaves();
     int nLeaves = leavesList->GetEntries();
@@ -1890,7 +1888,6 @@ namespace GenericToolbox{
       }
       else{
         // pointer-like obj (TGraph, TClonesArray...)
-        disableAutoDelete = true; // avoid segfault when GetEntry is called while a TSpline3 has been created (probably a bug from ROOT)
         bufferSize += 2 * l->GetLenType(); // pointer-like obj: ROOT didn't update the ptr size from 32 to 64 bits??
       }
     }
@@ -1900,7 +1897,6 @@ namespace GenericToolbox{
     _branchInfoList_.emplace_back();
     _branchInfoList_.back().name = branchName_;
     _branchInfoList_.back().byteOffset = _chainBuffer_.size();
-    _branchInfoList_.back().disableAutoDelete = disableAutoDelete;
 
     _chainBuffer_.resize(_chainBuffer_.size() + bufferSize, 0);
   }
@@ -2012,7 +2008,6 @@ namespace GenericToolbox{
 
       // set the address where ROOT will write the data
       branchPtr->SetAddress( &_chainBuffer_[br.byteOffset] );
-      if( br.disableAutoDelete ){ branchPtr->SetAutoDelete(false);}
     }
 
     for( auto& exp : _expressionBufferList_ ){
