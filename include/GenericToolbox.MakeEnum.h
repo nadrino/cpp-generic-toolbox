@@ -6,10 +6,18 @@
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wcomment"
 
-#include <algorithm>
-#include <string>
-#include <cctype>
+// We can't include those since this MakeEnum could be called inside a namespace of class.
+// It should be handled by the user
+// #include <string> // std::string
+// #include <cctype> // std::tolower()
 
+// pre-requisites
+#ifndef _LIBCPP_STRING
+#error "GenericToolbox.MakeEnum.h requires to have #include <string>"
+#endif
+#ifndef _LIBCPP_CCTYPE
+#error "GenericToolbox.MakeEnum.h requires to have #include <cctype>"
+#endif
 
 /*
  * required: ENUM_NAME, ENUM_FIELDS
@@ -60,7 +68,6 @@
 #define TEMP_MERGE_DEPLOY(X, Y) X##Y
 #define TEMP_MERGE(X, Y) TEMP_MERGE_DEPLOY(X, Y) // use a proxy for evaluating X and Y before merging
 
-
 // Yes, this is a lie... It's actually a struct!
 struct ENUM_NAME {
 
@@ -104,6 +111,8 @@ struct ENUM_NAME {
   friend bool operator==(const StructType& lhs, const StructType& rhs){ return lhs.value == rhs.value; }
   friend bool operator!=(const StructType& lhs, const StructType& rhs){ return lhs.value != rhs.value; }
 
+  static std::string toLower(const std::string& str_){ auto out{str_}; for( char& c : out ){ c = std::tolower(c); } return out; }
+
   static int getEnumSize(){
 #define ENUM_FIELD(...) TEMP_FIRST_ARG(__VA_ARGS__),
     static const EnumType indices[] = { ENUM_FIELDS };
@@ -124,22 +133,17 @@ struct ENUM_NAME {
 #undef ENUM_FIELD
     return names[index_];
   }
-  static StructType toEnum( const std::string& name_, bool ignoreCase_ = false ){
+  static StructType toEnum( std::string name_, bool ignoreCase_ = false ){
+    if( ignoreCase_ ){ name_ = toLower(name_); }
+#ifdef ENUM_DICT
+#define ENUM_DICT_ENTRY(altName_, originalName_) if( name_ == (ignoreCase_? toLower(altName_): altName_) ){ return toEnum(originalName_); }
+    ENUM_DICT
+#undef ENUM_DICT_ENTRY
+#endif
     int nEntries{getEnumSize()};
     for( int iEntry = 0 ; iEntry < nEntries ; iEntry++ ){
-      if( ignoreCase_ ){
-
-        std::string nameLower{name_};
-        std::transform(nameLower.begin(), nameLower.end(), nameLower.begin(), [](unsigned char c) { return std::tolower(c); });
-        std::string enumNameLower{getEnumEntryToStr(iEntry)};
-        std::transform(enumNameLower.begin(), enumNameLower.end(), enumNameLower.begin(), [](unsigned char c) { return std::tolower(c); });
-
-        if( nameLower == enumNameLower ){ return getEnumVal(iEntry); }
-      }
-      else{
-        if( name_ == getEnumEntryToStr(iEntry) ){
-          return getEnumVal(iEntry);
-        }
+      if( name_ == ( ignoreCase_ ? toLower(getEnumEntryToStr(iEntry)): getEnumEntryToStr(iEntry) ) ){
+        return getEnumVal(iEntry);
       }
     }
     return StructType::overflowValue;
@@ -173,7 +177,7 @@ struct ENUM_NAME {
         return getEnumEntryToStr(iEntry);
       }
     }
-    return {};
+    return {"Overflow(" + std::to_string(value_) + ")"};
   }
   static std::string toString( EnumType value_ ){ return toString( static_cast<EnumTypeName>(value_) ); }
   static inline std::string toString( StructType enum_ ){ return toString( enum_.value ); }
@@ -190,6 +194,8 @@ struct ENUM_NAME {
     out += " }";
     return out;
   }
+  //friend bool operator==(const ENUM_NAME& lhs, const std::string& rhs){ return lhs.toString() == rhs; }
+  //friend bool operator==(const std::string& lhs, const ENUM_NAME& rhs){ return lhs == rhs.toString(); }
 
 };
 
