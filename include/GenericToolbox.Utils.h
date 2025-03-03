@@ -410,22 +410,27 @@ namespace GenericToolbox{
 
     Range() = default;
     Range(double min_, double max_) : min(min_), max(max_){}
-    [[nodiscard]] bool isBounded() const{ return not std::isnan(min) or not std::isnan(max); }
-    [[nodiscard]] bool isUnbounded() const{ return not isBounded(); }
+    [[nodiscard]] bool hasLowerBound() const{ return not std::isnan(min); }
+    [[nodiscard]] bool hasUpperBound() const{ return not std::isnan(max); }
+    [[nodiscard]] bool hasBound() const{ return hasLowerBound() or hasUpperBound(); }
+    [[nodiscard]] bool hasBothBounds() const{ return hasLowerBound() and hasUpperBound(); }
+    [[nodiscard]] bool isUnbounded() const{ return not hasBound(); }
     [[nodiscard]] bool isInBounds(double val_) const{
       // both bounds are inclusive [min, max]
-      if( not std::isnan(min) and val_ < min ){ return false; }
-      if( not std::isnan(max) and val_ > max ){ return false; }
+      if( hasLowerBound() and val_ < min ){ return false; }
+      if( hasUpperBound() and val_ > max ){ return false; }
       return true;
     }
-    friend std::ostream& operator <<( std::ostream& o, const Range& this_ ){
-      o << "[";
-      std::isnan(this_.min) ? o << "-inf" : o << this_.min;
-      o << ", ";
-      std::isnan(this_.max) ? o << "+inf" : o << this_.max;
-      o << "]";
-      return o;
+    [[nodiscard]] std::string toString() const{
+      std::stringstream ss;
+      ss << "[";
+      std::isnan(min) ? ss << "-inf" : ss << min;
+      ss << ", ";
+      std::isnan(max) ? ss << "+inf" : ss << max;
+      ss << "]";
+      return ss.str();
     }
+    friend std::ostream& operator <<( std::ostream& o, const Range& this_ ){ o << this_.toString(); return o; }
   };
 }
 
