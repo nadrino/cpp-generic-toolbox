@@ -19,6 +19,16 @@
 #include <string>
 #include <vector>
 
+// extension for GenericToolbox::MakeEnum
+#define MAKE_ENUM_JSON_INTERFACE(EnumName_) \
+  friend void from_json(const GenericToolbox::Json::JsonType& j, EnumName_& obj){ \
+    obj = EnumName_::toEnum( j.get<std::string>() ); \
+    if( obj == EnumName_::overflowValue ){ \
+      GTLogError << j.get<std::string>() << " isn't a valid enum. Available: " << EnumName_::generateEnumStrList() << std::endl; \
+      std::exit(1); \
+    } \
+  }
+
 
 // Declaration
 namespace GenericToolbox {
