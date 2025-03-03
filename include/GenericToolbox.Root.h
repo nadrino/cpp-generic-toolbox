@@ -1820,6 +1820,7 @@ namespace GenericToolbox {
         if( _parLimitList_[iVar].isUnbounded() ){ continue; }
         if( not _parLimitList_[iVar].isInBounds(output_[iVar]) ){
           isThrowSuccessful = false;
+          break;
         }
       }
     }
