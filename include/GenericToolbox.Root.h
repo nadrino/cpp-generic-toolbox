@@ -1678,11 +1678,17 @@ namespace GenericToolbox {
 
   public:
     CorrelatedVariablesSampler() = default;
-    ~CorrelatedVariablesSampler() override = default;
+    ~CorrelatedVariablesSampler() override { for( auto& diag : diagonalPerBlock ){ delete diag.getCovarianceMatrixPtr(); } };
 
-    inline void setCovarianceMatrixPtr(TMatrixDSym *covarianceMatrixPtr_){ _covarianceMatrixPtr_ = covarianceMatrixPtr_; }
+    void setCovarianceMatrixPtr(TMatrixDSym *covarianceMatrixPtr_){ _covarianceMatrixPtr_ = covarianceMatrixPtr_; }
 
     inline void throwCorrelatedVariables(TVectorD& output_);
+    inline void extractBlocks();
+
+    std::vector<GenericToolbox::Range>& getParLimitList(){ return _parLimitList_; }
+
+    TMatrixDSym* getCovarianceMatrixPtr(){ return _covarianceMatrixPtr_; }
+
 
   protected:
     inline void initializeImpl() override;
@@ -1699,6 +1705,10 @@ namespace GenericToolbox {
     std::shared_ptr<TMatrixD> _sqrtMatrix_{nullptr};
     std::shared_ptr<TVectorD> _throwBuffer_{nullptr};
 
+    std::vector<GenericToolbox::Range> _parLimitList_{};
+    std::vector<CorrelatedVariablesSampler> diagonalPerBlock{};
+    std::vector<std::vector<int>> blockIndexLists{};
+
   };
 
   inline void CorrelatedVariablesSampler::initializeImpl() {
@@ -1711,16 +1721,78 @@ namespace GenericToolbox {
     if( not _choleskyDecomposer_->Decompose() ){
       TVectorD eigenVal;
       _covarianceMatrixPtr_->EigenVectors(eigenVal);
-      eigenVal.Print();
-      throw std::runtime_error("Can't decompose covariance matrix.");
+      for( int iVar = 0 ; iVar < eigenVal.GetNrows() ; ++iVar ) {
+        if( eigenVal[iVar] < 0 ) {
+          eigenVal.Print();
+          GTLogThrow("Can't decompose covariance matrix.");
+        }
+      }
     }
 
     // Decompose a symmetric, positive definite matrix: A = U^T * U
     _sqrtMatrix_ = std::make_shared<TMatrixD>(_choleskyDecomposer_->GetU());
 
     _sqrtMatrix_->T(); // Transpose it to get the left side one
+
+    _parLimitList_.resize(_sqrtMatrix_->GetNrows(), {std::nan("-inf"),std::nan("+inf")});
+  }
+  inline void CorrelatedVariablesSampler::extractBlocks(){
+    GTLogThrowIf(_covarianceMatrixPtr_ == nullptr, "_covarianceMatrixPtr_ is not set");
+    blockIndexLists.clear();
+    for( int iDiag = 0 ; iDiag < _covarianceMatrixPtr_->GetNrows() ; iDiag++ ){
+      bool alreadyProcessed = false;
+      for( auto& indices : blockIndexLists ) {
+        if( GenericToolbox::isIn(iDiag, indices) ){ alreadyProcessed = true; break; }
+      }
+      if( alreadyProcessed ){ continue; }
+      blockIndexLists.emplace_back();
+      blockIndexLists.back().emplace_back(iDiag);
+      for( int jDiag = 0 ; jDiag < _covarianceMatrixPtr_->GetNrows() ; jDiag++ ) {
+        if((*_covarianceMatrixPtr_)[iDiag][jDiag] != 0) {
+          blockIndexLists.back().emplace_back(jDiag);
+        }
+      }
+    }
+
+    // don't go any further!
+    if( blockIndexLists.size() == 1 ){ return; }
+
+    GTLogInfo << "Found " << blockIndexLists.size() << " matrix sub-block." << std::endl;
+
+    for( auto& blockIndexList : blockIndexLists ){
+      auto* blockMatrix = new TMatrixDSym(blockIndexList.size());
+      for( int iRow = 0 ; iRow < blockIndexList.size() ; iRow++ ){
+        for( int iCol = iRow ; iCol < blockIndexList.size() ; iCol++ ) {
+          (*blockMatrix)[iRow][iCol] = (*_covarianceMatrixPtr_)[blockIndexList[iRow]][blockIndexList[iCol]];
+          (*blockMatrix)[iCol][iRow] = (*blockMatrix)[iRow][iCol];
+        }
+      }
+      diagonalPerBlock.emplace_back();
+      diagonalPerBlock.back().setCovarianceMatrixPtr(blockMatrix);
+      diagonalPerBlock.back().initialize();
+
+      for( int iRow = 0 ; iRow < blockIndexList.size() ; iRow++ ) {
+        diagonalPerBlock.back().getParLimitList()[iRow] = _parLimitList_[blockIndexList[iRow]];
+      }
+    }
+
   }
   inline void CorrelatedVariablesSampler::throwCorrelatedVariables(TVectorD& output_){
+
+    if( not diagonalPerBlock.empty() ){
+      for( size_t iBlock = 0 ; iBlock < diagonalPerBlock.size() ; iBlock++ ) {
+        TVectorD blockOutput( blockIndexLists[iBlock].size());
+        diagonalPerBlock[iBlock].throwCorrelatedVariables(blockOutput);
+        int iIdx{0};
+        for( auto& blockIndexList : blockIndexLists[iBlock] ){
+          output_[blockIndexList] = blockOutput[iIdx++];
+        }
+      }
+      return;
+    }
+
+    // should be a full block!
+
     // https://math.stackexchange.com/questions/446093/generate-correlated-normal-random-variables
     this->throwIfNotInitialized(__METHOD_NAME__);
     if(output_.GetNrows() != _covarianceMatrixPtr_->GetNrows()){
@@ -1731,11 +1803,28 @@ namespace GenericToolbox {
       throw std::runtime_error( ss.str() );
     }
 
-    for( int iVar = 0 ; iVar < output_.GetNrows() ; iVar++ ){
-      output_[iVar] = _prng_->Gaus(0, 1);
-    }
+    bool isThrowSuccessful{false};
+    size_t nThrows{0};
+    do {
+      nThrows++;
+      GTLogThrowIf( nThrows > 10000, "Too many throws" );
 
-    output_ *= (*_sqrtMatrix_);
+      for( int iVar = 0 ; iVar < output_.GetNrows() ; iVar++ ){
+        output_[iVar] = _prng_->Gaus(0, 1);
+      }
+
+      output_ *= (*_sqrtMatrix_);
+
+      isThrowSuccessful = true;
+      for( int iVar = 0 ; iVar < output_.GetNrows() ; iVar++ ){
+        if( _parLimitList_[iVar].isUnbounded() ){ continue; }
+        if( not _parLimitList_[iVar].isInBounds(output_[iVar]) ){
+          isThrowSuccessful = false;
+        }
+      }
+    }
+    while( not isThrowSuccessful );
+
   }
 }
 
