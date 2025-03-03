@@ -8,16 +8,10 @@
 
 // We can't include those since this MakeEnum could be called inside a namespace of class.
 // It should be handled by the user
+
 // #include <string> // std::string
 // #include <cctype> // std::tolower()
 
-// pre-requisites
-#ifndef _LIBCPP_STRING
-#error "GenericToolbox.MakeEnum.h requires to have #include <string>"
-#endif
-#ifndef _LIBCPP_CCTYPE
-#error "GenericToolbox.MakeEnum.h requires to have #include <cctype>"
-#endif
 
 /*
  * required: ENUM_NAME, ENUM_FIELDS
