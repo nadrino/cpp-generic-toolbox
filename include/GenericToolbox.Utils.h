@@ -411,8 +411,11 @@ namespace GenericToolbox{
     Range() = default;
     Range(double min_, double max_) : min(min_), max(max_){}
     void fillMostConstrainingBounds(const Range& other_){
-      min = std::max(min, other_.min);
-      max = std::max(max, other_.max);
+      // std::min(std::nan(""),1.) -> nan
+      // std::min(1.,std::nan("")) -> 1
+      // so we check the bounds first
+      if(other_.hasLowerBound()){ min = std::max(other_.min, min); }
+      if(other_.hasUpperBound()){ max = std::min(other_.max, max); }
     }
     [[nodiscard]] bool hasLowerBound() const{ return not std::isnan(min); }
     [[nodiscard]] bool hasUpperBound() const{ return not std::isnan(max); }
