@@ -1685,7 +1685,8 @@ namespace GenericToolbox {
     inline void throwCorrelatedVariables(TVectorD& output_);
     inline void extractBlocks();
 
-    std::vector<GenericToolbox::Range>& getParLimitList(){ return _parLimitList_; }
+    void setNbMaxTries(int nMaxTries_){ nMaxTries = nMaxTries_; }
+    std::vector<Range>& getParLimitList(){ return _rangeList_; }
 
     TMatrixDSym* getCovarianceMatrixPtr(){ return _covarianceMatrixPtr_; }
 
@@ -1705,9 +1706,12 @@ namespace GenericToolbox {
     std::shared_ptr<TMatrixD> _sqrtMatrix_{nullptr};
     std::shared_ptr<TVectorD> _throwBuffer_{nullptr};
 
-    std::vector<GenericToolbox::Range> _parLimitList_{};
-    std::vector<CorrelatedVariablesSampler> diagonalPerBlock{};
+    int nMaxTries{1};
+    std::vector<Range> _rangeList_{};
+
+    // nested
     std::vector<std::vector<int>> blockIndexLists{};
+    std::vector<CorrelatedVariablesSampler> diagonalPerBlock{};
 
   };
 
@@ -1734,11 +1738,13 @@ namespace GenericToolbox {
 
     _sqrtMatrix_->T(); // Transpose it to get the left side one
 
-    _parLimitList_.resize(_sqrtMatrix_->GetNrows(), {std::nan("-inf"),std::nan("+inf")});
+    _rangeList_.resize(_sqrtMatrix_->GetNrows(), {std::nan("-inf"),std::nan("+inf")});
   }
   inline void CorrelatedVariablesSampler::extractBlocks(){
     GTLogThrowIf(_covarianceMatrixPtr_ == nullptr, "_covarianceMatrixPtr_ is not set");
     blockIndexLists.clear();
+
+    // find the blocks
     for( int iDiag = 0 ; iDiag < _covarianceMatrixPtr_->GetNrows() ; iDiag++ ){
       bool alreadyProcessed = false;
       for( auto& indices : blockIndexLists ) {
@@ -1747,7 +1753,7 @@ namespace GenericToolbox {
       if( alreadyProcessed ){ continue; }
       blockIndexLists.emplace_back();
       blockIndexLists.back().emplace_back(iDiag);
-      for( int jDiag = 0 ; jDiag < _covarianceMatrixPtr_->GetNrows() ; jDiag++ ) {
+      for( int jDiag = iDiag+1 ; jDiag < _covarianceMatrixPtr_->GetNrows() ; jDiag++ ) {
         if((*_covarianceMatrixPtr_)[iDiag][jDiag] != 0) {
           blockIndexLists.back().emplace_back(jDiag);
         }
@@ -1757,7 +1763,19 @@ namespace GenericToolbox {
     // don't go any further!
     if( blockIndexLists.size() == 1 ){ return; }
 
-    GTLogInfo << "Found " << blockIndexLists.size() << " matrix sub-block." << std::endl;
+    GTLogInfo << "Found " << blockIndexLists.size() << " matrix sub-block in "
+    << _covarianceMatrixPtr_->GetNrows() << "x" << _covarianceMatrixPtr_->GetNrows() << " cov matrix." << std::endl;
+
+    // sanity check
+    int sum{0}; for(auto& block: blockIndexLists){ sum += block.size(); }
+    if( _covarianceMatrixPtr_->GetNrows() != sum ){
+      GTDebugVar(_covarianceMatrixPtr_->GetNrows());
+      GTDebugVar(sum);
+      GTLogError << "Blocks are: " << std::endl;
+      for(auto& block: blockIndexLists){ GTDebugVar(GenericToolbox::toString(block)); }
+      GTLogThrow("Something is wrong. DEV should check.");
+    }
+
 
     for( auto& blockIndexList : blockIndexLists ){
       auto* blockMatrix = new TMatrixDSym(blockIndexList.size());
@@ -1769,10 +1787,11 @@ namespace GenericToolbox {
       }
       diagonalPerBlock.emplace_back();
       diagonalPerBlock.back().setCovarianceMatrixPtr(blockMatrix);
+      diagonalPerBlock.back().setNbMaxTries(nMaxTries);
       diagonalPerBlock.back().initialize();
 
       for( int iRow = 0 ; iRow < blockIndexList.size() ; iRow++ ) {
-        diagonalPerBlock.back().getParLimitList()[iRow] = _parLimitList_[blockIndexList[iRow]];
+        diagonalPerBlock.back().getParLimitList()[iRow] = _rangeList_[blockIndexList[iRow]];
       }
     }
 
@@ -1782,7 +1801,17 @@ namespace GenericToolbox {
     if( not diagonalPerBlock.empty() ){
       for( size_t iBlock = 0 ; iBlock < diagonalPerBlock.size() ; iBlock++ ) {
         TVectorD blockOutput( blockIndexLists[iBlock].size());
-        diagonalPerBlock[iBlock].throwCorrelatedVariables(blockOutput);
+        try {
+          diagonalPerBlock[iBlock].throwCorrelatedVariables(blockOutput);
+        }
+        catch( ... ){
+          GTLogError << "Could not throw parameters of block " << iBlock << std::endl;
+          GTLogError << "par indices: " << toString(blockIndexLists[iBlock]) << std::endl;
+          GTLogError << "par bounds: " << toString(diagonalPerBlock[iBlock].getParLimitList(), false) << std::endl;
+          diagonalPerBlock[iBlock].getCovarianceMatrixPtr()->Print();
+          GTLogThrow("Tried more than " << nMaxTries << " times.");
+        }
+
         int iIdx{0};
         for( auto& blockIndexList : blockIndexLists[iBlock] ){
           output_[blockIndexList] = blockOutput[iIdx++];
@@ -1807,7 +1836,7 @@ namespace GenericToolbox {
     size_t nThrows{0};
     do {
       nThrows++;
-      GTLogThrowIf( nThrows > 10000, "Too many throws" );
+      GTLogThrowIf( nThrows > nMaxTries, "Too many throws" );
 
       for( int iVar = 0 ; iVar < output_.GetNrows() ; iVar++ ){
         output_[iVar] = _prng_->Gaus(0, 1);
@@ -1817,8 +1846,8 @@ namespace GenericToolbox {
 
       isThrowSuccessful = true;
       for( int iVar = 0 ; iVar < output_.GetNrows() ; iVar++ ){
-        if( _parLimitList_[iVar].isUnbounded() ){ continue; }
-        if( not _parLimitList_[iVar].isInBounds(output_[iVar]) ){
+        if( _rangeList_[iVar].isUnbounded() ){ continue; }
+        if( not _rangeList_[iVar].isInBounds(output_[iVar]) ){
           isThrowSuccessful = false;
           break;
         }
