@@ -437,6 +437,9 @@ namespace GenericToolbox{
       ss << "]";
       return ss.str();
     }
+
+    Range& operator+=(double shift_){ min += shift_; max += shift_; return *this; }
+    Range& operator-=(double shift_){ min -= shift_; max -= shift_; return *this; }
     friend std::ostream& operator <<( std::ostream& o, const Range& this_ ){ o << this_.toString(); return o; }
   };
 }
