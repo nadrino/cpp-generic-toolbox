@@ -1263,7 +1263,7 @@ namespace GenericToolbox{  // Structs to decide if a stream function can be impl
   };
 
   inline AnyType::AnyType(const AnyType& other_){
-    this->_varPtr_ = std::unique_ptr<PlaceHolder>(other_._varPtr_->clone());
+    if( other_._varPtr_ != nullptr ){ this->_varPtr_ = std::unique_ptr<PlaceHolder>(other_._varPtr_->clone()); }
   }
   template<typename ValueType> inline AnyType::AnyType(const ValueType& value_){
     this->template setValue(value_);
