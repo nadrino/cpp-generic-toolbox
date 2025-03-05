@@ -576,13 +576,13 @@ namespace GenericToolbox{
   class RawDataArray{
 
   public:
-    inline RawDataArray() = default;
-    inline virtual ~RawDataArray() = default;
+    RawDataArray() = default;
+    virtual ~RawDataArray() = default;
 
     inline void reset();
 
     inline std::vector<unsigned char> &getRawDataArray();
-    inline const std::vector<unsigned char> &getRawDataArray() const;
+    [[nodiscard]] inline const std::vector<unsigned char> &getRawDataArray() const;
     inline void writeMemoryContent( const void *address_, size_t dataSize_ );
     inline void writeMemoryContent( const void *address_, size_t dataSize_, size_t byteOffset_ );
 
@@ -648,9 +648,16 @@ namespace GenericToolbox{
   class TablePrinter{
 
   public:
-    inline TablePrinter() = default;
-    inline virtual ~TablePrinter() = default;
+    TablePrinter() = default;
+    virtual ~TablePrinter() = default;
 
+    // setters
+    void setColorBuffer( const std::string &colorBuffer_ ){ _colorBuffer_ = colorBuffer_; }
+
+    // const getters
+    [[nodiscard]] int getNbRows() const { return int(_colTitleList_.size()); }
+
+    // main methods
     inline void reset();
     inline void fillTable( const std::vector<std::vector<std::string>> &tableLines_ );
     inline size_t setColTitles( const std::vector<std::string> &colTitles_ );
@@ -660,13 +667,9 @@ namespace GenericToolbox{
 
     inline void setTableContent( size_t colIndex_, size_t rowIndex_, const std::string &value_ );
 
-    inline int getNbRows(){ return int(_colTitleList_.size()); }
+    [[nodiscard]] inline std::string generateTableString() const;
 
-    inline std::string generateTableString();
-
-    inline void printTable(){ std::cout << generateTableString() << std::endl; }
-
-    inline void setColorBuffer( const std::string &colorBuffer_ ){ _colorBuffer_ = colorBuffer_; }
+    void printTable() const { std::cout << generateTableString() << std::endl; }
 
   private:
     std::vector<std::string> _colTitleList_{};
@@ -686,7 +689,7 @@ namespace GenericToolbox{
       NextColumn,
       NextLine
     }
-        Action;
+    Action;
 
     template<typename T>
     inline TablePrinter &operator<<( const T &data );
@@ -740,7 +743,7 @@ namespace GenericToolbox{
     if( rowIndex_ >= _tableContent_[colIndex_].size() ) throw std::runtime_error("invalid row index");
     _tableContent_[colIndex_][rowIndex_] = value_;
   }
-  std::string TablePrinter::generateTableString(){
+  std::string TablePrinter::generateTableString() const {
     std::stringstream ss;
 
     std::vector<size_t> paveColList(_tableContent_.size(),0);
@@ -913,9 +916,9 @@ namespace GenericToolbox{
   }
   inline double VariableMonitor::evalTotalGrowthRate(){
     double output = (_totalAccumulated_ - _lastTotalAccumulated_);
-    output /= std::chrono::duration_cast<std::chrono::milliseconds>(
+    output /= static_cast<double>(std::chrono::duration_cast<std::chrono::milliseconds>(
         std::chrono::high_resolution_clock::now() - _lastTotalRateEval_
-    ).count();
+    ).count());
     output *= 1000.;
 
     _lastTotalRateEval_ = std::chrono::high_resolution_clock::now();
