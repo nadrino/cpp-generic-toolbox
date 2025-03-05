@@ -1860,7 +1860,7 @@ namespace GenericToolbox {
   }
 }
 
-// ChainBuffer
+// TreeBuffer
 namespace GenericToolbox{
 
   class TreeBuffer{
@@ -1872,19 +1872,28 @@ namespace GenericToolbox{
      */
 
   public:
-    TreeBuffer() = default;
-
     // forward declaration for getters
     class ExpressionBuffer;
 
-    void setTree(TTree* chainPtr_){ _treePtr_ = chainPtr_; }
-    int addExpression(const std::string& exprStr_);
-    void initialize();
+  public:
+    TreeBuffer() = default;
 
-    void saveExpressions();
+    // setters
+    void setTree(TTree* chainPtr_){ _treePtr_ = chainPtr_; }
+
+    // const getters
     [[nodiscard]] const std::vector<std::shared_ptr<ExpressionBuffer>>& getExpressionBufferList() const{ return _expressionBufferList_; }
-    [[nodiscard]] const ExpressionBuffer* getExpressionBuffer(const std::string& exprStr_) const;
-    [[nodiscard]] int getExpressionBufferIndex(const std::string& exprStr_) const;
+
+    // pre-initialize
+    inline int addExpression(const std::string& exprStr_);
+
+    // initialize
+    inline void initialize();
+
+    // main methods
+    inline void saveExpressions();
+    [[nodiscard]] inline const ExpressionBuffer* getExpressionBuffer(const std::string& exprStr_) const;
+    [[nodiscard]] inline int getExpressionBufferIndex(const std::string& exprStr_) const;
 
     // sub-classes
     struct BranchInfo{
