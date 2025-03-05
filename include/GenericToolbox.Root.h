@@ -42,6 +42,7 @@
 #include <memory>
 #include <map>
 #include <utility>
+#include <functional>
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-function"
@@ -1583,8 +1584,6 @@ namespace GenericToolbox{
 
   }
 
-
-
 }
 
 
@@ -1667,6 +1666,7 @@ namespace GenericToolbox{
       out_ = (void*)(nullptr);
     }
   }
+
 }
 
 
@@ -1680,16 +1680,20 @@ namespace GenericToolbox {
     CorrelatedVariablesSampler() = default;
     ~CorrelatedVariablesSampler() override { for( auto& diag : diagonalPerBlock ){ delete diag.getCovarianceMatrixPtr(); } };
 
+    // setters
     void setCovarianceMatrixPtr(const TMatrixDSym *covarianceMatrixPtr_){ _covarianceMatrixPtr_ = covarianceMatrixPtr_; }
-
-    inline void throwCorrelatedVariables(TVectorD& output_);
-    inline void extractBlocks();
-
+    void setPrng(TRandom* prng_){ _prng_ = prng_; }
     void setNbMaxTries(int nMaxTries_){ nMaxTries = nMaxTries_; }
+
+    // const getters
+    [[nodiscard]] const TMatrixDSym* getCovarianceMatrixPtr() const { return _covarianceMatrixPtr_; }
+
+    // mutable getters
     std::vector<Range>& getParLimitList(){ return _rangeList_; }
 
-    const TMatrixDSym* getCovarianceMatrixPtr(){ return _covarianceMatrixPtr_; }
-
+    // main methods
+    inline void throwCorrelatedVariables(TVectorD& output_);
+    inline void extractBlocks();
 
   protected:
     inline void initializeImpl() override;
@@ -1697,16 +1701,14 @@ namespace GenericToolbox {
   private:
     // inputs:
     const TMatrixDSym * _covarianceMatrixPtr_{nullptr};
-
-    // optionals
     TRandom* _prng_{gRandom}; // using TRandom3 by default
+    int nMaxTries{1};
 
     // internals
     std::shared_ptr<TDecompChol> _choleskyDecomposer_{nullptr};
     std::shared_ptr<TMatrixD> _sqrtMatrix_{nullptr};
     std::shared_ptr<TVectorD> _throwBuffer_{nullptr};
 
-    int nMaxTries{1};
     std::vector<Range> _rangeList_{};
 
     // nested
@@ -1858,26 +1860,6 @@ namespace GenericToolbox {
   }
 }
 
-// TObjNotifier
-namespace GenericToolbox{
-
-  class TObjNotifier : public TObject {
-
-  public:
-    inline TObjNotifier() = default;
-    inline ~TObjNotifier() override = default;
-
-    inline void setOnNotifyFct(const std::function<void()>& onNotifyFct_){ _onNotifyFct_ = onNotifyFct_; }
-    inline Bool_t Notify() override { if( _onNotifyFct_ ){ _onNotifyFct_(); return true; } return false; }
-
-    static constexpr Version_t Class_Version() { return 1; }
-
-  private:
-    std::function<void()> _onNotifyFct_{};
-
-  };
-}
-
 // ChainBuffer
 namespace GenericToolbox{
 
@@ -1909,6 +1891,23 @@ namespace GenericToolbox{
       // used for ttree update / notify
       std::string name{};
       size_t byteOffset{};
+    };
+    class TObjNotifier : public TObject {
+
+    public:
+      TObjNotifier() = default;
+
+      // overrides
+      ~TObjNotifier() override = default;
+      Bool_t Notify() override { if( _onNotifyFct_ ){ _onNotifyFct_(); return true; } return false; }
+      static constexpr Version_t Class_Version() { return 1; }
+
+      // setters
+      void setOnNotifyFct(const std::function<void()>& onNotifyFct_){ _onNotifyFct_ = onNotifyFct_; }
+
+    private:
+      std::function<void()> _onNotifyFct_{};
+
     };
 
     // expression and its derivatives
