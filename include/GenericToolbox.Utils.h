@@ -24,29 +24,29 @@
 
 
 #ifndef CPP_GENERIC_TOOLBOX_BATCH
-#define CPP_GENERIC_TOOLBOX_TABLE_PRINTER_IMPL_H_LTCORN "┌"
-#define CPP_GENERIC_TOOLBOX_TABLE_PRINTER_IMPL_H_LBCORN "└"
-#define CPP_GENERIC_TOOLBOX_TABLE_PRINTER_IMPL_H_RTCORN "┐"
-#define CPP_GENERIC_TOOLBOX_TABLE_PRINTER_IMPL_H_RBCORN "┘"
-#define CPP_GENERIC_TOOLBOX_TABLE_PRINTER_IMPL_H_TRIGHT "├"
-#define CPP_GENERIC_TOOLBOX_TABLE_PRINTER_IMPL_H_TLEFT "┤"
-#define CPP_GENERIC_TOOLBOX_TABLE_PRINTER_IMPL_H_TTOP "┬"
-#define CPP_GENERIC_TOOLBOX_TABLE_PRINTER_IMPL_H_TBOT "┴"
-#define CPP_GENERIC_TOOLBOX_TABLE_PRINTER_IMPL_H_CROSS "┼"
-#define CPP_GENERIC_TOOLBOX_TABLE_PRINTER_IMPL_H_HLINE "─"
-#define CPP_GENERIC_TOOLBOX_TABLE_PRINTER_IMPL_H_VLINE "│"
+#define GT_CHAR_LTCORN "┌"
+#define GT_CHAR_LBCORN "└"
+#define GT_CHAR_RTCORN "┐"
+#define GT_CHAR_RBCORN "┘"
+#define GT_CHAR_TRIGHT "├"
+#define GT_CHAR_TLEFT "┤"
+#define GT_CHAR_TTOP "┬"
+#define GT_CHAR_TBOT "┴"
+#define GT_CHAR_CROSS "┼"
+#define GT_CHAR_HLINE "─"
+#define GT_CHAR_VLINE "│"
 #else
-#define CPP_GENERIC_TOOLBOX_TABLE_PRINTER_IMPL_H_LTCORN "#"
-#define CPP_GENERIC_TOOLBOX_TABLE_PRINTER_IMPL_H_LBCORN "#"
-#define CPP_GENERIC_TOOLBOX_TABLE_PRINTER_IMPL_H_RTCORN "#"
-#define CPP_GENERIC_TOOLBOX_TABLE_PRINTER_IMPL_H_RBCORN "#"
-#define CPP_GENERIC_TOOLBOX_TABLE_PRINTER_IMPL_H_TRIGHT "|"
-#define CPP_GENERIC_TOOLBOX_TABLE_PRINTER_IMPL_H_TLEFT "|"
-#define CPP_GENERIC_TOOLBOX_TABLE_PRINTER_IMPL_H_TTOP "-"
-#define CPP_GENERIC_TOOLBOX_TABLE_PRINTER_IMPL_H_TBOT "-"
-#define CPP_GENERIC_TOOLBOX_TABLE_PRINTER_IMPL_H_CROSS "|"
-#define CPP_GENERIC_TOOLBOX_TABLE_PRINTER_IMPL_H_HLINE "-"
-#define CPP_GENERIC_TOOLBOX_TABLE_PRINTER_IMPL_H_VLINE "|"
+#define GT_CHAR_LTCORN "#"
+#define GT_CHAR_LBCORN "#"
+#define GT_CHAR_RTCORN "#"
+#define GT_CHAR_RBCORN "#"
+#define GT_CHAR_TRIGHT "|"
+#define GT_CHAR_TLEFT "|"
+#define GT_CHAR_TTOP "-"
+#define GT_CHAR_TBOT "-"
+#define GT_CHAR_CROSS "|"
+#define GT_CHAR_HLINE "-"
+#define GT_CHAR_VLINE "|"
 #endif
 
 // Declarations
@@ -409,7 +409,38 @@ namespace GenericToolbox{
     double max{std::nan("unset")};
 
     Range() = default;
-    Range(double min_, double max_) : min(min_), max(max_) {}
+    Range(double min_, double max_) : min(min_), max(max_){}
+    void fillMostConstrainingBounds(const Range& other_){
+      // std::min(std::nan(""),1.) -> nan
+      // std::min(1.,std::nan("")) -> 1
+      // so we check the bounds first
+      if(other_.hasLowerBound()){ min = std::max(other_.min, min); }
+      if(other_.hasUpperBound()){ max = std::min(other_.max, max); }
+    }
+    [[nodiscard]] bool hasLowerBound() const{ return not std::isnan(min); }
+    [[nodiscard]] bool hasUpperBound() const{ return not std::isnan(max); }
+    [[nodiscard]] bool hasBound() const{ return hasLowerBound() or hasUpperBound(); }
+    [[nodiscard]] bool hasBothBounds() const{ return hasLowerBound() and hasUpperBound(); }
+    [[nodiscard]] bool isUnbounded() const{ return not hasBound(); }
+    [[nodiscard]] bool isInBounds(double val_) const{
+      // both bounds are inclusive [min, max]
+      if( hasLowerBound() and val_ < min ){ return false; }
+      if( hasUpperBound() and val_ > max ){ return false; }
+      return true;
+    }
+    [[nodiscard]] std::string toString() const{
+      std::stringstream ss;
+      ss << "[";
+      std::isnan(min) ? ss << "-inf" : ss << min;
+      ss << ", ";
+      std::isnan(max) ? ss << "+inf" : ss << max;
+      ss << "]";
+      return ss.str();
+    }
+
+    Range& operator+=(double shift_){ min += shift_; max += shift_; return *this; }
+    Range& operator-=(double shift_){ min -= shift_; max -= shift_; return *this; }
+    friend std::ostream& operator <<( std::ostream& o, const Range& this_ ){ o << this_.toString(); return o; }
   };
 }
 
@@ -419,20 +450,20 @@ namespace GenericToolbox{
 
   public:
     // Common structure
-    inline InitBaseClass() = default;
-    inline virtual ~InitBaseClass() = default;
+    InitBaseClass() = default;
+    virtual ~InitBaseClass() = default;
 
     virtual inline void initialize();
-    inline void unInitialize(){ _isInitialized_ = false; }
+    void unInitialize(){ _isInitialized_ = false; }
 
-    [[nodiscard]] inline bool isInitialized() const{ return _isInitialized_; }
+    [[nodiscard]] auto isInitialized() const{ return _isInitialized_; }
 
     inline void throwIfInitialized(const std::string& functionName_ = {}) const;
     inline void throwIfNotInitialized(const std::string& functionName_ = {}) const;
 
   protected:
     // where the derivative classes will specify (although override is optional)
-    inline virtual void initializeImpl(){};
+    virtual void initializeImpl(){};
 
   private:
     bool _isInitialized_{false};
@@ -440,7 +471,6 @@ namespace GenericToolbox{
   };
 
   inline void InitBaseClass::initialize() {
-    //if( _isInitialized_ ) throw std::logic_error("Can't re-initialize while already done. Call unInitialize() before.");
     this->initializeImpl();
     _isInitialized_ = true;
   }
@@ -450,9 +480,7 @@ namespace GenericToolbox{
       if( functionName_.empty() ){
         throw std::runtime_error(__METHOD_NAME__ + ": Object already initialized.");
       }
-      else{
-        throw std::runtime_error(__METHOD_NAME__ + "Can't \""+functionName_+"\" while already initialized.");
-      }
+      throw std::runtime_error(__METHOD_NAME__ + "Can't \""+functionName_+"\" while already initialized.");
     }
   }
   inline void InitBaseClass::throwIfNotInitialized( const std::string& functionName_ ) const{
@@ -460,9 +488,7 @@ namespace GenericToolbox{
       if( functionName_.empty() ){
         throw std::runtime_error(__METHOD_NAME__ + ": Object not initialized.");
       }
-      else{
-        throw std::runtime_error(__METHOD_NAME__ + ": Can't \""+functionName_+"\" while not initialized.");
-      }
+      throw std::runtime_error(__METHOD_NAME__ + ": Can't \""+functionName_+"\" while not initialized.");
     }
   }
 }
@@ -474,17 +500,18 @@ namespace GenericToolbox{
 
   public:
     // C-tor and D-tor
-    inline ConfigBaseClass() = default; // purely virtual
-    inline ~ConfigBaseClass() override = default;
+    ConfigBaseClass() = default; // purely virtual
+    ~ConfigBaseClass() override = default;
 
     // const getters
-    [[nodiscard]] inline bool isConfigured() const { return _isConfigured_; }
+    [[nodiscard]] auto isConfigured() const { return _isConfigured_; }
 
-    inline virtual void configure(){ _isConfigured_ = true; configureImpl(); }
+    // main methods
+    virtual void configure(){ _isConfigured_ = true; configureImpl(); }
 
   protected:
     // where the derivative classes will specify (although override is optional)
-    inline virtual void configureImpl(){};
+    virtual void configureImpl(){};
 
   private:
     bool _isConfigured_{false};
@@ -495,16 +522,21 @@ namespace GenericToolbox{
 
   public:
     // C-tor and D-tor
-    inline ConfigClass() = default;
-    inline ~ConfigClass() override = default;
+    ConfigClass() = default;
+    ~ConfigClass() override = default;
 
-    inline virtual void setConfig(const ConfigType& config_){ _config_ = config_; }
+    // setters
+    virtual void setConfig(const ConfigType& config_){ _config_ = config_; }
 
-    inline const ConfigType &getConfig() const { return _config_; }
-    inline ConfigType &getConfig(){ return _config_; }
+    // const getters
+    auto& getConfig() const { return _config_; }
 
-    inline void configure() override { this->ConfigBaseClass::configure(); }
-    inline void configure(const ConfigType& config_){ setConfig(config_); this->ConfigBaseClass::configure(); }
+    // mutable getters
+    auto& getConfig(){ return _config_; }
+
+    // main methods
+    void configure() override { this->ConfigBaseClass::configure(); }
+    void configure(const ConfigType& config_){ setConfig(config_); this->ConfigBaseClass::configure(); }
 
   protected:
     // Can be accessed by derivative classes
@@ -545,70 +577,50 @@ namespace GenericToolbox{
   class RawDataArray{
 
   public:
-    inline RawDataArray() = default;
-    inline virtual ~RawDataArray() = default;
+    RawDataArray() = default;
+    virtual ~RawDataArray() = default;
 
     inline void reset();
 
-    inline std::vector<unsigned char> &getRawDataArray();
-    inline const std::vector<unsigned char> &getRawDataArray() const;
+    // const getters
+    [[nodiscard]] auto& getRawDataArray() const{ return rawData; }
+
+    // mutable getters
+    auto& getRawDataArray(){ return rawData; }
+
+    // main methods
     inline void writeMemoryContent( const void *address_, size_t dataSize_ );
     inline void writeMemoryContent( const void *address_, size_t dataSize_, size_t byteOffset_ );
 
-    template<typename T>
-    inline void writeRawData( const T &data ); // auto incrementing "_currentOffset_"
-    template<typename T>
-    inline void writeRawData( const T &data, size_t byteOffset_ );
+    template<typename T> void writeRawData( const T &data ){ this->writeMemoryContent(&data, sizeof(data)); }
+    template<typename T> void writeRawData( const T &data, size_t byteOffset_ ){ this->writeMemoryContent(&data, sizeof(data), byteOffset_); }
 
-    void resetCurrentByteOffset();
-
-    void lockArraySize();
-
-    void unlockArraySize();
+    void resetCursor(){ _cursor_ = 0; }
+    void lock(){ _lock_ = true; }
+    void unlock(){ _lock_ = false; }
 
   private:
-    bool _lockArraySize_{false};
-    size_t _currentByteOffset_{0};
-    std::vector<unsigned char> rawData{};
+    bool _lock_{false};
+    size_t _cursor_{0};
+    std::vector<uint8_t> rawData{};
 
   };
 
   inline void RawDataArray::reset(){
-    rawData = std::vector<unsigned char>();
-    resetCurrentByteOffset();
-    unlockArraySize();
-  }
-  inline std::vector<unsigned char>& RawDataArray::getRawDataArray(){
-    return rawData;
-  }
-  inline const std::vector<unsigned char>& RawDataArray::getRawDataArray() const{
-    return rawData;
+    rawData = {};
+    resetCursor();
+    unlock();
   }
   inline void RawDataArray::writeMemoryContent(const void* address_, size_t dataSize_){
-    this->writeMemoryContent(address_, dataSize_, _currentByteOffset_);
-    _currentByteOffset_+=dataSize_;
+    this->writeMemoryContent(address_, dataSize_, _cursor_);
+    _cursor_+=dataSize_;
   }
   inline void RawDataArray::writeMemoryContent(const void* address_, size_t dataSize_, size_t byteOffset_){
     if(rawData.size() < byteOffset_ + dataSize_ ){
-      if( _lockArraySize_ ) throw std::runtime_error("Can't resize raw array since _lockArraySize_ is true.");
+      if( _lock_ ){ throw std::runtime_error("Can't resize raw array since _lockArraySize_ is true."); }
       rawData.resize(byteOffset_ + dataSize_);
     }
     memcpy(&rawData[byteOffset_], address_, dataSize_);
-  }
-  template<typename T> inline void RawDataArray::writeRawData(const T& data){
-    this->writeMemoryContent(&data, sizeof(data));
-  }
-  template<typename T> inline void RawDataArray::writeRawData(const T& data, size_t byteOffset_){
-    this->writeMemoryContent(&data, sizeof(data), byteOffset_);
-  }
-  inline void RawDataArray::resetCurrentByteOffset(){
-    _currentByteOffset_=0;
-  }
-  inline void RawDataArray::lockArraySize(){
-    _lockArraySize_=true;
-  }
-  inline void RawDataArray::unlockArraySize(){
-    _lockArraySize_=false;
   }
 }
 
@@ -617,209 +629,164 @@ namespace GenericToolbox{
   class TablePrinter{
 
   public:
-    inline TablePrinter() = default;
-    inline virtual ~TablePrinter() = default;
+    TablePrinter() = default;
 
+    // setters
+    void setColorBuffer( const std::string &colorBuffer_ ){ cursor.color = colorBuffer_; }
+
+    // main methods
     inline void reset();
     inline void fillTable( const std::vector<std::vector<std::string>> &tableLines_ );
-    inline size_t setColTitles( const std::vector<std::string> &colTitles_ );
-    inline size_t addColTitle( const std::string &colTitle_ );
-    inline size_t addTableLine( const std::vector<std::string> &colValues_ = std::vector<std::string>(),
-                                const std::string &colorCode_ = "" );
+    inline void setColTitles( const std::vector<std::string> &colTitles_ );
+    inline void addTableLine( const std::vector<std::string> &colValues_ = std::vector<std::string>(), const std::string &colorCode_ = "" );
+    void addSeparatorLine(){ tableContent.addSeparator(); }
 
-    inline void setTableContent( size_t colIndex_, size_t rowIndex_, const std::string &value_ );
+    [[nodiscard]] inline std::string generateTableString() const;
 
-    inline int getNbRows(){ return int(_colTitleList_.size()); }
+    void printTable() const { std::cout << generateTableString() << std::endl; }
 
-    inline std::string generateTableString();
+    // utils
+    struct TableContent{
+      struct LineContent{
+        // keeping in a struct so it's explicit what it contains
 
-    inline void printTable(){ std::cout << generateTableString() << std::endl; }
+        std::vector<std::string> columnList{};
+      };
+      int nCols{-1};
+      // int colCursorPosition{0}; // for the streamer
+      std::vector<LineContent> tableLineList{};
+      std::vector<size_t> separatorPositionList{};
 
-    inline void setColorBuffer( const std::string &colorBuffer_ ){ _colorBuffer_ = colorBuffer_; }
+      void addLine(const std::vector<std::string>& colList_, const std::string& colorCode_={}){
+        if( nCols == -1 ){ resetHeader(colList_); return; }
+
+        // adding line content
+        tableLineList.emplace_back();
+        auto& line = tableLineList.back();
+        line.columnList.resize(nCols, {""});
+
+        // fill
+        size_t nLoop{std::min(static_cast<size_t>(nCols), colList_.size())};
+        for( size_t iCol = 0; iCol < nLoop; ++iCol ){
+          line.columnList[iCol] = colList_[iCol];
+          if( not colorCode_.empty() ) {
+            line.columnList[iCol].insert(0, colorCode_);
+            line.columnList[iCol] += ColorCodes::resetColor;
+          }
+        }
+      }
+      void resetHeader(const std::vector<std::string>& colList_){
+        if( tableLineList.empty() ){ tableLineList.emplace_back(); }
+        nCols = static_cast<int>(colList_.size());
+        // in case the table is already filled up, resize:
+        for( auto& line : tableLineList ){ line.columnList.resize(nCols); }
+        // now set the header
+        auto& headerLine = tableLineList[0];
+        headerLine.columnList = colList_;
+        addSeparator();
+      }
+      void addSeparator(){ separatorPositionList.emplace_back(tableLineList.size()); }
+      [[nodiscard]] std::vector<size_t> getPadding() const{
+        std::vector<size_t> output(nCols, 0);
+        for( auto& line : tableLineList ) {
+          for( size_t iCol = 0; iCol < nCols; ++iCol ) {
+            output[iCol] = std::max(output[iCol], getPrintSize(line.columnList[iCol]));
+          }
+        }
+        return output;
+      }
+    };
+    struct StreamBuffer{
+      std::stringstream ss{};
+      std::vector<std::string> lineBuffer{};
+      std::string color{};
+    };
 
   private:
-    std::vector<std::string> _colTitleList_{};
-    std::vector<std::vector<std::string>> _tableContent_{};
-    std::vector<int> _colMaxWidthList_{};
-
-    std::vector<std::string> _lineBuffer_;
-    std::string _colorBuffer_;
-    size_t _currentRow_{0};
-
-    std::string _currentEntryBuffer_{};
-    std::vector<std::string> _currentLineBuffer_{};
+    TableContent tableContent{};
+    StreamBuffer cursor{};
 
   public:
-    typedef enum{
-      Reset = 0,
-      NextColumn,
-      NextLine
-    }
-        Action;
-
-    template<typename T>
-    inline TablePrinter &operator<<( const T &data );
-
+    typedef enum{ None = 0, Reset, NextColumn, NextLine } Action;
+    template<typename T> TablePrinter &operator<<( const T &data ){ cursor.ss << data; return *this; }
     inline TablePrinter &operator<<( Action action_ );
 
   };
 
-  void TablePrinter::reset(){
-    _colTitleList_.clear();
-    _tableContent_.clear();
-    _colMaxWidthList_.clear();
-  }
+  void TablePrinter::reset(){ tableContent = {}; cursor = {}; }
   void TablePrinter::fillTable(const std::vector<std::vector<std::string>> &tableLines_){
-    this->reset();
-    if( tableLines_.empty() ) return;
-    this->setColTitles(tableLines_[0]);
-    for( size_t iLine = 1 ; iLine < tableLines_.size() ; iLine++ ){
-      this->addTableLine(tableLines_[iLine]);
-    }
+    reset();
+    for( auto& line: tableLines_ ){ tableContent.addLine(line); }
   }
-  inline size_t TablePrinter::setColTitles(const std::vector<std::string>& colTitles_){
-    if( colTitles_.empty() ) throw std::runtime_error("colTitles_ is empty.");
-    for( auto& colTitle : colTitles_ ){
-      this->addColTitle(colTitle);
-    }
-    return _colTitleList_.size()-1;
+  void TablePrinter::setColTitles(const std::vector<std::string>& colTitles_){
+    if( colTitles_.empty() ){ throw std::runtime_error("colTitles_ is empty."); }
+    tableContent.resetHeader(colTitles_);
   }
-  size_t TablePrinter::addColTitle(const std::string& colTitle_){
-    _colTitleList_.emplace_back(colTitle_);
-    _tableContent_.emplace_back();
-    _colMaxWidthList_.emplace_back(-1);
-    return _colTitleList_.size()-1;
+  void TablePrinter::addTableLine(const std::vector<std::string>& colValues_, const std::string&  colorCode_){
+    tableContent.addLine(colValues_, colorCode_);
   }
-  size_t TablePrinter::addTableLine(const std::vector<std::string>& colValues_, const std::string&  colorCode_){
-    size_t rowIndex{0};
-    size_t colIndex{0};
-    for( auto& colTable : _tableContent_ ){
-      colTable.emplace_back();
-      if( not colValues_.empty() ) {
-        if( not colorCode_.empty() ) colTable.back() += colorCode_;
-        colTable.back() += colValues_[colIndex++];
-        if( not colorCode_.empty() ) colTable.back() += GenericToolbox::ColorCodes::resetColor;
-      }
-      rowIndex = colTable.size()-1;
-    }
-    return rowIndex;
-  }
-  void TablePrinter::setTableContent(size_t colIndex_, size_t rowIndex_, const std::string& value_){
-    if( colIndex_ >= _tableContent_.size() ) throw std::runtime_error("invalid col index");
-    if( rowIndex_ >= _tableContent_[colIndex_].size() ) throw std::runtime_error("invalid row index");
-    _tableContent_[colIndex_][rowIndex_] = value_;
-  }
-  std::string TablePrinter::generateTableString(){
+  std::string TablePrinter::generateTableString() const {
     std::stringstream ss;
 
-    std::vector<size_t> paveColList(_tableContent_.size(),0);
-    for( int iCol = 0 ; iCol < int(_colTitleList_.size()) ; iCol++ ){
-      paveColList[iCol] = GenericToolbox::getPrintSize(_colTitleList_[iCol]);
-      for( int iRow = 0 ; iRow < int(_tableContent_[iCol].size()) ; iRow++ ){
-        paveColList[iCol] = std::max(paveColList[iCol], GenericToolbox::getPrintSize(_tableContent_[iCol][iRow]));
+    // paving
+    std::vector<size_t> paddingList = tableContent.getPadding();
+
+    struct Separators{ std::string left{}, mid{}, right{}; };
+    auto generateLine = [&](const Separators& sep_, const std::vector<std::string>& colList_={}){
+      std::stringstream out;
+      out << sep_.left;
+      if( colList_.empty() ){
+        for( int iCol = 0 ; iCol < tableContent.nCols-1 ; iCol++ ) {
+          out << repeatString(GT_CHAR_HLINE, static_cast<int>(paddingList[iCol]+2)) << sep_.mid;
+        }
+        out << repeatString(GT_CHAR_HLINE, static_cast<int>(paddingList.back()+2)) << sep_.right;
       }
-    }
+      else{
+        for( int iCol = 0 ; iCol < tableContent.nCols ; iCol++ ){
+          out << " " << padString(colList_[iCol], paddingList[iCol]) << " " << sep_.mid;
+        }
+      }
+      return out.str();
+    };
 
     // ┌───────────┬───────────────┬──────────────────┐
     // or
     // #----------------------------------------------#
-    ss << CPP_GENERIC_TOOLBOX_TABLE_PRINTER_IMPL_H_LTCORN;
-    for( int iCol = 0 ; iCol < int(_colTitleList_.size())-1 ; iCol++ ){
-      ss << GenericToolbox::repeatString(CPP_GENERIC_TOOLBOX_TABLE_PRINTER_IMPL_H_HLINE, paveColList[iCol]+2);
-      ss << CPP_GENERIC_TOOLBOX_TABLE_PRINTER_IMPL_H_TTOP;
-    }
-    ss << GenericToolbox::repeatString(CPP_GENERIC_TOOLBOX_TABLE_PRINTER_IMPL_H_HLINE, paveColList.back()+2) << CPP_GENERIC_TOOLBOX_TABLE_PRINTER_IMPL_H_RTCORN<< std::endl;
+    ss << generateLine({GT_CHAR_LTCORN, GT_CHAR_TTOP, GT_CHAR_RTCORN}) << std::endl;
 
-    // │ Likelihood │ Current Value │ Avg. Slope /call │
-    // or
-    // | Likelihood | Current value | Avg. Slope /call |
-    ss << CPP_GENERIC_TOOLBOX_TABLE_PRINTER_IMPL_H_VLINE;
-    for( int iCol = 0 ; iCol < int(_colTitleList_.size()) ; iCol++ ){
-      ss << " " << GenericToolbox::padString(_colTitleList_[iCol], paveColList[iCol]);
-      ss << " " << CPP_GENERIC_TOOLBOX_TABLE_PRINTER_IMPL_H_VLINE;
-    }
-    ss << std::endl;
-
-    // ├───────────┼───────────────┼──────────────────┤
-    // or
-    // |-----------|---------------|------------------|
-    ss << CPP_GENERIC_TOOLBOX_TABLE_PRINTER_IMPL_H_TRIGHT;
-    for( int iCol = 0 ; iCol < int(_colTitleList_.size())-1 ; iCol++ ){
-      ss << GenericToolbox::repeatString(CPP_GENERIC_TOOLBOX_TABLE_PRINTER_IMPL_H_HLINE, paveColList[iCol]+2);
-      ss << CPP_GENERIC_TOOLBOX_TABLE_PRINTER_IMPL_H_CROSS;
-    }
-    ss << GenericToolbox::repeatString(CPP_GENERIC_TOOLBOX_TABLE_PRINTER_IMPL_H_HLINE, paveColList.back()+2) << CPP_GENERIC_TOOLBOX_TABLE_PRINTER_IMPL_H_TLEFT << std::endl;
-
-    // │     Total │ 9.9296422e-13 │             nanP │
-    // or
-    // |     Total | 9.9296422e-13 |             nanP |
-    if( not _tableContent_.empty() ){
-      for( int iRow = 0 ; iRow < int(_tableContent_[0].size()) ; iRow++ ){
-        ss << CPP_GENERIC_TOOLBOX_TABLE_PRINTER_IMPL_H_VLINE;
-        for( int iCol = 0 ; iCol < int(_colTitleList_.size()) ; iCol++ ){
-          ss << " " << GenericToolbox::padString(_tableContent_[iCol][iRow], paveColList[iCol]);
-          ss << " " << CPP_GENERIC_TOOLBOX_TABLE_PRINTER_IMPL_H_VLINE;
-        }
-        ss << std::endl;
+    // content
+    for( size_t iLine = 0 ; iLine < tableContent.tableLineList.size() ; iLine++ ){
+      if( isIn(iLine, tableContent.separatorPositionList) ){
+        ss << generateLine({GT_CHAR_TRIGHT, GT_CHAR_CROSS, GT_CHAR_TLEFT}) << std::endl;
       }
+      ss << generateLine({GT_CHAR_VLINE, GT_CHAR_VLINE, GT_CHAR_VLINE}, tableContent.tableLineList[iLine].columnList) << std::endl;
     }
 
 
     // └───────────┴───────────────┴──────────────────┘
     // or
     // #----------------------------------------------#
-    ss << CPP_GENERIC_TOOLBOX_TABLE_PRINTER_IMPL_H_LBCORN;
-    for( int iCol = 0 ; iCol < int(_colTitleList_.size())-1 ; iCol++ ){
-      ss << GenericToolbox::repeatString(CPP_GENERIC_TOOLBOX_TABLE_PRINTER_IMPL_H_HLINE, paveColList[iCol]+2);
-      ss << CPP_GENERIC_TOOLBOX_TABLE_PRINTER_IMPL_H_TBOT;
-    }
-    ss << GenericToolbox::repeatString(CPP_GENERIC_TOOLBOX_TABLE_PRINTER_IMPL_H_HLINE, paveColList.back()+2) << CPP_GENERIC_TOOLBOX_TABLE_PRINTER_IMPL_H_RBCORN;
+    ss << generateLine({GT_CHAR_LBCORN, GT_CHAR_TBOT, GT_CHAR_RBCORN});
 
     return ss.str();
   }
-  template<typename T> inline TablePrinter &TablePrinter::operator<<(const T &data){
-    // just fills a buffer
+  inline TablePrinter &TablePrinter::operator<<(const Action action_){
 
-    std::stringstream ss;
-    ss << data;
-    _currentEntryBuffer_ += ss.str();
+    if( action_ == None ){ return *this; }
+    if( action_ == Reset ){ reset(); return *this; }
 
-    return *this;
-  }
-  inline TablePrinter &TablePrinter::operator<<(Action action_){
-
-    if(action_ == Action::Reset ){
-      this->reset();
-      _currentRow_ = 0;
-      _currentEntryBuffer_ = "";
-      _currentLineBuffer_.clear();
+    // Either NextColumn or NextLine
+    cursor.lineBuffer.emplace_back(cursor.ss.str());
+    if( not cursor.color.empty() ){
+      cursor.lineBuffer.back().insert(0, cursor.color);
+      cursor.lineBuffer.back() += ColorCodes::resetColor;
     }
-    if(
-        action_ == Action::NextColumn or
-        action_ == Action::NextLine
-        ){
-      if( _colTitleList_.empty() or _lineBuffer_.size() < _colTitleList_.size() ){
-        // drop the string buffer to the vector buffer
-        if( not _colorBuffer_.empty() ){
-          _lineBuffer_.emplace_back( _colorBuffer_ + _currentEntryBuffer_ + GenericToolbox::ColorCodes::resetColor );
-        }
-        else{
-          _lineBuffer_.emplace_back( _currentEntryBuffer_ );
-        }
-      }
+    cursor.ss.str(""); // reset
 
-      // clear the buffer
-      _currentEntryBuffer_ = "";
-      _currentRow_++;
-    }
-    if( action_ == Action::NextLine or ( not _colTitleList_.empty() and _lineBuffer_.size() == _colTitleList_.size() ) ){
-      if( _colTitleList_.empty() ){ this->setColTitles(_lineBuffer_); }
-      else                        {
-        this->addTableLine(_lineBuffer_);
-      }
-      _lineBuffer_.clear();
-      _colorBuffer_ = "";
-      _currentRow_ = 0;
+    // Drop in the table?
+    if( action_ == NextLine or cursor.lineBuffer.size() == tableContent.nCols ){
+      tableContent.addLine(cursor.lineBuffer);
+      cursor.lineBuffer.clear();
     }
 
     return *this;
@@ -882,9 +849,9 @@ namespace GenericToolbox{
   }
   inline double VariableMonitor::evalTotalGrowthRate(){
     double output = (_totalAccumulated_ - _lastTotalAccumulated_);
-    output /= std::chrono::duration_cast<std::chrono::milliseconds>(
+    output /= static_cast<double>(std::chrono::duration_cast<std::chrono::milliseconds>(
         std::chrono::high_resolution_clock::now() - _lastTotalRateEval_
-    ).count();
+    ).count());
     output *= 1000.;
 
     _lastTotalRateEval_ = std::chrono::high_resolution_clock::now();
@@ -907,7 +874,7 @@ namespace GenericToolbox{
       if( slotIndex == _addToAccumulatorHistory_.size() ) slotIndex = 0;
     }
     while( orderedSlotIndex < orderedAddToAccumulatorHistory.size() );
-    return GenericToolbox::getAveragedSlope(orderedAddToAccumulatorHistory);
+    return getAveragedSlope(orderedAddToAccumulatorHistory);
   }
   inline double VariableMonitor::evalCallGrowthRatePerSecond() const{
     if( _currentHistorySize_ == 0 ) return 0;
@@ -930,7 +897,7 @@ namespace GenericToolbox{
       if( slotIndex == _addToAccumulatorHistory_.size() ) slotIndex = 0;
     }
     while( orderedSlotIndex < orderedAddToAccumulatorHistory.size() );
-    return GenericToolbox::getAveragedSlope(orderedAddToAccumulatorHistory, deltaTimes);
+    return getAveragedSlope(orderedAddToAccumulatorHistory, deltaTimes);
   }
 }
 
@@ -1108,7 +1075,7 @@ namespace GenericToolbox{
     return ss.str();
 #endif
 
-    auto nLines = GenericToolbox::splitString(ss.str(), "\n").size();
+    auto nLines = splitString(ss.str(), "\n").size();
     for( size_t iLine = 1 ; iLine < nLines ; iLine++ ){
       ssLineCleaner << static_cast<char>(27) << "[2K" << std::endl;
     }
@@ -1137,14 +1104,19 @@ namespace GenericToolbox{  // Structs to decide if a stream function can be impl
   template <typename T, bool> class DoubleCastImpl {};
   template <typename T> class DoubleCastImpl<T,true> { public: static double implement(T const& t) { return static_cast<double>(t); } };
   template <typename T> class DoubleCastImpl<T,false>{ public: static double implement(T const& t) { return std::nan(typeid(t).name()); } };
+  template <typename T, bool> class LongCastImpl {};
+  template <typename T> class LongCastImpl<T,true> { public: static long implement(T const& t) { return static_cast<long>(t); } };
+  template <typename T> class LongCastImpl<T,false>{ public: static long implement(T const& t) { return std::nan(typeid(t).name()); } };
 
   // PlaceHolder is used in AnyType as a pointer member
   struct PlaceHolder{
     virtual ~PlaceHolder() = default;
     [[nodiscard]] virtual const std::type_info& getType() const = 0;
+    [[nodiscard]] virtual bool isPointerType() const = 0;
     [[nodiscard]] virtual PlaceHolder* clone() const = 0;
     virtual void writeToStream(std::ostream& o) const = 0;
     [[nodiscard]] virtual double getVariableAsDouble() const = 0;
+    [[nodiscard]] virtual long getValueAsLong() const = 0;
     [[nodiscard]] virtual size_t getVariableSize() const = 0;
     [[nodiscard]] virtual const void* getVariableAddress() const = 0;
     virtual void* getVariableAddress() = 0;
@@ -1154,6 +1126,11 @@ namespace GenericToolbox{  // Structs to decide if a stream function can be impl
   template<typename VariableType> struct VariableHolder: public PlaceHolder{
     explicit VariableHolder(VariableType value_) : _nBytes_(sizeof(value_)), _variable_(std::move(value_)){  }
     [[nodiscard]] const std::type_info & getType() const override { return typeid(VariableType); }
+#if HAS_CPP_17
+    [[nodiscard]] bool isPointerType() const override { return std::is_pointer_v<VariableType>; }
+#else
+    [[nodiscard]] bool isPointerType() const override { return std::is_pointer<VariableType>::value; }
+#endif
     [[nodiscard]] PlaceHolder* clone() const override { return new VariableHolder(_variable_); }
     void writeToStream(std::ostream& o) const override {
 #if HAS_CPP_17
@@ -1164,6 +1141,9 @@ namespace GenericToolbox{  // Structs to decide if a stream function can be impl
     }
     [[nodiscard]] double getVariableAsDouble() const override {
       return DoubleCastImpl<VariableType, std::is_convertible<VariableType, double>::value>::implement(_variable_);
+    }
+    [[nodiscard]] long getValueAsLong() const override {
+      return LongCastImpl<VariableType, std::is_convertible<VariableType, long>::value>::implement(_variable_);
     }
     [[nodiscard]] size_t getVariableSize() const override{
       return _nBytes_;
@@ -1204,12 +1184,13 @@ namespace GenericToolbox{  // Structs to decide if a stream function can be impl
     template<typename ValueType> inline ValueType& getValue();
     template<typename ValueType> inline const ValueType& getValue() const;
     [[nodiscard]] inline double getValueAsDouble() const;
+    [[nodiscard]] inline long getValueAsLong() const;
 
     inline friend std::ostream& operator <<( std::ostream& o, const AnyType& v );
 
 
   protected:
-    inline AnyType& swap(AnyType& rhs);
+    inline AnyType& swap(AnyType& rhs) noexcept;
 
 
   private:
@@ -1218,7 +1199,7 @@ namespace GenericToolbox{  // Structs to decide if a stream function can be impl
   };
 
   inline AnyType::AnyType(const AnyType& other_){
-    this->_varPtr_ = std::unique_ptr<PlaceHolder>(other_._varPtr_->clone());
+    if( other_._varPtr_ != nullptr ){ this->_varPtr_ = std::unique_ptr<PlaceHolder>(other_._varPtr_->clone()); }
   }
   template<typename ValueType> inline AnyType::AnyType(const ValueType& value_){
     this->template setValue(value_);
@@ -1249,21 +1230,32 @@ namespace GenericToolbox{  // Structs to decide if a stream function can be impl
     return _varPtr_->getVariableSize();
   }
 
-  template<typename ValueType> inline void AnyType::setValue(const ValueType& value_){
+  template<typename ValueType> void AnyType::setValue(const ValueType& value_){
     _varPtr_ = std::unique_ptr<VariableHolder<ValueType>>(new VariableHolder<ValueType>(value_));
   }
-  template<typename ValueType> inline ValueType& AnyType::getValue() {
-    if ( _varPtr_ == nullptr ){ throw std::runtime_error("AnyType value not set."); }
-    if ( getType() != typeid(ValueType) ) { throw std::runtime_error("AnyType value type mismatch."); }
-    return static_cast<VariableHolder<ValueType> *>(_varPtr_.get())->_variable_;
+  template<typename RequestedType> RequestedType& AnyType::getValue() {
+    return const_cast<RequestedType&>( const_cast<const AnyType*>(this)->getValue<RequestedType>() );
   }
-  template<typename ValueType> inline const ValueType& AnyType::getValue() const{
-    if ( _varPtr_ == nullptr ){ throw std::runtime_error("AnyType value not set."); }
-    if ( getType() != typeid(ValueType) ) { throw std::runtime_error("AnyType value type mismatch."); }
-    return static_cast<const VariableHolder<const ValueType> *>(_varPtr_.get())->_variable_;
+  template<typename RequestedType> const RequestedType& AnyType::getValue() const{
+    if( _varPtr_ == nullptr ){ throw std::runtime_error("AnyType value not set."); }
+#if HAS_CPP_17
+    if( std::is_pointer_v<RequestedType> and _varPtr_->isPointerType() ){
+#else
+    if( std::is_pointer<RequestedType>::value and _varPtr_->isPointerType() ){
+#endif
+      // allow the cast of different type pointer
+    }
+    else if( getType() != typeid(RequestedType) ) {
+      // otherwise it's a problem
+      throw std::runtime_error("AnyType value type mismatch: stored: " + std::string(getType().name()) + ", requested: " + typeid(RequestedType).name());
+    }
+    return static_cast<const VariableHolder<const RequestedType> *>(_varPtr_.get())->_variable_;
   }
   inline double AnyType::getValueAsDouble() const{
     return _varPtr_->getVariableAsDouble();
+  }
+  inline long AnyType::getValueAsLong() const{
+    return _varPtr_->getValueAsLong();
   }
 
   inline std::ostream& operator<<( std::ostream& o, const AnyType& v ) {
@@ -1272,7 +1264,7 @@ namespace GenericToolbox{  // Structs to decide if a stream function can be impl
   }
 
   // Protected
-  inline AnyType& AnyType::swap(AnyType& rhs) {
+  inline AnyType& AnyType::swap(AnyType& rhs) noexcept {
     std::swap(_varPtr_, rhs._varPtr_);
     return *this;
   }

@@ -25,8 +25,8 @@ namespace GenericToolbox {
   template<class T> inline YAML::Node fetchMatchingEntry(const YAML::Node& yamlConfig_, const std::string& keyName_, const T& keyValue_);
 
   // template specialization when a string literal is passed:
-  template<std::size_t N> inline auto fetchValue(const YAML::Node& yamlConfig_, const std::string& keyName_, const char (&defaultValue_)[N]) -> std::string;
-  template<std::size_t N> inline YAML::Node fetchMatchingEntry(const YAML::Node& yamlConfig_, const std::string& keyName_, const char (&keyValue_)[N]);
+  template<std::size_t N> auto fetchValue(const YAML::Node& yamlConfig_, const std::string& keyName_, const char (&defaultValue_)[N]) -> std::string;
+  template<std::size_t N> YAML::Node fetchMatchingEntry(const YAML::Node& yamlConfig_, const std::string& keyName_, const char (&keyValue_)[N]);
 
   }
 };
@@ -93,10 +93,10 @@ namespace GenericToolbox {
       return {}; // .empty()
     }
 
-    template<std::size_t N> inline auto fetchValue(const YAML::Node& yamlConfig_, const std::string& keyName_, const char (&defaultValue_)[N]) -> std::string{
+    template<std::size_t N> auto fetchValue(const YAML::Node& yamlConfig_, const std::string& keyName_, const char (&defaultValue_)[N]) -> std::string{
       return fetchValue(yamlConfig_, keyName_, std::string(defaultValue_));
     }
-    template<std::size_t N> inline YAML::Node fetchMatchingEntry(const YAML::Node& yamlConfig_, const std::string& keyName_, const char (&keyValue_)[N]){
+    template<std::size_t N> YAML::Node fetchMatchingEntry(const YAML::Node& yamlConfig_, const std::string& keyName_, const char (&keyValue_)[N]){
       return fetchMatchingEntry(yamlConfig_, keyName_, std::string(keyValue_));
     }
 

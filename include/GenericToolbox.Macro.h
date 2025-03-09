@@ -47,6 +47,10 @@
 #define GET_VAR_NAME_VALUE_STREAM(var) #var << " = " << var
 #define GET_VAR_NAME(var) std::string(#var)
 
+// example: #define GTLogThrowIf(...) GET_OVERLOADED_MACRO2(__VA_ARGS__, GTLogThrowIf2, GTLogThrowIf1)(__VA_ARGS__)
+#define GT_GET_OVERLOADED_MACRO2(_1,_2,NAME,...) NAME
+
+
 /*
  * ENUM_EXPANDER will create the desired enum and will automatically attach a namespace which provides additional methods
  * For example: "ENUM_EXPAND(MyEnumType, 1, state1, state2, state3)" is equivalent to "enum MyEnumType{state1 = 1, state2, state3};"

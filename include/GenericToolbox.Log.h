@@ -61,7 +61,9 @@ namespace GenericToolbox{
 
 // throw
 #define GTLogThrow(message_) GTLogError << message_ << std::endl; throw std::runtime_error("exception thrown by the logger.")
-#define GTLogThrowIf(condition_, message_) if(condition_){ GTLogThrow( "[" << #condition_ << "] " << message_); }
+#define GTLogThrowIf2(condition_, message_) if(condition_){ GTLogThrow( "[" << #condition_ << "] " << message_); }
+#define GTLogThrowIf1(condition_) GTLogThrowIf(condition_, "Exception thrown by the logger.");
+#define GTLogThrowIf(...) GT_GET_OVERLOADED_MACRO2(__VA_ARGS__, GTLogThrowIf2, GTLogThrowIf1)(__VA_ARGS__)
 
 // debug tools
 #define GTDebugVar(var_) GTLogDebug << GET_VAR_NAME_VALUE(var_) << std::endl;

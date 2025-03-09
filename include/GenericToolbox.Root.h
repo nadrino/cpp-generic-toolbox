@@ -42,6 +42,7 @@
 #include <memory>
 #include <map>
 #include <utility>
+#include <functional>
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-function"
@@ -1583,8 +1584,6 @@ namespace GenericToolbox{
 
   }
 
-
-
 }
 
 
@@ -1667,6 +1666,7 @@ namespace GenericToolbox{
       out_ = (void*)(nullptr);
     }
   }
+
 }
 
 
@@ -1678,26 +1678,42 @@ namespace GenericToolbox {
 
   public:
     CorrelatedVariablesSampler() = default;
-    ~CorrelatedVariablesSampler() override = default;
+    ~CorrelatedVariablesSampler() override { for( auto& diag : diagonalPerBlock ){ delete diag.getCovarianceMatrixPtr(); } };
 
-    inline void setCovarianceMatrixPtr(TMatrixDSym *covarianceMatrixPtr_){ _covarianceMatrixPtr_ = covarianceMatrixPtr_; }
+    // setters
+    void setCovarianceMatrixPtr(const TMatrixDSym *covarianceMatrixPtr_){ _covarianceMatrixPtr_ = covarianceMatrixPtr_; }
+    void setPrng(TRandom* prng_){ _prng_ = prng_; }
+    void setNbMaxTries(int nMaxTries_){ nMaxTries = nMaxTries_; }
 
+    // const getters
+    [[nodiscard]] const TMatrixDSym* getCovarianceMatrixPtr() const { return _covarianceMatrixPtr_; }
+
+    // mutable getters
+    std::vector<Range>& getParLimitList(){ return _rangeList_; }
+
+    // main methods
     inline void throwCorrelatedVariables(TVectorD& output_);
+    inline void extractBlocks();
 
   protected:
     inline void initializeImpl() override;
 
   private:
     // inputs:
-    TMatrixDSym * _covarianceMatrixPtr_{nullptr};
-
-    // optionals
+    const TMatrixDSym * _covarianceMatrixPtr_{nullptr};
     TRandom* _prng_{gRandom}; // using TRandom3 by default
+    int nMaxTries{1};
 
     // internals
     std::shared_ptr<TDecompChol> _choleskyDecomposer_{nullptr};
     std::shared_ptr<TMatrixD> _sqrtMatrix_{nullptr};
     std::shared_ptr<TVectorD> _throwBuffer_{nullptr};
+
+    std::vector<Range> _rangeList_{};
+
+    // nested
+    std::vector<std::vector<int>> blockIndexLists{};
+    std::vector<CorrelatedVariablesSampler> diagonalPerBlock{};
 
   };
 
@@ -1711,16 +1727,103 @@ namespace GenericToolbox {
     if( not _choleskyDecomposer_->Decompose() ){
       TVectorD eigenVal;
       _covarianceMatrixPtr_->EigenVectors(eigenVal);
-      eigenVal.Print();
-      throw std::runtime_error("Can't decompose covariance matrix.");
+      for( int iVar = 0 ; iVar < eigenVal.GetNrows() ; ++iVar ) {
+        if( eigenVal[iVar] < 0 ) {
+          eigenVal.Print();
+          GTLogThrow("Can't decompose covariance matrix.");
+        }
+      }
     }
 
     // Decompose a symmetric, positive definite matrix: A = U^T * U
     _sqrtMatrix_ = std::make_shared<TMatrixD>(_choleskyDecomposer_->GetU());
 
     _sqrtMatrix_->T(); // Transpose it to get the left side one
+
+    _rangeList_.resize(_sqrtMatrix_->GetNrows(), {std::nan("-inf"),std::nan("+inf")});
+  }
+  inline void CorrelatedVariablesSampler::extractBlocks(){
+    GTLogThrowIf(_covarianceMatrixPtr_ == nullptr, "_covarianceMatrixPtr_ is not set");
+    blockIndexLists.clear();
+
+    // find the blocks
+    for( int iDiag = 0 ; iDiag < _covarianceMatrixPtr_->GetNrows() ; iDiag++ ){
+      bool alreadyProcessed = false;
+      for( auto& indices : blockIndexLists ) {
+        if( GenericToolbox::isIn(iDiag, indices) ){ alreadyProcessed = true; break; }
+      }
+      if( alreadyProcessed ){ continue; }
+      blockIndexLists.emplace_back();
+      blockIndexLists.back().emplace_back(iDiag);
+      for( int jDiag = iDiag+1 ; jDiag < _covarianceMatrixPtr_->GetNrows() ; jDiag++ ) {
+        if((*_covarianceMatrixPtr_)[iDiag][jDiag] != 0) {
+          blockIndexLists.back().emplace_back(jDiag);
+        }
+      }
+    }
+
+    // don't go any further!
+    if( blockIndexLists.size() == 1 ){ return; }
+
+    GTLogInfo << "Found " << blockIndexLists.size() << " matrix sub-block in "
+    << _covarianceMatrixPtr_->GetNrows() << "x" << _covarianceMatrixPtr_->GetNrows() << " cov matrix." << std::endl;
+
+    // sanity check
+    int sum{0}; for(auto& block: blockIndexLists){ sum += block.size(); }
+    if( _covarianceMatrixPtr_->GetNrows() != sum ){
+      GTDebugVar(_covarianceMatrixPtr_->GetNrows());
+      GTDebugVar(sum);
+      GTLogError << "Blocks are: " << std::endl;
+      for(auto& block: blockIndexLists){ GTDebugVar(GenericToolbox::toString(block)); }
+      GTLogThrow("Something is wrong. DEV should check.");
+    }
+
+
+    for( auto& blockIndexList : blockIndexLists ){
+      auto* blockMatrix = new TMatrixDSym(blockIndexList.size());
+      for( int iRow = 0 ; iRow < blockIndexList.size() ; iRow++ ){
+        for( int iCol = iRow ; iCol < blockIndexList.size() ; iCol++ ) {
+          (*blockMatrix)[iRow][iCol] = (*_covarianceMatrixPtr_)[blockIndexList[iRow]][blockIndexList[iCol]];
+          (*blockMatrix)[iCol][iRow] = (*blockMatrix)[iRow][iCol];
+        }
+      }
+      diagonalPerBlock.emplace_back();
+      diagonalPerBlock.back().setCovarianceMatrixPtr(blockMatrix);
+      diagonalPerBlock.back().setNbMaxTries(nMaxTries);
+      diagonalPerBlock.back().initialize();
+
+      for( int iRow = 0 ; iRow < blockIndexList.size() ; iRow++ ) {
+        diagonalPerBlock.back().getParLimitList()[iRow] = _rangeList_[blockIndexList[iRow]];
+      }
+    }
+
   }
   inline void CorrelatedVariablesSampler::throwCorrelatedVariables(TVectorD& output_){
+
+    if( not diagonalPerBlock.empty() ){
+      for( size_t iBlock = 0 ; iBlock < diagonalPerBlock.size() ; iBlock++ ) {
+        TVectorD blockOutput( blockIndexLists[iBlock].size());
+        try {
+          diagonalPerBlock[iBlock].throwCorrelatedVariables(blockOutput);
+        }
+        catch( ... ){
+          GTLogError << "Could not throw parameters of block " << iBlock << std::endl;
+          GTLogError << "par indices: " << toString(blockIndexLists[iBlock]) << std::endl;
+          GTLogError << "par bounds: " << toString(diagonalPerBlock[iBlock].getParLimitList(), false) << std::endl;
+          diagonalPerBlock[iBlock].getCovarianceMatrixPtr()->Print();
+          GTLogThrow("Tried more than " << nMaxTries << " times.");
+        }
+
+        int iIdx{0};
+        for( auto& blockIndexList : blockIndexLists[iBlock] ){
+          output_[blockIndexList] = blockOutput[iIdx++];
+        }
+      }
+      return;
+    }
+
+    // should be a full block!
+
     // https://math.stackexchange.com/questions/446093/generate-correlated-normal-random-variables
     this->throwIfNotInitialized(__METHOD_NAME__);
     if(output_.GetNrows() != _covarianceMatrixPtr_->GetNrows()){
@@ -1731,69 +1834,178 @@ namespace GenericToolbox {
       throw std::runtime_error( ss.str() );
     }
 
-    for( int iVar = 0 ; iVar < output_.GetNrows() ; iVar++ ){
-      output_[iVar] = _prng_->Gaus(0, 1);
-    }
+    bool isThrowSuccessful{false};
+    size_t nThrows{0};
+    do {
+      nThrows++;
+      GTLogThrowIf( nThrows > nMaxTries, "Too many throws" );
 
-    output_ *= (*_sqrtMatrix_);
+      for( int iVar = 0 ; iVar < output_.GetNrows() ; iVar++ ){
+        output_[iVar] = _prng_->Gaus(0, 1);
+      }
+
+      output_ *= (*_sqrtMatrix_);
+
+      isThrowSuccessful = true;
+      for( int iVar = 0 ; iVar < output_.GetNrows() ; iVar++ ){
+        if( _rangeList_[iVar].isUnbounded() ){ continue; }
+        if( not _rangeList_[iVar].isInBounds(output_[iVar]) ){
+          isThrowSuccessful = false;
+          break;
+        }
+      }
+    }
+    while( not isThrowSuccessful );
+
   }
 }
 
-// TObjNotifier
+// TreeBuffer
 namespace GenericToolbox{
 
-  class TObjNotifier : public TObject {
+  class TreeBuffer{
+    /*
+     * The ChainBuffer helps to handle general TTree/TChain expressions
+     * that get automatically parsed and converted to the optimal type
+     * by using GenericToolbox::AnyType
+     *
+     */
 
   public:
-    inline TObjNotifier() = default;
-    inline ~TObjNotifier() override = default;
-
-    inline void setOnNotifyFct(const std::function<void()>& onNotifyFct_){ _onNotifyFct_ = onNotifyFct_; }
-    inline Bool_t Notify() override { if( _onNotifyFct_ ){ _onNotifyFct_(); return true; } return false; }
-
-    static constexpr Version_t Class_Version() { return 1; }
-
-  private:
-    std::function<void()> _onNotifyFct_{};
-
-  };
-}
-
-// BranchBuffer
-namespace GenericToolbox{
-  class BranchBuffer{
+    // forward declaration for getters
+    class ExpressionBuffer;
 
   public:
-    inline BranchBuffer() = default;
-    inline virtual ~BranchBuffer() = default;
+    TreeBuffer() = default;
 
     // setters
-    inline void setBranchPtr(TBranch* branchPtr_){ _branchPtr_ = branchPtr_; _branchName_ = _branchPtr_->GetFullName(); }
+    void setTree(TTree* chainPtr_){ _treePtr_ = chainPtr_; }
 
-    // getters
-    [[nodiscard]] inline const std::string& getBranchName() const { return _branchName_; }
-    [[nodiscard]] inline const TBranch* getBranchPtr() const { return _branchPtr_; }
-    [[nodiscard]] inline const std::vector<unsigned char>& getByteBuffer() const { return _byteBuffer_; }
+    // const getters
+    [[nodiscard]] const std::vector<std::shared_ptr<ExpressionBuffer>>& getExpressionBufferList() const{ return _expressionBufferList_; }
 
-    inline void buildBuffer();
-    inline void hookBuffer();
+    // pre-initialize
+    inline int addExpression(const std::string& exprStr_);
 
-    [[nodiscard]] inline std::string getSummary() const;
+    // initialize
+    inline void initialize();
+
+    // main methods
+    inline void saveExpressions();
+    [[nodiscard]] inline const ExpressionBuffer* getExpressionBuffer(const std::string& exprStr_) const;
+    [[nodiscard]] inline int getExpressionBufferIndex(const std::string& exprStr_) const;
+
+    // sub-classes
+    struct BranchInfo{
+      // used for ttree update / notify
+      std::string name{};
+      size_t byteOffset{};
+    };
+    class TObjNotifier : public TObject {
+
+    public:
+      TObjNotifier() = default;
+
+      // overrides
+      ~TObjNotifier() override = default;
+      Bool_t Notify() override { if( _onNotifyFct_ ){ _onNotifyFct_(); return true; } return false; }
+      static constexpr Version_t Class_Version() { return 1; }
+
+      // setters
+      void setOnNotifyFct(const std::function<void()>& onNotifyFct_){ _onNotifyFct_ = onNotifyFct_; }
+
+    private:
+      std::function<void()> _onNotifyFct_{};
+
+    };
+
+    // expression and its derivatives
+    class ExpressionBuffer{
+
+    public:
+      virtual ~ExpressionBuffer() = default;
+
+      virtual void save(const uint8_t* src_);
+      virtual void notify(TTree* tree_){}
+
+      // setters
+      void setByteOffset(size_t offset_){ _byteOffset_ = offset_;}
+      void setExpression(const std::string& expression_){ _expression_ = expression_; }
+      void setBuffer(const GenericToolbox::AnyType &buffer_){ _buffer_ = buffer_; }
+
+      // getters
+      [[nodiscard]] const GenericToolbox::AnyType& getBuffer() const{ return _buffer_; }
+      [[nodiscard]] const std::string& getExpression() const{ return _expression_; }
+
+    protected:
+      [[nodiscard]] virtual const uint8_t* getBufferAddress(const uint8_t* src_) const{ return src_ + _byteOffset_; }
+
+      size_t _byteOffset_{0};
+      std::string _expression_;
+      // this buffers both saves the type, its size and its value
+      GenericToolbox::AnyType _buffer_{};
+    };
+    class NestedArrayExpression : public ExpressionBuffer {
+    public:
+      void setObjSize(size_t objSize_){ objSize = objSize_;}
+      void setExpPtrArrayIndex(ExpressionBuffer* expPtrArrayIndex_){ expPtrArrayIndex = expPtrArrayIndex_;}
+
+    protected:
+      [[nodiscard]] const uint8_t* getBufferAddress(const uint8_t* src_) const override;
+
+      size_t objSize{0};
+      ExpressionBuffer* expPtrArrayIndex{nullptr};
+    };
+    class FormulaExpression : public ExpressionBuffer {
+    public:
+      void parseFormula(TTree* tree_);
+
+    protected:
+      std::unique_ptr<TTreeFormula> _formulaPtr_{nullptr};
+
+      void notify(TTree* tree_) override;
+      void save(const uint8_t* src_) override;
+    };
+
+  protected:
+    size_t getBranchByteOffset(const std::string& branchName_);
+    void expandBuffer(const std::string& branchName_);
+    void notify();
 
   private:
-    TBranch* _branchPtr_{nullptr};
-    std::string _branchName_{}; // used for ptr update
-    std::vector<unsigned char> _byteBuffer_{};
+    // The handled TChained
+    TTree* _treePtr_{nullptr};
+
+    // where TChain is writing the data
+    std::vector<uint8_t> _chainBuffer_{};
+
+    // holding branch info for re-linking the TChain
+    std::vector<BranchInfo> _branchInfoList_{};
+
+    // where the expressions are evaluated
+    std::vector<std::shared_ptr<ExpressionBuffer>> _expressionBufferList_{};
+
+    // to change re-hook address on a new TTree
+    TObjNotifier _notifier_{};
 
   };
 
-  inline void BranchBuffer::buildBuffer(){
-    if( not _byteBuffer_.empty() ){ throw std::logic_error(__METHOD_NAME__ + ": buffer already set."); }
-    if( _branchPtr_ == nullptr ){ throw std::runtime_error(__METHOD_NAME__ + ": branch not set."); }
+  inline size_t TreeBuffer::getBranchByteOffset(const std::string& branchName_){
+    for( auto& bb : _branchInfoList_ ){
+      if( bb.name == branchName_ ){ return bb.byteOffset; }
+    }
+
+    // otherwise create it
+    expandBuffer(branchName_);
+    return _branchInfoList_.back().byteOffset;
+  }
+  inline void TreeBuffer::expandBuffer(const std::string& branchName_){
+    auto* b = _treePtr_->GetBranch(branchName_.c_str());
+    if( b == nullptr ){ throw std::runtime_error(branchName_ + " not found"); }
 
     // Calculating the requested buffer size
     size_t bufferSize{0};
-    auto* leavesList = _branchPtr_->GetListOfLeaves();
+    auto* leavesList = b->GetListOfLeaves();
     int nLeaves = leavesList->GetEntries();
     for( int iLeaf = 0 ; iLeaf < nLeaves ; iLeaf++ ){
       auto* l = (TLeaf*) leavesList->At(iLeaf);
@@ -1807,622 +2019,172 @@ namespace GenericToolbox{
       }
     }
 
-    if( bufferSize == 0 ){
-      throw std::runtime_error(__METHOD_NAME__ + ": empty buffer size for branch: " + _branchPtr_->GetName());
-    }
+    if( bufferSize == 0 ){ throw std::runtime_error("buffer size is 0"); }
 
-    _byteBuffer_.resize( bufferSize, 0 );
-    if( _byteBuffer_.empty() ){ throw std::runtime_error(__METHOD_NAME__ + ": empty byte buffer"); }
+    _branchInfoList_.emplace_back();
+    _branchInfoList_.back().name = branchName_;
+    _branchInfoList_.back().byteOffset = _chainBuffer_.size();
+
+    _chainBuffer_.resize(_chainBuffer_.size() + bufferSize, 0);
   }
-  inline void BranchBuffer::hookBuffer(){
-    if( _byteBuffer_.empty() ){ throw std::runtime_error(__METHOD_NAME__ + ": empty byte buffer"); }
-    _branchPtr_->SetStatus( true ); // on notify, ttree might have started back to all disabled state
-    _branchPtr_->SetAddress( (void*) &_byteBuffer_[0] );
-  }
-  inline std::string BranchBuffer::getSummary() const {
-    std::stringstream ss;
-    if( _branchPtr_ != nullptr ){
-      ss << _branchPtr_->GetName() << ": addr{" << (void*) _branchPtr_->GetAddress() << "}, size{" << _byteBuffer_.size() << "}";
-    }
-    else{
-      ss << "branch not set";
-    }
-    return ss.str();
-  }
-}
+  inline int TreeBuffer::addExpression(const std::string& exprStr_){
+    if( exprStr_.empty() ){ throw std::invalid_argument("expression is empty"); }
+    if( _treePtr_ == nullptr ){ throw std::runtime_error("chain is null"); }
 
-// LeafForm
-namespace GenericToolbox{
-  class LeafForm{
+    // check if it already exists
+    auto idx{getExpressionBufferIndex(exprStr_)};
+    if( idx != -1 ){ return idx; }
 
-  public:
-    inline LeafForm() = default;
-    inline virtual ~LeafForm() = default;
+    // need to parse the expression
+    std::vector<std::string> argBuffer;
+    auto strippedLeafExpr = GenericToolbox::stripBracket(exprStr_, '[', ']', false, &argBuffer);
+    if( strippedLeafExpr.empty() ){ throw std::runtime_error(__METHOD_NAME__ + " Bad leaf form expression: " + exprStr_); }
 
-    inline void setIndex(int index_){ _index_ = index_; }
-    inline void setNestedFormPtr(LeafForm* nestedLeafFormPtr_){ _nestedLeafFormPtr_ = nestedLeafFormPtr_; }
-    inline void setPrimaryExprStr(const std::string &primaryExprStr) { _primaryExprStr_ = primaryExprStr; }
-    inline void setPrimaryLeafPtr(TLeaf* primaryLeafPtr_) { _primaryLeafPtr_ = primaryLeafPtr_; _primaryLeafFullName_ = _primaryLeafPtr_->GetFullName(); }
-    inline void setTreeFormulaPtr(const std::shared_ptr<TTreeFormula>& treeFormulaPtr) { _treeFormulaPtr_ = treeFormulaPtr; }
+    // first, check if the remaining expr is a leaf
+    auto* leafPtr = _treePtr_->GetLeaf(strippedLeafExpr.c_str());
 
-    inline const LeafForm* getNestedFormPtr() const { return _nestedLeafFormPtr_; }
+    // we support 1 dim array at maximum
+    if( leafPtr != nullptr and argBuffer.size() <= 1 ){
 
-    inline TLeaf *getPrimaryLeafPtr() const{ return _primaryLeafPtr_; }
-    [[nodiscard]] inline const std::string &getPrimaryExprStr() const { return _primaryExprStr_; }
-    [[nodiscard]] inline const std::string &getPrimaryLeafFullName() const { return _primaryLeafFullName_; }
-    [[nodiscard]] inline const std::shared_ptr<TTreeFormula> &getTreeFormulaPtr() const { return _treeFormulaPtr_; }
+      // add a slot for ROOT to drop the data
+      auto offset = getBranchByteOffset( leafPtr->GetBranch()->GetName() );
+      auto anySlot = GenericToolbox::leafToAnyType(leafPtr->GetTypeName());
 
-    inline void initialize();
-
-    [[nodiscard]] inline void* getDataAddress() const;
-    [[nodiscard]] inline size_t getDataSize() const;
-    [[nodiscard]] inline std::string getLeafTypeName() const;
-    [[nodiscard]] inline bool isPointerLeaf() const { return ( _primaryLeafPtr_ != nullptr and _primaryLeafPtr_->GetNdata() == 0 ); }
-
-    inline double evalAsDouble() const;
-    inline void fillLocalBuffer() const;
-    inline void dropToAny(GenericToolbox::AnyType& any_) const;
-    [[nodiscard]] inline std::string getSummary() const;
-
-    inline void cacheDataSize();
-    inline void cacheDataAddr();
-
-  protected:
-    template<typename T> inline const T& eval() const; // Use ONLY if the type is known
-
-  private:
-    TLeaf* _primaryLeafPtr_{nullptr};     // volatile ptr for TChains
-    std::string _primaryExprStr_{};       // keep track of the expression it handles
-    std::string _primaryLeafFullName_{};  // used to keep track of the leaf ptr
-
-    size_t _index_{0};
-    LeafForm* _nestedLeafFormPtr_{nullptr};
-    std::shared_ptr<TTreeFormula> _treeFormulaPtr_{nullptr};
-
-    // buffers
-    size_t _dataSize_{0};
-    void* _dataAddress_{nullptr};
-    mutable double _localBuffer_{}; // for TTreeFormula
-    mutable std::shared_ptr<GenericToolbox::AnyType> _anyTypeContainer_{nullptr};
-
-  };
-
-  inline void LeafForm::initialize(){
-    this->cacheDataSize();
-    this->cacheDataAddr();
-  }
-  inline void* LeafForm::getDataAddress() const{
-    if( _nestedLeafFormPtr_ != nullptr ){
-      return ((char*) _dataAddress_) + int(_nestedLeafFormPtr_->evalAsDouble()) * this->getDataSize(); // offset
-    }
-    return _dataAddress_;
-  }
-  inline size_t LeafForm::getDataSize() const{ return _dataSize_; }
-  inline std::string LeafForm::getLeafTypeName() const{
-    if     ( _primaryLeafPtr_ != nullptr ){ return _primaryLeafPtr_->GetTypeName(); }
-    else if( _treeFormulaPtr_ != nullptr ){ return "Double_t"; }
-    return {};
-  }
-  inline void LeafForm::fillLocalBuffer() const {
-    if( _treeFormulaPtr_ == nullptr ){
-      memcpy(&_localBuffer_, this->getDataAddress(), std::min(this->getDataSize(), sizeof(double)));
-    }
-    else{
-      _localBuffer_ = _treeFormulaPtr_->EvalInstance(0);
-    }
-  }
-  inline double LeafForm::evalAsDouble() const {
-    if( _treeFormulaPtr_ != nullptr ){
-      this->fillLocalBuffer();
-      return _localBuffer_; // double by default
-    }
-    else if( this->getLeafTypeName() == "Double_t" ){
-      return this->eval<double>();
-    }
-    else{
-      if( _anyTypeContainer_ == nullptr ){
-        _anyTypeContainer_ = std::make_shared<AnyType>( GenericToolbox::leafToAnyType( this->getLeafTypeName() ) );
-      }
-      this->dropToAny(*_anyTypeContainer_);
-      return _anyTypeContainer_->getValueAsDouble();
-    }
-  }
-  inline void LeafForm::dropToAny(GenericToolbox::AnyType& any_) const{
-    if( _treeFormulaPtr_ != nullptr ){ this->fillLocalBuffer(); }
-    memcpy(any_.getPlaceHolderPtr()->getVariableAddress(), this->getDataAddress(), this->getDataSize());
-  }
-  inline std::string LeafForm::getSummary() const{
-    std::stringstream ss;
-    if     ( _primaryLeafPtr_ != nullptr ){
-      ss << _primaryExprStr_ << ": br{ " << _primaryLeafFullName_ << " }";
-      if     ( _index_ != 0 )                  { ss << "[" << _index_ << "]"; }
-      else if( _nestedLeafFormPtr_ != nullptr ){
-        ss << "[" << _nestedLeafFormPtr_->getPrimaryExprStr() << " -> " << int(_nestedLeafFormPtr_->evalAsDouble()) << "]";
-      }
-    }
-    else if( _treeFormulaPtr_ != nullptr ){
-      ss << "formula{ \"" << this->getTreeFormulaPtr()->GetName() << "\" }";
-    }
-    ss << ", addr{ " << this->getDataAddress() << " }, size{ " << this->getDataSize() << " }";
-    if( this->getDataAddress() != nullptr and this->getDataSize() != 0 ){
-      if( _treeFormulaPtr_ == nullptr ){
-        ss << ", data{ 0x" << GenericToolbox::toHex(this->getDataAddress(), this->getDataSize()) << " }";
+      if( argBuffer.empty() ) {
+        // not an array
+        _expressionBufferList_.emplace_back(std::make_unique<ExpressionBuffer>());
       }
       else{
-        this->fillLocalBuffer();
-        ss << ", eval{ " << _localBuffer_ << " }";
+        // array-like
+        try{
+          // try for a static index
+          int index = std::stoi(argBuffer[0]);
+          auto exp = std::make_unique<ExpressionBuffer>();
+          // translating the array index
+          offset += index * leafPtr->GetLenType();
+          _expressionBufferList_.emplace_back(std::move(exp));
+        }
+        catch(...){
+          // add the arg as a whole new expression /!\ recursive
+          addExpression(argBuffer[0]);
+          auto exp = std::make_unique<NestedArrayExpression>();
+          exp->setObjSize( anySlot.getPlaceHolderPtr()->getVariableSize() );
+          exp->setExpPtrArrayIndex( const_cast<ExpressionBuffer *>(getExpressionBuffer(argBuffer[0])) );
+          _expressionBufferList_.emplace_back(std::move(exp));
+        }
       }
 
-    }
-    return ss.str();
-  }
-  inline void LeafForm::cacheDataSize(){
-    // buffer data size
-    _dataSize_ = 0; // reset
+      _expressionBufferList_.back()->setByteOffset(offset);
 
-    if( this->isPointerLeaf() ){
-      // pointer-like obj (TGraph, TClonesArray...)
-      // ROOT didn't update the ptr size from 32 to 64 bits??
-      _dataSize_ += 2 * _primaryLeafPtr_->GetLenType();
-    }
-    else if( _primaryLeafPtr_ != nullptr ){
-      // primary type leaf (int, double, long, etc...)
-      _dataSize_ += _primaryLeafPtr_->GetLenType();
-    }
-    else if( _treeFormulaPtr_ != nullptr ){
-      // double
-      _dataSize_ = 8;
+      // creating the typed buffer
+      _expressionBufferList_.back()->setBuffer(anySlot);
+
+      // keep a copy of the original expression
+      _expressionBufferList_.back()->setExpression(exprStr_);
     }
     else{
-      throw std::runtime_error(__METHOD_NAME__ + ": no data defined -> " + this->getSummary());
-    }
-  }
-  inline void LeafForm::cacheDataAddr(){
-    // buffer data address
-    _dataAddress_ = nullptr;
-    if     ( _primaryLeafPtr_ != nullptr ){
-      _dataAddress_ = _primaryLeafPtr_->GetBranch()->GetAddress() + _primaryLeafPtr_->GetOffset();
-      if( _index_ != 0 ){
-        _dataAddress_ = (char*) _dataAddress_ + _index_ * this->getDataSize();
-      }
-    }
-    else if( _treeFormulaPtr_ != nullptr ){
-      _dataAddress_ = (void*) &_localBuffer_;
-    }
-  }
-  template<typename T> inline const T& LeafForm::eval() const {
-    // Use ONLY if the type is known
-    if( _treeFormulaPtr_ != nullptr ){ this->fillLocalBuffer(); }
-    auto* addr{(T*) this->getDataAddress()};
-    if( addr == nullptr ){ throw std::runtime_error(__METHOD_NAME__ + ": invalid address: " + this->getSummary()); }
-    return *addr;
-  }
-}
-
-// LeafCollection
-namespace GenericToolbox{
-  class LeafCollection{
-
-  public:
-    inline LeafCollection() = default;
-    inline virtual ~LeafCollection();
-
-    // setters
-    inline void setTreePtr(TTree* treePtr_){ _treePtr_ = treePtr_; }
-    inline int addLeafExpression(const std::string& leafExpStr_);
-
-    inline void initialize();
-
-    // getters
-    [[nodiscard]] inline const std::vector<LeafForm>& getLeafFormList() const{ return _leafFormList_; }
-
-    // core
-    inline void doNotify();
-    [[nodiscard]] inline std::string getSummary() const;
-    [[nodiscard]] inline int getLeafExpIndex(const std::string& leafExpression_) const;
-    [[nodiscard]] inline const LeafForm* getLeafFormPtr(const std::string& leafExpression_) const;
-
-  protected:
-    inline void parseExpressions();
-    inline void setupBranchBuffer(TLeaf* leaf_);
-
-  private:
-    // user
-    TTree* _treePtr_{nullptr};
-    std::vector<std::string> _leafExpressionList_{};
-
-    // internals
-    std::vector<BranchBuffer> _branchBufferList_{};
-    std::vector<LeafForm> _leafFormList_{}; // handle the evaluation of each expression using the shared leaf buffers
-    TObjNotifier _objNotifier_{};
-
-  };
-
-  inline LeafCollection::~LeafCollection(){
-    if( _treePtr_ != nullptr and _treePtr_->GetNotify() == &_objNotifier_ ){
-      // TTree will conflict the ownership as the _objNotifier_ is handled by us
-      _treePtr_->SetNotify(nullptr);
-    }
-  }
-  inline int LeafCollection::addLeafExpression(const std::string& leafExpStr_){
-    auto iExp{this->getLeafExpIndex(leafExpStr_)};
-    if( iExp != -1 ){ return iExp; }
-    _leafExpressionList_.emplace_back( leafExpStr_ );
-    return int(_leafExpressionList_.size())-1;
-  }
-  inline void LeafCollection::initialize() {
-    if( _treePtr_ == nullptr ){ throw std::logic_error("_treePtr_ not set. Can't" + __METHOD_NAME__); }
-
-    // make sure branch are available for TTreeFormula
-    _treePtr_->SetBranchStatus("*", true);
-
-    // read the expressions
-    this->parseExpressions();
-
-    // hook now? later?
-    for( auto& branchBuf : _branchBufferList_ ){
-      branchBuf.buildBuffer();
-      branchBuf.hookBuffer();
+      // directly use a formula
+      auto exp = std::make_unique<FormulaExpression>();
+      exp->setExpression(exprStr_);
+      exp->setExpression(exprStr_);
+      exp->setBuffer( leafToAnyType("Double_t") );
+      exp->parseFormula(_treePtr_);
+      _expressionBufferList_.emplace_back(std::move(exp));
     }
 
-    // init
-    for( auto& leafForm : _leafFormList_ ){ leafForm.initialize(); }
-
-    // make sure the branch & leaf addr get updated
-    _objNotifier_.setOnNotifyFct( [this](){ this->doNotify(); } );
-    _treePtr_->SetNotify( &_objNotifier_ );
-    this->doNotify();
+    return static_cast<int>(_expressionBufferList_.size())-1;
   }
-  void LeafCollection::doNotify(){
-    // use for updating branches and leaves addresses
-    // should be auto triggered by the TTree
+  inline void TreeBuffer::saveExpressions(){
+    for( auto& eb : _expressionBufferList_ ){
+      eb->save(_chainBuffer_.data());
+    }
+  }
+  inline void TreeBuffer::initialize(){
+    if(_treePtr_ == nullptr){ throw std::runtime_error("chain not initialized"); }
+
+    // notification
+    _notifier_.setOnNotifyFct([&]{ this->notify(); });
+    _treePtr_->SetNotify( &_notifier_ );
+    this->notify();
+  }
+  inline const TreeBuffer::ExpressionBuffer* TreeBuffer::getExpressionBuffer(const std::string& exprStr_) const{
+    auto idx{getExpressionBufferIndex(exprStr_)};
+    if( idx == -1 ){ return nullptr; }
+    return _expressionBufferList_[idx].get();
+  }
+  [[nodiscard]] inline int TreeBuffer::getExpressionBufferIndex(const std::string& exprStr_) const{
+    int idx{0};
+    for( auto& exp : _expressionBufferList_){
+      if( exp->getExpression() == exprStr_ ){ return idx; }
+      idx++;
+    }
+    return -1;
+  }
+  inline void TreeBuffer::notify(){
+    // hook the branch addresses to the new TTree
 
     // reset all branch status to 0
     _treePtr_->SetBranchStatus("*", false);
 
-    for( auto& br : _branchBufferList_ ){
-      _treePtr_->SetBranchStatus(br.getBranchName().c_str(), true);
-      br.setBranchPtr( _treePtr_->GetBranch( br.getBranchName().c_str() ) );
-      br.hookBuffer();
+    for(auto& br: _branchInfoList_) {
+      // it should exist
+      auto* branchPtr = _treePtr_->GetBranch(br.name.c_str());
+      if( branchPtr == nullptr ){ throw std::logic_error(br.name + "Branch name doesn't match"); }
+
+      _treePtr_->SetBranchStatus(br.name.c_str(), true);
+
+      // set the address where ROOT will write the data
+      branchPtr->SetAddress( &_chainBuffer_[br.byteOffset] );
     }
 
-    for( auto& lf : _leafFormList_ ){
-      if( lf.getPrimaryLeafPtr() != nullptr ){
-        lf.setPrimaryLeafPtr( _treePtr_->GetLeaf( lf.getPrimaryLeafFullName().c_str() ) );
-      }
-      if( lf.getTreeFormulaPtr() != nullptr ){
-        lf.getTreeFormulaPtr()->Notify();
-        GenericToolbox::enableSelectedBranches(_treePtr_, lf.getTreeFormulaPtr().get());
-      }
-      lf.cacheDataAddr();
-    }
-  }
-  inline std::string LeafCollection::getSummary() const{
-    std::stringstream ss;
-    ss << "tree{ " << _treePtr_->GetName() << " }";
-    ss << std::endl << "leavesExpr" << GenericToolbox::toString(_leafExpressionList_, true);
-    ss << std::endl << "branchesBuf" << GenericToolbox::toString(_branchBufferList_, [](const BranchBuffer& b){ return b.getSummary(); });
-    ss << std::endl << "leafForm" << GenericToolbox::toString(_leafFormList_, [](const LeafForm& l){ return l.getSummary(); } );
-    return ss.str();
-  }
-  inline int LeafCollection::getLeafExpIndex(const std::string& leafExpression_) const {
-    return GenericToolbox::findElementIndex( leafExpression_, _leafExpressionList_ );
-  }
-  inline const LeafForm* LeafCollection::getLeafFormPtr(const std::string& leafExpression_) const {
-    auto idx{getLeafExpIndex(leafExpression_)};
-    if( not _leafFormList_.empty() and idx != -1 ){ return &_leafFormList_[idx]; }
-    return nullptr;
-  }
-  inline void LeafCollection::parseExpressions() {
-    // avoid moving memory around
-    _leafFormList_.reserve(_leafExpressionList_.size());
-
-    // loop over the expressions. _leafExpressionList_ size might change within the loop -> USE INDICES (iExp) loop based
-    for( size_t iExp = 0 ; iExp < _leafExpressionList_.size() ; iExp++ ){
-      _leafFormList_.emplace_back();
-      _leafFormList_.back().setPrimaryExprStr( _leafExpressionList_[iExp] );
-
-      std::vector<std::string> argBuffer;
-      auto strippedLeafExpr = GenericToolbox::stripBracket(_leafExpressionList_[iExp], '[', ']', false, &argBuffer);
-      if( strippedLeafExpr.empty() ){ throw std::runtime_error(__METHOD_NAME__ + " Bad leaf form expression: " + _leafExpressionList_[iExp]); }
-
-      // first, check if the remaining expr is a leaf
-      auto* leafPtr = _treePtr_->GetLeaf(strippedLeafExpr.c_str());
-      if( leafPtr == nullptr or argBuffer.size() > 1 ){
-        // no leaf or multi-dim array -> use a complete TTreeFormula to eval the obj
-
-        _leafFormList_.back().setTreeFormulaPtr( std::make_shared<TTreeFormula>(
-            _leafExpressionList_[iExp].c_str(),
-            _leafExpressionList_[iExp].c_str(),
-            _treePtr_
-        ) );
-
-        // ROOT Hot fix: https://root-forum.cern.ch/t/ttreeformula-evalinstance-return-0-0/16366/10
-        _leafFormList_.back().getTreeFormulaPtr()->GetNdata();
-
-        if( _leafFormList_.back().getTreeFormulaPtr()->GetNdim() == 0 ){
-          throw std::runtime_error(__METHOD_NAME__+": \"" + _leafExpressionList_[iExp] + "\" could not be parsed by the TTree");
-        }
-      }
-      else{
-        // leaf exists, create the associated branch buffer if not already set
-        this->setupBranchBuffer( leafPtr );
-
-        // set the leaf data will be extracted
-        _leafFormList_.back().setPrimaryLeafPtr( leafPtr );
-
-        // array-like
-        if( not argBuffer.empty() ){
-          try{
-            int index = std::stoi(argBuffer[0]);
-            _leafFormList_.back().setIndex( index );
-          }
-          catch(...){
-            // nested? -> try
-            size_t idx = this->addLeafExpression( argBuffer[0] ); // will be processed later
-            _leafFormList_.back().setNestedFormPtr( (LeafForm*) idx ); // tweaking types while not all ptr are settled
-          }
-        }
-      }
-    }
-
-    // refill up with the proper ptr addresses now _leafFormList_ size won't change
-    for( auto& leafForm: _leafFormList_ ){
-      if( leafForm.getNestedFormPtr() != nullptr ){
-        leafForm.setNestedFormPtr( &_leafFormList_[(size_t) leafForm.getNestedFormPtr()] );
-      }
+    for( auto& exp : _expressionBufferList_ ){
+      exp->notify(_treePtr_);
     }
 
   }
-  inline void LeafCollection::setupBranchBuffer(TLeaf* leaf_){
-    auto* brPtr = leaf_->GetBranch();
 
-    // leave if already set
-    for( auto& branchBuffer : _branchBufferList_ ){
-      if( branchBuffer.getBranchPtr() == brPtr ){ return; }
-    }
-
-    _branchBufferList_.emplace_back();
-    _branchBufferList_.back().setBranchPtr( brPtr );
-  }
-
-}
-
-// LeafHolder
-namespace GenericToolbox{
-  class LeafHolder{
-
-  public:
-    inline LeafHolder() = default;
-    inline virtual ~LeafHolder() = default;
-
-    inline void hook(TTree *tree_, TLeaf* leaf_);
-    inline void hook(TTree *tree_, const std::string& leafName_);
-    inline void hookDummyDouble(const std::string& leafName_);
-
-    // const
-    [[nodiscard]] inline size_t getArraySize() const;
-    [[nodiscard]] inline size_t getLeafTypeSize() const;
-    [[nodiscard]] inline const std::string &getLeafTypeName() const;
-    [[nodiscard]] inline const std::string &getLeafFullName() const;
-    [[nodiscard]] inline const std::vector<unsigned char> &getByteBuffer() const;
-
-    // non-const
-    inline std::vector<unsigned char> &getByteBuffer();
-
-    // core
-    [[nodiscard]] inline std::string getSummary() const;
-    inline void dropToAny(std::vector<AnyType>& anyV_) const;
-    inline void dropToAny(AnyType& any_, size_t slot_) const;
-
-    // template
-    template<typename T> inline T& getVariable(size_t arrayIndex_ = 0);
-    template<typename T> inline const T& getVariable(size_t arrayIndex_ = 0) const;
-
-    // Stream operator
-    inline friend std::ostream& operator <<( std::ostream& o, const LeafHolder& v );
-
-  private:
-    size_t _leafTypeSize_{0};
-    std::string _leafTypeName_{};
-    std::string _leafFullName_{};
-    std::vector<unsigned char> _byteBuffer_{};
-
-  };
-
-  inline void LeafHolder::hook(TTree *tree_, TLeaf* leaf_){
-    _leafTypeName_ = leaf_->GetTypeName();
-    _leafFullName_ = leaf_->GetFullName();
-
-    // Setup buffer
-    _byteBuffer_.clear();
-    if(leaf_->GetNdata() != 0){
-      _leafTypeSize_ = leaf_->GetLenType();
-      _byteBuffer_.resize(leaf_->GetNdata() * _leafTypeSize_, 0);
-    }
-    else{
-      // pointer-like obj
-      _leafTypeSize_ = 2 * leaf_->GetLenType(); // pointer-like obj: ROOT didn't update the ptr size from 32 to 64 bits??
-      _byteBuffer_.resize(_leafTypeSize_, 0);
-    }
-    if( _byteBuffer_.empty() ){ throw std::runtime_error("empty byte buffer"); }
-
-    if( leaf_->GetBranch()->GetAddress() != nullptr ){
-      throw std::runtime_error(leaf_->GetBranch()->GetName() + std::string(": branch address already set."));
-    }
-
-    tree_->SetBranchStatus(leaf_->GetBranch()->GetName(), true);
-    tree_->SetBranchAddress(leaf_->GetBranch()->GetName(), (void*) &_byteBuffer_[0]);
-
-    // THIS IS NOT WORKING WITH TCHAINS!!
-//    leaf_->GetBranch()->SetAddress(&_byteBuffer_[0]);
-//    leaf_->SetAddress(&_byteBuffer_[0]);
-
-//    std::cout << getSummary() << std::endl;
-  }
-  inline void LeafHolder::hook(TTree *tree_, const std::string& leafName_){
-    TLeaf* leafPtr = tree_->GetLeaf(leafName_.c_str());
-    if(leafPtr == nullptr){ throw std::runtime_error("Could not get TLeaf: " + leafName_); }
-
-    this->hook(tree_, leafPtr);
-  }
-  inline void LeafHolder::hookDummyDouble(const std::string& leafName_){
-    _leafTypeName_ = "Double_t";
-    _leafTypeSize_ = 8;
-
-    _leafFullName_  = leafName_;
-    _leafFullName_ += ".";
-    _leafFullName_ += leafName_;
-
-    // Setup buffer
-    _byteBuffer_.clear();
-    _byteBuffer_.resize(_leafTypeSize_, 0);
-
-    double nanValue{std::nan("dummyLeaf")};
-    memcpy(&_byteBuffer_[0], &nanValue, 8);
-  }
-
-  inline size_t LeafHolder::getArraySize() const{
-    return _byteBuffer_.size()/_leafTypeSize_;
-  }
-  inline size_t LeafHolder::getLeafTypeSize() const {
-    return _leafTypeSize_;
-  }
-  inline const std::string &LeafHolder::getLeafTypeName() const {
-    return _leafTypeName_;
-  }
-  inline const std::string &LeafHolder::getLeafFullName() const {
-    return _leafFullName_;
-  }
-  inline const std::vector<unsigned char> &LeafHolder::getByteBuffer() const {
-    return _byteBuffer_;
-  }
-  inline std::string LeafHolder::getSummary() const {
-    std::stringstream o;
-    o << _leafFullName_ << "/" << _leafTypeName_ << " = ";
-    if( not _byteBuffer_.empty() ){
-      o << "{ ";
-      auto aBuf = GenericToolbox::leafToAnyType(_leafTypeName_);
-      for(int iSlot=0 ; iSlot < getArraySize() ; iSlot++ ){
-        if( iSlot != 0 ) o << ", ";
-        dropToAny(aBuf, iSlot);
-        o << aBuf;
-      }
-      o << " } | ";
-      o << GenericToolbox::stackToHex(_byteBuffer_, _leafTypeSize_);
-      o << " / addr{" << GenericToolbox::toHex(&_byteBuffer_[0]) << "}";
-    }
-    else{
-      o << "{ EMPTY }";
-    }
-    return o.str();
-  }
-
-  inline std::vector<unsigned char> &LeafHolder::getByteBuffer(){
-    return _byteBuffer_;
-  }
-  template<typename T> inline T& LeafHolder::getVariable(size_t arrayIndex_){
-    return *((T*) &_byteBuffer_[arrayIndex_ * sizeof(T)]);
-  }
-
-  template<typename T> inline const T& LeafHolder::getVariable(size_t arrayIndex_) const{
-    return *((T*) &_byteBuffer_[arrayIndex_ * sizeof(T)]);
-  }
-
-  inline void LeafHolder::dropToAny(std::vector<AnyType>& anyV_) const{
-    if(anyV_.empty()){ anyV_.resize(getArraySize(), GenericToolbox::leafToAnyType(_leafTypeName_)); }
-    for( size_t iSlot = 0 ; iSlot < anyV_.size() ; iSlot++ ){ this->dropToAny(anyV_[iSlot], iSlot); }
-  }
-  inline void LeafHolder::dropToAny(AnyType& any_, size_t slot_) const{
-    memcpy(any_.getPlaceHolderPtr()->getVariableAddress(), &_byteBuffer_[slot_ * _leafTypeSize_], _leafTypeSize_);
-  }
-
-  inline std::ostream& operator <<( std::ostream& o, const LeafHolder& v ){
-    if( not v._byteBuffer_.empty() ){
-      o << v.getSummary();
-    }
-    return o;
-  }
-}
-
-// TreeEntryBuffer
-namespace GenericToolbox{
-  class TreeEntryBuffer {
-
-  public:
-    inline TreeEntryBuffer();
-    inline virtual ~TreeEntryBuffer();
-
-    inline void setLeafNameList(const std::vector<std::string> &leafNameList_);
-    inline void setIsDummyLeaf(const std::string& leafName_, bool isDummy_);
-    inline void hook(TTree* tree_);
-
-    inline const std::vector<GenericToolbox::LeafHolder> &getLeafContentList() const;
-
-    inline int fetchLeafIndex(const std::string& leafName_) const;
-    inline const GenericToolbox::LeafHolder& getLeafContent(const std::string& leafName_) const;
-    inline std::string getSummary() const;
-
-  private:
-    std::vector<std::string> _leafNameList_;
-    std::vector<bool> _dummyLeafStateLeaf_;
-    std::vector<GenericToolbox::LeafHolder> _leafContentList_;
-
-  };
-
-  inline TreeEntryBuffer::TreeEntryBuffer() = default;
-  inline TreeEntryBuffer::~TreeEntryBuffer() = default;
-
-  inline void TreeEntryBuffer::hook(TTree* tree_){
-    _leafContentList_.clear();
-    _leafContentList_.resize(_leafNameList_.size());
-    for( size_t iLeaf{0} ; iLeaf < _leafNameList_.size() ; iLeaf++ ){
-      if( _dummyLeafStateLeaf_[iLeaf] ){ _leafContentList_[iLeaf].hookDummyDouble( _leafNameList_[iLeaf] ); }
-      else{ _leafContentList_[iLeaf].hook(tree_, _leafNameList_[iLeaf]); }
-    }
-  }
-
-  inline void TreeEntryBuffer::setLeafNameList(const std::vector<std::string> &leafNameList_) {
-    _leafNameList_ = leafNameList_;
-    _dummyLeafStateLeaf_.resize(_leafNameList_.size(), false);
-  }
-  inline void TreeEntryBuffer::setIsDummyLeaf(const std::string& leafName_, bool isDummy_){
-    int index = GenericToolbox::findElementIndex( leafName_, _leafNameList_ );
-    if( index == -1 ){
-      throw std::runtime_error(
-          "TreeEntryBuffer::setIsDummyLeaf: \"" + leafName_ + "\" not found in leaf list: "
-          + GenericToolbox::toString(_leafNameList_)
+  inline void TreeBuffer::ExpressionBuffer::save(const uint8_t* src_){
+    std::memcpy(
+      _buffer_.getPlaceHolderPtr()->getVariableAddress(),
+      getBufferAddress(src_),
+      _buffer_.getPlaceHolderPtr()->getVariableSize()
       );
+  }
+  inline const uint8_t* TreeBuffer::NestedArrayExpression::getBufferAddress(const uint8_t* src_) const{
+    // make sure the value is up-to-date (treat TFormula first for instance)
+    expPtrArrayIndex->save(src_);
+    return this->ExpressionBuffer::getBufferAddress(src_) + expPtrArrayIndex->getBuffer().getValueAsLong() * objSize;
+  }
+  inline void TreeBuffer::FormulaExpression::parseFormula(TTree* tree_){
+    if( tree_ == nullptr ){ throw std::runtime_error("tree_ is null"); }
+    _formulaPtr_ = std::make_unique<TTreeFormula>(
+      _expression_.c_str(), _expression_.c_str(), tree_
+    );
+
+    if( _formulaPtr_ == nullptr ){ throw std::runtime_error("couldn't create the formula"); }
+
+    // ROOT Hot fix: https://root-forum.cern.ch/t/ttreeformula-evalinstance-return-0-0/16366/10
+    _formulaPtr_->GetNdata();
+
+    if( _formulaPtr_->GetNdim() == 0 ){
+      throw std::runtime_error(__METHOD_NAME__+": \"" + _expression_ + "\" could not be parsed by the TTree");
     }
-    _dummyLeafStateLeaf_[index] = isDummy_;
+  }
+  inline void TreeBuffer::FormulaExpression::notify(TTree* tree_){
+    _formulaPtr_->Notify();
+    GenericToolbox::enableSelectedBranches(tree_, _formulaPtr_.get());
+  }
+  inline void TreeBuffer::FormulaExpression::save(const uint8_t* src_){
+    // src_ will be ignored since there is no buffer in that case
+    double buffer = _formulaPtr_->EvalInstance(0);
+    std::memcpy(
+      _buffer_.getPlaceHolderPtr()->getVariableAddress(),
+      &buffer,
+      _buffer_.getPlaceHolderPtr()->getVariableSize()
+      );
   }
 
-  inline const std::vector<GenericToolbox::LeafHolder> &TreeEntryBuffer::getLeafContentList() const {
-    return _leafContentList_;
-  }
 
-  inline int TreeEntryBuffer::fetchLeafIndex(const std::string& leafName_) const{
-    return GenericToolbox::findElementIndex(leafName_, _leafNameList_);
-  }
-  inline const GenericToolbox::LeafHolder& TreeEntryBuffer::getLeafContent(const std::string& leafName_) const{
-    int i = this->fetchLeafIndex(leafName_);
-    if(i==-1){ throw std::runtime_error(leafName_ + ": not found -> " + GenericToolbox::toString(_leafNameList_)); }
-    return _leafContentList_[i];
-  }
-  inline std::string TreeEntryBuffer::getSummary() const{
-    std::stringstream ss;
-    ss << "TreeEventBuffer:" << std::endl << "_leafContentList_ = {";
-    if( not _leafNameList_.empty() ){
-      for( size_t iLeaf = 0 ; iLeaf < _leafNameList_.size() ; iLeaf++ ){
-        ss<< std::endl << "  " << _leafContentList_[iLeaf];
-      }
-      ss << std::endl << "}";
-    }
-    else{
-      ss << "}";
-    }
-    return ss.str();
-  }
 }
 
 

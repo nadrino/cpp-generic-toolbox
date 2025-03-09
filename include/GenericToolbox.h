@@ -6,6 +6,9 @@
 #ifndef CPP_GENERIC_TOOLBOX_H
 #define CPP_GENERIC_TOOLBOX_H
 
+// keep compatibility, this include shouldn't used anymore
+#warning "#include \"GenericToolbox.h\" is deprecated. Use specific headers instead."
+
 #include "GenericToolbox.String.h"
 #include "GenericToolbox.Vector.h"
 #include "GenericToolbox.Map.h"

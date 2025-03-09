@@ -188,8 +188,19 @@ namespace GenericToolbox {
     return std::equal( subStr_.begin(), subStr_.end(), str_.end() - long(subStr_.size()) );
   }
   static bool isMatching(const std::string& str_, const std::string& pattern_){
-    // Convert '*' wildcard into regex equivalent ".*"
-    std::regex pattern( std::regex_replace(pattern_, std::regex("\\*"), ".*") );
+    // List of regex special characters that need escaping
+    const std::string specialChars = R"(\.^$|()[]{}+?)";
+
+    // Escape all special characters in pattern_
+    std::string escapedPattern;
+    for( char c : pattern_ ){
+      // Add escape character
+      if (specialChars.find(c) != std::string::npos) { escapedPattern += '\\';  }
+      escapedPattern += c;
+    }
+
+    // Replace '*' wildcard with regex equivalent ".*"
+    std::regex pattern(std::regex_replace(escapedPattern, std::regex("\\*"), ".*"));
     return std::regex_match(str_, pattern);
   }
 
