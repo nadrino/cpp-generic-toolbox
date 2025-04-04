@@ -348,9 +348,9 @@ namespace GenericToolbox::Switch {
         const std::string &title_, bool forcePrint_,
         const std::string& color_
         ){
-      if(forcePrint_ or ProgressBar::gProgressBar.template showProgressBar(iCurrent_, iTotal_) ){
+      if(forcePrint_ or ProgressBar::gProgressBar.showProgressBar(iCurrent_, iTotal_) ){
         ProgressBar::gProgressBar.setDisableVt100Cmd( true );
-        printRight(ProgressBar::gProgressBar.template generateProgressBarStr(iCurrent_, iTotal_, GenericToolbox::padString(title_, 40)), color_, true);
+        printRight(ProgressBar::gProgressBar.generateProgressBarStr(iCurrent_, iTotal_, GenericToolbox::padString(title_, 40)), color_, true);
         consoleUpdate(nullptr);
       }
     }

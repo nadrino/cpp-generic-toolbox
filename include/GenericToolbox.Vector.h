@@ -130,7 +130,7 @@ namespace GenericToolbox {
   }
   template<typename T> static void addIfNotInVector(const T& element_, std::vector<T> &vector_){
     if( not GenericToolbox::doesElementIsInVector(element_, vector_) ){
-      vector_.template emplace_back(element_);
+      vector_.emplace_back(element_);
     }
   }
   static void addIfNotInVector(const char* element_, std::vector<std::string> &vector_){
