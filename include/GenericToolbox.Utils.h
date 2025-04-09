@@ -439,7 +439,10 @@ namespace GenericToolbox{
     }
 
     Range& operator+=(double shift_){ min += shift_; max += shift_; return *this; }
-    Range& operator-=(double shift_){ min -= shift_; max -= shift_; return *this; }
+    Range& operator-=(double shift_){ *this += -shift_; return *this; }
+    bool operator==(const Range& other_) const { return min == other_.min && max == other_.max; }
+    bool operator!=(const Range& other_) const { return !(*this == other_); }
+
     friend std::ostream& operator <<( std::ostream& o, const Range& this_ ){ o << this_.toString(); return o; }
   };
 }
