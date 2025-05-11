@@ -368,16 +368,16 @@ namespace GenericToolbox{
   }
 
   template<typename T, typename TT> static std::string generateProgressBarStr( const T& iCurrent_, const TT& iTotal_, const std::string &title_ ){
-    return ProgressBar::gProgressBar.template generateProgressBarStr(iCurrent_, iTotal_, title_);
+    return ProgressBar::gProgressBar.generateProgressBarStr(iCurrent_, iTotal_, title_);
   }
   template<typename T, typename TT> static bool showProgressBar(const T& iCurrent_, const TT& iTotal_){
-    return ProgressBar::gProgressBar.template showProgressBar(iCurrent_, iTotal_);
+    return ProgressBar::gProgressBar.showProgressBar(iCurrent_, iTotal_);
   }
   template<typename T, typename TT> static std::string getProgressBarStr(const T& iCurrent_, const TT& iTotal_, const std::string &title_, bool forcePrint_ ){
-    return ProgressBar::gProgressBar.template getProgressBarStr(iCurrent_, iTotal_, title_, forcePrint_);
+    return ProgressBar::gProgressBar.getProgressBarStr(iCurrent_, iTotal_, title_, forcePrint_);
   }
   template<typename T, typename TT> static void displayProgressBar(const T& iCurrent_, const TT& iTotal_, const std::string &title_, bool forcePrint_) {
-    return ProgressBar::gProgressBar.template displayProgressBar(iCurrent_, iTotal_, title_, forcePrint_);
+    return ProgressBar::gProgressBar.displayProgressBar(iCurrent_, iTotal_, title_, forcePrint_);
   }
   static void resetLastDisplayedValue(){
     ProgressBar::gProgressBar.resetLastDisplayedValue();
@@ -439,7 +439,10 @@ namespace GenericToolbox{
     }
 
     Range& operator+=(double shift_){ min += shift_; max += shift_; return *this; }
-    Range& operator-=(double shift_){ min -= shift_; max -= shift_; return *this; }
+    Range& operator-=(double shift_){ *this += -shift_; return *this; }
+    bool operator==(const Range& other_) const { return min == other_.min && max == other_.max; }
+    bool operator!=(const Range& other_) const { return !(*this == other_); }
+
     friend std::ostream& operator <<( std::ostream& o, const Range& this_ ){ o << this_.toString(); return o; }
   };
 }
@@ -1202,7 +1205,7 @@ namespace GenericToolbox{  // Structs to decide if a stream function can be impl
     if( other_._varPtr_ != nullptr ){ this->_varPtr_ = std::unique_ptr<PlaceHolder>(other_._varPtr_->clone()); }
   }
   template<typename ValueType> inline AnyType::AnyType(const ValueType& value_){
-    this->template setValue(value_);
+    this->setValue(value_);
   }
 
   template<typename ValueType> inline AnyType& AnyType::operator=(const ValueType & rhs) {

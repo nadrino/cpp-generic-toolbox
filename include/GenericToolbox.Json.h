@@ -129,14 +129,14 @@ namespace GenericToolbox {
     inline JsonType getForwardedConfig(const JsonType& config_) {
       JsonType out = config_;
       while( out.is_string() ){
-        out = readConfigFile(out.template get<std::string>());
+        out = readConfigFile(out.get<std::string>());
       }
       return out;
     }
     inline void forwardConfig(JsonType& config_, const std::string& className_){
       while( config_.is_string() ){
-        std::cout << "Forwarding " << (className_.empty()? "": className_ + " ") << "config: \"" << config_.template get<std::string>() << "\"" << std::endl;
-        auto name = config_.template get<std::string>();
+        std::cout << "Forwarding " << (className_.empty()? "": className_ + " ") << "config: \"" << config_.get<std::string>() << "\"" << std::endl;
+        auto name = config_.get<std::string>();
         std::string expand = expandEnvironmentVariables(name);
         config_ = readConfigFile(expand);
       }
@@ -144,7 +144,7 @@ namespace GenericToolbox {
     inline void unfoldConfig(JsonType& config_){
       for( auto& entry : config_ ){
         if( entry.is_string() and (
-            endsWith(entry.template get<std::string>(), ".json", true)
+            endsWith(entry.get<std::string>(), ".json", true)
         ) ){
           forwardConfig(entry);
           unfoldConfig(config_); // remake the loop on the unfolder config
@@ -245,7 +245,7 @@ namespace GenericToolbox {
 
       for( auto& condEntry : jsonList ){
         if( condEntry.is_string() ){
-          conditionsList.emplace_back( condEntry.template get<std::string>() );
+          conditionsList.emplace_back( condEntry.get<std::string>() );
         }
         else{
           std::cout << "Could not recognise condition entry: " << condEntry << std::endl;
@@ -334,7 +334,7 @@ namespace GenericToolbox {
     }
     template<typename T> JsonType fetchMatchingEntry(const JsonType& jsonConfig_, const std::string& keyPath_, const T& keyValue_){
       if( jsonConfig_.empty() or not jsonConfig_.is_array() ){ return {}; }
-      for(const auto& jsonEntry : jsonConfig_.template get<std::vector<JsonType>>() ){
+      for(const auto& jsonEntry : jsonConfig_.get<std::vector<JsonType>>() ){
         try{ if( fetchValue<T>(jsonEntry, keyPath_) == keyValue_ ){ return jsonEntry; } }
         catch (...){} // next
       }
@@ -575,17 +575,17 @@ namespace GenericToolbox {
 
     namespace Internal{
       template<typename T> T getImpl(const JsonType& json_, T*){
-        return json_.template get<T>();
+        return json_.get<T>();
       }
       inline double getImpl(const JsonType& json_, double*){
         // better handling of nan
         if( json_.is_string() ){
-          if( json_.template get<std::string>() == "nan" ){ return std::nan("nan"); }
-          if( json_.template get<std::string>() == "null" ){ return std::nan("null"); }
+          if( json_.get<std::string>() == "nan" ){ return std::nan("nan"); }
+          if( json_.get<std::string>() == "null" ){ return std::nan("null"); }
           // otherwise it is a string that should be castable as a double
         }
         if( json_.is_null() ){ return std::nan("null"); } // macOS
-        return json_.template get<double>();
+        return json_.get<double>();
       }
       inline Range getImpl(const JsonType& json_, Range*){
         if( not json_.is_array() ){ throw std::runtime_error("provided json is not an array."); }
