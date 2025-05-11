@@ -75,6 +75,8 @@ namespace GenericToolbox{
 
   // -- write file
   static void dumpStringInFile(const std::string &outFilePath_, const std::string &stringToWrite_);
+  static void writeToFile(const std::string &outFilePath_, const std::string &stringToWrite_);
+  static void writeToFile(const std::string &outFilePath_, const std::vector<std::string> &linesToWrite_);
 
   // -- binary reader
   static void fillData( std::istream& file_, std::string& buffer_, size_t size_ );
@@ -421,8 +423,18 @@ namespace GenericToolbox{
 
   // -- write file
   static inline void dumpStringInFile(const std::string &outFilePath_, const std::string &stringToWrite_){
+    writeToFile(outFilePath_, stringToWrite_);
+  }
+  static void writeToFile(const std::string &outFilePath_, const std::string &stringToWrite_){
     std::ofstream out(outFilePath_.c_str());
     out << stringToWrite_;
+    out.close();
+  }
+  static void writeToFile(const std::string &outFilePath_, const std::vector<std::string> &linesToWrite_){
+    std::ofstream out(outFilePath_.c_str());
+    for( auto& line : linesToWrite_ ){
+      out << line << std::endl;
+    }
     out.close();
   }
 

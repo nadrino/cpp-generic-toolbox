@@ -5,24 +5,32 @@
 #ifndef CPP_GENERIC_TOOLBOX_OS_H
 #define CPP_GENERIC_TOOLBOX_OS_H
 
-
-#ifdef __SWITCH__
-#include <switch.h>
-#endif
-
 #include <fstream>
 #include <thread>
 #include <string>
 #include <vector>
 #include <array>
 
-#include <sys/utsname.h>
 #include <sys/statvfs.h>
 #include <sys/stat.h>
 #include <climits>
 #include <unistd.h>
 #include <unistd.h>
 #include <pwd.h>
+
+#ifdef __SWITCH__
+#include <switch.h>
+struct utsname {
+  char sysname[1];
+  char nodename[1];
+  char release[1];
+  char version[1];
+  char machine[1];
+};
+static int uname(struct utsname *buf) { return 0; }
+#else
+#include <sys/utsname.h>
+#endif
 
 
 // ***************************
