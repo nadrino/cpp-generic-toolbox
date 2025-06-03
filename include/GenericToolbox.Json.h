@@ -48,7 +48,7 @@ namespace GenericToolbox {
     inline JsonType getForwardedConfig(const JsonType& config_);
     inline void forwardConfig(JsonType& config_, const std::string& className_ = "");
     inline void unfoldConfig(JsonType& config_);
-    inline std::string toReadableString(const JsonType& config_);
+    inline std::string toReadableString(const JsonType& config_, bool shallow_=false);
 
     // reading
     inline JsonType cd(const JsonType& json_, const std::string& keyPath_);
@@ -156,46 +156,63 @@ namespace GenericToolbox {
         }
       }
     }
-    inline std::string toReadableString(const JsonType& config_){
+    inline std::string toReadableString(const JsonType& config_, bool shallow_){
       std::stringstream ss;
-      ss << config_ << std::endl;
 
-      std::string originalJson = ss.str();
-      ss.str(""); ss.clear();
-      int indentLevel{0};
-      bool inQuote{false};
-      for( char c : originalJson ){
+      if(shallow_){
+        for (auto it = config_.begin(); it != config_.end(); ++it) {
+          ss << it.key() << ": ";
+          if (it->is_primitive()) {
+            ss << *it;
+          } else if (it->is_array()) {
+            ss << "[...]" << " (size=" << it->size() << ")";;
+          } else if (it->is_object()) {
+            ss << "{...}" << " (keys=" << it->size() << ")";
+          }
+          ss << "\n";
+        }
+      }
+      else {
+        ss << config_ << std::endl;
 
-        if( c == '"'){ inQuote = not inQuote; }
+        std::string originalJson = ss.str();
+        ss.str(""); ss.clear();
+        int indentLevel{0};
+        bool inQuote{false};
+        for( char c : originalJson ){
 
-        if( not inQuote ){
-          if( c == '{' or c == '[' ){
-            ss << std::endl << repeatString("  ", indentLevel) << c;
-            indentLevel++;
-            ss << std::endl << repeatString("  ", indentLevel);
-          }
-          else if( c == '}' or c == ']' ){
-            indentLevel--;
-            ss << std::endl << repeatString("  ", indentLevel) << c;
-          }
-          else if( c == ':' ){
-            ss << c << " ";
-          }
-          else if( c == ',' ){
-            ss << c << std::endl << repeatString("  ", indentLevel);
-          }
-          else if( c == '\n' ){
-            if( ss.str().back() != '\n' ) ss << c;
+          if( c == '"'){ inQuote = not inQuote; }
+
+          if( not inQuote ){
+            if( c == '{' or c == '[' ){
+              ss << std::endl << repeatString("  ", indentLevel) << c;
+              indentLevel++;
+              ss << std::endl << repeatString("  ", indentLevel);
+            }
+            else if( c == '}' or c == ']' ){
+              indentLevel--;
+              ss << std::endl << repeatString("  ", indentLevel) << c;
+            }
+            else if( c == ':' ){
+              ss << c << " ";
+            }
+            else if( c == ',' ){
+              ss << c << std::endl << repeatString("  ", indentLevel);
+            }
+            else if( c == '\n' ){
+              if( ss.str().back() != '\n' ) ss << c;
+            }
+            else{
+              ss << c;
+            }
           }
           else{
             ss << c;
           }
-        }
-        else{
-          ss << c;
-        }
 
+        }
       }
+
       return ss.str();
     }
 
