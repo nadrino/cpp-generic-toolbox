@@ -422,10 +422,12 @@ namespace GenericToolbox{
     [[nodiscard]] bool hasBound() const{ return hasLowerBound() or hasUpperBound(); }
     [[nodiscard]] bool hasBothBounds() const{ return hasLowerBound() and hasUpperBound(); }
     [[nodiscard]] bool isUnbounded() const{ return not hasBound(); }
+    [[nodiscard]] bool isBellowMin(double val_) const{ return (hasLowerBound() and val_ < min); }
+    [[nodiscard]] bool isAboveMax(double val_) const{ return (hasUpperBound() and val_ > max); }
     [[nodiscard]] bool isInBounds(double val_) const{
       // both bounds are inclusive [min, max]
-      if( hasLowerBound() and val_ < min ){ return false; }
-      if( hasUpperBound() and val_ > max ){ return false; }
+      if( isBellowMin(val_) ){ return false; }
+      if( isAboveMax(val_) ){ return false; }
       return true;
     }
     [[nodiscard]] std::string toString() const{

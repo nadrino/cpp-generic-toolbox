@@ -32,8 +32,8 @@
 
 // Declaration
 namespace GenericToolbox {
-  namespace Json {
 
+  namespace Json{
     // we want to preserve the ordering of the key for the
     // override feature to fully work
     // -> nlohmann::json are faster but move the keys
@@ -41,6 +41,12 @@ namespace GenericToolbox {
 
     // Objects configured by a JSON file can inherit from this
     typedef ConfigClass<JsonType> ConfigBaseClass;
+  }
+
+  // generic calls, overload
+  inline std::string toString(const Json::JsonType& config_);
+
+  namespace Json {
 
     // IO
     inline JsonType readConfigJsonStr(const std::string& configJsonStr_);
@@ -48,7 +54,7 @@ namespace GenericToolbox {
     inline JsonType getForwardedConfig(const JsonType& config_);
     inline void forwardConfig(JsonType& config_, const std::string& className_ = "");
     inline void unfoldConfig(JsonType& config_);
-    inline std::string toReadableString(const JsonType& config_);
+    inline std::string toReadableString(const JsonType& config_, bool shallow_=false);
 
     // reading
     inline JsonType cd(const JsonType& json_, const std::string& keyPath_);
@@ -96,6 +102,9 @@ namespace GenericToolbox {
 
 // Implementation
 namespace GenericToolbox {
+
+  inline std::string toString(const Json::JsonType& config_){ return Json::toReadableString(config_); }
+
   namespace Json {
 
     // io
@@ -156,46 +165,63 @@ namespace GenericToolbox {
         }
       }
     }
-    inline std::string toReadableString(const JsonType& config_){
+    inline std::string toReadableString(const JsonType& config_, bool shallow_){
       std::stringstream ss;
-      ss << config_ << std::endl;
 
-      std::string originalJson = ss.str();
-      ss.str(""); ss.clear();
-      int indentLevel{0};
-      bool inQuote{false};
-      for( char c : originalJson ){
+      if(shallow_){
+        for (auto it = config_.begin(); it != config_.end(); ++it) {
+          ss << it.key() << ": ";
+          if (it->is_primitive()) {
+            ss << *it;
+          } else if (it->is_array()) {
+            ss << "[...]" << " (size=" << it->size() << ")";;
+          } else if (it->is_object()) {
+            ss << "{...}" << " (keys=" << it->size() << ")";
+          }
+          ss << "\n";
+        }
+      }
+      else {
+        ss << config_ << std::endl;
 
-        if( c == '"'){ inQuote = not inQuote; }
+        std::string originalJson = ss.str();
+        ss.str(""); ss.clear();
+        int indentLevel{0};
+        bool inQuote{false};
+        for( char c : originalJson ){
 
-        if( not inQuote ){
-          if( c == '{' or c == '[' ){
-            ss << std::endl << repeatString("  ", indentLevel) << c;
-            indentLevel++;
-            ss << std::endl << repeatString("  ", indentLevel);
-          }
-          else if( c == '}' or c == ']' ){
-            indentLevel--;
-            ss << std::endl << repeatString("  ", indentLevel) << c;
-          }
-          else if( c == ':' ){
-            ss << c << " ";
-          }
-          else if( c == ',' ){
-            ss << c << std::endl << repeatString("  ", indentLevel);
-          }
-          else if( c == '\n' ){
-            if( ss.str().back() != '\n' ) ss << c;
+          if( c == '"'){ inQuote = not inQuote; }
+
+          if( not inQuote ){
+            if( c == '{' or c == '[' ){
+              ss << std::endl << repeatString("  ", indentLevel) << c;
+              indentLevel++;
+              ss << std::endl << repeatString("  ", indentLevel);
+            }
+            else if( c == '}' or c == ']' ){
+              indentLevel--;
+              ss << std::endl << repeatString("  ", indentLevel) << c;
+            }
+            else if( c == ':' ){
+              ss << c << " ";
+            }
+            else if( c == ',' ){
+              ss << c << std::endl << repeatString("  ", indentLevel);
+            }
+            else if( c == '\n' ){
+              if( ss.str().back() != '\n' ) ss << c;
+            }
+            else{
+              ss << c;
+            }
           }
           else{
             ss << c;
           }
-        }
-        else{
-          ss << c;
-        }
 
+        }
       }
+
       return ss.str();
     }
 
@@ -588,12 +614,35 @@ namespace GenericToolbox {
         return json_.get<double>();
       }
       inline Range getImpl(const JsonType& json_, Range*){
-        if( not json_.is_array() ){ throw std::runtime_error("provided json is not an array."); }
-        if( json_.size() != 2 ){ throw std::runtime_error("Range has " + std::to_string(json_.size()) + " values (2 expected)."); }
         Range out{};
-        out.min = get<double>(json_[0]);
-        out.max = get<double>(json_[1]);
-        if( out.min > out.max ){ std::swap(out.min, out.max); }
+
+        if( json_.is_array() ) {
+          if( json_.size() != 2 ){ throw std::runtime_error("Range has " + std::to_string(json_.size()) + " values (2 expected)."); }
+
+          out.min = get<double>(json_[0]);
+          out.max = get<double>(json_[1]);
+          if( out.min > out.max ){ std::swap(out.min, out.max); }
+          return out;
+        }
+
+        if( json_.is_structured() ) {
+          // legacy
+          bool oneValidKeyFound{false};
+
+          if( doKeyExist(json_, "min") )     { oneValidKeyFound=true; fillValue(json_, out.min, "min"); }
+          if( doKeyExist(json_, "minValue") ){ oneValidKeyFound=true; fillValue(json_, out.min, "minValue"); }
+
+          if( doKeyExist(json_, "max") )     { oneValidKeyFound=true; fillValue(json_, out.max, "max"); }
+          if( doKeyExist(json_, "maxValue") ){ oneValidKeyFound=true; fillValue(json_, out.max, "maxValue"); }
+
+          if( not oneValidKeyFound ) {
+            throw std::runtime_error("Range has no min or max value: " + toReadableString(json_));
+          }
+
+          return out;
+        }
+
+        throw std::runtime_error("Could not parse json entry as Range:" + toReadableString(json_));
         return out;
       }
       template<typename T> std::vector<T> getImpl(const JsonType& json_, std::vector<T>*){

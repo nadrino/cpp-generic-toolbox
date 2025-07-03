@@ -566,6 +566,7 @@ namespace GenericToolbox{
     std::vector<std::string> output;
     while( fgets( buffer.data(), buffer.size(), pipe.get() ) != nullptr ){
       output.emplace_back( buffer.data() );
+      GenericToolbox::replaceSubstringInsideInputString(output.back(), "\n", "");
     }
     return output;
   }
