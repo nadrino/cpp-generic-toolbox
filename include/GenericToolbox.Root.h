@@ -196,6 +196,7 @@ namespace GenericToolbox{
   inline TMatrixD* generateCovarianceMatrixOfTree(TTree* tree_, bool showProgressBar_ = false, TVectorD* meanValueLeafList_ = nullptr);
   inline std::string generateCleanBranchName(const std::string& name_);
   inline void generateCompareTree(TTree* tree1_, TTree* tree2_, TDirectory* outDir_);
+  inline std::vector<size_t> getMultiDimArraySizeLeaf(TBranch* branch_);
 
   //! Matrix Tools
   inline std::map<std::string, TMatrixD*> invertMatrixSVD(TMatrixD *matrix_, const std::string &outputContent_= "inverse_covariance_matrix:regularized_eigen_values");
@@ -1075,7 +1076,20 @@ namespace GenericToolbox {
 //
 //    prevDir->cd();
   }
+  inline std::vector<size_t> getMultiDimArraySizeLeaf(TBranch* branch_){
+    if(branch_==nullptr){ return {}; }
 
+    std::string title = branch_->GetTitle(); // "array[4][32]/I"
+    std::regex dim_regex(R"(\[(\d+)\])");
+    std::smatch match;
+    std::vector<size_t> dims;
+
+    for(std::sregex_iterator it(title.begin(), title.end(), dim_regex), end; it != end; ++it){
+      dims.emplace_back(std::stoi((*it)[1]));
+    }
+
+    return dims;
+  }
 }
 
 //! Matrix Tools
