@@ -92,6 +92,7 @@ namespace GenericToolbox {
       // those are tricks to avoid template overrides
       template<typename T> T getImpl(const JsonType& json_, T*);
       inline double getImpl(const JsonType& json_, double*);
+      inline std::string getImpl(const JsonType& json_, std::string*);
       inline Range getImpl(const JsonType& json_, Range*);
       template<typename T> std::vector<T> getImpl(const JsonType& json_, std::vector<T>*);
     }
@@ -612,6 +613,11 @@ namespace GenericToolbox {
         }
         if( json_.is_null() ){ return std::nan("null"); } // macOS
         return json_.get<double>();
+      }
+      inline std::string getImpl(const JsonType& json_, std::string*){
+        if( json_.is_number() ){ return json_.dump(); } // careful, only use this here since it would contains the quotes
+        // using the standard one for std::string
+        return json_.get<std::string>();
       }
       inline Range getImpl(const JsonType& json_, Range*){
         Range out{};

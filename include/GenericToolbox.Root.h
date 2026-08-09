@@ -269,6 +269,8 @@ namespace GenericToolbox{
   public:
     explicit TFilePath(TDirectory* rootDir_): rootDir(rootDir_) {}
     TFilePath(TDirectory* rootDir_, std::string subDirPath_): rootDir(rootDir_), subDirPath(std::move(subDirPath_)) {}
+
+    [[nodiscard]] TDirectory* getRootDir() const { return rootDir; }
     [[nodiscard]] TFilePath getSubDir( const std::string& subDir_ ) const {
       TFilePath out(*this);
       out.subDirPath = GenericToolbox::joinPath(this->subDirPath, subDir_);
@@ -1459,6 +1461,66 @@ namespace GenericToolbox {
     }
 
     return highFwhmBound - lowFwhmBound;
+  }
+  inline std::vector<TH2D*> chopTH2D(TH2D* h, int iBranchSeparation){
+    std::vector<TH2D*> out;
+    if(!h) return out;
+
+    int n = h->GetNbinsX();
+    if(n != h->GetNbinsY()) return out;
+    if(iBranchSeparation <= 0 || iBranchSeparation >= n) return out;
+
+    int n1 = iBranchSeparation;     // size of first block
+    int n2 = n - iBranchSeparation; // size of second block
+
+    // Create the two submatrices
+    TH2D* h0 = new TH2D(
+        TString::Format("%s_block0", h->GetName()),
+        TString::Format("%s block 0", h->GetTitle()),
+        n1, 0, n1,
+        n1, 0, n1);
+
+    TH2D* h1 = new TH2D(
+        TString::Format("%s_block1", h->GetName()),
+        TString::Format("%s block 1", h->GetTitle()),
+        n2, 0, n2,
+        n2, 0, n2);
+
+    // Copy labels for block0
+    for(int i = 1; i <= n1; i++){
+      const char* labX = h->GetXaxis()->GetBinLabel(i);
+      const char* labY = h->GetYaxis()->GetBinLabel(i);
+      if(labX && strlen(labX)) h0->GetXaxis()->SetBinLabel(i, labX);
+      if(labY && strlen(labY)) h0->GetYaxis()->SetBinLabel(i, labY);
+    }
+
+    // Copy labels for block1
+    for(int i = 1; i <= n2; i++){
+      const char* labX = h->GetXaxis()->GetBinLabel(iBranchSeparation + i);
+      const char* labY = h->GetYaxis()->GetBinLabel(iBranchSeparation + i);
+      if(labX && strlen(labX)) h1->GetXaxis()->SetBinLabel(i, labX);
+      if(labY && strlen(labY)) h1->GetYaxis()->SetBinLabel(i, labY);
+    }
+
+    // Copy content into block0 (top-left)
+    for(int ix = 1; ix <= n1; ix++){
+      for(int iy = 1; iy <= n1; iy++){
+        h0->SetBinContent(ix, iy, h->GetBinContent(ix, iy));
+      }
+    }
+
+    // Copy content into block1 (bottom-right)
+    for(int ix = 1; ix <= n2; ix++){
+      for(int iy = 1; iy <= n2; iy++){
+        int gx = iBranchSeparation + ix;
+        int gy = iBranchSeparation + iy;
+        h1->SetBinContent(ix, iy, h->GetBinContent(gx, gy));
+      }
+    }
+
+    out.push_back(h0);
+    out.push_back(h1);
+    return out;
   }
 
 }
