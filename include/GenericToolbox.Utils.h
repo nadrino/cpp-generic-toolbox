@@ -695,7 +695,7 @@ namespace GenericToolbox{
       [[nodiscard]] std::vector<size_t> getPadding() const{
         std::vector<size_t> output(nCols, 0);
         for( auto& line : tableLineList ) {
-          for( size_t iCol = 0; iCol < nCols; ++iCol ) {
+          for( int iCol = 0; iCol < nCols; ++iCol ) {
             output[iCol] = std::max(output[iCol], getPrintSize(line.columnList[iCol]));
           }
         }
@@ -790,7 +790,7 @@ namespace GenericToolbox{
     cursor.ss.str(""); // reset
 
     // Drop in the table?
-    if( action_ == NextLine or cursor.lineBuffer.size() == tableContent.nCols ){
+    if( action_ == NextLine or int(cursor.lineBuffer.size()) == tableContent.nCols ){
       tableContent.addLine(cursor.lineBuffer);
       cursor.lineBuffer.clear();
     }
