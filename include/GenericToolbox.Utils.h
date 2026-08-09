@@ -422,11 +422,12 @@ namespace GenericToolbox{
     [[nodiscard]] bool hasBound() const{ return hasLowerBound() or hasUpperBound(); }
     [[nodiscard]] bool hasBothBounds() const{ return hasLowerBound() and hasUpperBound(); }
     [[nodiscard]] bool isUnbounded() const{ return not hasBound(); }
-    [[nodiscard]] bool isBellowMin(double val_) const{ return (hasLowerBound() and val_ < min); }
+    [[nodiscard]] bool isBelowMin(double val_) const{ return (hasLowerBound() and val_ < min); }
+    [[nodiscard]] GT_DEPRECATED("replace with isBelowMin()") bool isBellowMin(double val_) const { return isBelowMin(val_); }
     [[nodiscard]] bool isAboveMax(double val_) const{ return (hasUpperBound() and val_ > max); }
     [[nodiscard]] bool isInBounds(double val_) const{
       // both bounds are inclusive [min, max]
-      if( isBellowMin(val_) ){ return false; }
+      if( isBelowMin(val_) ){ return false; }
       if( isAboveMax(val_) ){ return false; }
       return true;
     }
