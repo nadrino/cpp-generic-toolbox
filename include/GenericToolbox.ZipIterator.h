@@ -5,6 +5,8 @@
 #ifndef GENERIC_TOOLBOX_ZIP_ITERATOR_H
 #define GENERIC_TOOLBOX_ZIP_ITERATOR_H
 
+#include "GenericToolbox.Macro.h"
+
 #include <iterator>
 #include <iostream>
 #include <utility>
@@ -50,7 +52,7 @@ namespace GenericToolbox{
   template <class... Ts, std::size_t... Is>
   void increment(std::tuple<Ts...>& tpl, std::index_sequence<Is...> ) {
     using expander = int[];
-    expander{0,
+    (void)expander{0,
              (void(
                  ++std::get<Is>(tpl)
              ), 0)...
@@ -65,20 +67,21 @@ namespace GenericToolbox{
 /****************************
 // check equality of a tuple
 ****************************/
-  template <typename T1, typename... Ts>
-  inline bool not_equal_tuples(const std::tuple<T1, Ts...>& t1, const std::tuple<T1, Ts...>& t2)
-  {
-    if (std::get<0>(t1) != std::get<0>(t2)) {
-      return true; // If the first elements aren't equal, return true.
-    }
+  template <typename Tuple, std::size_t... I>
+  inline bool notEqualTuplesImpl(const Tuple& t1_, const Tuple& t2_, std::index_sequence<I...>){
+#if HAS_CPP_17
+    return ((std::get<I>(t1_) != std::get<I>(t2_)) || ...);
+#else
+    bool result{false};
+    using Expander = int[];
+    (void)Expander{0, (void(result = result || (std::get<I>(t1_) != std::get<I>(t2_))), 0)...};
+    return result;
+#endif
+  }
 
-    if constexpr (sizeof...(Ts) > 0) {
-      // If there are more elements, compare the remaining elements.
-      return not_equal_tuples(tuple_tail(t1), tuple_tail(t2));
-    } else {
-      // If no more elements, return false (they are all equal).
-      return false;
-    }
+  template <typename T1, typename... Ts>
+  inline bool not_equal_tuples(const std::tuple<T1, Ts...>& t1, const std::tuple<T1, Ts...>& t2){
+    return notEqualTuplesImpl(t1, t2, std::index_sequence_for<T1, Ts...>{});
   }
 
 /****************************

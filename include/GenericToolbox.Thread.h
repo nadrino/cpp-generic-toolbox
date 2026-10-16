@@ -172,7 +172,7 @@ namespace GenericToolbox{
 
     // now emplace_back()
     _jobEntryList_.emplace_back( jobName_ );
-    jobPtr = this->getJobPtr( jobName_ );
+    jobPtr = &_jobEntryList_.back();
     jobPtr->function = function_;
   }
   inline void ParallelWorker::setPostParallelJob(const std::string& jobName_, const std::function<void()>& function_){

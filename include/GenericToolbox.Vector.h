@@ -13,6 +13,7 @@
 #include "GenericToolbox.Log.h"
 
 #include <functional>
+#include <utility>
 #include <algorithm>
 #include <numeric>
 #include <string>
@@ -49,9 +50,11 @@ namespace GenericToolbox{
 
   // Stats
   template <typename T> static double getAverage(const std::vector<T>& vector_, const std::function<double(const T&)>& evalElementFct_ = [](const T& var){return var;});
+  template <typename T, typename Eval> static double getAverage(const std::vector<T>& vector_, Eval&& evalElementFct_);
   template<typename T> static double getAveragedSlope(const std::vector<T> &yValues_);
   template<typename T, typename TT> static double getAveragedSlope(const std::vector<T> &yValues_, const std::vector<TT> &xValues_);
   template <typename T> static double getStdDev(const std::vector<T>& vector_, const std::function<double(const T&)>& evalElementFct_ = [](const T& var){return var;});
+  template <typename T, typename Eval> static double getStdDev(const std::vector<T>& vector_, Eval&& evalElementFct_);
 
   // Sorting
   template <typename T, typename Lambda> static std::vector<size_t> getSortPermutation(const std::vector<T>& vectorToSort_, const Lambda& firstArgGoesFirstFct_ );
@@ -279,6 +282,7 @@ namespace GenericToolbox {
   }
   template <typename T, typename TT> static std::vector<TT> convertVectorType( const std::vector<T>& vector_, std::function<TT(T)>& convertTypeFunction_ ){
     std::vector<TT> outVec;
+    outVec.reserve(vector_.size());
     for(const auto& element : vector_){
       outVec.emplace_back(convertTypeFunction_(element));
     }
@@ -287,6 +291,9 @@ namespace GenericToolbox {
 
   // Stats
   template <typename T> static double getAverage(const std::vector<T>& vector_, const std::function<double(const T&)>& evalElementFct_){
+    return getAverage<T, const std::function<double(const T&)>&>(vector_, evalElementFct_);
+  }
+  template <typename T, typename Eval> static double getAverage(const std::vector<T>& vector_, Eval&& evalElementFct_){
     double outVal = 0;
     for( auto& element : vector_ ){ outVal += static_cast<double>(evalElementFct_(element)); }
     return outVal / vector_.size();
@@ -311,6 +318,9 @@ namespace GenericToolbox {
     return a;
   }
   template <typename T> static double getStdDev(const std::vector<T>& vector_, const std::function<double(const T&)>& evalElementFct_){
+    return getStdDev<T, const std::function<double(const T&)>&>(vector_, evalElementFct_);
+  }
+  template <typename T, typename Eval> static double getStdDev(const std::vector<T>& vector_, Eval&& evalElementFct_){
     double outVal = 0;
     double mean = getAverage(vector_, evalElementFct_);
     for( auto& element : vector_ ){

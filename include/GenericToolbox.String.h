@@ -14,6 +14,7 @@
 #include <iomanip>
 #include <sstream>
 #include <string>
+#include <stdexcept>
 #include <vector>
 #include <array>
 #include <cmath>
@@ -499,45 +500,21 @@ namespace GenericToolbox {
     return parseUnitPrefix(sizeInBytes_) + "B";
   }
   static std::vector<std::string> splitString(const std::string &inputString_, const std::string &delimiter_, bool removeEmpty_) {
+    if( delimiter_.empty() ){ throw std::invalid_argument("splitString: delimiter must not be empty"); }
 
     std::vector<std::string> outputSliceList;
-
-    const char *src = inputString_.c_str();
-    const char *next = src;
-
-    std::string out_string_piece;
-
-    while ((next = std::strstr(src, delimiter_.c_str())) != nullptr) {
-      out_string_piece = "";
-      while (src != next) {
-        out_string_piece += *src++;
+    size_t begin{0};
+    size_t end;
+    while( (end = inputString_.find(delimiter_, begin)) != std::string::npos ){
+      if( not removeEmpty_ or end != begin ){
+        outputSliceList.emplace_back(inputString_, begin, end - begin);
       }
-      outputSliceList.emplace_back(out_string_piece);
-      /* Skip the delimiter_ */
-      src += delimiter_.size();
+      begin = end + delimiter_.size();
     }
-
-    /* Handle the last token */
-    out_string_piece = "";
-    while (*src != '\0')
-      out_string_piece += *src++;
-
-    outputSliceList.emplace_back(out_string_piece);
-
-    if(not removeEmpty_){
-      return outputSliceList;
+    if( not removeEmpty_ or begin != inputString_.size() ){
+      outputSliceList.emplace_back(inputString_, begin);
     }
-    else{
-      std::vector<std::string> strippedOutput;
-      for(const auto& slice : outputSliceList){
-        if(not slice.empty()){
-          strippedOutput.emplace_back(slice);
-        }
-      }
-      return strippedOutput;
-    }
-
-
+    return outputSliceList;
   }
   static std::string formatString( const std::string& strToFormat_ ){
     return strToFormat_;

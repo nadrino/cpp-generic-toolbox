@@ -37,8 +37,8 @@ namespace GenericToolbox {
     return ( map_.find(key_) != map_.end() );
   }
   template <typename K, typename T> static T* getElementPtrIsInMap( const K& key_, std::map<K,T>& map_ ){
-    try{ return &map_.at(key_); } catch( ... ){}
-    return nullptr; // if not found
+    auto it = map_.find(key_);
+    return it == map_.end() ? nullptr : &it->second;
   }
 
 }
