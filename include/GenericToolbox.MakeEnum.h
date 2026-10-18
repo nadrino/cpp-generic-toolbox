@@ -3,8 +3,10 @@
 //
 
 
+#if defined(__GNUC__) || defined(__clang__)
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wcomment"
+#endif
 
 // We can't include those since this MakeEnum could be called inside a namespace of class.
 // It should be handled by the user

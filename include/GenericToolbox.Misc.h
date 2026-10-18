@@ -11,9 +11,11 @@
 #include <typeindex>
 #include <string>
 
+#if defined(__GNUC__) || defined(__clang__)
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-function"
 #pragma GCC diagnostic ignored "-Wunused-variable"
+#endif
 
 // Declaration section
 namespace GenericToolbox{

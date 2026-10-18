@@ -11,9 +11,11 @@
 #include <sstream>
 #include <cstring>
 
+#if defined(__GNUC__) || defined(__clang__)
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-function"
 #pragma GCC diagnostic ignored "-Wunused-variable"
+#endif
 
 
 #ifndef HAS_CPP_20

@@ -28,9 +28,11 @@
 #include <memory>
 #include <string>
 
+#if defined(__GNUC__) || defined(__clang__)
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-function"
 #pragma GCC diagnostic ignored "-Wunused-variable"
+#endif
 
 #define USE_FILESYSTEM 0 // experimental
 #if HAS_CPP_17 && USE_FILESYSTEM
