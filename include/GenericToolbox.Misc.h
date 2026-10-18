@@ -5,6 +5,9 @@
 #ifndef CPP_GENERIC_TOOLBOX_MISC_H
 #define CPP_GENERIC_TOOLBOX_MISC_H
 
+#include <cstring>
+#include <stdexcept>
+#include <vector>
 #include <typeindex>
 #include <string>
 
@@ -51,8 +54,6 @@ namespace GenericToolbox{
   }
 
 }
-
-
 
 
 #endif // CPP_GENERIC_TOOLBOX_MISC_H

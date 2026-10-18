@@ -5,8 +5,11 @@
 #ifndef GUNDAM_GENERICTOOLBOX_LOG_H
 #define GUNDAM_GENERICTOOLBOX_LOG_H
 
+#include "GenericToolbox.Build.h"
+
 #include "GenericToolbox.Macro.h"
 
+#include <ctime>
 #include <iostream>
 #include <exception>
 #include <sstream>
@@ -18,24 +21,9 @@
 namespace GenericToolbox{
   namespace LoggerUtils{
 
-    inline std::string getTimeStr(){
-      std::stringstream ss;
-      time_t rawTime = std::time(nullptr);
-      struct tm timeInfo = *localtime(&rawTime);
-#if defined(__GNUC__) && !defined(__clang__) && (__GNUC__ <= 4)
-      char buffer[128];
-      std::strftime(buffer, sizeof(buffer), "%Y.%m.%d %H:%M:%S", &timeInfo);
-      ss << buffer;
-#else
-      ss << std::put_time(&timeInfo, "%Y.%m.%d %H:%M:%S");
-#endif
-      return ss.str();
-    }
+    CPP_GENERIC_TOOLBOX_LOG_INLINE std::string getTimeStr();
 
-    inline std::string getFctName(const std::string &func_){
-      if(func_ == "operator()"){ return "<lambda>"; }
-      return func_;
-    }
+    CPP_GENERIC_TOOLBOX_LOG_INLINE std::string getFctName(const std::string &func_);
 
   }
 }
@@ -68,5 +56,9 @@ namespace GenericToolbox{
 // debug tools
 #define GTDebugVar(var_) GTLogDebug << GET_VAR_NAME_VALUE(var_) << std::endl;
 
+
+#ifndef CPP_GENERIC_TOOLBOX_LOG_COMPILED
+#include "implementation/GenericToolbox.Log.impl.h"
+#endif
 
 #endif //GUNDAM_GENERICTOOLBOX_LOG_H

@@ -5,6 +5,8 @@
 #ifndef CPP_GENERIC_TOOLBOX_MACRO_H
 #define CPP_GENERIC_TOOLBOX_MACRO_H
 
+#include "GenericToolbox.Build.h"
+
 
 #include <sstream>
 #include <cstring>
@@ -63,8 +65,8 @@
 
 namespace GenericToolbox{
   // When calling this functions, provide __PRETTY_FUNCTION__ macro
-  static std::string getClassName(const std::string& PRETTY_FUNCTION_);
-  static std::string getMethodName(const std::string& PRETTY_FUNCTION_);
+  CPP_GENERIC_TOOLBOX_MACRO_STATIC std::string getClassName(const std::string& PRETTY_FUNCTION_);
+  CPP_GENERIC_TOOLBOX_MACRO_STATIC std::string getMethodName(const std::string& PRETTY_FUNCTION_);
 }
 
 #define __CLASS_NAME__ GenericToolbox::getClassName(__PRETTY_FUNCTION__)
@@ -128,22 +130,12 @@ namespace GenericToolbox{
 
 // implementation part
 namespace GenericToolbox{
-  static std::string getClassName(const std::string& PRETTY_FUNCTION_){
-    size_t colons = PRETTY_FUNCTION_.find("::");
-    if (colons == std::string::npos)
-      return "::";
-    size_t begin = PRETTY_FUNCTION_.substr(0, colons).rfind(' ') + 1;
-    size_t end = colons - begin;
-
-    return PRETTY_FUNCTION_.substr(begin, end);
-  }
-  static std::string getMethodName(const std::string& PRETTY_FUNCTION_){
-    size_t colons = PRETTY_FUNCTION_.find("::");
-    size_t begin = PRETTY_FUNCTION_.substr(0, colons).rfind(' ') + 1;
-    size_t end = PRETTY_FUNCTION_.rfind('(') - begin;
-
-    return PRETTY_FUNCTION_.substr(begin, end) + "()";
-  }
+  CPP_GENERIC_TOOLBOX_MACRO_STATIC std::string getClassName(const std::string& PRETTY_FUNCTION_);
+  CPP_GENERIC_TOOLBOX_MACRO_STATIC std::string getMethodName(const std::string& PRETTY_FUNCTION_);
 }
+
+#ifndef CPP_GENERIC_TOOLBOX_MACRO_COMPILED
+#include "implementation/GenericToolbox.Macro.impl.h"
+#endif
 
 #endif // CPP_GENERIC_TOOLBOX_MACRO_H
