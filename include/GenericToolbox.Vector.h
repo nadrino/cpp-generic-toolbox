@@ -22,6 +22,7 @@
 #include <vector>
 #include <cmath>
 #include <list>
+#include <cstdint>
 
 #if defined(__GNUC__) || defined(__clang__)
 #pragma GCC diagnostic push
