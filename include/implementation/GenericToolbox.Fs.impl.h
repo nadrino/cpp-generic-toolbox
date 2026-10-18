@@ -56,19 +56,33 @@ CPP_GENERIC_TOOLBOX_FS_STATIC std::string replaceExtension(const std::string& fi
   }
 
 CPP_GENERIC_TOOLBOX_FS_STATIC CPP_GENERIC_TOOLBOX_FS_INLINE bool isPathValid(const std::string &filePath_) {
+#if defined(_WIN32)
+    return _access(filePath_.c_str(), 0) == 0;
+#else
     return ( access( filePath_.c_str(), F_OK ) == 0 );
+#endif
   }
 
 CPP_GENERIC_TOOLBOX_FS_STATIC CPP_GENERIC_TOOLBOX_FS_INLINE bool isFile(const std::string &filePath_) {
+#if defined(_WIN32)
+    struct _stat64 info{};
+    return _stat64(filePath_.c_str(), &info) == 0 and (info.st_mode & _S_IFMT) == _S_IFREG;
+#else
     struct stat info{};
     if( lstat(filePath_.c_str(), &info) != 0 ){ return false; /* Error occurred */ }
     return S_ISREG(info.st_mode);
+#endif
   }
 
 CPP_GENERIC_TOOLBOX_FS_STATIC CPP_GENERIC_TOOLBOX_FS_INLINE bool isDir(const std::string &dirPath_) {
+#if defined(_WIN32)
+    struct _stat64 info{};
+    return _stat64(dirPath_.c_str(), &info) == 0 and (info.st_mode & _S_IFMT) == _S_IFDIR;
+#else
     struct stat info{};
     if( lstat(dirPath_.c_str(), &info) != 0 ){ return false; /* Error occurred */ }
     return S_ISDIR(info.st_mode);
+#endif
   }
 
 CPP_GENERIC_TOOLBOX_FS_STATIC CPP_GENERIC_TOOLBOX_FS_INLINE bool areSameFiles(const std::string &filePath1_, const std::string &filePath2_) {
@@ -121,6 +135,32 @@ CPP_GENERIC_TOOLBOX_FS_STATIC CPP_GENERIC_TOOLBOX_FS_INLINE bool isDirEmpty(cons
   }
 
 CPP_GENERIC_TOOLBOX_FS_STATIC CPP_GENERIC_TOOLBOX_FS_INLINE bool mkdir(const std::string &dirPath_) {
+#if defined(_WIN32)
+    if( dirPath_.empty() ){ return false; }
+    if( isDir(dirPath_) ){ return true; }
+    std::unique_ptr<char, decltype(&std::free)> absolutePath(
+        _fullpath(nullptr, dirPath_.c_str(), 0), std::free);
+    if( not absolutePath ){ return false; }
+    std::string path = absolutePath.get();
+    std::replace(path.begin(), path.end(), '\\', '/');
+    // Skip the drive root or the server/share root of a UNC path.
+    size_t begin = 3;
+    if( path.compare(0, 2, "//") == 0 ){
+      const auto serverEnd = path.find('/', 2);
+      if( serverEnd == std::string::npos ){ return false; }
+      const auto shareEnd = path.find('/', serverEnd + 1);
+      if( shareEnd == std::string::npos ){ return false; }
+      begin = shareEnd + 1;
+    }
+    while( begin < path.size() ){
+      const auto end = path.find('/', begin);
+      const auto directory = path.substr(0, end);
+      if( not isDir(directory) and _mkdir(directory.c_str()) != 0 ){ return false; }
+      if( end == std::string::npos ){ break; }
+      begin = end + 1;
+    }
+    return isDir(path);
+#else
     bool result = false;
     if( isDir(dirPath_) ){ return true; }
 
@@ -142,6 +182,7 @@ CPP_GENERIC_TOOLBOX_FS_STATIC CPP_GENERIC_TOOLBOX_FS_INLINE bool mkdir(const std
     }
 
     return result;
+#endif
   }
 
 CPP_GENERIC_TOOLBOX_FS_STATIC CPP_GENERIC_TOOLBOX_FS_INLINE bool rm(const std::string &filePath_) {
@@ -150,7 +191,11 @@ CPP_GENERIC_TOOLBOX_FS_STATIC CPP_GENERIC_TOOLBOX_FS_INLINE bool rm(const std::s
 
     // ::unlink: If the specified file path is a symbolic link,
     // only the link itself is deleted, not the file or directory that the link refers to
+#if defined(_WIN32)
+    return _unlink(filePath_.c_str()) == 0;
+#else
     return ( ::unlink(filePath_.c_str()) == 0 );
+#endif
   }
 
 CPP_GENERIC_TOOLBOX_FS_STATIC CPP_GENERIC_TOOLBOX_FS_INLINE bool mv(const std::string &src_, const std::string &destination_, bool force_) {
@@ -184,27 +229,50 @@ CPP_GENERIC_TOOLBOX_FS_STATIC CPP_GENERIC_TOOLBOX_FS_INLINE bool cp(const std::s
   }
 
 CPP_GENERIC_TOOLBOX_FS_STATIC CPP_GENERIC_TOOLBOX_FS_INLINE bool rmDir(const std::string &dirPath_) {
+#if defined(_WIN32)
+    return _rmdir(dirPath_.c_str()) == 0;
+#else
     return (::rmdir(dirPath_.c_str()) == 0);
+#endif
   }
 
 CPP_GENERIC_TOOLBOX_FS_STATIC CPP_GENERIC_TOOLBOX_FS_INLINE std::vector<std::string> ls(const std::string &dirPath_, const std::string &entryNameRegex_, int type_, size_t maxEntries_) {
     if( not isDir( dirPath_ ) ) return {};
 
+#if defined(_WIN32)
+    WIN32_FIND_DATAA entryData{};
+    const HANDLE directory = FindFirstFileA(joinPath(dirPath_, "*").c_str(), &entryData);
+    if( directory == INVALID_HANDLE_VALUE ){ return {}; }
+    // Close the search handle even if string/vector allocation throws.
+    struct SearchGuard {
+      HANDLE handle;
+      ~SearchGuard(){ FindClose(handle); }
+    } guard{directory};
+#else
     DIR* directory;
     directory = opendir(dirPath_.c_str()); //Open current-working-directory.
     if( directory == nullptr ){ return {}; }
+#endif
 
     std::vector<std::string> nameElements;
     if(not entryNameRegex_.empty()){ nameElements = GenericToolbox::splitString(entryNameRegex_, "*"); }
 
-    struct dirent* entry;
     std::vector<std::string> subFoldersList;
+#if defined(_WIN32)
+    do {
+      const char* entryName = entryData.cFileName;
+      const int entryType = (entryData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) ? DT_DIR : DT_REG;
+#else
+    struct dirent* entry;
     while ( ( entry = readdir(directory) ) ) {
-      if( type_ != -1 and entry->d_type != type_ ){ continue; }
-      if( strcmp(entry->d_name, ".") == 0 or strcmp(entry->d_name, "..") == 0 ){ continue; }
+      const char* entryName = entry->d_name;
+      const int entryType = entry->d_type;
+#endif
+      if( type_ != -1 and entryType != type_ ){ continue; }
+      if( strcmp(entryName, ".") == 0 or strcmp(entryName, "..") == 0 ){ continue; }
 
       if(not entryNameRegex_.empty()){
-        std::string entryCandidate = entry->d_name;
+        std::string entryCandidate = entryName;
 
         bool isValid{true};
         for( size_t iElement = 0 ; iElement < nameElements.size() ; iElement++ ){
@@ -235,10 +303,14 @@ CPP_GENERIC_TOOLBOX_FS_STATIC CPP_GENERIC_TOOLBOX_FS_INLINE std::vector<std::str
         }
         if( not isValid ) continue;
       }
-      subFoldersList.emplace_back(entry->d_name);
+      subFoldersList.emplace_back(entryName);
       if( maxEntries_ != 0 and subFoldersList.size() >= maxEntries_ ){ break; }
+#if defined(_WIN32)
+    } while( FindNextFileA(directory, &entryData) );
+#else
     }
     closedir(directory);
+#endif
     return subFoldersList;
   }
 
@@ -287,8 +359,13 @@ CPP_GENERIC_TOOLBOX_FS_STATIC CPP_GENERIC_TOOLBOX_FS_INLINE size_t getFileHash(c
   }
 
 CPP_GENERIC_TOOLBOX_FS_STATIC CPP_GENERIC_TOOLBOX_FS_INLINE ssize_t getFileSize(const std::string& filePath_) {
+#if defined(_WIN32)
+    struct _stat64 st{};
+    if( _stat64(filePath_.c_str(), &st) != 0 ){ return 0; }
+#else
     struct stat st{};
     stat(filePath_.c_str(), &st);
+#endif
     return ssize_t(st.st_size);
   }
 

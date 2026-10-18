@@ -56,7 +56,7 @@
 namespace GenericToolbox{
   namespace Parameters{
     #ifdef CPP_GENERIC_TOOLBOX_ROOT_COMPILED
-extern int _verboseLevel_;
+extern CPP_GENERIC_TOOLBOX_ROOT_API int _verboseLevel_;
 #else
 static int _verboseLevel_ = 0;
 #endif
@@ -629,7 +629,7 @@ namespace GenericToolbox{
 namespace GenericToolbox{
 
   #ifdef CPP_GENERIC_TOOLBOX_ROOT_COMPILED
-extern Int_t oldVerbosity;
+extern CPP_GENERIC_TOOLBOX_ROOT_API Int_t oldVerbosity;
 #else
 static Int_t oldVerbosity = -1;
 #endif

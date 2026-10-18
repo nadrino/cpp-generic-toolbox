@@ -69,9 +69,15 @@ namespace GenericToolbox{
   CPP_GENERIC_TOOLBOX_MACRO_STATIC std::string getMethodName(const std::string& PRETTY_FUNCTION_);
 }
 
-#define __CLASS_NAME__ GenericToolbox::getClassName(__PRETTY_FUNCTION__)
+#if defined(_MSC_VER)
+#define GT_FUNCTION_SIGNATURE __FUNCSIG__
+#else
+#define GT_FUNCTION_SIGNATURE __PRETTY_FUNCTION__
+#endif
+
+#define __CLASS_NAME__ GenericToolbox::getClassName(GT_FUNCTION_SIGNATURE)
 //#define __CLASS_NAME__ ( this != nullptr ? typeid(*this).name() )
-#define __METHOD_NAME__ GenericToolbox::getMethodName(__PRETTY_FUNCTION__)
+#define __METHOD_NAME__ GenericToolbox::getMethodName(GT_FUNCTION_SIGNATURE)
 
 // Macro Tools
 #define GT_INTERNALS_VA_TO_STR(...) #__VA_ARGS__

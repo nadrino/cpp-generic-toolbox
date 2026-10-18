@@ -34,16 +34,51 @@ namespace {
   }
 }
 
-int main(){
+int main() try {
   const auto directory = GenericToolbox::getCurrentWorkingDirectory();
   require(not directory.empty(), "working directory");
   require(getPeerWorkingDirectory() == directory, "cross-file Os");
   require(GenericToolbox::isDir(directory), "Fs directory");
+#if defined(_WIN32)
+  require(GenericToolbox::expandEnvironmentVariables("${USERPROFILE}") == GenericToolbox::getHomeDirectory(), "environment expansion");
+  require(not GenericToolbox::getHostName().empty(), "Windows hostname");
+  require(not GenericToolbox::getOsVersion().empty(), "Windows version");
+  require(GenericToolbox::getOsArchitecture() != "Unknown", "Windows architecture");
+  require(GenericToolbox::getTotalDiskSpace(directory) > 0, "Windows disk space");
+#else
   require(GenericToolbox::expandEnvironmentVariables("${HOME}") == GenericToolbox::getHomeDirectory(), "environment expansion");
+#endif
+  require(GenericToolbox::expandEnvironmentVariables("${TOOLBOX_TEST_UNDEFINED_VARIABLE}") == "${TOOLBOX_TEST_UNDEFINED_VARIABLE}", "missing environment variable");
+  require(GenericToolbox::expandEnvironmentVariables("~/file") == GenericToolbox::getHomeDirectory() + "/file", "home expansion");
   const auto file = GenericToolbox::joinPath(directory, "ToolboxModules.txt");
   GenericToolbox::ScopedGuard removeFile{[]{}, [&]{ GenericToolbox::rm(file); }};
   GenericToolbox::dumpStringInFile(file, "first\nsecond\n");
+#if defined(_WIN32)
+  require(GenericToolbox::dumpFileAsString(file) == "first\r\nsecond\r\n", "Fs text round trip");
+#else
   require(GenericToolbox::dumpFileAsString(file) == "first\nsecond\n", "Fs round trip");
+#endif
+  require(GenericToolbox::getFileSize(file) == static_cast<decltype(GenericToolbox::getFileSize(file))>(GenericToolbox::dumpFileAsString(file).size()), "Fs file size");
+  const auto scratch = GenericToolbox::joinPath(directory, "ToolboxScratch");
+  const auto nested = GenericToolbox::joinPath(scratch, "nested");
+  const auto copied = GenericToolbox::joinPath(nested, "copied.txt");
+  const auto moved = GenericToolbox::joinPath(nested, "moved.txt");
+  GenericToolbox::ScopedGuard removeDirectory{[]{}, [&]{
+    GenericToolbox::rm(copied);
+    GenericToolbox::rm(moved);
+    GenericToolbox::rmDir(nested);
+    GenericToolbox::rmDir(scratch);
+  }};
+  require(GenericToolbox::mkdir(nested), "Fs nested directories");
+  require(GenericToolbox::cp(file, copied), "Fs copy");
+  require(not GenericToolbox::cp(file, copied), "Fs no overwrite");
+  require(GenericToolbox::lsDirs(scratch) == std::vector<std::string>{"nested"}, "Fs directory listing");
+  require(GenericToolbox::lsFiles(nested, "*.txt", 1) == std::vector<std::string>{"copied.txt"}, "Fs filtered listing");
+  require(GenericToolbox::mv(copied, moved), "Fs move");
+  require(GenericToolbox::lsFilesRecursive(scratch) == std::vector<std::string>{"nested/moved.txt"}, "Fs recursive listing");
+  require(GenericToolbox::rm(moved), "Fs remove file");
+  require(GenericToolbox::rmDir(nested), "Fs remove directory");
+  require(GenericToolbox::isDirEmpty(scratch), "Fs empty directory");
   require(GenericToolbox::getFileName(file) == "ToolboxModules.txt", "Fs filename");
   require(GenericToolbox::replaceExtension(file, "json") == GenericToolbox::joinPath(directory, "ToolboxModules.json"), "Fs extension");
 
@@ -122,4 +157,8 @@ int main(){
   require(random.size() == 2, "Root throws");
   require(GenericToolbox::getLinearBinning(2, 0., 1.) == std::vector<double>{0., .5, 1.}, "Root binning");
 #endif
+}
+catch( const std::exception& error ){
+  std::cerr << error.what() << std::endl;
+  return 1;
 }

@@ -147,7 +147,7 @@ namespace GenericToolbox{
     };
 
 #ifdef CPP_GENERIC_TOOLBOX_UTILS_COMPILED
-    extern ProgressBar gProgressBar;
+    extern CPP_GENERIC_TOOLBOX_UTILS_API ProgressBar gProgressBar;
 #else
     static ProgressBar gProgressBar;
 #endif

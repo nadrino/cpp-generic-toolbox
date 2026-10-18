@@ -6,11 +6,13 @@ CPP_GENERIC_TOOLBOX_OS_STATIC char * getEnvironmentVariable(char const envVarNam
 #if defined _WIN32 // getenv() is deprecated on Windows
       char *buf{nullptr};
       size_t sz;
-      std::string val;
-      if (_dupenv_s(&buf, &sz, envVarName_) || buf == nullptr) return val;
+      // Preserve getenv's borrowed-pointer contract without returning a
+      // pointer into a temporary or leaking the allocation from _dupenv_s.
+      static thread_local std::string val;
+      if (_dupenv_s(&buf, &sz, envVarName_) || buf == nullptr) return nullptr;
       val = buf;
       free(buf);
-      return val;
+      return &val[0];
 #else
       return getenv(envVarName_);
 #endif
@@ -109,7 +111,11 @@ CPP_GENERIC_TOOLBOX_OS_STATIC bool expandEnvironmentVariables(const char *fname,
             p = buff;
           }
           if (!p && !strcmp(buff, "$")) { // it is $$ (replace by GetPid())
+#if defined(_WIN32)
+            snprintf(buff,kBufSize*4, "%d", _getpid());
+#else
             snprintf(buff,kBufSize*4, "%d", getpid());
+#endif
             p = buff;
           }
           if (!p) {                      // too bad, nothing can help
@@ -162,8 +168,18 @@ size_t lastProcessMemoryUsage = 0;
 }
 
 CPP_GENERIC_TOOLBOX_OS_STATIC std::string getHomeDirectory() {
+#if defined(_WIN32)
+    const char* profile = Internals::getEnvironmentVariable("USERPROFILE");
+    if( profile != nullptr ){ return profile; }
+    const char* drive = Internals::getEnvironmentVariable("HOMEDRIVE");
+    std::string home = drive == nullptr ? "" : drive;
+    const char* path = Internals::getEnvironmentVariable("HOMEPATH");
+    if( path != nullptr ){ home += path; }
+    return home;
+#else
     struct passwd *pw = getpwuid(getuid());
     return {pw->pw_dir};
+#endif
   }
 
 CPP_GENERIC_TOOLBOX_OS_STATIC std::string getCurrentWorkingDirectory() {
@@ -172,7 +188,11 @@ CPP_GENERIC_TOOLBOX_OS_STATIC std::string getCurrentWorkingDirectory() {
 #else
     char cwd[1024];
 #endif
+#if defined(_WIN32)
+    if( _getcwd(cwd, sizeof(cwd)) == nullptr ){
+#else
     if( getcwd(cwd, sizeof(cwd)) == nullptr ){
+#endif
       throw std::runtime_error("getcwd() returned an invalid value.");
     }
     std::string output_cwd(cwd);
@@ -219,20 +239,31 @@ CPP_GENERIC_TOOLBOX_OS_STATIC std::string getExecutableName() {
   }
 
 CPP_GENERIC_TOOLBOX_OS_STATIC std::string getUserName() {
+#if defined(_WIN32)
+    return GenericToolbox::expandEnvironmentVariables("$USERNAME");
+#else
     return GenericToolbox::expandEnvironmentVariables("$USER");
+#endif
   }
 
 CPP_GENERIC_TOOLBOX_OS_STATIC std::string getHostName() {
+#if defined(_WIN32)
+    char name[MAX_COMPUTERNAME_LENGTH + 1]{};
+    DWORD size = sizeof(name);
+    if( not GetComputerNameA(name, &size) ){ return {}; }
+    return {name, size};
+#else
     utsname s{};
     uname(&s);
     return s.nodename;
+#endif
   }
 
 CPP_GENERIC_TOOLBOX_OS_STATIC std::string getOsName() {
-#if defined(_WIN32)
-    return "Windows 32-bit";
-#elif defined(_WIN64)
+#if defined(_WIN64)
     return "Windows 64-bit";
+#elif defined(_WIN32)
+    return "Windows 32-bit";
 #elif defined(__FreeBSD__)
     return "FreeBSD";
 #elif (defined(__APPLE__) || defined(__MACH__) || defined(__linux__))
@@ -245,15 +276,41 @@ CPP_GENERIC_TOOLBOX_OS_STATIC std::string getOsName() {
   }
 
 CPP_GENERIC_TOOLBOX_OS_STATIC std::string getOsVersion() {
+#if defined(_WIN32)
+    // RtlGetVersion reports the installed version independently of the
+    // application's compatibility manifest.
+    using GetVersionFunction = LONG (WINAPI*)(OSVERSIONINFOW*);
+    const auto module = GetModuleHandleW(L"ntdll.dll");
+    if( module == nullptr ){ return {}; }
+    const auto getVersion = reinterpret_cast<GetVersionFunction>(GetProcAddress(module, "RtlGetVersion"));
+    OSVERSIONINFOW version{};
+    version.dwOSVersionInfoSize = sizeof(version);
+    if( getVersion == nullptr or getVersion(&version) != 0 ){ return {}; }
+    return std::to_string(version.dwMajorVersion) + "." + std::to_string(version.dwMinorVersion)
+        + "." + std::to_string(version.dwBuildNumber);
+#else
     utsname s{};
     uname(&s);
     return s.release;
+#endif
   }
 
 CPP_GENERIC_TOOLBOX_OS_STATIC std::string getOsArchitecture() {
+#if defined(_WIN32)
+    SYSTEM_INFO info{};
+    GetNativeSystemInfo(&info);
+    switch( info.wProcessorArchitecture ){
+      case PROCESSOR_ARCHITECTURE_AMD64: return "x86_64";
+      case PROCESSOR_ARCHITECTURE_INTEL: return "x86";
+      case PROCESSOR_ARCHITECTURE_ARM: return "arm";
+      case PROCESSOR_ARCHITECTURE_ARM64: return "aarch64";
+      default: return "Unknown";
+    }
+#else
     utsname s{};
     uname(&s);
     return s.machine;
+#endif
   }
 
 #ifdef CPP_GENERIC_TOOLBOX_OS_COMPILED
@@ -385,22 +442,34 @@ CPP_GENERIC_TOOLBOX_OS_STATIC double getFreeDiskSpacePercent( const std::string&
   }
 
 CPP_GENERIC_TOOLBOX_OS_STATIC unsigned long long getFreeDiskSpace( const std::string& path_ ) {
+#if defined(_WIN32)
+    ULARGE_INTEGER freeBytes{};
+    if( not GetDiskFreeSpaceExA(path_.c_str(), nullptr, nullptr, &freeBytes) ){ return 0; }
+    return freeBytes.QuadPart;
+#else
     struct statvfs stat{};
     if( statvfs(path_.c_str(), &stat) != 0 ){ return 0; }
     return stat.f_bsize * static_cast<unsigned long long>(stat.f_bfree);
+#endif
   }
 
 CPP_GENERIC_TOOLBOX_OS_STATIC unsigned long long getTotalDiskSpace( const std::string& path_ ) {
+#if defined(_WIN32)
+    ULARGE_INTEGER totalBytes{};
+    if( not GetDiskFreeSpaceExA(path_.c_str(), nullptr, &totalBytes, nullptr) ){ return 0; }
+    return totalBytes.QuadPart;
+#else
     struct statvfs stat{};
     if( statvfs(path_.c_str(), &stat) != 0 ){ return 0; }
     return stat.f_bsize * static_cast<unsigned long long>(stat.f_blocks);
+#endif
   }
 
 CPP_GENERIC_TOOLBOX_OS_STATIC int getTerminalWidth() {
     int outWith = 0;
 #if defined(_WIN32)
-    CONSOLE_SCREEN_BUFFER_INFO csbi;
-    GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &csbi);
+    CONSOLE_SCREEN_BUFFER_INFO csbi{};
+    if( not GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &csbi) ){ return 0; }
     outWith = (int)(csbi.dwSize.X);
 //    outWith = (int)(csbi.dwSize.Y);
 #elif defined(__linux__) || defined(__linux) || defined(linux) || defined(__gnu_linux__) \
@@ -419,8 +488,8 @@ CPP_GENERIC_TOOLBOX_OS_STATIC int getTerminalWidth() {
 CPP_GENERIC_TOOLBOX_OS_STATIC int getTerminalHeight() {
     int outWith = 0;
 #if defined(_WIN32)
-    CONSOLE_SCREEN_BUFFER_INFO csbi;
-    GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &csbi);
+    CONSOLE_SCREEN_BUFFER_INFO csbi{};
+    if( not GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &csbi) ){ return 0; }
 //    outWith = (int)(csbi.dwSize.X);
     outWith = (int)(csbi.dwSize.Y);
 #elif defined(__linux__) || defined(__linux) || defined(linux) || defined(__gnu_linux__) \

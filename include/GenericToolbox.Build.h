@@ -1,7 +1,69 @@
 #pragma once
 
+#if defined(_MSC_VER)
+#include <cstddef>
+namespace GenericToolbox {
+  using ssize_t = std::ptrdiff_t;
+}
+#endif
+
 // The CMake module targets propagate these definitions to their consumers.
 // Direct header inclusion remains header-only unless explicitly selected.
+
+// Shared data needs explicit imports on Windows; functions are auto-exported.
+#if defined(_WIN32) && defined(CPP_GENERIC_TOOLBOX_STRING_SHARED)
+#if defined(CPP_GENERIC_TOOLBOX_STRING_EXPORTS)
+#define CPP_GENERIC_TOOLBOX_STRING_API __declspec(dllexport)
+#else
+#define CPP_GENERIC_TOOLBOX_STRING_API __declspec(dllimport)
+#endif
+#else
+#define CPP_GENERIC_TOOLBOX_STRING_API
+#endif
+
+// Shared data needs explicit imports on Windows; functions are auto-exported.
+#if defined(_WIN32) && defined(CPP_GENERIC_TOOLBOX_OS_SHARED)
+#if defined(CPP_GENERIC_TOOLBOX_OS_EXPORTS)
+#define CPP_GENERIC_TOOLBOX_OS_API __declspec(dllexport)
+#else
+#define CPP_GENERIC_TOOLBOX_OS_API __declspec(dllimport)
+#endif
+#else
+#define CPP_GENERIC_TOOLBOX_OS_API
+#endif
+
+// Shared data needs explicit imports on Windows; functions are auto-exported.
+#if defined(_WIN32) && defined(CPP_GENERIC_TOOLBOX_UTILS_SHARED)
+#if defined(CPP_GENERIC_TOOLBOX_UTILS_EXPORTS)
+#define CPP_GENERIC_TOOLBOX_UTILS_API __declspec(dllexport)
+#else
+#define CPP_GENERIC_TOOLBOX_UTILS_API __declspec(dllimport)
+#endif
+#else
+#define CPP_GENERIC_TOOLBOX_UTILS_API
+#endif
+
+// Shared data needs explicit imports on Windows; functions are auto-exported.
+#if defined(_WIN32) && defined(CPP_GENERIC_TOOLBOX_TIME_SHARED)
+#if defined(CPP_GENERIC_TOOLBOX_TIME_EXPORTS)
+#define CPP_GENERIC_TOOLBOX_TIME_API __declspec(dllexport)
+#else
+#define CPP_GENERIC_TOOLBOX_TIME_API __declspec(dllimport)
+#endif
+#else
+#define CPP_GENERIC_TOOLBOX_TIME_API
+#endif
+
+// Shared data needs explicit imports on Windows; functions are auto-exported.
+#if defined(_WIN32) && defined(CPP_GENERIC_TOOLBOX_ROOT_SHARED)
+#if defined(CPP_GENERIC_TOOLBOX_ROOT_EXPORTS)
+#define CPP_GENERIC_TOOLBOX_ROOT_API __declspec(dllexport)
+#else
+#define CPP_GENERIC_TOOLBOX_ROOT_API __declspec(dllimport)
+#endif
+#else
+#define CPP_GENERIC_TOOLBOX_ROOT_API
+#endif
 
 #ifdef CPP_GENERIC_TOOLBOX_MACRO_COMPILED
 #define CPP_GENERIC_TOOLBOX_MACRO_INLINE

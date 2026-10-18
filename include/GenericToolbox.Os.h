@@ -15,10 +15,13 @@
 #include <vector>
 #include <array>
 
-#include <sys/statvfs.h>
 #include <sys/stat.h>
 #include <climits>
-#include <unistd.h>
+#if defined(_WIN32)
+#include <direct.h>
+#include <process.h>
+#else
+#include <sys/statvfs.h>
 #include <unistd.h>
 #include <pwd.h>
 
@@ -34,6 +37,7 @@ struct utsname {
 static int uname(struct utsname *buf) { return 0; }
 #else
 #include <sys/utsname.h>
+#endif
 #endif
 
 
@@ -74,11 +78,8 @@ namespace GenericToolbox{
 // Implementation section
 #if defined(_WIN32)
 // Windows
-#include <windows.h>
+#include "GenericToolbox.Windows.h"
 #include <psapi.h>
-#define WIN32_LEAN_AND_MEAN
-#define VC_EXTRALEAN
-#include <Windows.h>
 #elif defined(__APPLE__) && defined(__MACH__)
 // MacOS
 #include <sys/resource.h>
@@ -123,7 +124,7 @@ namespace GenericToolbox{
     CPP_GENERIC_TOOLBOX_OS_STATIC bool expandEnvironmentVariables(const char *fname, char *xname);
     namespace Hardware{
       #ifdef CPP_GENERIC_TOOLBOX_OS_COMPILED
-extern size_t lastProcessMemoryUsage;
+extern CPP_GENERIC_TOOLBOX_OS_API size_t lastProcessMemoryUsage;
 #else
 static size_t lastProcessMemoryUsage = 0;
 #endif
@@ -170,7 +171,7 @@ static size_t lastProcessMemoryUsage = 0;
     }
   };
   #ifdef CPP_GENERIC_TOOLBOX_OS_COMPILED
-extern CpuStat cs;
+extern CPP_GENERIC_TOOLBOX_OS_API CpuStat cs;
 #else
 static CpuStat cs{};
 #endif

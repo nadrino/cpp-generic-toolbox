@@ -6,6 +6,12 @@ foreach(extension IN ITEMS ROOT JSON YAML)
   endif()
 endforeach()
 add_test(NAME GenericToolboxModules COMMAND GenericToolboxModules)
+if(WIN32 AND GENERIC_TOOLBOX_BUILD_SHARED)
+  # Tests live in a subdirectory, while the module DLLs are built together.
+  string(REPLACE ";" "\\;" toolboxTestPath "$ENV{PATH}")
+  set_tests_properties(GenericToolboxModules PROPERTIES
+    ENVIRONMENT "PATH=$<TARGET_FILE_DIR:GenericToolboxOs>\\;${toolboxTestPath}")
+endif()
 
 # Independently exercise direct header inclusion, with no compiled definitions.
 add_executable(GenericToolboxHeaderOnly Modules.cpp ModulePeer.cpp)
@@ -13,6 +19,13 @@ target_include_directories(GenericToolboxHeaderOnly PRIVATE ../include)
 set_target_properties(GenericToolboxHeaderOnly PROPERTIES
   CXX_STANDARD 14 CXX_STANDARD_REQUIRED ON CXX_EXTENSIONS OFF)
 target_link_libraries(GenericToolboxHeaderOnly PRIVATE Threads::Threads)
+if(MSVC)
+  target_compile_options(GenericToolboxHeaderOnly PRIVATE /permissive- /Zc:__cplusplus /Zc:preprocessor /utf-8)
+  target_compile_definitions(GenericToolboxHeaderOnly PRIVATE _CRT_SECURE_NO_WARNINGS)
+endif()
+if(WIN32)
+  target_link_libraries(GenericToolboxHeaderOnly PRIVATE Psapi)
+endif()
 add_test(NAME GenericToolboxHeaderOnly COMMAND GenericToolboxHeaderOnly)
 # The two processes write the same scratch file in separate working directories.
 file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/modules ${CMAKE_CURRENT_BINARY_DIR}/header-only)

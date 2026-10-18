@@ -14,11 +14,18 @@
 #include "GenericToolbox.String.h"
 
 #include <sys/stat.h>
+#if defined(_WIN32)
+#include "GenericToolbox.Windows.h"
+#include <io.h>
+#include <direct.h>
+#else
 #include <unistd.h>
 #include <dirent.h>
+#endif
 #include <fstream>
 #include <sstream>
 #include <iosfwd>
+#include <memory>
 #include <string>
 
 #pragma GCC diagnostic push
@@ -33,6 +40,12 @@
 
 // Declaration section
 namespace GenericToolbox{
+
+#if defined(_WIN32)
+  // Keep the existing ls(type) values used by dirent on Unix.
+  constexpr int DT_DIR = 4;
+  constexpr int DT_REG = 8;
+#endif
 
   // -- no IO dependencies (string parsing)
   CPP_GENERIC_TOOLBOX_FS_STATIC bool hasExtension(const std::string &filePath_, const std::string &extension_);

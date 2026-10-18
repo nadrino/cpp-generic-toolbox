@@ -33,30 +33,30 @@ namespace GenericToolbox{
 
   namespace ColorCodes{
 #ifdef CPP_GENERIC_TOOLBOX_STRING_COMPILED
-    extern const char* resetColor;
-    extern const char* redBackground;
-    extern const char* greenBackground;
-    extern const char* yellowBackground;
-    extern const char* blueBackground;
-    extern const char* magentaBackground;
-    extern const char* cyanBackground;
-    extern const char* greyBackground;
-    extern const char* redText;
-    extern const char* greenText;
-    extern const char* yellowText;
-    extern const char* blueText;
-    extern const char* magentaText;
-    extern const char* cyanText;
-    extern const char* whiteText;
-    extern const char* redLightText;
-    extern const char* greenLightText;
-    extern const char* yellowLightText;
-    extern const char* blueLightText;
-    extern const char* magentaLightText;
-    extern const char* cyanLightText;
-    extern const char* whiteLightText;
-    extern const char* greyText;
-    extern const std::array<const char*, 6> rainbowColorList;
+    extern CPP_GENERIC_TOOLBOX_STRING_API const char* resetColor;
+    extern CPP_GENERIC_TOOLBOX_STRING_API const char* redBackground;
+    extern CPP_GENERIC_TOOLBOX_STRING_API const char* greenBackground;
+    extern CPP_GENERIC_TOOLBOX_STRING_API const char* yellowBackground;
+    extern CPP_GENERIC_TOOLBOX_STRING_API const char* blueBackground;
+    extern CPP_GENERIC_TOOLBOX_STRING_API const char* magentaBackground;
+    extern CPP_GENERIC_TOOLBOX_STRING_API const char* cyanBackground;
+    extern CPP_GENERIC_TOOLBOX_STRING_API const char* greyBackground;
+    extern CPP_GENERIC_TOOLBOX_STRING_API const char* redText;
+    extern CPP_GENERIC_TOOLBOX_STRING_API const char* greenText;
+    extern CPP_GENERIC_TOOLBOX_STRING_API const char* yellowText;
+    extern CPP_GENERIC_TOOLBOX_STRING_API const char* blueText;
+    extern CPP_GENERIC_TOOLBOX_STRING_API const char* magentaText;
+    extern CPP_GENERIC_TOOLBOX_STRING_API const char* cyanText;
+    extern CPP_GENERIC_TOOLBOX_STRING_API const char* whiteText;
+    extern CPP_GENERIC_TOOLBOX_STRING_API const char* redLightText;
+    extern CPP_GENERIC_TOOLBOX_STRING_API const char* greenLightText;
+    extern CPP_GENERIC_TOOLBOX_STRING_API const char* yellowLightText;
+    extern CPP_GENERIC_TOOLBOX_STRING_API const char* blueLightText;
+    extern CPP_GENERIC_TOOLBOX_STRING_API const char* magentaLightText;
+    extern CPP_GENERIC_TOOLBOX_STRING_API const char* cyanLightText;
+    extern CPP_GENERIC_TOOLBOX_STRING_API const char* whiteLightText;
+    extern CPP_GENERIC_TOOLBOX_STRING_API const char* greyText;
+    extern CPP_GENERIC_TOOLBOX_STRING_API const std::array<const char*, 6> rainbowColorList;
 #else
 #ifndef CPP_GENERIC_TOOLBOX_NOCOLOR
     // reset
@@ -213,7 +213,7 @@ namespace GenericToolbox {
 #else
   namespace StringManagementUtils{
     #ifdef CPP_GENERIC_TOOLBOX_STRING_COMPILED
-extern std::regex ansiRegex;
+extern CPP_GENERIC_TOOLBOX_STRING_API std::regex ansiRegex;
 #else
 static std::regex ansiRegex("\033((\\[((\\d+;)*\\d+)?[A-DHJKMRcfghilmnprsu])|\\(|\\))");
 #endif

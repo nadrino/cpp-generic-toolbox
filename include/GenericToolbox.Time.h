@@ -148,12 +148,12 @@ namespace GenericToolbox{
   namespace Time{
     namespace Internals{
       #ifdef CPP_GENERIC_TOOLBOX_TIME_COMPILED
-extern std::map<int, std::chrono::high_resolution_clock::time_point> lastTimePointMap;
+extern CPP_GENERIC_TOOLBOX_TIME_API std::map<int, std::chrono::high_resolution_clock::time_point> lastTimePointMap;
 #else
 static std::map<int, std::chrono::high_resolution_clock::time_point> lastTimePointMap{};
 #endif
       #ifdef CPP_GENERIC_TOOLBOX_TIME_COMPILED
-extern std::map<std::string, std::chrono::high_resolution_clock::time_point> lastTimePointMapStr;
+extern CPP_GENERIC_TOOLBOX_TIME_API std::map<std::string, std::chrono::high_resolution_clock::time_point> lastTimePointMapStr;
 #else
 static std::map<std::string, std::chrono::high_resolution_clock::time_point> lastTimePointMapStr{};
 #endif
