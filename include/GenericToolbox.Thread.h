@@ -13,6 +13,7 @@
 #include "GenericToolbox.Time.h"
 #include "GenericToolbox.Macro.h"
 
+#include <exception>
 #include <condition_variable>
 #include <functional>
 #include <iostream>
@@ -32,6 +33,7 @@ namespace GenericToolbox{
   struct WorkerEntry{
     int index{-1};
     std::shared_ptr<std::future<void>> thread{nullptr};
+    std::exception_ptr exception{nullptr};
 
     // signal handler
     std::function<void(int)>* fctToRunPtr{nullptr};
@@ -100,7 +102,7 @@ namespace GenericToolbox{
     int _nbThreads_{1};
 
     // Internals
-    bool _stopThreads_{false};
+    GenericToolbox::CopiableAtomic<bool> _stopThreads_{false};
 
     std::vector<WorkerEntry> _workerList_{};
     std::vector<JobEntry> _jobEntryList_{};

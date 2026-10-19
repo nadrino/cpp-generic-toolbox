@@ -129,6 +129,46 @@ int main() try {
   }
   require(calls == 2, "Thread workers");
 
+  // Exceptions must reach the caller after every worker has finished. The pool
+  // must also be reusable after a failed job, with or without persistent threads.
+  for( const auto nThreads : {1, 2, 4} ){
+    for( const auto cpuTimeSaver : {false, true} ){
+      GenericToolbox::ParallelWorker worker;
+      worker.setNThreads(nThreads);
+      worker.setCpuTimeSaverIsEnabled(cpuTimeSaver);
+      bool shouldFail{true};
+      int failingThread{-1};
+      std::atomic<int> completed{0};
+      worker.addJob("failure", [&](int index_){
+        GenericToolbox::ScopedGuard completedGuard{[]{}, [&]{ ++completed; }};
+        if( shouldFail and (failingThread == -1 or index_ == failingThread) ){
+          throw std::runtime_error("worker failure");
+        }
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+      });
+      for( failingThread = -1; failingThread < nThreads; ++failingThread ){
+        shouldFail = true;
+        completed = 0;
+        bool caught{false};
+        try{ worker.runJob("failure"); }
+        catch( const std::runtime_error& error ){
+          require(std::string(error.what()) == "worker failure", "original worker exception");
+          caught = true;
+        }
+        require(caught, "worker exception propagated");
+        require(completed == nThreads, "all workers joined after failure");
+        shouldFail = false;
+        worker.runJob("failure");
+        require(completed == 2 * nThreads, "pool reused after failure");
+      }
+      try{ worker.runJob([](int){ throw std::runtime_error("temporary job failure"); }); }
+      catch( const std::runtime_error& ){}
+      completed = 0;
+      worker.runJob([&](int){ ++completed; });
+      require(completed == nThreads, "temporary job removed after failure");
+    }
+  }
+
   std::istringstream bytes{"abcd"};
   GenericToolbox::DataStream stream;
   stream.load(bytes);

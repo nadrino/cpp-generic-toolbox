@@ -64,7 +64,11 @@ CPP_GENERIC_TOOLBOX_THREAD_INLINE void ParallelWorker::setPreParallelJob(const s
 CPP_GENERIC_TOOLBOX_THREAD_INLINE void ParallelWorker::runJob(const std::function<void(int)>& function_) {
     std::string tempName{std::to_string((unsigned long long)(void**)this)};
     this->addJob(tempName, function_);
-    this->runJob(tempName);
+    try{ this->runJob(tempName); }
+    catch(...){
+      this->removeJob(tempName);
+      throw;
+    }
     this->removeJob(tempName);
   }
 
@@ -84,20 +88,29 @@ CPP_GENERIC_TOOLBOX_THREAD_INLINE void ParallelWorker::runJob(const std::string 
 
     // request the jobs
     for( auto& thread : _workerList_ ){
+      thread.exception = nullptr;
       thread.fctToRunPtr = &jobPtr->function;
       thread.isEngaged.setValue(true );
     }
 
     // do the last job in the main thread
-    jobPtr->function(_nbThreads_ - 1);
+    std::exception_ptr exception;
+    try{ jobPtr->function(_nbThreads_ - 1); }
+    catch(...){ exception = std::current_exception(); }
 
     for( auto& worker : _workerList_ ){
       if( _isVerbose_ ) std::cout << "Waiting for worker #" << worker.index << " to be finish the job..." << std::endl;
       worker.isEngaged.waitUntilEqual( false );
+      if( not exception and worker.exception ){ exception = worker.exception; }
     }
 
     // CPU time saver stops the parallel threads when no job is requested
-    if( _cpuTimeSaverIsEnabled_ ){ this->stopThreads(); }
+    if( _cpuTimeSaverIsEnabled_ or exception ){ this->stopThreads(); }
+
+    if( exception ){
+      _lastJobTimer_.stop();
+      std::rethrow_exception(exception);
+    }
 
     // runs the post-job if set
     if( jobPtr->functionPostParallel ){ jobPtr->functionPostParallel(); }
@@ -167,7 +180,9 @@ CPP_GENERIC_TOOLBOX_THREAD_INLINE void ParallelWorker::threadWorker(int iThread_
       if( _stopThreads_ ){ break; } // if stop requested while in pause
 
       // run job
-      (*thisWorker->fctToRunPtr)(iThread_);
+      // Keep the worker alive and always release the caller, even when its job fails.
+      try{ (*thisWorker->fctToRunPtr)(iThread_); }
+      catch(...){ thisWorker->exception = std::current_exception(); }
 
       // reset
       thisWorker->isEngaged.setValue(false );
