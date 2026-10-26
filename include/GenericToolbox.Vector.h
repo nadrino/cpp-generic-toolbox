@@ -5,6 +5,8 @@
 #ifndef CPP_GENERIC_TOOLBOX_VECTOR_H
 #define CPP_GENERIC_TOOLBOX_VECTOR_H
 
+#include "GenericToolbox.Build.h"
+
 // ***************************
 //! Vector related tools
 // ***************************
@@ -13,16 +15,20 @@
 #include "GenericToolbox.Log.h"
 
 #include <functional>
+#include <utility>
 #include <algorithm>
 #include <numeric>
 #include <string>
 #include <vector>
 #include <cmath>
 #include <list>
+#include <cstdint>
 
+#if defined(__GNUC__) || defined(__clang__)
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-function"
 #pragma GCC diagnostic ignored "-Wunused-variable"
+#endif
 
 
 // Declaration section
@@ -34,12 +40,12 @@ namespace GenericToolbox{
   template<typename Elm, typename Val, typename Lambda> static int isIn(const Val& value_, const std::vector<Elm>& vector_, const Lambda& fetchElmValueFct_);
 
   template<typename T> static int findElementIndex( const T& element_, const std::vector<T>& vector_ );
-  static int findElementIndex(const char* element_, const std::vector<std::string>& vector_ );
+  CPP_GENERIC_TOOLBOX_VECTOR_STATIC int findElementIndex(const char* element_, const std::vector<std::string>& vector_ );
   template<typename T> static void insertInVector(std::vector<T> &vector_, const std::vector<T> &vectorToInsert_, size_t insertBeforeThisIndex_);
   template<typename T> static void insertInVector(std::vector<T> &vector_, const T &elementToInsert_, size_t insertBeforeThisIndex_);
   template<typename T> static void mergeInVector(std::vector<T> &vector_, const std::vector<T> &other_, bool allowDuplicates_ = true);
   template<typename T> static void addIfNotInVector(const T& element_, std::vector<T> &vector_);
-  static void addIfNotInVector(const char* element_, std::vector<std::string> &vector_);
+  CPP_GENERIC_TOOLBOX_VECTOR_STATIC void addIfNotInVector(const char* element_, std::vector<std::string> &vector_);
   template <typename Elm, typename Val, typename Lambda> static int findElementIndex(const Val& value_, const std::vector<Elm>& vector_, const Lambda& fetchElmValueFct_);
 
   // Generators
@@ -49,9 +55,11 @@ namespace GenericToolbox{
 
   // Stats
   template <typename T> static double getAverage(const std::vector<T>& vector_, const std::function<double(const T&)>& evalElementFct_ = [](const T& var){return var;});
+  template <typename T, typename Eval> static double getAverage(const std::vector<T>& vector_, Eval&& evalElementFct_);
   template<typename T> static double getAveragedSlope(const std::vector<T> &yValues_);
   template<typename T, typename TT> static double getAveragedSlope(const std::vector<T> &yValues_, const std::vector<TT> &xValues_);
   template <typename T> static double getStdDev(const std::vector<T>& vector_, const std::function<double(const T&)>& evalElementFct_ = [](const T& var){return var;});
+  template <typename T, typename Eval> static double getStdDev(const std::vector<T>& vector_, Eval&& evalElementFct_);
 
   // Sorting
   template <typename T, typename Lambda> static std::vector<size_t> getSortPermutation(const std::vector<T>& vectorToSort_, const Lambda& firstArgGoesFirstFct_ );
@@ -66,7 +74,7 @@ namespace GenericToolbox{
 
   // deprecated
   template <typename T> static bool doesElementIsInVector( const T& element_, const std::vector<T>& vector_ );
-  static bool doesElementIsInVector(const char* element_, const std::vector<std::string>& vector_);
+  CPP_GENERIC_TOOLBOX_VECTOR_STATIC bool doesElementIsInVector(const char* element_, const std::vector<std::string>& vector_);
   template <typename Elm, typename Val, typename Lambda> static int doesElementIsInVector(const Val& value_, const std::vector<Elm>& vector_, const Lambda& fetchElmValueFct_);
 
   // class
@@ -209,9 +217,7 @@ namespace GenericToolbox {
   template <typename T> static bool doesElementIsInVector(const T& element_, const std::vector<T>& vector_){
     return std::find(vector_.cbegin(), vector_.cend(), element_) != vector_.cend();
   }
-  static bool doesElementIsInVector(const char* element_, const std::vector<std::string>& vector_){
-    return std::find(vector_.cbegin(), vector_.cend(), element_) != vector_.cend();
-  }
+  CPP_GENERIC_TOOLBOX_VECTOR_STATIC bool doesElementIsInVector(const char* element_, const std::vector<std::string>& vector_);
   template <typename Elm, typename Val, typename Lambda> static int doesElementIsInVector(const Val& value_, const std::vector<Elm>& vector_, const Lambda& fetchElmValueFct_){
     return std::find_if( vector_.begin(), vector_.end(), [&](const Elm& t){ return fetchElmValueFct_(t) == value_; }) != vector_.end();
   }
@@ -220,11 +226,7 @@ namespace GenericToolbox {
     if( it == vector_.cend() ){ return -1; }
     return static_cast<int>( std::distance(vector_.cbegin(), it) );
   }
-  inline static int findElementIndex(const char* element_, const std::vector<std::string>& vector_ ){
-    auto it = std::find(vector_.cbegin(), vector_.cend(), element_);
-    if( it == vector_.cend() ){ return -1; }
-    return static_cast<int>( std::distance(vector_.cbegin(), it) );
-  }
+  CPP_GENERIC_TOOLBOX_VECTOR_INLINE CPP_GENERIC_TOOLBOX_VECTOR_STATIC int findElementIndex(const char* element_, const std::vector<std::string>& vector_ );
   template<typename T> inline static void insertInVector(std::vector<T> &vector_, const std::vector<T> &vectorToInsert_, size_t insertBeforeThisIndex_){
     if( insertBeforeThisIndex_ > vector_.size() ){
       throw std::runtime_error("GenericToolBox::insertInVector error: insertBeforeThisIndex_ >= vector_.size()");
@@ -253,11 +255,7 @@ namespace GenericToolbox {
       vector_.emplace_back(element_);
     }
   }
-  static void addIfNotInVector(const char* element_, std::vector<std::string> &vector_){
-    if( not GenericToolbox::doesElementIsInVector(element_, vector_) ){
-      vector_.emplace_back(element_);
-    }
-  }
+  CPP_GENERIC_TOOLBOX_VECTOR_STATIC void addIfNotInVector(const char* element_, std::vector<std::string> &vector_);
   template <typename Elm, typename Val, typename Lambda> inline static int findElementIndex(const Val& value_, const std::vector<Elm>& vector_, const Lambda& fetchElmValueFct_){
     auto it = std::find_if( vector_.begin(), vector_.end(), [&](const Elm& t){ return fetchElmValueFct_(t) == value_; });
     if( it == vector_.end() ){ return -1; }
@@ -279,6 +277,7 @@ namespace GenericToolbox {
   }
   template <typename T, typename TT> static std::vector<TT> convertVectorType( const std::vector<T>& vector_, std::function<TT(T)>& convertTypeFunction_ ){
     std::vector<TT> outVec;
+    outVec.reserve(vector_.size());
     for(const auto& element : vector_){
       outVec.emplace_back(convertTypeFunction_(element));
     }
@@ -287,6 +286,9 @@ namespace GenericToolbox {
 
   // Stats
   template <typename T> static double getAverage(const std::vector<T>& vector_, const std::function<double(const T&)>& evalElementFct_){
+    return getAverage<T, const std::function<double(const T&)>&>(vector_, evalElementFct_);
+  }
+  template <typename T, typename Eval> static double getAverage(const std::vector<T>& vector_, Eval&& evalElementFct_){
     double outVal = 0;
     for( auto& element : vector_ ){ outVal += static_cast<double>(evalElementFct_(element)); }
     return outVal / vector_.size();
@@ -311,6 +313,9 @@ namespace GenericToolbox {
     return a;
   }
   template <typename T> static double getStdDev(const std::vector<T>& vector_, const std::function<double(const T&)>& evalElementFct_){
+    return getStdDev<T, const std::function<double(const T&)>&>(vector_, evalElementFct_);
+  }
+  template <typename T, typename Eval> static double getStdDev(const std::vector<T>& vector_, Eval&& evalElementFct_){
     double outVal = 0;
     double mean = getAverage(vector_, evalElementFct_);
     for( auto& element : vector_ ){
@@ -577,5 +582,9 @@ namespace GenericToolbox {
 
 }
 
+
+#ifndef CPP_GENERIC_TOOLBOX_VECTOR_COMPILED
+#include "implementation/GenericToolbox.Vector.impl.h"
+#endif
 
 #endif // CPP_GENERIC_TOOLBOX_VECTOR_H

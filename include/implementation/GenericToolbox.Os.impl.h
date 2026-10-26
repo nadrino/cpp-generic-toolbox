@@ -1,0 +1,528 @@
+#pragma once
+
+namespace GenericToolbox {
+namespace Internals {
+CPP_GENERIC_TOOLBOX_OS_STATIC char * getEnvironmentVariable(char const envVarName_[]) {
+#if defined _WIN32 // getenv() is deprecated on Windows
+      char *buf{nullptr};
+      size_t sz;
+      // Preserve getenv's borrowed-pointer contract without returning a
+      // pointer into a temporary or leaking the allocation from _dupenv_s.
+      static thread_local std::string val;
+      if (_dupenv_s(&buf, &sz, envVarName_) || buf == nullptr) return nullptr;
+      val = buf;
+      free(buf);
+      return &val[0];
+#else
+      return getenv(envVarName_);
+#endif
+    }
+}
+
+namespace Internals {
+CPP_GENERIC_TOOLBOX_OS_STATIC bool expandEnvironmentVariables(const char *fname, char *xname) {
+      int ier, iter, lx, ncopy;
+      char *inp, *out, *x, *t, *buff;
+      const char *b, *c, *e;
+      const char *p;
+      int kBufSize{8192};
+      buff = new char[kBufSize * 4];
+
+      iter = 0; xname[0] = 0; inp = buff + kBufSize; out = inp + kBufSize;
+      inp[-1] = ' '; inp[0] = 0; out[-1] = ' ';
+      c = fname + strspn(fname, " \t\f\r");
+      //VP  if (isalnum(c[0])) { strcpy(inp, WorkingDirectory()); strcat(inp, "/"); } // add $cwd
+
+      strncat(inp, c, kBufSize);
+
+      again:
+      iter++; c = inp; ier = 0;
+      x = out; x[0] = 0;
+
+      p = nullptr; e = nullptr;
+      if (c[0] == '~' && c[1] == '/') { // ~/ case
+        std::string hd = GenericToolbox::getHomeDirectory();
+        p = hd.c_str();
+        e = c + 1;
+        if (p) {                         // we have smth to copy
+          strncpy(x, p, kBufSize);
+          x += strlen(p);
+          c = e;
+        } else {
+          ++ier;
+          ++c;
+        }
+      }
+//      else if (c[0] == '~' && c[1] != '/') { // ~user case
+//        n = int(strcspn(c+1, "/ "));
+//        // There is no overlap here as the buffer is segment in 4 strings of at most kBufSize
+//        strncpy(buff, c+1, n+1); // strncpy copy 'size-1' characters.
+//        std::string hd = GenericToolbox::getHomeDirectory(); // TO FIX this?
+//        e = c+1+n;
+//        if (!hd.empty()) {                   // we have smth to copy
+//          p = hd.c_str();
+//          strncpy(x, p, kBufSize);
+//          x += strlen(p);
+//          c = e;
+//        } else {
+//          x++[0] = c[0];
+//          //++ier;
+//          ++c;
+//        }
+//      }
+
+      for ( ; c[0]; c++) {
+
+        p = nullptr; e = nullptr;
+
+        if (c[0] == '.' && c[1] == '/' && c[-1] == ' ') { // $cwd
+          std::string wd = GenericToolbox::getCurrentWorkingDirectory();
+          strncpy(buff, wd.c_str(), kBufSize);
+          p = buff;
+          e = c + 1;
+        }
+        if (p) {                          // we have smth to copy */
+          strncpy(x, p, kBufSize); x += strlen(p); c = e-1; continue;
+        }
+
+        if (c[0] != '$') {                // not $, simple copy
+          x++[0] = c[0];
+        } else {                          // we have a $
+          b = c+1;
+          if (c[1] == '(') b++;
+          if (c[1] == '{') b++;
+          if (b[0] == '$')
+            e = b+1;
+          else
+            for (e = b; isalnum(e[0]) || e[0] == '_'; e++) ;
+          buff[0] = 0; strncat(buff, b, e-b);
+          p = GenericToolbox::Internals::getEnvironmentVariable(buff);
+          if (!p) {                      // too bad, try UPPER case
+            for (t = buff; (t[0] = toupper(t[0])); t++) ;
+            p = GenericToolbox::Internals::getEnvironmentVariable(buff);
+          }
+          if (!p) {                      // too bad, try Lower case
+            for (t = buff; (t[0] = tolower(t[0])); t++) ;
+            p = GenericToolbox::Internals::getEnvironmentVariable(buff);
+          }
+          if (!p && !strcmp(buff, "cwd")) { // it is $cwd
+            std::string wd = GenericToolbox::getCurrentWorkingDirectory();
+            strncpy(buff, wd.c_str(), kBufSize);
+            p = buff;
+          }
+          if (!p && !strcmp(buff, "$")) { // it is $$ (replace by GetPid())
+#if defined(_WIN32)
+            snprintf(buff,kBufSize*4, "%d", _getpid());
+#else
+            snprintf(buff,kBufSize*4, "%d", getpid());
+#endif
+            p = buff;
+          }
+          if (!p) {                      // too bad, nothing can help
+#ifdef WIN32
+            // if we're on windows, we can have \\SomeMachine\C$ - don't
+            // complain about that, if '$' is followed by nothing or a
+            // path delimiter.
+            if (c[1] && c[1]!='\\' && c[1]!=';' && c[1]!='/')
+               ier++;
+#else
+            ier++;
+#endif
+            x++[0] = c[0];
+          } else {                       // It is OK, copy result
+            int lp = int(strlen(p));
+            if (lp >= kBufSize) {
+              // make sure lx will be >= kBufSize (see below)
+              strncpy(x, p, kBufSize);
+              x += kBufSize;
+              break;
+            }
+            strcpy(x,p);
+            x += lp;
+            c = (b==c+1) ? e-1 : e;
+          }
+        }
+      }
+
+      x[0] = 0; lx = x - out;
+      if (ier && iter < 3) { strncpy(inp, out, kBufSize); goto again; }
+      ncopy = (lx >= kBufSize) ? kBufSize-1 : lx;
+      xname[0] = 0; strncat(xname, out, ncopy);
+
+      delete[] buff;
+
+      if (ier || ncopy != lx) {
+        return true;
+      }
+
+      return false;
+    }
+}
+
+namespace Internals {
+namespace Hardware {
+#ifdef CPP_GENERIC_TOOLBOX_OS_COMPILED
+size_t lastProcessMemoryUsage = 0;
+#endif
+}
+}
+
+CPP_GENERIC_TOOLBOX_OS_STATIC std::string getHomeDirectory() {
+#if defined(_WIN32)
+    const char* profile = Internals::getEnvironmentVariable("USERPROFILE");
+    if( profile != nullptr ){ return profile; }
+    const char* drive = Internals::getEnvironmentVariable("HOMEDRIVE");
+    std::string home = drive == nullptr ? "" : drive;
+    const char* path = Internals::getEnvironmentVariable("HOMEPATH");
+    if( path != nullptr ){ home += path; }
+    return home;
+#else
+    struct passwd *pw = getpwuid(getuid());
+    return {pw->pw_dir};
+#endif
+  }
+
+CPP_GENERIC_TOOLBOX_OS_STATIC std::string getCurrentWorkingDirectory() {
+#ifdef PATH_MAX
+    char cwd[PATH_MAX];
+#else
+    char cwd[1024];
+#endif
+#if defined(_WIN32)
+    if( _getcwd(cwd, sizeof(cwd)) == nullptr ){
+#else
+    if( getcwd(cwd, sizeof(cwd)) == nullptr ){
+#endif
+      throw std::runtime_error("getcwd() returned an invalid value.");
+    }
+    std::string output_cwd(cwd);
+    return output_cwd;
+  }
+
+CPP_GENERIC_TOOLBOX_OS_STATIC std::string expandEnvironmentVariables(const std::string &filePath_) {
+//#define USE_BASH_TO_EXPAND // VERY SLOW IN FACT...
+#ifdef USE_BASH_TO_EXPAND
+    std::array<char, PATH_MAX> buffer{};
+    std::string result;
+
+    std::string command = "echo " + filePath_;
+    std::unique_ptr<FILE, int(*)(FILE*)> pipe(popen(command.c_str(), "r"), pclose);
+    if( pipe == nullptr ){ return filePath_; }
+
+    std::FILE* pipe_ptr = pipe.get();
+    while (std::size_t n = std::fread(buffer.data(), sizeof(char), buffer.size(), pipe_ptr)) {
+      result.append(buffer.data(), n-1);
+    }
+
+    return result;
+#else
+    //    char outputName[PATH_MAX];
+    char outputName[8192];
+    Internals::expandEnvironmentVariables(filePath_.c_str(), outputName);
+
+    return {outputName};
+#endif
+  }
+
+CPP_GENERIC_TOOLBOX_OS_STATIC std::string getExecutableName() {
+    std::string outStr;
+#if defined(__linux__) || defined(__linux) || defined(linux) || defined(__gnu_linux__) //check defines for your setup
+    std::ifstream("/proc/self/comm") >> outStr;
+#elif defined(_WIN32)
+    char buf[MAX_PATH];
+    GetModuleFileNameA(nullptr, buf, MAX_PATH);
+    outStr = buf;
+#else
+    outStr = __progname;
+#endif
+    return outStr;
+  }
+
+CPP_GENERIC_TOOLBOX_OS_STATIC std::string getUserName() {
+#if defined(_WIN32)
+    return GenericToolbox::expandEnvironmentVariables("$USERNAME");
+#else
+    return GenericToolbox::expandEnvironmentVariables("$USER");
+#endif
+  }
+
+CPP_GENERIC_TOOLBOX_OS_STATIC std::string getHostName() {
+#if defined(_WIN32)
+    char name[MAX_COMPUTERNAME_LENGTH + 1]{};
+    DWORD size = sizeof(name);
+    if( not GetComputerNameA(name, &size) ){ return {}; }
+    return {name, size};
+#else
+    utsname s{};
+    uname(&s);
+    return s.nodename;
+#endif
+  }
+
+CPP_GENERIC_TOOLBOX_OS_STATIC std::string getOsName() {
+#if defined(_WIN64)
+    return "Windows 64-bit";
+#elif defined(_WIN32)
+    return "Windows 32-bit";
+#elif defined(__FreeBSD__)
+    return "FreeBSD";
+#elif (defined(__APPLE__) || defined(__MACH__) || defined(__linux__))
+    utsname s{};
+    uname(&s);
+    return s.sysname;
+#else
+    return "Unknown OS";
+#endif
+  }
+
+CPP_GENERIC_TOOLBOX_OS_STATIC std::string getOsVersion() {
+#if defined(_WIN32)
+    // RtlGetVersion reports the installed version independently of the
+    // application's compatibility manifest.
+    using GetVersionFunction = LONG (WINAPI*)(OSVERSIONINFOW*);
+    const auto module = GetModuleHandleW(L"ntdll.dll");
+    if( module == nullptr ){ return {}; }
+    const auto getVersion = reinterpret_cast<GetVersionFunction>(GetProcAddress(module, "RtlGetVersion"));
+    OSVERSIONINFOW version{};
+    version.dwOSVersionInfoSize = sizeof(version);
+    if( getVersion == nullptr or getVersion(&version) != 0 ){ return {}; }
+    return std::to_string(version.dwMajorVersion) + "." + std::to_string(version.dwMinorVersion)
+        + "." + std::to_string(version.dwBuildNumber);
+#else
+    utsname s{};
+    uname(&s);
+    return s.release;
+#endif
+  }
+
+CPP_GENERIC_TOOLBOX_OS_STATIC std::string getOsArchitecture() {
+#if defined(_WIN32)
+    SYSTEM_INFO info{};
+    GetNativeSystemInfo(&info);
+    switch( info.wProcessorArchitecture ){
+      case PROCESSOR_ARCHITECTURE_AMD64: return "x86_64";
+      case PROCESSOR_ARCHITECTURE_INTEL: return "x86";
+      case PROCESSOR_ARCHITECTURE_ARM: return "arm";
+      case PROCESSOR_ARCHITECTURE_ARM64: return "aarch64";
+      default: return "Unknown";
+    }
+#else
+    utsname s{};
+    uname(&s);
+    return s.machine;
+#endif
+  }
+
+#ifdef CPP_GENERIC_TOOLBOX_OS_COMPILED
+CpuStat cs{};
+#endif
+
+CPP_GENERIC_TOOLBOX_OS_STATIC size_t getProcessMemoryUsage() {
+    /**
+     * Returns the current resident set size (physical memory use) measured
+     * in bytes, or zero if the value cannot be determined on this OS.
+     */
+#if defined(_WIN32)
+    // Windows
+    PROCESS_MEMORY_COUNTERS memCounter;
+    if (GetProcessMemoryInfo(GetCurrentProcess(), &memCounter, sizeof memCounter))
+        return (size_t)memCounter.WorkingSetSize;
+    return (size_t)0; /* get process mem info failed */
+
+#elif defined(__APPLE__) && defined(__MACH__)
+    // MacOS
+    struct mach_task_basic_info info{};
+    mach_msg_type_number_t count = MACH_TASK_BASIC_INFO_COUNT;
+    if (task_info(mach_task_self(), MACH_TASK_BASIC_INFO, (task_info_t)&info, &count) == KERN_SUCCESS)
+      return (size_t)info.resident_size;
+    return (size_t)0; /* query failed */
+
+
+#elif defined(__linux__) || defined(__linux) || defined(linux) || defined(__gnu_linux__)
+    // Linux
+//    long rss = 0L;
+//    FILE* fp = NULL;
+//    if ( (fp = fopen( "/proc/self/statm", "r" )) == NULL )
+//        return (size_t)0L;      /* Can't open? */
+//    if ( fscanf( fp, "%*s%ld", &rss ) != 1 )
+//    {
+//        fclose( fp );
+//        return (size_t)0L;      /* Can't read? */
+//    }
+//    fclose( fp );
+//    return (size_t)rss * (size_t)sysconf( _SC_PAGESIZE);
+    // Physical Memory currently used by current process
+    // https://stackoverflow.com/questions/63166/how-to-determine-cpu-and-memory-consumption-from-inside-a-process
+    FILE* file = fopen("/proc/self/status", "r");
+    size_t result{0};
+    char line[128];
+
+    while (fgets(line, 128, file) != nullptr){
+      if (strncmp(line, "VmRSS:", 6) == 0){
+        result = strlen(line);
+        const char* p = line;
+        while (*p <'0' || *p > '9') p++;
+        line[result-3] = '\0';
+        result = size_t(atol(p));
+        break;
+      }
+    }
+    fclose(file);
+    return result*1000;
+#else
+    // AIX, BSD, Solaris, and Unknown OS
+    return (size_t)0L;          /* Unsupported. */
+
+#endif
+  }
+
+CPP_GENERIC_TOOLBOX_OS_STATIC size_t getProcessMaxMemoryUsage() {
+    /**
+     * Returns the peak (maximum so far) resident set size (physical
+     * memory use) measured in bytes, or zero if the value cannot be
+     * determined on this OS.
+     */
+#if defined(_WIN32)
+    // Windows
+    PROCESS_MEMORY_COUNTERS info;
+    GetProcessMemoryInfo( GetCurrentProcess( ), &info, sizeof(info) );
+    return (size_t)info.PeakWorkingSetSize;
+
+#elif defined(__APPLE__) && defined(__MACH__)
+    // MacOS
+    struct mach_task_basic_info info{};
+    mach_msg_type_number_t count = MACH_TASK_BASIC_INFO_COUNT;
+    if (task_info(mach_task_self(), MACH_TASK_BASIC_INFO, (task_info_t)&info, &count) == KERN_SUCCESS)
+      return (size_t)info.resident_size_max;
+    return (size_t)0; /* query failed */
+
+#elif defined(__linux__) || defined(__linux) || defined(linux) || defined(__gnu_linux__)
+    // Linux
+    struct rusage rusage;
+    if (!getrusage(RUSAGE_SELF, &rusage))
+        return (size_t)rusage.ru_maxrss;
+    return (size_t)0; /* query failed */
+
+#elif (defined(_AIX) || defined(__TOS__AIX__)) || (defined(__sun__) || defined(__sun) || defined(sun) && (defined(__SVR4) || defined(__svr4__)))
+    // AIX and Solaris
+    struct psinfo psinfo;
+    int fd = -1;
+    if ( (fd = open( "/proc/self/psinfo", O_RDONLY )) == -1 )
+        return (size_t)0L;      /* Can't open? */
+    if ( read( fd, &psinfo, sizeof(psinfo) ) != sizeof(psinfo) )
+    {
+        close( fd );
+        return (size_t)0L;      /* Can't read? */
+    }
+    close( fd );
+    return (size_t)(psinfo.pr_rssize * 1024L);
+#else
+    // Unknown OS
+    return (size_t)0L;          /* Unsupported. */
+#endif
+  }
+
+CPP_GENERIC_TOOLBOX_OS_STATIC double getCpuUsageByProcess() {
+    return cs.getCpuUsageByProcess();
+  }
+
+CPP_GENERIC_TOOLBOX_OS_STATIC double getCpuNbAvailableCores() {
+    return std::thread::hardware_concurrency();
+  }
+
+CPP_GENERIC_TOOLBOX_OS_STATIC long getProcessMemoryUsageDiffSinceLastCall() {
+    size_t currentProcessMemoryUsage = getProcessMemoryUsage();
+    long outVal = static_cast<long>(currentProcessMemoryUsage) - static_cast<long>(Internals::Hardware::lastProcessMemoryUsage);
+    Internals::Hardware::lastProcessMemoryUsage = currentProcessMemoryUsage;
+    return outVal;
+  }
+
+CPP_GENERIC_TOOLBOX_OS_STATIC double getFreeDiskSpacePercent( const std::string& path_ ) {
+    return double( getFreeDiskSpace(path_) )/double( getTotalDiskSpace(path_) );
+  }
+
+CPP_GENERIC_TOOLBOX_OS_STATIC unsigned long long getFreeDiskSpace( const std::string& path_ ) {
+#if defined(_WIN32)
+    ULARGE_INTEGER freeBytes{};
+    if( not GetDiskFreeSpaceExA(path_.c_str(), nullptr, nullptr, &freeBytes) ){ return 0; }
+    return freeBytes.QuadPart;
+#else
+    struct statvfs stat{};
+    if( statvfs(path_.c_str(), &stat) != 0 ){ return 0; }
+    return stat.f_bsize * static_cast<unsigned long long>(stat.f_bfree);
+#endif
+  }
+
+CPP_GENERIC_TOOLBOX_OS_STATIC unsigned long long getTotalDiskSpace( const std::string& path_ ) {
+#if defined(_WIN32)
+    ULARGE_INTEGER totalBytes{};
+    if( not GetDiskFreeSpaceExA(path_.c_str(), nullptr, &totalBytes, nullptr) ){ return 0; }
+    return totalBytes.QuadPart;
+#else
+    struct statvfs stat{};
+    if( statvfs(path_.c_str(), &stat) != 0 ){ return 0; }
+    return stat.f_bsize * static_cast<unsigned long long>(stat.f_blocks);
+#endif
+  }
+
+CPP_GENERIC_TOOLBOX_OS_STATIC int getTerminalWidth() {
+    int outWith = 0;
+#if defined(_WIN32)
+    CONSOLE_SCREEN_BUFFER_INFO csbi{};
+    if( not GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &csbi) ){ return 0; }
+    outWith = (int)(csbi.dwSize.X);
+//    outWith = (int)(csbi.dwSize.Y);
+#elif defined(__linux__) || defined(__linux) || defined(linux) || defined(__gnu_linux__) \
+    || (defined(_AIX) || defined(__TOS__AIX__)) || (defined(__sun__) || defined(__sun) || defined(sun) && (defined(__SVR4) || defined(__svr4__))) \
+    || ( defined(__APPLE__) && defined(__MACH__) )
+    struct winsize winSize{};
+    ioctl(fileno(stdout), TIOCGWINSZ, &winSize);
+    outWith = (int)(winSize.ws_col);
+//    outWith = (int)(winSize.ws_row);
+#elif defined(__SWITCH__)
+    outWith = consoleGetDefault()->consoleWidth;
+#endif // Windows/Linux
+    return outWith;
+  }
+
+CPP_GENERIC_TOOLBOX_OS_STATIC int getTerminalHeight() {
+    int outWith = 0;
+#if defined(_WIN32)
+    CONSOLE_SCREEN_BUFFER_INFO csbi{};
+    if( not GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &csbi) ){ return 0; }
+//    outWith = (int)(csbi.dwSize.X);
+    outWith = (int)(csbi.dwSize.Y);
+#elif defined(__linux__) || defined(__linux) || defined(linux) || defined(__gnu_linux__) \
+    || (defined(_AIX) || defined(__TOS__AIX__)) || (defined(__sun__) || defined(__sun) || defined(sun) && (defined(__SVR4) || defined(__svr4__))) \
+    || ( defined(__APPLE__) && defined(__MACH__) )
+    struct winsize w{};
+    ioctl(fileno(stdout), TIOCGWINSZ, &w);
+//    outWith = (int)(w.ws_col);
+    outWith = (int)(w.ws_row);
+#elif defined(__SWITCH__)
+    outWith = consoleGetDefault()->consoleHeight;
+#endif // Windows/Linux
+    return outWith;
+  }
+
+CPP_GENERIC_TOOLBOX_OS_STATIC std::vector<std::string> getOutputOfShellCommand(const std::string& cmd_) {
+    // Inspired from: https://stackoverflow.com/questions/478898/how-do-i-execute-a-command-and-get-the-output-of-the-command-within-c-using-po
+#if defined(_WIN32)
+    std::unique_ptr<FILE, decltype(&_pclose)> pipe(_popen(cmd_.c_str(), "r"), _pclose);
+#else
+    std::unique_ptr<FILE, int(*)(FILE*)> pipe(popen(cmd_.c_str(), "r"), pclose);
+#endif
+
+    // in case the terminal couldn't be opened
+    if( pipe == nullptr ){ return {}; }
+
+    // read and store the outputs
+    std::array<char, 128> buffer{};
+    std::vector<std::string> output;
+    while( fgets( buffer.data(), buffer.size(), pipe.get() ) != nullptr ){
+      output.emplace_back( buffer.data() );
+      GenericToolbox::replaceSubstringInsideInputString(output.back(), "\n", "");
+    }
+    return output;
+  }
+}

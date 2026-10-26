@@ -5,6 +5,11 @@
 #ifndef GENERICTOOLBOX_YAMLUTILS_H
 #define GENERICTOOLBOX_YAMLUTILS_H
 
+#include "GenericToolbox.Build.h"
+
+
+#include "GenericToolbox.Fs.h"
+#include "GenericToolbox.String.h"
 
 #include "yaml-cpp/yaml.h"
 
@@ -17,8 +22,8 @@
 namespace GenericToolbox {
   namespace Yaml {
 
-  inline YAML::Node readConfigFile(const std::string& configFilePath_);
-  inline std::string toJsonString(const YAML::Node& yamlConfig_);
+  CPP_GENERIC_TOOLBOX_YAML_INLINE YAML::Node readConfigFile(const std::string& configFilePath_);
+  CPP_GENERIC_TOOLBOX_YAML_INLINE std::string toJsonString(const YAML::Node& yamlConfig_);
 
   template<class T> inline auto fetchValue(const YAML::Node& yamlConfig_, const std::string& keyName_) -> T;
   template<class T> inline auto fetchValue(const YAML::Node& yamlConfig_, const std::string& keyName_, const T& defaultValue_) -> T;
@@ -37,22 +42,8 @@ namespace GenericToolbox {
 namespace GenericToolbox {
   namespace Yaml {
 
-    inline YAML::Node readConfigFile(const std::string &configFilePath_) {
-      if( not GenericToolbox::isFile(configFilePath_) ){
-        std::cout << "\"" << configFilePath_ << "\" could not be found." << std::endl;
-        throw std::runtime_error("file not found.");
-      }
-      return YAML::LoadFile(configFilePath_);
-    }
-    inline std::string toJsonString(const YAML::Node& yamlConfig_){
-      YAML::Emitter emitter;
-      emitter << YAML::DoubleQuoted << YAML::Flow << YAML::BeginSeq << yamlConfig_;
-      std::string out{emitter.c_str() + 1};
-
-      // workaround for old version of YAML: !<!> was used to identify strings
-      GenericToolbox::replaceSubstringInsideInputString(out, "!<!> ", " ");
-      return out;
-    }
+    CPP_GENERIC_TOOLBOX_YAML_INLINE YAML::Node readConfigFile(const std::string &configFilePath_);
+    CPP_GENERIC_TOOLBOX_YAML_INLINE std::string toJsonString(const YAML::Node& yamlConfig_);
 
     template<class T> inline auto fetchValue(const YAML::Node& yamlConfig_, const std::string& keyName_) -> T{
 
@@ -102,5 +93,9 @@ namespace GenericToolbox {
 
   }
 }
+
+#ifndef CPP_GENERIC_TOOLBOX_YAML_COMPILED
+#include "implementation/GenericToolbox.Yaml.impl.h"
+#endif
 
 #endif //GENERICTOOLBOX_YAMLUTILS_H

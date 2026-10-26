@@ -1,0 +1,170 @@
+#pragma once
+
+#if defined(_MSC_VER)
+#include <cstddef>
+namespace GenericToolbox {
+  using ssize_t = std::ptrdiff_t;
+}
+#endif
+
+// The CMake module targets propagate these definitions to their consumers.
+// Direct header inclusion remains header-only unless explicitly selected.
+
+// Shared data needs explicit imports on Windows; functions are auto-exported.
+#if defined(_WIN32) && defined(CPP_GENERIC_TOOLBOX_STRING_SHARED)
+#if defined(CPP_GENERIC_TOOLBOX_STRING_EXPORTS)
+#define CPP_GENERIC_TOOLBOX_STRING_API __declspec(dllexport)
+#else
+#define CPP_GENERIC_TOOLBOX_STRING_API __declspec(dllimport)
+#endif
+#else
+#define CPP_GENERIC_TOOLBOX_STRING_API
+#endif
+
+// Shared data needs explicit imports on Windows; functions are auto-exported.
+#if defined(_WIN32) && defined(CPP_GENERIC_TOOLBOX_OS_SHARED)
+#if defined(CPP_GENERIC_TOOLBOX_OS_EXPORTS)
+#define CPP_GENERIC_TOOLBOX_OS_API __declspec(dllexport)
+#else
+#define CPP_GENERIC_TOOLBOX_OS_API __declspec(dllimport)
+#endif
+#else
+#define CPP_GENERIC_TOOLBOX_OS_API
+#endif
+
+// Shared data needs explicit imports on Windows; functions are auto-exported.
+#if defined(_WIN32) && defined(CPP_GENERIC_TOOLBOX_UTILS_SHARED)
+#if defined(CPP_GENERIC_TOOLBOX_UTILS_EXPORTS)
+#define CPP_GENERIC_TOOLBOX_UTILS_API __declspec(dllexport)
+#else
+#define CPP_GENERIC_TOOLBOX_UTILS_API __declspec(dllimport)
+#endif
+#else
+#define CPP_GENERIC_TOOLBOX_UTILS_API
+#endif
+
+// Shared data needs explicit imports on Windows; functions are auto-exported.
+#if defined(_WIN32) && defined(CPP_GENERIC_TOOLBOX_TIME_SHARED)
+#if defined(CPP_GENERIC_TOOLBOX_TIME_EXPORTS)
+#define CPP_GENERIC_TOOLBOX_TIME_API __declspec(dllexport)
+#else
+#define CPP_GENERIC_TOOLBOX_TIME_API __declspec(dllimport)
+#endif
+#else
+#define CPP_GENERIC_TOOLBOX_TIME_API
+#endif
+
+// Shared data needs explicit imports on Windows; functions are auto-exported.
+#if defined(_WIN32) && defined(CPP_GENERIC_TOOLBOX_ROOT_SHARED)
+#if defined(CPP_GENERIC_TOOLBOX_ROOT_EXPORTS)
+#define CPP_GENERIC_TOOLBOX_ROOT_API __declspec(dllexport)
+#else
+#define CPP_GENERIC_TOOLBOX_ROOT_API __declspec(dllimport)
+#endif
+#else
+#define CPP_GENERIC_TOOLBOX_ROOT_API
+#endif
+
+#ifdef CPP_GENERIC_TOOLBOX_MACRO_COMPILED
+#define CPP_GENERIC_TOOLBOX_MACRO_INLINE
+#define CPP_GENERIC_TOOLBOX_MACRO_STATIC
+#else
+#define CPP_GENERIC_TOOLBOX_MACRO_INLINE inline
+#define CPP_GENERIC_TOOLBOX_MACRO_STATIC static
+#endif
+
+#ifdef CPP_GENERIC_TOOLBOX_LOG_COMPILED
+#define CPP_GENERIC_TOOLBOX_LOG_INLINE
+#define CPP_GENERIC_TOOLBOX_LOG_STATIC
+#else
+#define CPP_GENERIC_TOOLBOX_LOG_INLINE inline
+#define CPP_GENERIC_TOOLBOX_LOG_STATIC static
+#endif
+
+#ifdef CPP_GENERIC_TOOLBOX_STRING_COMPILED
+#define CPP_GENERIC_TOOLBOX_STRING_INLINE
+#define CPP_GENERIC_TOOLBOX_STRING_STATIC
+#else
+#define CPP_GENERIC_TOOLBOX_STRING_INLINE inline
+#define CPP_GENERIC_TOOLBOX_STRING_STATIC static
+#endif
+
+#ifdef CPP_GENERIC_TOOLBOX_OS_COMPILED
+#define CPP_GENERIC_TOOLBOX_OS_INLINE
+#define CPP_GENERIC_TOOLBOX_OS_STATIC
+#else
+#define CPP_GENERIC_TOOLBOX_OS_INLINE inline
+#define CPP_GENERIC_TOOLBOX_OS_STATIC static
+#endif
+
+#ifdef CPP_GENERIC_TOOLBOX_FS_COMPILED
+#define CPP_GENERIC_TOOLBOX_FS_INLINE
+#define CPP_GENERIC_TOOLBOX_FS_STATIC
+#else
+#define CPP_GENERIC_TOOLBOX_FS_INLINE inline
+#define CPP_GENERIC_TOOLBOX_FS_STATIC static
+#endif
+
+#ifdef CPP_GENERIC_TOOLBOX_VECTOR_COMPILED
+#define CPP_GENERIC_TOOLBOX_VECTOR_INLINE
+#define CPP_GENERIC_TOOLBOX_VECTOR_STATIC
+#else
+#define CPP_GENERIC_TOOLBOX_VECTOR_INLINE inline
+#define CPP_GENERIC_TOOLBOX_VECTOR_STATIC static
+#endif
+
+#ifdef CPP_GENERIC_TOOLBOX_UTILS_COMPILED
+#define CPP_GENERIC_TOOLBOX_UTILS_INLINE
+#define CPP_GENERIC_TOOLBOX_UTILS_STATIC
+#else
+#define CPP_GENERIC_TOOLBOX_UTILS_INLINE inline
+#define CPP_GENERIC_TOOLBOX_UTILS_STATIC static
+#endif
+
+#ifdef CPP_GENERIC_TOOLBOX_TIME_COMPILED
+#define CPP_GENERIC_TOOLBOX_TIME_INLINE
+#define CPP_GENERIC_TOOLBOX_TIME_STATIC
+#else
+#define CPP_GENERIC_TOOLBOX_TIME_INLINE inline
+#define CPP_GENERIC_TOOLBOX_TIME_STATIC static
+#endif
+
+#ifdef CPP_GENERIC_TOOLBOX_THREAD_COMPILED
+#define CPP_GENERIC_TOOLBOX_THREAD_INLINE
+#define CPP_GENERIC_TOOLBOX_THREAD_STATIC
+#else
+#define CPP_GENERIC_TOOLBOX_THREAD_INLINE inline
+#define CPP_GENERIC_TOOLBOX_THREAD_STATIC static
+#endif
+
+#ifdef CPP_GENERIC_TOOLBOX_STREAM_COMPILED
+#define CPP_GENERIC_TOOLBOX_STREAM_INLINE
+#define CPP_GENERIC_TOOLBOX_STREAM_STATIC
+#else
+#define CPP_GENERIC_TOOLBOX_STREAM_INLINE inline
+#define CPP_GENERIC_TOOLBOX_STREAM_STATIC static
+#endif
+
+#ifdef CPP_GENERIC_TOOLBOX_ROOT_COMPILED
+#define CPP_GENERIC_TOOLBOX_ROOT_INLINE
+#define CPP_GENERIC_TOOLBOX_ROOT_STATIC
+#else
+#define CPP_GENERIC_TOOLBOX_ROOT_INLINE inline
+#define CPP_GENERIC_TOOLBOX_ROOT_STATIC static
+#endif
+
+#ifdef CPP_GENERIC_TOOLBOX_JSON_COMPILED
+#define CPP_GENERIC_TOOLBOX_JSON_INLINE
+#define CPP_GENERIC_TOOLBOX_JSON_STATIC
+#else
+#define CPP_GENERIC_TOOLBOX_JSON_INLINE inline
+#define CPP_GENERIC_TOOLBOX_JSON_STATIC static
+#endif
+
+#ifdef CPP_GENERIC_TOOLBOX_YAML_COMPILED
+#define CPP_GENERIC_TOOLBOX_YAML_INLINE
+#define CPP_GENERIC_TOOLBOX_YAML_STATIC
+#else
+#define CPP_GENERIC_TOOLBOX_YAML_INLINE inline
+#define CPP_GENERIC_TOOLBOX_YAML_STATIC static
+#endif
